@@ -17,12 +17,6 @@ namespace
 	{
 		{"ps3.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
 	};
-
-	bool						WantReset = false;
-	
-	std::string					Message;
-	uint32_t					MessageTime;
-	bool						PCESkipHack;	
 }
 
 
@@ -36,6 +30,8 @@ void						MednafenEmu::Init				()
 			Settings.push_back(PS3Settings[i]);
 		}
 
+		Buffer = new Texture(1920, 1080);
+
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(vbamGetVBAM());
 		MDFNI_InitializeModules(externalSystems);
@@ -46,22 +42,29 @@ void						MednafenEmu::Init				()
 		MDFNI_Initialize(Paths.Build("mednafen").c_str(), Settings);
 	}
 	
-	IsInitialized = true;
+	IsInitialized = true;	
 }
 
 void						MednafenEmu::Quit				()
 {
 	if(IsInitialized)
 	{
+		delete Buffer;
+	
 		CloseGame();
 		MDFNI_Kill();
 	}
+	
+	IsInitialized = false;
 }
 
 void						MednafenEmu::DisplayMessage		(std::string aMessage)
 {
-	Message = aMessage;
-	MessageTime = MDFND_GetTime();
+	if(IsInitialized && IsLoaded)
+	{
+		Message = aMessage;
+		MessageTime = MDFND_GetTime();
+	}
 }
 							
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
@@ -83,7 +86,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 	
-		Buffer = new Texture(GameInfo->fb_width, GameInfo->fb_height);
 		Surface = new MDFN_Surface(0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));	
 		Inputs = new InputHandler(GameInfo);
 		TextFile = new TextViewer(aFileName + ".txt");
@@ -112,14 +114,12 @@ void						MednafenEmu::CloseGame			()
 	
 		MDFNI_CloseGame();
 		
-		if(Buffer)			delete Buffer;	
-		if(Inputs)			delete Inputs;
-		if(Surface)			delete Surface;
-		if(TextFile)		delete TextFile;
+		delete Inputs;
+		delete Surface;
+		delete TextFile;
 		
 		GameInfo = 0;
 		Surface = 0;
-		Buffer = 0;
 		Inputs = 0;
 		TextFile = 0;
 		
@@ -127,91 +127,83 @@ void						MednafenEmu::CloseGame			()
 	}
 }
 
-bool						MednafenEmu::IsGameLoaded		()
-{
-	return IsLoaded;
-}
-
-
 void						MednafenEmu::Frame				()
 {
-	if(!IsLoaded)
+	if(IsInitialized && IsLoaded)
 	{
-		return;
-	}
-
-	Counter.Tick();
-
-	Inputs->Process();
-
-	memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
-
-	EmulateSpecStruct espec;
-	memset(&espec, 0, sizeof(EmulateSpecStruct));
-	espec.surface = Surface;
-	espec.LineWidths = VideoWidths;
-	espec.soundmultiplier = 1;
-	espec.SoundRate = 48000;
-	espec.SoundBuf = Samples;
-	espec.SoundBufMaxSize = 48000;
-	espec.SoundVolume = 1;
-	espec.NeedRewind = PS3Input::ButtonPressed(0, PS3_BUTTON_L2);
-	espec.skip = !Counter.DrawNow() && !PCESkipHack;
-	MDFNI_Emulate(&espec);
-
-	DisplayRect = espec.DisplayRect;
+		Counter.Tick();
 	
-	if(Counter.DrawNow())
-	{
-		Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
+		Inputs->Process();
+	
+		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
+	
+		EmulateSpecStruct espec;
+		memset(&espec, 0, sizeof(EmulateSpecStruct));
+		espec.surface = Surface;
+		espec.LineWidths = VideoWidths;
+		espec.soundmultiplier = 1;
+		espec.SoundRate = 48000;
+		espec.SoundBuf = Samples;
+		espec.SoundBufMaxSize = 48000;
+		espec.SoundVolume = 1;
+		espec.NeedRewind = PS3Input::ButtonPressed(0, PS3_BUTTON_L2);
+		espec.skip = !Counter.DrawNow() && !PCESkipHack;
+		MDFNI_Emulate(&espec);
+	
+		DisplayRect = espec.DisplayRect;
 		
-		if(GameInfo->soundchan > 1)
+		if(Counter.DrawNow())
 		{
-			PS3Audio::AddSamples((uint32_t*)Samples, espec.SoundBufSize);
-		}
-		else
-		{
-			for(int i = 0; i != espec.SoundBufSize; i ++)
-			{
-				SamplesUp[i * 2] = Samples[i];
-				SamplesUp[i * 2 + 1] = Samples[i];
-			}
-			PS3Audio::AddSamples((uint32_t*)SamplesUp, espec.SoundBufSize);			
-		}
-		
-		uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : espec.DisplayRect.x;
-		uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : espec.DisplayRect.w;
-
-		uint32_t* pix = Buffer->GetPixels();
-		uint32_t pixw = Buffer->GetWidth();
-		for(int i = 0; i != espec.DisplayRect.h; i ++)
-		{
-			for(int j = 0; j != real_width; j ++)
-			{
-				pix[i * pixw + j] = Surface->pixels[(i + espec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
-			}
-		}
-		
-		PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
-
-		if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
-		{
-			char buffer[128];
-			snprintf(buffer, 128, "%d", Counter.GetFPS());
-			FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
-		}
+			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
 			
-		if(MDFND_GetTime() - MessageTime < 5000)
-		{
-			FontManager::GetBigFont()->PutString(Message, real_x + 2, espec.DisplayRect.y + 2 + 14, 0xFFFFFFFF);
-		}
-
-		PS3Video::Flip();					
-	}
+			if(GameInfo->soundchan > 1)
+			{
+				PS3Audio::AddSamples((uint32_t*)Samples, espec.SoundBufSize);
+			}
+			else
+			{
+				for(int i = 0; i != espec.SoundBufSize; i ++)
+				{
+					SamplesUp[i * 2] = Samples[i];
+					SamplesUp[i * 2 + 1] = Samples[i];
+				}
+				PS3Audio::AddSamples((uint32_t*)SamplesUp, espec.SoundBufSize);			
+			}
+			
+			uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : espec.DisplayRect.x;
+			uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : espec.DisplayRect.w;
 	
-	if(!PS3Input::ButtonPressed(0, PS3_BUTTON_L3) && PS3Input::ButtonDown(0, PS3_BUTTON_R3))
-	{
-		MednafenCommands().Do();
+			uint32_t* pix = Buffer->GetPixels();
+			uint32_t pixw = Buffer->GetWidth();
+			for(int i = 0; i != espec.DisplayRect.h; i ++)
+			{
+				for(int j = 0; j != real_width; j ++)
+				{
+					pix[i * pixw + j] = Surface->pixels[(i + espec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
+				}
+			}
+			
+			PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	
+			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
+			{
+				char buffer[128];
+				snprintf(buffer, 128, "%d", Counter.GetFPS());
+				FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
+			}
+				
+			if(MDFND_GetTime() - MessageTime < 5000)
+			{
+				FontManager::GetBigFont()->PutString(Message, real_x + 2, espec.DisplayRect.y + 2 + 14, 0xFFFFFFFF);
+			}
+	
+			PS3Video::Flip();					
+		}
+		
+		if(!PS3Input::ButtonPressed(0, PS3_BUTTON_L3) && PS3Input::ButtonDown(0, PS3_BUTTON_R3))
+		{
+			MednafenCommands().Do();
+		}
 	}
 }
 
@@ -219,30 +211,11 @@ void						MednafenEmu::DummyFrame			()
 {
 	if(IsLoaded)
 	{
+//TODO: Change to present frame
 //		PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), false, 0);
 	}
 	
 	PS3Video::Flip();					
-}
-
-void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
-{
-	if(!IsLoaded)
-	{
-		for(int i = 0; i != MDFNSystems.size(); i ++)
-		{
-			for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
-			{
-				std::string myname = std::string(MDFNSystems[i]->shortname) + ".ps3." + std::string(SystemSettings[j].name);		
-		
-				MDFNSetting thisone;
-				memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));
-				//TODO: This strdup will not be freed
-				thisone.name = strdup(myname.c_str());
-				aSettings.push_back(thisone);
-			}
-		}
-	}
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -264,6 +237,23 @@ void						MednafenEmu::DoCommand			(std::string aName)
 	}
 }
 
+void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
+{
+	for(int i = 0; i != MDFNSystems.size(); i ++)
+	{
+		for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
+		{
+			std::string myname = std::string(MDFNSystems[i]->shortname) + ".ps3." + std::string(SystemSettings[j].name);		
+	
+			MDFNSetting thisone;
+			memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));
+			//TODO: This strdup will not be freed
+			thisone.name = strdup(myname.c_str());
+			aSettings.push_back(thisone);
+		}
+	}
+}
+
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 	
@@ -272,6 +262,10 @@ MDFN_Surface*				MednafenEmu::Surface = 0;
 InputHandler*				MednafenEmu::Inputs = 0;
 TextViewer*					MednafenEmu::TextFile = 0;
 FastCounter					MednafenEmu::Counter;
+	
+std::string					MednafenEmu::Message;
+uint32_t					MednafenEmu::MessageTime = 0;
+bool						MednafenEmu::PCESkipHack = false;
 	
 MDFNGI*						MednafenEmu::GameInfo = 0;
 

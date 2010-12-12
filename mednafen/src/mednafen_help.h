@@ -11,15 +11,25 @@ class	MednafenEmu
 							
 		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
 		static void						CloseGame			();
-		static bool						IsGameLoaded		();
 		
 		static void						Frame				();
 		static void						DummyFrame			();
-
-		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
 		
 		static void						DoCommand			(std::string aName);
 
+	public:		//Inlines
+		static bool						IsGameLoaded		()
+		{
+			return IsLoaded;
+		}
+		
+		static bool						IsEmuInitialized	()
+		{
+			return IsInitialized;
+		}
+
+	protected:	//Internals
+		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
 
 	protected:
 		static bool						IsInitialized;
@@ -30,7 +40,11 @@ class	MednafenEmu
 		static InputHandler*			Inputs;		
 		static TextViewer*				TextFile;
 		static FastCounter				Counter;
-	
+		
+		static std::string				Message;
+		static uint32_t					MessageTime;
+		static bool						PCESkipHack;	
+			
 		static MDFNGI*					GameInfo;
 
 		static std::vector<MDFNSetting>	Settings;
