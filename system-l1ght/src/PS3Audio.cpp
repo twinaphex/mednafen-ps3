@@ -29,6 +29,28 @@ void					PS3Audio::Quit					()
 
 void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
+	static int ccc = 0;
+	static uint32_t cccc = 0;
+	
+	cccc += aCount;
+	ccc ++;
+	if(ccc == 60)
+	{
+		printf("SAMPINSERT: %d\n", cccc);
+		cccc = ccc = 0;
+	}
+
+	if(GetBufferAmount() < 0)
+	{
+		printf("UNDERRUN\n");
+	}
+
+	if((GetBufferFree() + ((int32_t)aCount)) >= BufferSize)
+	{
+		printf("OVERRUN %d - %d\n", (GetBufferFree() + ((int32_t)aCount)), aCount);
+//		while(GetBufferFree() + aCount >= BufferSize);
+	}
+
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
@@ -84,7 +106,7 @@ void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
 	sys_ppu_thread_exit(0);
 }
 
-volatile uint32_t 		PS3Audio::GetBufferAmount		()
+volatile int32_t 		PS3Audio::GetBufferAmount		()
 {
 	if(InitialFill == false)
 	{
@@ -99,6 +121,11 @@ volatile uint32_t 		PS3Audio::GetBufferAmount		()
 	return (WriteCount - ReadCount);
 }
 
+volatile int32_t 		PS3Audio::GetBufferFree			()
+{
+	return BufferSize - (WriteCount - ReadCount);
+}
+
 uint32_t				PS3Audio::Port;
 AudioPortConfig			PS3Audio::Config;
 
@@ -108,6 +135,6 @@ sys_ppu_thread_t		PS3Audio::ThreadID;
 bool					PS3Audio::ThreadDie;
 
 uint32_t 				PS3Audio::RingBuffer[BufferSize];
-uint32_t 				PS3Audio::ReadCount = 0;
-uint32_t 				PS3Audio::WriteCount = 0;
+int32_t 				PS3Audio::ReadCount = 0;
+int32_t 				PS3Audio::WriteCount = 0;
 uint32_t				PS3Audio::NextBlock = 0;

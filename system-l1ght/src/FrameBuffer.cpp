@@ -4,7 +4,7 @@
 {
 	if(aWidth == 0 || aHeight == 0 || aWidth > 2048 || aHeight > 2048)
 	{
-		throw std::string("Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero.");
+		throw "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero.";
 	}
 
 	Width = aWidth;

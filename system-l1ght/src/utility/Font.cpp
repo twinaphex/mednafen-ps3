@@ -86,7 +86,7 @@ Font*					FontManager::GetBigFont		()
 {
 	if(!FontsOpen)
 	{
-		throw std::string("FontManager: Attempt to use before initialization");
+		throw "FontManager: Attempt to use before initialization";
 	}
 	
 	return BigFont;
@@ -96,7 +96,7 @@ Font*					FontManager::GetSmallFont	()
 {
 	if(!FontsOpen)
 	{
-		throw std::string("FontManager: Attempt to use before initialization");
+		throw "FontManager: Attempt to use before initialization";
 	}
 
 	return SmallFont;
@@ -106,7 +106,7 @@ Font*					FontManager::GetTinyFont	()
 {
 	if(!FontsOpen)
 	{
-		throw std::string("FontManager: Attempt to use before initialization");
+		throw "FontManager: Attempt to use before initialization";
 	}
 
 	return TinyFont;
@@ -116,7 +116,7 @@ Font*					FontManager::GetFixedFont	()
 {
 	if(!FontsOpen)
 	{
-		throw std::string("FontManager: Attempt to use before initialization");
+		throw "FontManager: Attempt to use before initialization";
 	}
 
 	return FixedFont;

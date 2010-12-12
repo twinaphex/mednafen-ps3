@@ -190,7 +190,7 @@ void					PS3Video::Allocate				(uint32_t*& aMemory, uint32_t& aOffset, uint32_t 
 	
 	if(!aMemory)
 	{
-		throw std::string("PS3Video::Allocate: Couldn't allocate rsx memory");
+		throw "PS3Video::Allocate: Couldn't allocate rsx memory";
 	}
 	
 	realityAddressToOffset(aMemory, &aOffset);
@@ -201,7 +201,7 @@ void					PS3Video::ApplyTexture			(Texture* aTexture, Area aRegion)
 	//TODO: Handle this better
 	if(aRegion.Right() > aTexture->Width || aRegion.Bottom() > aTexture->Height)
 	{
-		throw std::string("PS3Video::ApplyTexture: Area out of range");
+		throw "PS3Video::ApplyTexture: Area out of range";
 	}
 
 	realityTexture tex;
@@ -237,7 +237,7 @@ void					PS3Video::DrawQuad				(Area aRegion, uint32_t aColor)
 
 	if((VertexBufferPosition + 4) * sizeof(Vertex) > 1024 * 1024)
 	{
-		throw std::string("PS3Video::DrawQuad: Out of vertex buffer room.");
+		throw "PS3Video::DrawQuad: Out of vertex buffer room.";
 	}
 
 	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];

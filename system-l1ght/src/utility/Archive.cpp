@@ -6,7 +6,7 @@
 
 	if(0 != fex_open(&Archive, aFileName.c_str()))
 	{
-		throw std::string("ArchiveList::ArchiveList: Fex could not open archive");
+		throw "ArchiveList::ArchiveList: Fex could not open archive";
 	}
 
 	while(!fex_done(Archive))
@@ -51,7 +51,7 @@ uint32_t									ArchiveList::GetSelectedSize				()
 		fex_next(Archive);
 	}
 	
-	throw std::string("ArchiveList::GetSelectedSize: Fex could not find file in archive");
+	throw "ArchiveList::GetSelectedSize: Fex could not find file in archive";
 }
 
 void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
@@ -69,7 +69,7 @@ void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
 		fex_next(Archive);
 	}
 	
-	throw std::string("ArchiveList::GetSelectedData: Fex could not find file in archive");	
+	throw "ArchiveList::GetSelectedData: Fex could not find file in archive";	
 }
 
 std::string									ArchiveList::GetSelectedFileName			()

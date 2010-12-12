@@ -10,7 +10,7 @@ void						Menu::SetInputDelay			(uint32_t aDelay)
 {
 	if(aDelay > 10)
 	{
-		throw std::string("Menu::SetInputDelay: Delay cannot be more than ten frames.");
+		throw "Menu::SetInputDelay: Delay cannot be more than ten frames.";
 	}
 	
 	InputDelay = aDelay;

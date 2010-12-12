@@ -57,7 +57,7 @@ class				Utility
 			}
 			else
 			{
-				throw std::string("Utility::ListDirectory: " + aPath + " was not a directory");
+				throw "Utility::ListDirectory: aPath was not a directory";
 			}
 		}
 	

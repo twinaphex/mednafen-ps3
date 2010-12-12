@@ -12,7 +12,8 @@ class							PS3Audio
 
 		static void					Block					();
 
-		static volatile uint32_t	GetBufferAmount			();
+		static volatile int32_t		GetBufferAmount			();
+		static volatile int32_t		GetBufferFree			();
 		
 		static void					ProcessAudioThread		(uint64_t aBcD);
 
@@ -28,8 +29,8 @@ class							PS3Audio
 		static AudioPortConfig		Config;
 
 		static uint32_t 			RingBuffer[BufferSize];
-		static uint32_t 			ReadCount;
-		static uint32_t 			WriteCount;
+		static int32_t 				ReadCount;
+		static int32_t 				WriteCount;
 		static uint32_t				NextBlock;
 };
 

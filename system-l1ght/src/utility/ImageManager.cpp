@@ -35,7 +35,7 @@ Texture*									ImageManager::LoadImage								(std::string aName, std::string 
 		
 		if(Png.bmp_out == 0)
 		{
-			throw std::string("ImageManager::LoadImage: Could not read png");
+			throw "ImageManager::LoadImage: Could not read png";
 		}
 		
 		Texture* output = new Texture(Png.width, Png.height);
@@ -44,7 +44,7 @@ Texture*									ImageManager::LoadImage								(std::string aName, std::string 
 		{
 			delete output;
 			free(Png.bmp_out);
-			throw std::string("ImageManager::LoadImage: Image Bad ?");
+			throw "ImageManager::LoadImage: Image Bad ?";
 		}
 
 		memcpy(output->GetPixels(), Png.bmp_out, Png.width * Png.height * 4);

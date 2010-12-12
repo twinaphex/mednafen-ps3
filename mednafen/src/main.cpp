@@ -68,7 +68,7 @@ void				ReloadEmulator			()
 		
 		if(archive.ItemCount() == 0)
 		{
-			throw std::string("ReloadEmulator: Can't read archive: ") + romfilename;
+			Exit();
 		}
 		
 		if(archive.ItemCount() > 1)
@@ -134,9 +134,9 @@ int					main					()
 	
 		Exit();
 	}
-	catch(std::string s)
+	catch(const char* s)
 	{
-		printf("EXCEPTION: %s\n\n", s.c_str());
+		printf("EXCEPTION: %s\n\n", s);
 		Exit();
 	}
 }
