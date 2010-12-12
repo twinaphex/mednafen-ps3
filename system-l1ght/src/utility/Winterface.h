@@ -6,7 +6,6 @@ class													Winterface : public Menu
 	public:
 														Winterface						(std::string aHeader, bool aKillItems = true, MenuHook* aHook = 0);
 		virtual bool									Draw							();
-		virtual bool									DrawRight						();
 		
 	public:		//Inlines
 		virtual											~Winterface						()
