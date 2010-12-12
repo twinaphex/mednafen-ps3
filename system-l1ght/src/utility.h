@@ -21,7 +21,7 @@ class				Utility
 		{
 			if(aPath.find(".") != std::string::npos)
 			{
-				return aPath.substr(aPath.find(".") + 1);
+				return aPath.substr(aPath.rfind(".") + 1);
 			}
 			
 			return "";
