@@ -1,0 +1,3 @@
+Building requires a working PSL1GHT build environment
+You must install libz and freetype2 for PSL1GHT to compile
+Please run make in system-l1ght, nestopia, and gambatte directories before mednafen

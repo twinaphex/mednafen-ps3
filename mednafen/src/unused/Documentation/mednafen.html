@@ -1,0 +1,1062 @@
+<html>
+ <head>
+  <title>Mednafen General Documentation</title>
+  <link rel="stylesheet" type="text/css" media="screen, projection" href="mednafen.css" />
+ </head>
+ <body>
+  <center><h1><img alt="Mednafen" src="mednafen.png" width="696" height="204" /></h1></center>
+  <center><h1>General Documentation</h1></center>
+  <center><i>Last updated November 11, 2010<br />Valid as of Mednafen 0.9.15-WIP</i></center>
+ <p>
+ <b>Table of Contents:</b>
+ <ul>
+  <li /><a href="#intro">Introduction</a>
+  <li /><a href="#features">Core Features</a>
+  <ul>
+
+   <li><a href="#features-ips">Automatic IPS Patching</a></li>
+   <li><a href="#features-cdrom">CD-ROM Emulation</a></li>
+  </ul>
+  <li><a href="#using">Using Mednafen</a></li>
+  <ul>
+   <li><a href="#using-keys">Key Assignments</a></li>
+   <li><a href="#using-cli">Command line</a>
+   <li><a href="#using-settings">Settings</a>
+   <li><a href="#using-firmware">Firmware/BIOS</a>
+  </ul>
+  <li>Emulation Module Documentation</li>
+  <ul>
+   <li><a href="lynx.html">Atari Lynx</a> [lynx]
+   <li><a href="gb.html">GameBoy (Color)</a> [gb]
+   <li><a href="gba.html">GameBoy Advance</a> [gba]
+   <li><a href="md.html">Megadrive/Sega Genesis</a> [md]
+   <li><a href="ngp.html">Neo Geo Pocket (Color)</a> [ngp]
+   <li><a href="nes.html">NES/Famicom</a> [nes]
+   <li><a href="pce.html">PC Engine/TurboGrafx 16 (CD)/SuperGrafx</a> [pce]
+   <li><a href="pcfx.html">PC-FX</a> [pcfx]
+   <li><a href="vb.html">Virtual Boy</a> [vb]
+   <li><a href="wswan.html">WonderSwan (Color)</a> [wswan]
+  </ul>
+  <li><a href="cheat.html">Cheat Guide</a></li>
+  <li><a href="debugger.html">Debugger</a></li>
+  <li><a href="netplay.html">Network Play</a></li>
+  <li><a href="#credits">Credits</a></li>
+  <li><a href="#legal">Legal Stuff</a></li>
+ </ul>
+ </p>
+ <hr width="100%">
+ <a name="intro"><h2>Introduction</h2></a>
+ <p>
+ This main document covers general Mednafen usage, regardless of which system is being emulated.  Documentation covering key assignments, settings, and related information for each system emulation module is linked to in the table of contents under "Emulation Module Documentation".
+ </p>
+ <p>
+ In several places references are made to the "base directory".  If you
+ are running a port on a UN*X-like system(Linux/*BSD/Mac OSX/SunOS/etc.), the
+ base directory is "~/.mednafen", or in other words, 
+ "your home directory plus .mednafen".  For all other ports(including DOS and
+MS Windows), the base directory is the directory that the executable is in.
+ </p>
+ <p>
+ Mednafen includes parts of or links with the following software packages and programs, so give the developers lots of thanks sometime(<b>NOTE</b> they do not provide user support for Mednafen,
+so don't ask them questions about Mednafen)!
+ <ul>
+  <li><a href="http://www.slack.net/~ant/libs/">Blip_Buffer</a> - Used in Atari Lynx, GB/GBC/GBA, and PC Engine sound emulation code.</li>
+  <li><a href="http://http://cygne.emuunlim.com/">Cygne</a> - WonderSwan (Color) emulation.</li>
+  <li><a href="http://fceultra.sourceforge.net/">FCE Ultra</a> - NES/Famicom emulation.</li>
+  <li><a href="http://fuse-emulator.sourceforge.net/">Fuse</a> - Z80 emulation code.
+  <li><a href="http://homepage.ntlworld.com/dystopia/">Handy</a> - Atari Lynx emulation.</li>
+  <li><a href="http://www.hiend3d.com/hq2x.html">hq2x/hq3x/hq4x</a> - Pretty real-time(kind of ;)) image magnification filter.</li>
+  <li><a href="http://www.gnu.org/software/libcdio/">libcdio</a> - CD access routines used in PCE CD emulation.</li>
+  <li><a href="http://www.mega-nerd.com/libsndfile/">libsndfile</a> - Used for WAVE file playback with PCE CD emulation and WAVE file recording.</li>
+  <li><a href="http://www.oberhumer.com/opensource/lzo/">miniLZO</a> - Real-time (de)compression of save-states used in game rewinding.</li>
+  <li><a href="http://www.slack.net/~ant/libs/ntsc.html#nes_ntsc">nes_ntsc</a> - NES NTSC effects/artifacts blitter.</li>
+  <li><a href="http://neopop.emuxhaven.net/">NeoPop</a> - Neo Geo Pocket emulation code.
+  <li><a href="http://scale2x.sf.net/">Scale2x</a> - Pretty non-blurring real-time image magnification filter.</a></li>
+  <li><a href="http://www.libsdl.org/">SDL</a> - System interfaces for video blitting, sound output, input, etc.</li>
+  <li><a href="http://www.libsdl.org/projects/SDL_net/">SDL_net</a> - Used in network play code.</li>
+  <li><a href="http://xiph.org/">Tremor</a> Used for Ogg Vorbis playback with PCE CD emulation.</li>
+  <li><a href="http://daniel.haxx.se/projects/trio/">Trio</a> - *printf replacement functions for portability.</li>
+  <li><a href="http://vba.sf.net/">VisualBoy Advance</a> - GameBoy, GameBoy Color, and GameBoy Advance emulation.</li>
+  <li><a href="http://www.zlib.org">zlib</a> - General (de)compressor used with network play and PNG snapshot saving.</li>
+ </ul>
+ </p>
+ <hr width="100%">
+ <a name="features"><h2>Core Features</h2></a>
+ <ul>
+  <li>Double-buffered video, enabled by default.
+  <li>Multi-threaded video blitting, allowing for a kind of software triple-buffering, and improving performance on SMP systems.
+  <li>Joystick support.
+  <li>Extremely versatile input configuration system; assign multiple physical buttons to a virtual button or action.
+  <li>Full-screen modes.
+  <li>Save states.
+  <li>Real-time game rewinding, up to 10 seconds.
+  <li>Screen snapshots, saved in PNG format.
+  <li>Loading games from gzip and (pk)zip compressed archives.
+  <li>Network play(utilizing an external dedicated server program).
+</ul>
+<hr>
+ <a name="features-ips"><h3>Automatic IPS Patching</h3></a>
+ <p>
+        Place the IPS file in the same directory as the file to load,
+        and name it filename.ips.
+</p>
+	<pre>
+        Examples:       Boat.nes - Boat.nes.ips
+                        Boat.zip - Boat.zip.ips
+                        Boat.nes.gz - Boat.nes.gz.ips
+                        Boat     - Boat.ips
+        </pre>
+	<p>
+        Some operating systems and environments will hide file extensions.
+        Keep this in mind if you are having trouble.
+	</p>
+	<p>
+        Patching is supported for all supported formats, but it will probably only be useful
+	for fixed-position file formats.
+ </p>
+ <a name="features-cdrom"><h3>CD-ROM Emulation</h3></a>
+ <p>
+  With PC Engine CD and PC-FX emulation, Mednafen can load CD-ROM games from a physical CD-ROM, or a ripped/dumped copy of the disc, such as CUE+BIN.
+  Using a ripped copy of the disc is recommended, due to speed issues and to the fact that physical CDs will be missing pregaps from the point
+  of view of the emulated system.
+ </p>
+ <p>
+  For ripped disc images, Mednafen supports "CUE" sheets and cdrdao "TOC" files.  Mednafen supports raw, simple storage formats supported by
+  libsndfile(MS WAV, AIFF/AIFC, AU/SND, etc.), Ogg Vorbis, and MusePack audio files referenced by CUE sheets.  MP3 is not supported, and will not be 
+  supported.
+ </p>
+ <p>
+  The cdrdao "TOC" support in Mednafen includes support for "RW_RAW" subchannel data, needed for CD+G.  Note that Mednafen assumes that the Q subchannel
+  is also included in the RW_RAW data area in the ripped image(even though the name "RW_RAW" would suggest it isn't present, cdrdao seems to included it).  If
+  the Q subchannel data is missing from the RW_RAW data area in the ripped image, Mednafen's CD emulation will not work properly.
+ </p>
+ <p>
+  Since 0.8.4, Mednafen will perform simple data correction on ripped CDROM images that contain EDC and L-EC data(2352-byte-per-sector "raw" rips").
+  It calculates the real EDC, and if it doesn't match the EDC recorded for that sector, it will evaluate the L-EC data to repair the data.  If the
+  data is unrepairable, an error message will be displayed.
+  <br>
+  <b>This may cause problems with naive patches that don't update the error-correction data(at least the 32-bit EDC, if that's correct, the L-EC data will
+  be ignored)!</b>  If you wish to use such an invalid patch, set the setting "cdrom.lec_eval" to 0.
+ </p>
+ <hr>
+ <hr width="100%">
+ <a name="using"><h2>Using Mednafen</h2></a>
+ <p>
+ 
+ </p>
+ <a name="using-keys"><h3>Key Assignments</h3></a>
+ <p>
+ <table border>
+ <tr><th>Key(s):</th><th>Action:</th><th>Configuration String:</th></tr>
+ <tr><td>F1</td><td>Toggle in-game quick help screen.</td><td>toggle_help</td></tr>
+ <tr><td>F5</td><td>Save state.</td><td>save_state</td></tr>
+ <tr><td>F7</td><td>Load state.</td><td>load_state</td></tr>
+ <tr><td>0-9</td><td>Select save state slot.</td><td>"0" through "9"</td></tr>
+ <tr><td>-</td><td>Decrement selected save state slot.</td><td>state_slot_dec</td></tr>
+ <tr><td>=</td><td>Increment selected save state slot.</td><td>state_slot_inc</td></tr>
+ <tr><td>Shift + F5</td><td>Record movie.</td><td>save_movie</td></tr>
+ <tr><td>Shift + F7</td><td>Play movie.</td><td>load_movie</td></tr>
+ <tr><td>Shift + 0-9</td><td>Select movie slot.</td><td>"m0" through "m9"</td></tr>
+ <tr><td>ALT + C</td><td>Toggle cheat console.</td><td>togglecheatview</td></tr>
+ <tr><td>ALT + T</td><td>Toggle cheats active.</td><td>togglecheatactive</td></tr>
+ <tr><td>T</td><td>Enable network play console input.</td><td>togglenetview</td></tr>
+ <tr><td>ALT + D</td><td>Toggle debugger.</td><td>toggle_debugger</td></tr>
+ <tr><td>ALT + A</td><td>Enter frame advance mode, if not already in it, and advance the frame.</td><td>advance_frame</td></tr>
+ <tr><td>ALT + R</td><td>Exit frame advance mode.</td><td>run_normal</td></tr>
+ <tr><td>SHIFT + F1</td><td>Toggle frames-per-second display(from top to bottom, the display format is: virtual, rendered, blitted).</td><td>toggle_fps_view</td></tr>
+ <tr><td>ALT + S</td><td>Toggle 600-frame(~10 seconds on NES) save-state rewinding functionality, disabled by default.</td><td>state_rewind_toggle</td></tr>
+ <tr><td>Backspace</td><td>Rewind emulation, if save-state rewinding functionality is enabled, up to 600 frames.</td><td>state_rewind</td></tr>
+ <tr><td>F9</td><td>Save screen snapshot.</td><td>take_snapshot</td></tr>
+ <tr><td>Alt + Enter</td><td>Toggle fullscreen mode.</td><td>toggle_fs</td></tr>
+ <tr><td nowrap>Ctrl + 1<br>through<br>Ctrl + 9</td><td>Toggle layer.</td><td>"tl1" through "tl9"</tr>
+ <tr><td>~</td><td>Fast-forward.</td><td>fast_forward</td></tr>
+ <tr><td>CTRL + SHIFT + <i>i</i></td><td>Select input device on input port <i>i</i>(1-5).<br><b>Note:</b>Many games do not expect input devices to change while the game is running, and thus may require a hard reset.</td><td>device_select<i>i</i></td></tr>
+ <tr><td>F2</td><td>Activate in-game input configuration process for a command key.</td><td>input_configc</td></tr>
+ <tr><td nowrap>Scroll Lock</td><td>Toggle input grabbing(use this to use the PC Engine mouse properly in windowed mode).</td><td>toggle_grab_input</td></tr>
+ <tr><td>Shift + Scroll Lock</td><td>Toggle input grabbing AND command disabling(used for giving almost unhindered button access to an emulated device; most useful when emulating the Famicom's Family Keyboard).</td><td>toggle_cdisable</td></tr>
+ <tr><td>F10</td><td>Reset.</td><td>reset</td></tr>
+ <tr><td>F11</td><td>Hard reset(toggle power switch).</td><td>power</td></tr>
+ <tr><td>Escape/F12</td><td>Exit(the emulator, or netplay chat mode).</td><td>exit</td></tr>
+ </table>
+ </p>
+ <hr>
+
+
+ 
+
+ 
+
+
+
+
+
+ <a name="using-cli"><h3>Command-line</h3></a>
+ <p>
+  Mednafen supports arguments passed on the command line.   Arguments
+  are taken in the form of "-parameter value".  Some arguments are valueless.
+ </p>
+ <p>
+  In addition to the arguments listed in the table below, any setting listed in the "Settings" section of this document and any system emulation module sub-document can be set by prefixing it with
+  a hyphen(-), followed by the parameter, such as: -nes.slstart 8
+</p>
+  <table border>
+   <tr><th>Argument:</th><th>Parameter Type:</th><th>Description:</th></tr>
+   <tr><td>-loadcd x</td><td>string</td><td>Load and boot a CD for system "x"(only "pce" is valid).  This argument modifies the usage of the filename component of the command-line.  For example, "mednafen -loadcd pce /somewhere/over/the/rainbow/game.cue" will load the CUE sheet as the emulated CDROM.
+"mednafen -loadcd pce" will load from the default physical CDROM device. </td></tr>
+   <tr><td>-connect</td><td></td><td>Trigger to connect to remote host after the game is loaded.</td></tr>
+  </table>
+<hr>
+<a name="using-settings"><h3>Settings</h3></a>
+  <p>
+  <b>Caution:</b> Any settings that change emulation behavior as seen from the emulated game are shown with bold text in the table.  One should be
+  conscious of these settings if one has changed them from the default values when using network play or movies, as
+  they can cause desychronizations if not set the same among hosts(or between the recording emulator and the
+  playing emulator).
+  </p>
+
+  <p>
+  Settings listed in this table that contain &lt;system&gt; should have that string replaced with an emulation module name("nes", "pce", "pcfx", etc.).<br>Example: <b>&lt;system&gt;.xscale</b> becomes <b>nes.xscale</b>.
+  <p>
+  <table border>
+   <tr><th>Setting:</th><th>Value Type:</th><th>Default value:</th><th>Description:</th></tr>
+   <tr><td>autosave x</td><td>boolean</td><td>0</td><td>Automatically save the game state when a game is closed and reload the state when the game is loaded again.</td></tr>
+   <tr><td>srwcompressor x</td><td>string</td><td>minilzo</td><td>Compressor to use with state rewinding:  "minilzo", "quicklz", or "blz".</td></tr>
+   <tr><td>srwframes x</td><td>integer</td><td>600</td><td>Number of frames to keep states for when state rewinding is enabled.</td></tr>
+   <tr><td>dfmd5 x</td><td>boolean</td><td>1</td><td>Include the MD5 hash of the loaded game in the filenames of the data file(save states, SRAM backups) Mednafen creates.</td></tr>
+   <tr><td nowrap>snapname x</td><td>boolean</td><td>0</td><td>If value is true, use an alternate naming scheme(file base and numeric) for screen snapshots.</td></tr>
+
+   <tr><td>path_snap x</td><td>string</td><td></td><td>Path override for screen snapshots.  Set to an empty string or 0 to disable.</td></tr>
+   <tr><td>path_sav x</td><td>string</td><td></td><td>Path override for save games and nonvolatile memory.  Set to an empty string or 0 to disable.<br><br>
+	<b>WARNING:</b> If you use Famicom Disk System emulation, and you set this setting to the same directory FDS disk images are in, and set the 
+	setting "dfmd5" to 0, you run the risk of corrupting your disk images.
+    </td></tr>
+
+   <tr><td>path_state x</td><td>string</td><td></td><td>Path override for save states.  Set to an empty string or 0 to disable.</td></tr>
+   <tr><td>path_movie x</td><td>string</td><td></td><td>Path override for movies.  Set to an empty string or 0 to disable.</td></tr>
+   <tr><td>path_cheat x</td><td>string</td><td></td><td>Path override for cheats.  Set to an empty string or 0 to disable.</td></tr>
+   <tr><td>path_palette x</td><td>string</td><td></td><td>Path override for custom palettes.  Set to an empty string or 0 to disable.</td></tr>
+
+   <tr><td>filesys.snap_samedir x</td><td>boolean</td><td>0</td><td>Write screen snapshots to the same directory the ROM/disk/disc image is in.
+		Takes precedence over the "path_snap" setting.</td></tr>
+   <tr><td>filesys.sav_samedir x</td><td>boolean</td><td>0</td><td>Write/Read save games and nonvolatile memory to/from the same directory the ROM/disk/disc image is in.  Takes precedence over the "path_sav" setting.<br><br>
+       <b>WARNING:</b> If you use Famicom Disk System emulation, and you set this to 1, and set the 
+        setting "dfmd5" to 0, you run the risk of corrupting your disk images.
+    </td></tr>
+
+   <tr><td>filesys.state_samedir x</td><td>boolean</td><td>0</td><td>Write/Read save states to/from the same directory the ROM/disk/disc image is in.
+                Takes precedence over the "path_state" setting.</td></tr>
+
+   <tr><td>filesys.movie_samedir x</td><td>boolean</td><td>0</td><td>Write/Read movies to/from the same directory the ROM/disk/disc image is in.
+                Takes precedence over the "path_movie" setting.</td></tr>
+
+   <tr><td>filesys.disablesavegz x</td><td>boolean</td><td>0</td><td>Disable gzip compression when saving save states and backup memory.</td></tr>
+
+
+   <tr><td>ffspeed x</td><td>real</td><td>2</td><td>Specifies the speed multiplier to be used in fast-forward mode.</td></tr>
+   <tr><td>fftoggle x</td><td>boolean</td><td>0</td><td>Treat the fast-forward button as a toggle.</td></tr>
+   <tr><td>ffnosound</td><td>boolean</td><td>0</td><td>Silence sound output when fast-forwarding.</td></tr>
+
+   <tr><td>sfspeed x</td><td>real</td><td>0.25</td><td>Specifies the speed multiplier to be used in SLOW-forward mode.</td></tr>
+   <tr><td>sftoggle x</td><td>boolean</td><td>0</td><td>Treat the SLOW-forward button as a toggle.</td></tr>
+
+   <tr><td nowrap>nothrottle x</td><td>boolean</td><td>0</td><td>If value is true, disable the speed throttling that is used when sound emulation is disabled.</td></tr>
+
+   <tr><td>sound x</td><td>boolean</td><td>1</td><td>If value is true, enable sound emulation and output.</td></tr>
+   <tr><td>soundrate x</td><td>integer</td><td>48000</td><td>Specifies the sound playback rate, in frames per second("Hz").  Rates higher than 48000, and lower than 8192, are not supported.</td></tr>
+   <tr><td>soundvol x</td><td>integer</td><td>100</td><td>Sound volume, in percent, from 0 to 100.</td></tr>
+   <tr><td>soundbufsize x</td><td>integer</td><td>32(52 for Win32)</td><td>Specifies the desired size of the sound buffer, in milliseconds.</td></tr>
+   <tr><td>sound.period_time x</td><td>integer</td><td>0</td><td>If non-zero, specifies the desired period size in microseconds.  Currently only affects OSS and ALSA output.  A value of 0 defers to the default in the driver code in SexyAL.</td></tr>
+   <tr><td>sounddriver x</td><td>string</td><td>default</td><td>Select sound driver.  The following choices are possible, sorted by preference when "default" driver is used, but dependent on being compiled in:
+<ul>
+<li>alsa
+<blockquote>
+<a href="http://alsa-project.org/">ALSA</a><br>A recommended driver, and the default for Linux(if available).</blockquote></hr>
+</blockquote>
+<hr>
+</li>
+<li>oss
+<blockquote>
+<a href="http://">Open Sound System</a><br>A recommended driver, and the default for non-Linux UN*X/POSIX/BSD systems, or anywhere ALSA is unavailable.  If the ALSA driver gives you problems, you can try using this one instead.
+<p>
+If you are using OSSv4 or newer, you should edit "/usr/lib/oss/conf/osscore.conf", uncomment the max_intrate= line, and change the value from 100(default) to 1000(or higher if you know what you're doing), and restart OSS.  Otherwise, performance will be poor, and the sound buffer size in Mednafen will be orders of magnitude larger than specified.
+</p>
+<p>
+If the sound buffer size is still excessively larger than what is specified via the "soundbufsize" setting, you can try setting "sound.period_time" to 2666, and as a last resort, 5333, to work around a design flaw/limitation/choice in the OSS API and OSS implementation.
+</p>
+</blockquote>
+<hr>
+</li>
+<li>dsound
+<blockquote>
+<a href="http://microsoft.com/directx/">DirectSound(of DirectX)</a>
+<br>
+A recommended driver, and the default for Microsoft Windows.
+</blockquote>
+<hr>
+</li>
+<li>sdl <blockquote><a href="http://libsdl.org/">Simple Directmedia Layer</a><br>
+This driver is not recommended, but it serves as a backup driver if the others aren't available.  Its performance is generally sub-par,
+requiring higher latency or faster CPUs/SMP for glitch-free playback, except where the OS provides a sound callback API itself,
+such as with Mac OS X and BeOS.</blockquote><hr></li>
+<li>jack <blockquote>Somewhat experimental driver, unusably buggy until Mednafen 0.8.C.  <b>The "soundbufsize" setting controls the size of the local sound buffer, not the server's sound buffer, and the latency reported during startup is for the local sound buffer only.</b>  Please note that video card drivers(in the kernel or X), and hardware-accelerated OpenGL, may interfere with jackd's ability to effectively run with realtime response.</blockquote>
+</ul>
+</td></tr>
+<tr><td>sounddevice x</td><td>string</td><td>default</td><td>Select sound output device.<br><br><b>ALSA NOTE:</b> When using the alsa driver, the "default" translates to "hw", not "default", before being sent to the ALSA API.  This is necessary because ALSA's "default" audio device has very poor buffering control capabilities.  If you really want to use ALSA's "default" device, use "sexyal-literal-default".</td></tr>
+   <tr><td>&lt;system(pce, gba, gb, ngp only)&gt;.forcemono x</td><td>boolean</td><td>0</td><td>Force monophonic(instead of stereo) sound output.</td></tr>
+   <tr><td>autofirefreq x</td><td>integer</td><td>3</td><td>Set auto fire frequency to ~60Hz / (x + 1).  Replace "60" with "50" for PAL games.  A value of "0" disables the configured autofire buttons.</td></tr>
+   <tr><td>analogthreshold x</td><td>integer</td><td>75</td><td>Threshold for detecting a "button" press on analog axis, in percent.</td></tr>
+   <tr><td>ckdelay x</td><td>integer</td><td>0</td><td>The length of time, in milliseconds, that a button/key corresponding to a "dangerous" command like power, reset, exit, load state, etc. must be pressed before the command is executed.</td></tr>
+
+  <tr><td>nethost x</td><td>string</td><td></td><td>Set server's hostname to connect to during netplay.</td></tr>
+  <tr><td>netport x</td><td>integer</td><td>4046</td><td>Set port number to connect to on remote host.</td></tr>
+  <tr><td>netpassword x</td><td>string</td><td></td><td>The optional password used to connect to a netplay server.</td></tr>
+  <tr><td>netlocalplayers x</td><td>integer</td><td>1</td><td>Set the number of local players on your system during netplay.</td></tr>
+  <tr><td>netnick x</td><td>string</td><td></td><td>Set nickname used during chat when using netplay.</td></tr>
+  <tr><td>vdriver x</td><td>string</td><td>opengl</td><td>Select which video output "driver" to use. <ul><li>opengl = OpenGL + SDL<p>This output method is preferred, as all features are available with it.</p></li><hr><li>sdl = SDL surface<p>Slower with lower-quality scaling than OpenGL, but if you don't have hardware-accelerated OpenGL rendering, it will be faster than software OpenGL rendering.  Bilinear interpolation not available.  Pixel shaders do not work with this output method, of course.</li><hr><li>overlay = SDL overlay<p>As fast as OpenGL, perhaps faster in some situations, *if* it's hardware-accelerated.  Scanline effects are not available.  hq2x, hq3x, hq4x are not available.  The OSD may be missing or glitchy.  Bilinear interpolation can't be turned off.  Harsh chroma subsampling bluring in some picture types.<b>If you use this output method, it is strongly recommended to use a special scaler with it, such as nn2x.</b></p></li></ul>
+  <tr><td>&lt;system&gt;.vblur x</td><td>boolean</td><td>0</td><td>Motion blur each frame with the last frame.  This blur happens before all other filters and scaling.  Additionally, enabling this will disable internal frameskipping.</td></tr>
+  <tr><td>&lt;system&gt;.vblur.accum x</td><td>boolean</td><td>0</td><td>Accumulate color data rather than discarding it.</td></tr>
+  <tr><td>&lt;system&gt;.vblur.accum.amount x</td><td>real</td><td>50</td><td>Blur amount in accumulation mode, specified in percentage of accumulation buffer to mix with the current frame.</td></tr>
+<br>Bilinear interpolation, and alpha blending of some OSD layers are not available with the "SDL framebuffer" driver.
+  <tr><td>&lt;system&gt;.videoip x</td><td>boolean</td><td><i>(variable)</i></td><td>Use bilinear interpolation.</td></tr>
+  <tr><td>&lt;system&gt;.scanlines x</td><td>integer</td><td>0</td><td>If non-zero, enable scanlines, with opacity specified in percent; 50 = 50% opacity, 100 = 100% opacity(entirely black scanlines).</td></tr>
+  <tr><td>&lt;system&gt;.special x</td><td>string</td><td>none</td><td>Use a special video scaling filter applied before OpenGL rasterization.  The destination rectangle is NOT altered by
+this setting, so if you have xscale and yscale set to "2", and try to use a 3x scaling filter like hq3x, the image is not going to look that great.  The nearest-neighbor scalers are
+intended for use with bilinear interpolation enabled, at high resolutions(such as 1280x1024; nn2x(or nny2x) + bilinear interpolation + fullscreen stretching at this resolution looks quite nice).
+<ul>
+<li /><b>none</b> or <b>0</b> (disable special scaler)
+<li /><b>hq2x</b>
+<li /><b>hq3x</b>
+<li /><b>hq4x</b>
+<li /><b>scale2x</b>
+<li /><b>scale3x</b>
+<li /><b>scale4x</b>
+<li /><b>2xsai</b>
+<li /><b>super2xsai</b>
+<li /><b>supereagle</b>
+<li /><b>nn2x</b> (Nearest-neighbor 2x)
+<li /><b>nn3x</b> (Nearest-neighbor 3x)
+<li /><b>nn4x</b> (Nearest-neighbor 4x)
+<li /><b>nny2x</b> (Nearest-neighbor 2x, y axis only)
+<li /><b>nny3x</b> (Nearest-neighbor 3x, y axis only)
+<li /><b>nny4x</b> (Nearest-neighbor 4x, y axis only)
+</ul>
+</td></tr>
+<tr><td>&lt;system&gt;.pixshader x</td><td>string</td><td>none</td><td>Enable specified OpenGL pixel shader.  Obviously, this will only work in OpenGL mode(-vdriver 0), and only on cards and OpenGL implementations that support pixel shaders, otherwise you will get a black screen, or Mednafen may display an error message when starting up.  Bilinear interpolation is disabled with pixel shaders, and any interpolation, if present, will be noted in the description of each pixel shader.
+<ul>
+<li /><b>none</b> (disable pixel shader)
+<li /><b>ipxnoty</b> Linear interpolation on X axis only.
+<li /><b>ipynotx</b> Linear interpolation on Y axis only.
+<li /><b>ipsharper</b> Sharper bilinear interpolation.
+<li /><b>ipxnotysharper</b> Sharper version of "ipxnoty".
+<li /><b>ipynotxsharper</b> Sharper version of "ipynotx".
+<li /><b>scale2x</b> Scale2X effect.  It can be used with the "scale2x", "scale3x", and "scale4x" special scalers, giving "scale4x", "scale6x", and "scale8x", respectively.
+</ul>
+</td>
+</tr>
+
+  <tr><td>&lt;system&gt;.stretch x</td><td>string</td><td>0</td><td>Stretch to fill screen when in fullscreen mode.
+<ul>
+<li /><b>off</b> or <b>0</b> (disabled)
+<li /><b>full</b> or <b>1</b> Full-screen stretch, disregarding aspect ratio.
+<li /><b>aspect</b> or <b>2</b> Full-screen stretch as far as the aspect ratio(in this sense, the equivalent xscalefs == yscalefs) can be maintained.
+</ul>
+</td></tr>
+  <tr><td>glvsync x</td><td>boolean</td><td>1</td><td>Attempt to synchronize OpenGL page flips to vertical retrace period.<p />
+        <b>Note:</b>  Additionally, if this setting is 1, and the environment variable "__GL_SYNC_TO_VBLANK" is not set at all(either 0 or any value), then it will be set to "1".  This has the effect of forcing vblank synchronization when running under Linux with NVidia's drivers.</td></tr>
+
+  <tr><td>&lt;system&gt;.xscale<br>(&lt;system&gt;.xscalefs)<br>/<br/>&lt;system&gt;.yscale<br>(&lt;system&gt;.yscalefs)</td><td>real</td><td nowrap><i>(variable)</i></td><td>Specify the scaling factor for each axis.</td></tr>
+  <tr><td nowrap>&lt;system&gt;.xres x<br>/<br>&lt;system&gt;.yres y</td><td>integer</td><td nowrap><i>variable</i></td><td>Set the desired horizontal/vertical resolution when in fullscreen mode.</td></tr>
+  <tr><td>fs</td><td>boolean</td><td>0</td><td>Full screen mode.</td></tr>
+ </table>
+ </p>
+
+<a name="using-firmware"><h3>Firmware/BIOS</h3></a>
+<p>
+Some emulation modules require firmware/BIOS images to function.  If a firmware path is non-absolute(doesn't begin with
+C:\ or / or similar), Mednafen will try to load the file relative to the "firmware" directory under the Mednafen base
+directory.  If it doesn't find it there, it will be loaded relative to the Mednafen base directory itself.  Of course,
+if the "path_firmware" setting is set to a custom value, the firmware files will be searched relative to that path.
+</p>
+
+
+ <hr width="100%">
+ <a name="credits"><h2>Credits</h2></a>
+ <p>
+ <table border width="100%">
+  <tr><th>Name:</th><th>Contribution(s):</th></tr>
+  <tr><td>\Firebug\</td><td>High-level mapper information.</td></tr>
+  <tr><td>Andrea Mazzoleni</td><td>Scale2x/Scale3x scalers included in Mednafen.</td></tr>
+  <tr><td>Bero</td><td>Original FCE source code.</td></tr>
+  <tr><td>Brad Taylor</td><td>NES sound information.</td></tr>
+  <tr><td>Charles MacDonald</td><td>PC Engine technical information.</td></tr>
+  <tr><td>EFX</td><td>Testing.</td></tr>
+  <tr><td>Fredrik Olson</td><td>NES four-player adapter information.</td></tr>
+  <tr><td>Gilles Vollant</td><td>PKZIP file loading functions.</td></tr>
+  <tr><td>goroh</td><td>Various documents.</td></tr>
+  <tr><td>Info-ZIP</td><td><a href="http://www.gzip.org/zlib/">ZLIB</a></td></tr>
+  <tr><td>Jeremy Chadwick</td><td>General NES information.</td></tr>
+  <tr><td>kevtris</td><td>Low-level NES information and sound information.</td></tr>
+  <tr><td>Ki</td><td>Various technical information.</td></tr>
+  <tr><td>Mark Knibbs</td><td>Various NES information.</td></tr>
+  <tr><td>Marat Fayzullin</td><td>General NES information.</td></tr>
+  <tr><td>Matthew Conte</td><td>Sound information.</td></tr>
+  <tr><td>Maxim Stepin</td><td>hq2x and hq3x scalers included in Mednafen.</td></tr>
+  <tr><Td>Mitsutaka</td><td>YM2413 emulator.</td></tr>
+  <tr><td>nori</td><td>FDS sound information.</td></tr>
+  <tr><td>rahga</td><td>Famicom four-player adapter information.</td></tr>
+  <tr><td>TheRedEye</td><td>ROM images, testing.</td></tr>
+  <tr><td>Xodnizel</td><td>FCE Ultra.</td></tr>
+  <tr><th colspan="2" align="right">...and everyone whose name my mind has misplaced.</th></tr>
+ </table>
+ </p>
+ <hr width="100%">
+ <a name="legal"><h2>Legal Stuff</h2></a>
+ <p>
+  <b>libmpcdec:</b>
+  <blockquote>
+  <pre>
+  Copyright (c) 2005, The Musepack Development Team
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  * Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  * Redistributions in binary form must reproduce the above
+  copyright notice, this list of conditions and the following
+  disclaimer in the documentation and/or other materials provided
+  with the distribution.
+
+  * Neither the name of the The Musepack Development Team nor the
+  names of its contributors may be used to endorse or promote
+  products derived from this software without specific prior
+  written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  </pre>
+  </blockquote>
+  <b>Tremor:</b>
+  <blockquote>
+<pre>
+Copyright (c) 2002, Xiph.org Foundation
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+- Neither the name of the Xiph.org Foundation nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+  </blockquote>
+<b>Gb_Snd_Emu:</b>
+<blockquote>
+<pre>
+/* Library Copyright (C) 2003-2004 Shay Green. Gb_Snd_Emu is free
+software; you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any later version.
+Gb_Snd_Emu is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details. You should have received a copy of the GNU General Public
+License along with Gb_Snd_Emu; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
+</pre>
+</blockquote>
+<b>Blip_Buffer:</b>
+<blockquote>
+<pre>
+Copyright (C) 2003-2006 Shay Green. This module is free software; you
+can redistribute it and/or modify it under the terms of the GNU Lesser
+General Public License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version. This
+module is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+more details. You should have received a copy of the GNU Lesser General
+Public License along with this module; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+</pre>
+</blockquote>
+<b>Sms_Snd_Emu(base for T6W28_Apu NGP code):</b>
+<blockquote>
+<pre>
+Copyright (C) 2003-2006 Shay Green. This module is free software; you
+can redistribute it and/or modify it under the terms of the GNU Lesser
+General Public License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version. This
+module is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+more details. You should have received a copy of the GNU Lesser General
+Public License along with this module; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+</pre>
+</blockquote>
+
+<b>Handy:</b>
+<blockquote>
+<pre>
+Copyright (c) 2004 K. Wilkins
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from
+the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not
+   be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+</pre>
+</blockquote>
+<b>Portions of PC Engine CD emulation:</b>
+<blockquote>
+<pre>
+        Copyright (C) 2004 Ki
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+</pre>
+</blockquote>
+<b>Scale2x:</b>
+<blockquote>
+<pre>
+ * Copyright (C) 2001, 2002, 2003, 2004 Andrea Mazzoleni
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+</pre>
+</blockquote>
+<b>hq2x, hq3x, hq4x:</b>
+<blockquote>
+<pre>
+//Copyright (C) 2003 MaxSt ( maxst@hiend3d.com )
+
+//This program is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this program; if not, write to the Free Software
+//Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+</pre>
+</blockquote>
+<b>nes_ntsc:</b>
+<blockquote>
+<pre>
+/* Copyright (C) 2006 Shay Green. This module is free software; you
+can redistribute it and/or modify it under the terms of the GNU Lesser
+General Public License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version. This
+module is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+more details. You should have received a copy of the GNU Lesser General
+Public License along with this module; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
+</pre>
+</blockquote>
+<b>2xSaI:</b>
+<blockquote>
+<pre>
+/* 2xSaI
+ * Copyright (c) Derek Liauw Kie Fa, 1999-2002
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+/* http://lists.fedoraproject.org/pipermail/legal/2009-October/000928.html */
+</pre>
+</blockquote>
+<b>VisualBoyAdvance GameBoy and GBA code:</b>
+<blockquote>
+<pre>
+// VisualBoyAdvance - Nintendo Gameboy/GameboyAdvance (TM) emulator.
+// Copyright (C) 1999-2003 Forgotten
+// Copyright (C) 2004-2006 Forgotten and the VBA development team
+
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2, or(at your option)
+// any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software Foundation,
+// Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+</pre>
+</blockquote>
+<b>trio:</b>
+<blockquote>
+<pre>
+ * Copyright (C) 1998 Bjorn Reese and Daniel Stenberg.
+ * Copyright (C) 2001 Bjorn Reese <breese@users.sourceforge.net>
+ * Copyright (C) 2001 Bjorn Reese and Daniel Stenberg.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
+ * CONTRIBUTORS ACCEPT NO RESPONSIBILITY IN ANY CONCEIVABLE MANNER.
+</pre>
+</blockquote>
+<b>ConvertUTF:</b>
+<blockquote>
+<pre>
+ * Copyright 2001-2004 Unicode, Inc.
+ *
+ * Disclaimer
+ *
+ * This source code is provided as is by Unicode, Inc. No claims are
+ * made as to fitness for any particular purpose. No warranties of any
+ * kind are expressed or implied. The recipient agrees to determine
+ * applicability of information provided. If this file has been
+ * purchased on magnetic or optical media from Unicode, Inc., the
+ * sole remedy for any claim will be exchange of defective media
+ * within 90 days of receipt.
+ *
+ * Limitations on Rights to Redistribute This Code
+ *
+ * Unicode, Inc. hereby grants the right to freely use the information
+ * supplied in this file in the creation of products supporting the
+ * Unicode Standard, and to make copies of this file in any form
+ * for internal or external distribution as long as this notice
+ * remains attached.
+</pre>
+</blockquote>
+<b>MD5 Hashing:</b>
+<blockquote>
+<pre>
+/*
+ * RFC 1321 compliant MD5 implementation,
+ * by Christophe Devine <devine@cr0.net>;
+ * this program is licensed under the GPL.
+ */
+</pre>
+</blockquote>
+<b>V810 Emulator:</b>
+<blockquote>
+<pre>
+ * Copyright (C) 2006 David Tucker
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+</pre>
+</blockquote>
+<b>Unzipping Code:</b>
+<blockquote>
+<pre>
+/* unzip.c -- IO for uncompress .zip files using zlib
+   Version 1.01e, February 12th, 2005
+
+   Copyright (C) 1998-2005 Gilles Vollant
+
+   Read unzip.h for more info
+*/
+
+/* Decryption code comes from crypt.c by Info-ZIP but has been greatly reduced in terms of
+compatibility with older software. The following is from the original crypt.c. Code
+woven in by Terry Thorsen 1/2003.
+*/
+/*
+  Copyright (c) 1990-2000 Info-ZIP.  All rights reserved.
+
+  See the accompanying file LICENSE, version 2000-Apr-09 or later
+  (the contents of which are also included in zip.h) for terms of use.
+  If, for some reason, all these files are missing, the Info-ZIP license
+  also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+*/
+</pre>
+</blockquote>
+
+<b>MiniLZO:</b>
+<blockquote>
+<pre>
+   Copyright (C) 2005 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2004 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2003 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2002 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2001 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2000 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 1999 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 1998 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 1997 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 1996 Markus Franz Xaver Johannes Oberhumer
+   All Rights Reserved.
+
+   The LZO library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   The LZO library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with the LZO library; see the file COPYING.
+   If not, write to the Free Software Foundation, Inc.,
+   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+   Markus F.X.J. Oberhumer
+   &lt;markus@oberhumer.com&gt;
+   http://www.oberhumer.com/opensource/lzo/
+</pre>
+</blockquote>
+<b>Fuse Z80 emulation code:</b>
+<blockquote>
+<pre>
+   Copyright (c) 1999-2004 Philip Kendall, Witold Filipczyk
+
+   $Id: z80_ops.c,v 1.56 2004/06/09 10:55:09 pak21 Exp $
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+   Author contact information:
+
+   E-mail: pak21-fuse@srcf.ucam.org
+   Postal address: 15 Crescent Road, Wokingham, Berks, RG40 2DB, England
+</pre>
+</blockquote>
+<b>NeoPop Neo Geo Pocket (Color) Code:</b>
+<blockquote>
+<pre>
+//---------------------------------------------------------------------------
+// NEOPOP : Emulator as in Dreamland
+//
+// Copyright (c) 2001-2002 by neopop_uk
+//---------------------------------------------------------------------------
+//      This program is free software; you can redistribute it and/or modify
+//      it under the terms of the GNU General Public License as published by
+//      the Free Software Foundation; either version 2 of the License, or
+//      (at your option) any later version. See also the license.txt file for
+//      additional informations.
+</pre>
+</blockquote>
+<b>V810 FPU Emulation:</b>
+<blockquote>
+<pre>
+/*============================================================================
+
+This C source file is part of the SoftFloat IEC/IEEE Floating-point Arithmetic
+Package, Release 2b.
+
+Written by John R. Hauser.  This work was made possible in part by the
+International Computer Science Institute, located at Suite 600, 1947 Center
+Street, Berkeley, California 94704.  Funding was partially provided by the
+National Science Foundation under grant MIP-9311980.  The original version
+of this code was written as part of a project to build a fixed-point vector
+processor in collaboration with the University of California at Berkeley,
+overseen by Profs. Nelson Morgan and John Wawrzynek.  More information
+is available through the Web page `http://www.cs.berkeley.edu/~jhauser/
+arithmetic/SoftFloat.html'.
+
+THIS SOFTWARE IS DISTRIBUTED AS IS, FOR FREE.  Although reasonable effort has
+been made to avoid it, THIS SOFTWARE MAY CONTAIN FAULTS THAT WILL AT TIMES
+RESULT IN INCORRECT BEHAVIOR.  USE OF THIS SOFTWARE IS RESTRICTED TO PERSONS
+AND ORGANIZATIONS WHO CAN AND WILL TAKE FULL RESPONSIBILITY FOR ALL LOSSES,
+COSTS, OR OTHER PROBLEMS THEY INCUR DUE TO THE SOFTWARE, AND WHO FURTHERMORE
+EFFECTIVELY INDEMNIFY JOHN HAUSER AND THE INTERNATIONAL COMPUTER SCIENCE
+INSTITUTE (possibly via similar legal warning) AGAINST ALL LOSSES, COSTS, OR
+OTHER PROBLEMS INCURRED BY THEIR CUSTOMERS AND CLIENTS DUE TO THE SOFTWARE.
+
+Derivative works are acceptable, even for commercial purposes, so long as
+(1) the source code for the derivative work includes prominent notice that
+the work is derivative, and (2) the source code includes prominent notice with
+these four paragraphs for those parts of this code that are retained.
+
+=============================================================================*/
+</pre>
+</blockquote>
+<b>PC-FX MJPEG Decoding:</b>
+<blockquote>
+<pre>
+/*
+ * jrevdct.c
+ *
+ * Copyright (C) 1991, 1992, Thomas G. Lane.
+ * This file is part of the Independent JPEG Group's software.
+ * For conditions of distribution and use, see the accompanying README file.
+ *
+ */
+<i>(The file is included in the Mednafen source distribution as mednafen/Documentation/README.jpeg4a)</i>
+</pre>
+</blockquote>
+<b>VRC7 Sound Emulation:</b>
+<blockquote>
+<pre>
+/*
+YM2413 emulator written by Mitsutaka Okazaki 2001
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications. To alter this software and redistribute it freely,
+if the origin of this software is not misrepresented.
+*/
+</pre>
+</blockquote>
+<b>NEC V30MZ Emulator:</b>
+<blockquote>
+<pre>
+/* This NEC V30MZ emulator may be used for purposes both commercial and noncommercial if you give the author, Bryan McPhail,
+   a small credit somewhere(such as in the documentation for an executable package).
+*/
+</pre>
+</blockquote>
+<b>NEC V30MZ disassembler(modified BOCHS x86 disassembler):</b>
+<blockquote>
+<i>Caution:  Bochs' code is under the LGPL, but it is unclear if "or (at your option) any later version." applies to the x86 disassembler code.</i>
+<pre>
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+ 
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+ 
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+</pre>
+</blockquote>
+<b>Cygne:</b><br>
+Cygne is distributed under the terms of the GNU GPL Version 2, 1991.<br>Copyright 2002 Dox, dox@space.pl.
+</p>
+
+<b>QuickLZ:</b>
+<blockquote>
+<pre>
+                     QuickLZ 1.20 data compression library
+                 Copyright (C) 2006-2007 Lasse Mikkel Reinhold
+
+QuickLZ can be used for free under the GPL-1 or GPL-2 license (where anything
+released into public must be open source) or under a commercial license if such
+has been acquired (see http://www.quicklz.com/order.html). The commercial license
+does not cover derived or ported versions created by third parties under GPL.
+</pre>
+</blockquote>
+</p>
+
+<b>Q-Subchannel CRC16 Code:</b>
+<blockquote>
+<pre>
+/*  cdrdao - write audio CD-Rs in disc-at-once mode
+ *
+ *  Copyright (C) 1998  Andreas Mueller <mueller@daneb.ping.de>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+</pre>
+</blockquote>
+
+<b>SMS Plus:</b>
+<blockquote>
+<pre>
+    Copyright (C) 1998-2004  Charles MacDonald
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+</pre>
+</blockquote>
+
+<b>EMU2413(used in SMS emulation):</b>
+<blockquote>
+<pre>
+  Copyright (C) Mitsutaka Okazaki 2004
+
+  This software is provided 'as-is', without any express or implied warranty.
+  In no event will the authors be held liable for any damages arising from
+  the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not
+     be misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+</pre>
+</blockquote>
+
+<b>blz:</b>
+<blockquote>
+<pre>
+/* Copyright (C) 2007 Shay Green. This module is free software; you can
+redistribute it and/or modify it under the terms of the GNU General Public
+License, version 2 or later, as published by the Free Software Foundation.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details. You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+</pre>
+</blockquote>
+
+<b>CD-ROM data correction code:</b>
+<blockquote>
+<pre>
+/*  dvdisaster: Additional error correction for optical media.
+ *  Copyright (C) 2004-2007 Carsten Gnoerlich.
+ *  Project home page: http://www.dvdisaster.com
+ *  Email: carsten@dvdisaster.com  -or-  cgnoerlich@fsfe.org
+ *
+ *  The Reed-Solomon error correction draws a lot of inspiration - and even code -
+ *  from Phil Karn's excellent Reed-Solomon library: http://www.ka9q.net/code/fec/
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA,
+ *  or direct your browser at http://www.gnu.org.
+ */
+</pre>
+</blockquote>
+ </body>
+</html>
