@@ -28,7 +28,12 @@ bool										Winterface::Draw									()
 	uint32_t screenH10 = ((double)screenH) * .05;
 	uint32_t screenW75 = ((double)screenW) * .75;
 	uint32_t screenW25 = ((double)screenW) * .25;
-		
+
+	if(ImageManager::GetImage("background"))
+	{
+		PS3Video::PlaceTexture(ImageManager::GetImage("background"), 0, 0, screenW, screenH, 0xFFFFFFFF);
+	}
+
 	Area left = Area(screenW10, screenH10 * 2 + 5, screenW75 - screenW10 - 5, screenH - screenH10 * 3);
 	Area right = Area(screenW75 + 5, screenH10 * 2 + 5, screenW25 - screenW10 - 5, screenH - screenH10 * 3);
 	Area top = Area(screenW10, screenH10, screenW - screenW10 * 2, screenH10);

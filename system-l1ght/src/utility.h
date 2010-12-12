@@ -6,7 +6,7 @@ extern "C" uint64_t sys_time_get_system_time();
 class				Colors
 {
 	public:
-		static const uint32_t			BackGround				= 0xD0D0D0FF;
+		static const uint32_t			BackGround				= 0xD0D0D0C0;
 		static const uint32_t			Border					= 0x604040FF;
 		static const uint32_t			Normal 					= 0x202020FF;
 		static const uint32_t			HighLight				= 0xA02020FF;
