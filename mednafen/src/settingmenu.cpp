@@ -118,7 +118,9 @@ bool								MednafenSettingItem::Input						()
 	else if(PS3Input::ButtonDown(0, PS3_BUTTON_L2))
 	{
 		std::vector<std::string> nomarks;
-		std::string result = FileSelect::GetFile("Select File", nomarks);
+		FileSelect browse("Select File", nomarks);
+		
+		std::string result = browse.GetFile();
 		
 		if(result.length() != 0)
 		{

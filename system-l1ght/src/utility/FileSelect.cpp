@@ -154,23 +154,38 @@ void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
 }
 
 //TODO: This function is dangerous
-std::string								FileSelect::GetFile						(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook)
+										FileSelect::FileSelect				(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
+{
+	Header = aHeader;
+	InputHook = aInputHook;
+
+	Lists.push(new FileList(Header, "/", BookMarks, InputHook));
+}
+
+										FileSelect::~FileSelect				()
+{
+	while(Lists.size() != 0)
+	{
+		delete Lists.top();
+		Lists.pop();
+	}
+}
+
+
+std::string								FileSelect::GetFile					()
 {
 	std::string result;
-	std::stack<FileList*> directoryStack;
-	
-	directoryStack.push(new FileList(aHeader, "/", aBookMarks, aInputHook));
 
 	while(!WantToDie())
 	{
-		directoryStack.top()->Do();
+		Lists.top()->Do();
 		
-		if(directoryStack.top()->GetFile().empty())
+		if(Lists.top()->GetFile().empty())
 		{
-			delete directoryStack.top();
-			directoryStack.pop();
+			delete Lists.top();
+			Lists.pop();
 			
-			if(directoryStack.size() == 0)
+			if(Lists.size() == 0)
 			{
 				break;
 			}
@@ -178,20 +193,14 @@ std::string								FileSelect::GetFile						(std::string aHeader, std::vector<st
 			continue;
 		}
 		
-		if(directoryStack.top()->GetFile()[directoryStack.top()->GetFile().length() - 1] == '/')
+		if(Lists.top()->GetFile()[Lists.top()->GetFile().length() - 1] == '/')
 		{
-			directoryStack.push(new FileList(aHeader, directoryStack.top()->GetFile(), aBookMarks, aInputHook));
+			Lists.push(new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook));
 			continue;
 		}
 
-		result = directoryStack.top()->GetFile();
+		result = Lists.top()->GetFile();
 		break;
-	}
-
-	while(directoryStack.size() != 0)
-	{
-		delete directoryStack.top();
-		directoryStack.pop();
 	}
 
 	return result;

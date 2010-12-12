@@ -28,6 +28,7 @@ namespace
 	};
 	
 	MDFNInputHook	InputHook;
+	FileSelect*		Browser = 0;
 };
 
 
@@ -43,7 +44,13 @@ void				Exit					()
 void				ReloadEmulator			()
 {
 	std::vector<std::string> bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
-	std::string romfilename = FileSelect::GetFile("Select ROM", bookmarks, &InputHook);
+	
+	if(!Browser)
+	{
+		Browser = new FileSelect("Select ROM", bookmarks, &InputHook);
+	}
+	
+	std::string romfilename = Browser->GetFile();
 	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
 
 	if(romfilename.length() == 0 && !MednafenEmu::IsGameLoaded())

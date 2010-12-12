@@ -36,9 +36,19 @@ class												FileList : public WinterfaceList
 		std::vector<std::string>&					BookMarks;
 };
 
-namespace FileSelect
+class												FileSelect
 {
-	std::string										GetFile							(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
-}
+	public:
+													FileSelect						(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
+													~FileSelect						();
+		std::string									GetFile							();
+
+	protected:
+		std::stack<FileList*>						Lists;
+
+		std::string									Header;
+		std::vector<std::string>&					BookMarks;
+		MenuHook*									InputHook;
+};
 
 #endif
