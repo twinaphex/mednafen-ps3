@@ -17,6 +17,16 @@ class				Colors
 class				Utility
 {
 	public:
+		static std::string				GetExtension				(std::string aPath)
+		{
+			if(aPath.find(".") != std::string::npos)
+			{
+				return aPath.substr(aPath.find(".") + 1);
+			}
+			
+			return "";
+		}
+	
 		static void						ListDirectory				(std::string aPath, std::vector<std::string>& aOutput)
 		{
 			Lv2FsFile dirhandle;

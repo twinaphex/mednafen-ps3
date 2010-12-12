@@ -16,6 +16,11 @@ namespace
 	FullPath = aPath;
 	Directory = aDirectory;
 	SetBookMark(aBookMark);
+	
+	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
+	{
+		LabelImage = Utility::GetExtension(aPath) + "ICON";
+	}
 }
 
 std::string								FileListItem::GetPath					()

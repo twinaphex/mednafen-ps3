@@ -5,9 +5,6 @@ namespace
 	uint32_t wimage = 0;
 };
 
-#include "folder.bin.h"
-#include "file.bin.h"
-
 											Winterface::Winterface								(std::string aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
 {
 	KillItems = aKillItems;
@@ -17,11 +14,10 @@ namespace
 
 bool										Winterface::Draw									()
 {
+	//HACK:
 	if(wimage == 0)
 	{
-		ImageManager::LoadImage("FolderICON", folder_bin, sizeof(folder_bin));
-		ImageManager::LoadImage("FileICON", file_bin, sizeof(file_bin));		
-		
+		ImageManager::LoadDirectory("/dev_hdd0/game/MDFN90002/USRDIR/assets/png/");
 		wimage = 1;
 	}
 

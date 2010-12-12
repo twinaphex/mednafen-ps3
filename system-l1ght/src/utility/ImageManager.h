@@ -5,7 +5,8 @@ class													ImageManager
 {
 	public:
 		static void										Purge							();
-		static Texture*									LoadImage						(std::string aName, const void* aPngData, uint32_t aPngSize);
+		static void										LoadDirectory					(std::string aPath);
+		static Texture*									LoadImage						(std::string aName, std::string aPath);
 
 	public://INLINES
 		static Texture*									GetImage						(std::string aName)

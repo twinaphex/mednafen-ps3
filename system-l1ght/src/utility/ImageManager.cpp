@@ -10,17 +10,28 @@ void										ImageManager::Purge									()
 	Images.clear();
 }
 
-Texture*									ImageManager::LoadImage								(std::string aName, const void* aPngData, uint32_t aPngSize)
+void										ImageManager::LoadDirectory							(std::string aPath)
+{
+	std::vector<std::string> items;
+	Utility::ListDirectory(aPath, items);
+	
+	for(int i = 0 ; i != items.size(); i ++)
+	{
+		if(items[i].find(".png") != std::string::npos)
+		{
+			LoadImage(items[i].substr(items[i].length() - 4), aPath + items[i]);
+		}
+	}
+}
+	
+Texture*									ImageManager::LoadImage								(std::string aName, std::string aPath)
 {
 	if(Images[aName] == 0)
 	{
 		PngDatas Png;
 		memset(&Png, 0, sizeof(Png));
 	
-		Png.png_in = (void*)aPngData;
-		Png.png_size = aPngSize;
-		
-		LoadPNG(&Png, 0);
+		LoadPNG(&Png, aPath.c_str());
 		
 		if(Png.bmp_out == 0)
 		{
