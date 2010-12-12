@@ -182,10 +182,12 @@ std::string								FileSelect::GetFile					()
 		
 		if(Lists.top()->GetFile().empty())
 		{
-			delete Lists.top();
-			Lists.pop();
-			
-			if(Lists.size() == 0)
+			if(Lists.size() > 1)
+			{
+				delete Lists.top();
+				Lists.pop();
+			}
+			else
 			{
 				break;
 			}

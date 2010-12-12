@@ -33,7 +33,7 @@ class				Utility
 			Lv2FsDirent item;
 			uint64_t readsize;
 			
-			if(lv2FsOpenDir(aPath.c_str(), &dirhandle))
+			if(0 == lv2FsOpenDir(aPath.c_str(), &dirhandle))
 			{
 				while(1)
 				{
@@ -57,7 +57,7 @@ class				Utility
 			}
 			else
 			{
-				throw std::string("Utility::ListDirectory: aPath was not a directory");
+				throw std::string("Utility::ListDirectory: " + aPath + " was not a directory");
 			}
 		}
 	

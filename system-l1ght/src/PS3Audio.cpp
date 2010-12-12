@@ -81,6 +81,7 @@ void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
 	}
 	
 	PS3Audio::ThreadDie = false;
+	sys_ppu_thread_exit(0);
 }
 
 volatile uint32_t 		PS3Audio::GetBufferAmount		()

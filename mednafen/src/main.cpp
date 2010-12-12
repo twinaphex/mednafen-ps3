@@ -29,6 +29,7 @@ namespace
 	
 	MDFNInputHook	InputHook;
 	FileSelect*		Browser = 0;
+	std::vector<std::string>	bookmarks;
 };
 
 
@@ -43,7 +44,7 @@ void				Exit					()
 
 void				ReloadEmulator			()
 {
-	std::vector<std::string> bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
+	bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
 	
 	if(!Browser)
 	{
@@ -133,8 +134,9 @@ int					main					()
 	
 		Exit();
 	}
-	catch(...)
+	catch(std::string s)
 	{
+		printf("EXCEPTION: %s\n\n", s.c_str());
 		Exit();
 	}
 }

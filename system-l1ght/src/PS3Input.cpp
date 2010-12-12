@@ -98,6 +98,7 @@ void				PS3Input::ProcessInputThread			(uint64_t aBcD)
 	}
 	
 	ThreadDie = false;
+	sys_ppu_thread_exit(0);	
 }
 
 void				PS3Input::Refresh						()

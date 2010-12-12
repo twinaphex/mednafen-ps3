@@ -19,7 +19,7 @@ void										ImageManager::LoadDirectory							(std::string aPath)
 	{
 		if(items[i].find(".png") != std::string::npos)
 		{
-			LoadImage(items[i].substr(items[i].length() - 4), aPath + items[i]);
+			LoadImage(items[i].substr(0, items[i].length() - 4), aPath + items[i]);
 		}
 	}
 }
