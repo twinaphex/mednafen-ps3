@@ -137,7 +137,6 @@ void						MednafenEmu::Frame				()
 	
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 	
-		EmulateSpecStruct espec;
 		memset(&espec, 0, sizeof(EmulateSpecStruct));
 		espec.surface = Surface;
 		espec.LineWidths = VideoWidths;
@@ -169,21 +168,8 @@ void						MednafenEmu::Frame				()
 				}
 				PS3Audio::AddSamples((uint32_t*)SamplesUp, espec.SoundBufSize);			
 			}
-			
-			uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : espec.DisplayRect.x;
-			uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : espec.DisplayRect.w;
-	
-			uint32_t* pix = Buffer->GetPixels();
-			uint32_t pixw = Buffer->GetWidth();
-			for(int i = 0; i != espec.DisplayRect.h; i ++)
-			{
-				for(int j = 0; j != real_width; j ++)
-				{
-					pix[i * pixw + j] = Surface->pixels[(i + espec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
-				}
-			}
-			
-			PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+
+			Blit();			
 	
 			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
 			{
@@ -211,11 +197,28 @@ void						MednafenEmu::DummyFrame			()
 {
 	if(IsLoaded)
 	{
-//TODO: Change to present frame
-//		PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), false, 0);
+		Blit();
 	}
 	
 	PS3Video::Flip();					
+}
+
+void						MednafenEmu::Blit				()
+{
+	uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : espec.DisplayRect.x;
+	uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : espec.DisplayRect.w;
+
+	uint32_t* pix = Buffer->GetPixels();
+	uint32_t pixw = Buffer->GetWidth();
+	for(int i = 0; i != espec.DisplayRect.h; i ++)
+	{
+		for(int j = 0; j != real_width; j ++)
+		{
+			pix[i * pixw + j] = Surface->pixels[(i + espec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
+		}
+	}
+	
+	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -266,7 +269,8 @@ FastCounter					MednafenEmu::Counter;
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
-	
+
+EmulateSpecStruct			MednafenEmu::espec;
 MDFNGI*						MednafenEmu::GameInfo = 0;
 
 std::vector<MDFNSetting>	MednafenEmu::Settings;

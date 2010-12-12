@@ -14,6 +14,7 @@ class	MednafenEmu
 		
 		static void						Frame				();
 		static void						DummyFrame			();
+		static void						Blit				();
 		
 		static void						DoCommand			(std::string aName);
 
@@ -44,6 +45,8 @@ class	MednafenEmu
 		static std::string				Message;
 		static uint32_t					MessageTime;
 		static bool						PCESkipHack;	
+		static EmulateSpecStruct		espec;
+
 			
 		static MDFNGI*					GameInfo;
 
