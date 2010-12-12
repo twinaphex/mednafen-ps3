@@ -174,6 +174,8 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 		uint32_t barSize = ((double)Resolution.width) * .125;
 		output = Area(barSize + widthP, heightP, Resolution.width - barSize * 2 - widthP * 2, Resolution.height - heightP * 2);
 	}
+	
+	realityBlendEnable(GCMContext, 0);	
 
 	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
 	FillVertex(&vertices[VertexBufferPosition ++], output.X, output.Y, 1.0, 0xFFFFFFFF, 0.0, 0.0);
@@ -182,6 +184,8 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 	FillVertex(&vertices[VertexBufferPosition ++], output.X, output.Bottom(), 1.0, 0xFFFFFFFF, 0.0, 1.0);	
 
 	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
+	
+	realityBlendEnable(GCMContext, 1);		
 }
 
 void					PS3Video::PrepareBuffer			()
