@@ -9,17 +9,6 @@
 	CanPage = aCanPage;
 }
 
-											WinterfaceList::~WinterfaceList		()
-{
-	if(KillItems)
-	{
-		for(std::vector<ListItem*>::iterator i = Items.begin(); i != Items.end(); i ++)
-		{
-			delete *i;
-		}
-	}
-}
-	
 bool										WinterfaceList::DrawLeft							()
 {
 	if(Items.size() == 0)

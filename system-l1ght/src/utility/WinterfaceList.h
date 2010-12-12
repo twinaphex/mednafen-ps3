@@ -5,14 +5,30 @@ class													WinterfaceList : public Winterface
 {
 	public:
 														WinterfaceList					(std::string aHeader, bool aCanPage = true, bool aKillItems = true, MenuHook* aHook = 0);
-		virtual											~WinterfaceList					();
-
 		virtual bool									Input							();
-
 		virtual bool									DrawLeft						();
 
-		bool											WasCanceled						()		{return Canceled;};
-		ListItem*										GetSelected						()		{return Items[Selected];};
+	public: //Inlines
+		virtual											~WinterfaceList					()
+		{
+			if(KillItems)
+			{
+				for(std::vector<ListItem*>::iterator i = Items.begin(); i != Items.end(); i ++)
+				{
+					delete *i;
+				}
+			}
+		}
+
+		bool											WasCanceled						()
+		{
+			return Canceled;
+		}
+
+		ListItem*										GetSelected						()
+		{
+			return Items[Selected];
+		}
 		
 	protected:
 		std::vector<ListItem*>							Items;

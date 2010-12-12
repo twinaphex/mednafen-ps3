@@ -5,14 +5,29 @@ class													ListItem
 {
 	public:
 														ListItem						(std::string aText, Font* aFont = 0, std::string aImage = "");
-		virtual											~ListItem						(){};
-		
-		virtual uint32_t								GetHeight						()		{return LabelFont->GetHeight();};
-		
-		virtual std::string								GetText							()		{return Text;};
-		
+
 		virtual void									Draw							(uint32_t aX, uint32_t aY, bool aSelected);
-		virtual bool									Input							()		{return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);};
+
+	public: //inlines
+		virtual											~ListItem						()
+		{
+		
+		}
+		
+		virtual uint32_t								GetHeight						()
+		{
+			return LabelFont->GetHeight();
+		}
+		
+		virtual std::string								GetText							()
+		{
+			return Text;
+		}
+
+		virtual bool									Input							()
+		{	
+			return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);
+		}
 		
 	protected:
 		Font*											LabelFont;

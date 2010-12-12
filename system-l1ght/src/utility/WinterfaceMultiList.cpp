@@ -64,13 +64,3 @@ bool										WinterfaceMultiList::Input							()
 	return WinterfaceList::Input();
 }
 
-void										WinterfaceMultiList::SetCategory					(std::string aCategory)
-{
-	if(aCategory != CurrentCategory)
-	{
-		Selected = 0;
-		CurrentCategory = aCategory;
-		
-		Items = Categories[CurrentCategory];
-	}
-}
