@@ -8,6 +8,7 @@
 #include "src/PS3Audio.h"
 
 #include "src/utility/Font.h"
+#include "src/utility/ImageManager.h"
 #include "src/utility/Menu.h"
 #include "src/utility/ListItem.h"
 #include "src/utility/Winterface.h"

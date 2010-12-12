@@ -1,19 +1,6 @@
 #ifndef SYSTEM__WINTERFACE_H
 #define SYSTEM__WINTERFACE_H
 
-class													ImageManager
-{
-	public:
-		static void										Purge							();
-		
-		static Texture*									LoadImage						(std::string aName, const void* aPngData, uint32_t aPngSize);
-		static Texture*									GetImage						(std::string aName);
-
-	protected:
-		static std::map<std::string, Texture*>			Images;
-};
-
-
 class													Winterface : public Menu
 {
 	public:
