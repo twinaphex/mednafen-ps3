@@ -91,37 +91,18 @@ std::string								FileList::GetFile						()
 
 void									FileList::CollectFiles					(std::string aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters)
 {
-	Lv2FsFile dirhandle;
-	Lv2FsDirent item;
-	uint64_t readsize;
-	
-	if(0 != lv2FsOpenDir(aPath.c_str(), &dirhandle))
-	{
-		return;
-	}
-	
-	while(1)
-	{
-		lv2FsReadDir(dirhandle, &item, &readsize);
-		
-		if(readsize == 0)
-		{
-			break;
-		}
+	std::vector<std::string> items;
+	Utility::ListDirectory(aPath, items);
 
-		//TODO: !1! is a directory
-		if(item.d_type == 1 && (strcmp(item.d_name, ".") == 0 || strcmp(item.d_name, "..") == 0))
-		{
-			continue;
-		}
-		
+	for(int i = 0; i != items.size(); i ++)
+	{
 		bool filterfound = true;
 		
-		for(int i = 0; i != aFilters.size(); i ++)
+		for(int j = 0; j != aFilters.size(); j ++)
 		{
 			filterfound = false;
 			
-			if(std::string(item.d_name).find(aFilters[i]) != std::string::npos)
+			if(items[i].find(aFilters[j]) != std::string::npos)
 			{
 				filterfound = true;
 				break;
@@ -130,13 +111,10 @@ void									FileList::CollectFiles					(std::string aPath, std::vector<ListItem
 		
 		if(filterfound)
 		{
-			std::string fullpath = std::string(aPath) + item.d_name + (item.d_type == 1 ? "/" : "");
-			std::string filename = std::string(item.d_name) + (item.d_type == 1 ? "/" : "");
-			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), fullpath) != BookMarks.end();
-			aItems.push_back(new FileListItem(fullpath, filename, item.d_type == 1, bookmark));
+			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), aPath + items[i]) != BookMarks.end();
+			aItems.push_back(new FileListItem(aPath + items[i], items[i], items[i][items[i].length() - 1] == '/', bookmark));
 		}
 	}
-
 }
 
 void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)

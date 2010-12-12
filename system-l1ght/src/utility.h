@@ -17,6 +17,40 @@ class				Colors
 class				Utility
 {
 	public:
+		static void						ListDirectory				(std::string aPath, std::vector<std::string>& aOutput)
+		{
+			Lv2FsFile dirhandle;
+			Lv2FsDirent item;
+			uint64_t readsize;
+			
+			if(lv2FsOpenDir(aPath.c_str(), &dirhandle))
+			{
+				while(1)
+				{
+					lv2FsReadDir(dirhandle, &item, &readsize);
+					
+					if(readsize == 0)
+					{
+						break;
+					}
+			
+					//TODO: !1! is a directory
+					if(item.d_type == 1 && (strcmp(item.d_name, ".") == 0 || strcmp(item.d_name, "..") == 0))
+					{
+						continue;
+					}
+
+					aOutput.push_back(std::string(item.d_name) + (item.d_type == 1 ? "/" : ""));					
+				}
+				
+				lv2FsCloseDir(dirhandle);
+			}
+			else
+			{
+				throw std::string("Utility::ListDirectory: aPath was not a directory");
+			}
+		}
+	
 		static uint32_t					GetTicks					()
 		{
 			return sys_time_get_system_time() / 1000;
