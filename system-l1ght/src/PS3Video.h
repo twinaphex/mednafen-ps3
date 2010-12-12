@@ -73,6 +73,7 @@ class								PS3Video
 		static void					Allocate				(uint32_t*& aMemory, uint32_t& aOffset, uint32_t aSize, uint32_t aAlign);
 		static void					ApplyTexture			(Texture* aTexture, Area aRegion);
 		static void					ApplyVertexBuffer		(uint32_t aPosition);
+		static void					DrawQuad				(Area aRegion, uint32_t aColor);
 
 		static gcmContextData*		GCMContext;
 		static VideoResolution		Resolution;

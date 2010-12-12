@@ -123,12 +123,8 @@ void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	}
 
 	ApplyTexture(aTexture, Area(0, 0, aTexture->Width, aTexture->Height));
-	ApplyVertexBuffer(VertexBufferPosition);
-	
-	if((VertexBufferPosition + 5) * sizeof(Vertex) > 1024 * 1024)
-	{
-		throw std::string("PS3Video::PlaceTexture: Out of vertex buffer room.");
-	}
+
+	DrawQuad(Area(aX, aY, aX + aWidth, aY + aHeight), aColor);
 
 	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
 	FillVertex(&vertices[VertexBufferPosition ++], aX, aY, 1.0, aColor, 0.0, 0.0);
@@ -147,14 +143,6 @@ void					PS3Video::FillRectangle			(Area aArea, uint32_t aColor)
 void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
 {
 	ApplyTexture(aTexture, Area(aViewPort.X, aViewPort.Y, aViewPort.Width, aViewPort.Height));
-	ApplyVertexBuffer(VertexBufferPosition);
-
-	//TODO: Verify underscan
-
-	if((VertexBufferPosition + 4) * sizeof(Vertex) > 1024 * 1024)
-	{
-		throw std::string("PS3Video::PresentFrame: Out of vertex buffer room.");
-	}
 
 	Area output(0, 0, Resolution.width, Resolution.height);
 	
@@ -176,15 +164,7 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 	}
 	
 	realityBlendEnable(GCMContext, 0);	
-
-	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
-	FillVertex(&vertices[VertexBufferPosition ++], output.X, output.Y, 1.0, 0xFFFFFFFF, 0.0, 0.0);
-	FillVertex(&vertices[VertexBufferPosition ++], output.Right(), output.Y, 1.0, 0xFFFFFFFF, 1.0, 0.0);	
-	FillVertex(&vertices[VertexBufferPosition ++], output.Right(), output.Bottom(), 1.0, 0xFFFFFFFF, 1.0, 1.0);	
-	FillVertex(&vertices[VertexBufferPosition ++], output.X, output.Bottom(), 1.0, 0xFFFFFFFF, 0.0, 1.0);	
-
-	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
-	
+	DrawQuad(output, 0xFFFFFFFF);
 	realityBlendEnable(GCMContext, 1);		
 }
 
@@ -258,6 +238,24 @@ void					PS3Video::ApplyVertexBuffer		(uint32_t aPosition)
 	realityBindVertexBufferAttribute(GCMContext, off_position, offset, sizeof(Vertex), 4, REALITY_BUFFER_DATATYPE_FLOAT, REALITY_RSX_MEMORY);
 	realityBindVertexBufferAttribute(GCMContext, off_color, offset + 16, sizeof(Vertex), 4, REALITY_BUFFER_DATATYPE_BYTE, REALITY_RSX_MEMORY);
 	realityBindVertexBufferAttribute(GCMContext, off_texture, offset + 20, sizeof(Vertex), 2, REALITY_BUFFER_DATATYPE_FLOAT, REALITY_RSX_MEMORY);
+}
+
+void					PS3Video::DrawQuad				(Area aRegion, uint32_t aColor)
+{
+	ApplyVertexBuffer(VertexBufferPosition);
+
+	if((VertexBufferPosition + 4) * sizeof(Vertex) > 1024 * 1024)
+	{
+		throw std::string("PS3Video::DrawQuad: Out of vertex buffer room.");
+	}
+
+	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
+	FillVertex(&vertices[VertexBufferPosition ++], aRegion.X, aRegion.Y, 1.0, aColor, 0.0, 0.0);
+	FillVertex(&vertices[VertexBufferPosition ++], aRegion.Right(), aRegion.Y, 1.0, aColor, 1.0, 0.0);	
+	FillVertex(&vertices[VertexBufferPosition ++], aRegion.Right(), aRegion.Bottom(), 1.0, aColor, 1.0, 1.0);	
+	FillVertex(&vertices[VertexBufferPosition ++], aRegion.X, aRegion.Bottom(), 1.0, aColor, 0.0, 1.0);	
+
+	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
 }
 
 gcmContextData*			PS3Video::GCMContext;
