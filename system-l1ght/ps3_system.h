@@ -21,7 +21,7 @@
 #include "src/utility.h"
 
 
-void				InitPS3					();
+void				InitPS3					(void (*aExitFunction)() = 0);
 void				QuitPS3					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();

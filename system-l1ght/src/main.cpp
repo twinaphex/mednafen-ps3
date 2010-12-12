@@ -6,6 +6,7 @@ namespace
 {
 	volatile bool	want_to_die = false;
 	volatile bool	want_to_sleep = false;
+	void			(*ExitFunction)() = 0;
 };
 
 static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
@@ -13,57 +14,21 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 	(void)param;
 	(void)userdata;
 
+	//TODO: Use constants from psl1ght
 	switch (status)
 	{
-		case EVENT_REQUEST_EXITAPP:
-			want_to_die = true;
-			break;
-			
-		case 0x121: //CELL_SYSUTIL_DRAWING_BEGIN:
-			want_to_sleep = true;
-			break;
-			
-		case 0x122: //CELL_SYSUTIL_DRAWING_END:
-			want_to_sleep = false;
-			break;
-
-		default:
-			break;
+		case EVENT_REQUEST_EXITAPP:				want_to_die = true; break;
+		case 0x121:								want_to_sleep = true; break; 
+		case 0x122: 							want_to_sleep = false; break;
 	}
 
 	return;
 }
 
-void				TestError				(bool aCondition, const char* aMessage)
+void				InitPS3					(void (*aExitFunction)())
 {
-	if(!aCondition)
-	{
-		FILE* file = fopen("/dev_usb006/error.message", "w");
-		if(file)
-		{
-			fprintf(file, "%s\n", aMessage);
-			fclose(file);
-		}
-		
-		exit(1);
-	}
-}
+	ExitFunction = aExitFunction;
 
-int					printf					(const char * format, ... )
-{
-	char array[1024];
-	va_list args;
-	va_start (args, format);
-	vsnprintf(array, 1024, format, args);
-	va_end(args);
-	
-	ps3_log->Log(array);
-	return strlen(array);
-}
-
-
-void				InitPS3					()
-{
 	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
 	SysLoadModule(SYSMODULE_PNGDEC);
 
@@ -94,6 +59,13 @@ void				QuitPS3					()
 volatile bool		WantToDie				()
 {
 	sysCheckCallback();
+	
+	if(want_to_die)
+	{
+		ExitFunction();
+		exit(1);
+	}
+	
 	return want_to_die;
 }
 
