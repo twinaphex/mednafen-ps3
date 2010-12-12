@@ -64,6 +64,7 @@ std::string							MednafenSettingButton::GetButton				()
 	}
 	
 	Configure();
+	ReadSettings();
 }
 
 								InputHandler::~InputHandler				()
