@@ -123,16 +123,7 @@ void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	}
 
 	ApplyTexture(aTexture, Area(0, 0, aTexture->Width, aTexture->Height));
-
-	DrawQuad(Area(aX, aY, aX + aWidth, aY + aHeight), aColor);
-
-	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
-	FillVertex(&vertices[VertexBufferPosition ++], aX, aY, 1.0, aColor, 0.0, 0.0);
-	FillVertex(&vertices[VertexBufferPosition ++], aX + aWidth, aY, 1.0, aColor, 1.0, 0.0);	
-	FillVertex(&vertices[VertexBufferPosition ++], aX + aWidth, aY + aHeight, 1.0, aColor, 1.0, 1.0);	
-	FillVertex(&vertices[VertexBufferPosition ++], aX, aY + aHeight, 1.0, aColor, 0.0, 1.0);	
-
-	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
+	DrawQuad(Area(aX, aY, aWidth, aHeight), aColor);
 }
 
 void					PS3Video::FillRectangle			(Area aArea, uint32_t aColor)
