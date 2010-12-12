@@ -2,7 +2,7 @@
 
 namespace
 {
-	#define SETTINGNAME(b) ((SettingHeader + b).c_str())
+	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".ps3." + b).c_str())
 
 	MDFNSetting SystemSettings[] = 
 	{
@@ -57,15 +57,6 @@ void						MednafenEmu::Quit				()
 	
 	IsInitialized = false;
 }
-
-void						MednafenEmu::DisplayMessage		(std::string aMessage)
-{
-	if(IsInitialized && IsLoaded)
-	{
-		Message = aMessage;
-		MessageTime = MDFND_GetTime();
-	}
-}
 							
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
@@ -90,8 +81,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Inputs = new InputHandler(GameInfo);
 		TextFile = new TextViewer(aFileName + ".txt");
 	
-		SettingHeader = std::string(GameInfo->shortname) + ".ps3.";
-		
+	
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_LoadState(0, "mcq");
@@ -136,20 +126,17 @@ void						MednafenEmu::Frame				()
 		Inputs->Process();
 	
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
-	
-		memset(&espec, 0, sizeof(EmulateSpecStruct));
-		espec.surface = Surface;
-		espec.LineWidths = VideoWidths;
-		espec.soundmultiplier = 1;
-		espec.SoundRate = 48000;
-		espec.SoundBuf = Samples;
-		espec.SoundBufMaxSize = 48000;
-		espec.SoundVolume = 1;
-		espec.NeedRewind = PS3Input::ButtonPressed(0, PS3_BUTTON_L2);
-		espec.skip = !Counter.DrawNow() && !PCESkipHack;
-		MDFNI_Emulate(&espec);
-	
-		DisplayRect = espec.DisplayRect;
+		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
+		EmulatorSpec.surface = Surface;
+		EmulatorSpec.LineWidths = VideoWidths;
+		EmulatorSpec.soundmultiplier = 1;
+		EmulatorSpec.SoundRate = 48000;
+		EmulatorSpec.SoundBuf = Samples;
+		EmulatorSpec.SoundBufMaxSize = 24000;
+		EmulatorSpec.SoundVolume = 1;
+		EmulatorSpec.NeedRewind = PS3Input::ButtonPressed(0, PS3_BUTTON_L2);
+		EmulatorSpec.skip = !Counter.DrawNow() && !PCESkipHack;
+		MDFNI_Emulate(&EmulatorSpec);
 		
 		if(Counter.DrawNow())
 		{
@@ -157,16 +144,16 @@ void						MednafenEmu::Frame				()
 			
 			if(GameInfo->soundchan > 1)
 			{
-				PS3Audio::AddSamples((uint32_t*)Samples, espec.SoundBufSize);
+				PS3Audio::AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
 			}
 			else
 			{
-				for(int i = 0; i != espec.SoundBufSize; i ++)
+				for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
 				{
 					SamplesUp[i * 2] = Samples[i];
 					SamplesUp[i * 2 + 1] = Samples[i];
 				}
-				PS3Audio::AddSamples((uint32_t*)SamplesUp, espec.SoundBufSize);			
+				PS3Audio::AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
 			}
 
 			Blit();			
@@ -193,32 +180,22 @@ void						MednafenEmu::Frame				()
 	}
 }
 
-void						MednafenEmu::DummyFrame			()
-{
-	if(IsLoaded)
-	{
-		Blit();
-	}
-	
-	PS3Video::Flip();					
-}
-
 void						MednafenEmu::Blit				()
 {
-	uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : espec.DisplayRect.x;
-	uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : espec.DisplayRect.w;
+	uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x;
+	uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w;
 
 	uint32_t* pix = Buffer->GetPixels();
 	uint32_t pixw = Buffer->GetWidth();
-	for(int i = 0; i != espec.DisplayRect.h; i ++)
+	for(int i = 0; i != EmulatorSpec.DisplayRect.h; i ++)
 	{
 		for(int j = 0; j != real_width; j ++)
 		{
-			pix[i * pixw + j] = Surface->pixels[(i + espec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
+			pix[i * pixw + j] = Surface->pixels[(i + EmulatorSpec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
 		}
 	}
 	
-	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, espec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -228,7 +205,7 @@ void						MednafenEmu::DoCommand			(std::string aName)
 		if(aName == "DoReload")					ReloadEmulator();
 		if(aName == "DoSettings")				MednafenSettings(GameInfo->shortname).Do();
 		if(aName == "DoReset")					MDFNI_Reset();
-		if(aName == "DoScreenShot")				MDFNI_SaveSnapshot(Surface, &DisplayRect, VideoWidths);
+		if(aName == "DoScreenShot")				MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(aName == "DoSaveState")				MDFNI_SaveState(0, 0, 0, 0, 0);
 		if(aName == "DoLoadState")				MDFNI_LoadState(0, 0);
 		if(aName == "DoToggleRewind")			MDFNI_EnableStateRewind(1);
@@ -270,15 +247,12 @@ std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
 
-EmulateSpecStruct			MednafenEmu::espec;
 MDFNGI*						MednafenEmu::GameInfo = 0;
 
 std::vector<MDFNSetting>	MednafenEmu::Settings;
-std::string					MednafenEmu::SettingHeader;
-	
+
+EmulateSpecStruct			MednafenEmu::EmulatorSpec;	
 MDFN_Rect					MednafenEmu::VideoWidths[512];
-MDFN_Rect					MednafenEmu::DisplayRect;
-		
-int16						MednafenEmu::Samples[2*48000];
+int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
 
