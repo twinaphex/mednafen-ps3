@@ -47,11 +47,7 @@ void				QuitPS3					()
 
 	SysUnloadModule(SYSMODULE_PNGDEC);
 
-
-	if(ps3_log)
-	{
-		delete ps3_log;
-	}
+	delete ps3_log;
 
 	sysUnregisterCallback(EVENT_SLOT0);
 }

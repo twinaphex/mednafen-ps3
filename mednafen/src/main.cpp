@@ -106,7 +106,7 @@ int					main					()
 {
 	try
 	{
-		InitPS3();
+		InitPS3(Exit);
 	
 		MednafenEmu::Init();
 
