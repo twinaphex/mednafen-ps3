@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-						TextViewer::TextViewer					(std::string aFileName) : Winterface(aFileName)
+						TextViewer::TextViewer					(const std::string& aFileName) : Winterface(aFileName)
 {
 	std::ifstream file(aFileName.c_str());
 	
@@ -17,7 +17,7 @@
 	file.close();
 }
 						
-						TextViewer::TextViewer					(std::string aText, std::string aHeader) : Winterface(aHeader)
+						TextViewer::TextViewer					(const std::string& aText, const std::string& aHeader) : Winterface(aHeader)
 {
 	std::stringstream text(aText);
 	LoadStream(text);

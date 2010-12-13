@@ -4,19 +4,19 @@
 class										Keyboard : public Winterface
 {
 	public:
-											Keyboard				(std::string aHeader, std::string aText);
+											Keyboard				(const std::string& aHeader, const std::string& aText);
 		virtual								~Keyboard				();
 
 		bool								DrawLeft				();
 		bool								Input					();
 				
-		std::string							GetText					()						{return Text;};
-		void								SetText					(std::string aText)		{Text = aText;};
+		std::string							GetText					()								{return Text;};
+		void								SetText					(const std::string& aText)		{Text = aText;};
 
-		std::string							GetHeader				()						{return Header;};
-		void								SetHeader				(std::string aHeader)	{Header = aHeader;};
+		std::string							GetHeader				()								{return Header;};
+		void								SetHeader				(const std::string& aHeader)	{Header = aHeader;};
 				
-		bool								WasCanceled				()						{return Canceled;};
+		bool								WasCanceled				()								{return Canceled;};
 				
 		
 	protected:

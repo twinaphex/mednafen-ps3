@@ -5,11 +5,11 @@ class													ImageManager
 {
 	public:
 		static void										Purge							();
-		static void										LoadDirectory					(std::string aPath);
-		static Texture*									LoadImage						(std::string aName, std::string aPath);
+		static void										LoadDirectory					(const std::string& aPath);
+		static Texture*									LoadImage						(const std::string& aName, const std::string& aPath);
 
 	public://INLINES
-		static Texture*									GetImage						(std::string aName)
+		static Texture*									GetImage						(const std::string& aName)
 		{
 			return Images[aName];
 		}

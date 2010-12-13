@@ -4,7 +4,7 @@
 class												FileListItem : public ListItem
 {
 	public:
-													FileListItem					(std::string aPath, std::string aName, bool aDirectory, bool aBookMarked = false);
+													FileListItem					(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMarked = false);
 
 		std::string									GetPath							();
 		
@@ -21,15 +21,14 @@ class												FileListItem : public ListItem
 class												FileList : public WinterfaceList
 {
 	public:
-													FileList						(std::string aHeader, std::vector<std::string>& aBookMarks);
-													FileList						(std::string aHeader, std::string aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
+													FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
 													
 		bool										Input							();
 		
 		std::string									GetFile							();
 
 	protected:
-		void										CollectFiles					(std::string aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters);
+		void										CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters);
 		void										CollectBookMarks				(std::vector<ListItem*>& aItems);
 	
 		std::string									Path;
@@ -39,7 +38,7 @@ class												FileList : public WinterfaceList
 class												FileSelect
 {
 	public:
-													FileSelect						(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
+													FileSelect						(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
 													~FileSelect						();
 		std::string									GetFile							();
 

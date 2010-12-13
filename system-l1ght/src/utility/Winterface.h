@@ -4,7 +4,7 @@
 class													Winterface : public Menu
 {
 	public:
-														Winterface						(std::string aHeader, bool aKillItems = true, MenuHook* aHook = 0);
+														Winterface						(const std::string& aHeader, bool aKillItems = true, MenuHook* aHook = 0);
 		virtual bool									Draw							();
 		
 	public:		//Inlines

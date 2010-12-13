@@ -41,7 +41,7 @@ uint32_t					FastCounter::GetFPS					()
 	return LastFPS;
 }
 		
-							Logger::Logger						(std::string aHeader) : TextViewer("", aHeader)
+							Logger::Logger						(const std::string& aHeader) : TextViewer("", aHeader)
 {
 }
 

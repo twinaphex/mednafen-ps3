@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 	
-											WinterfaceList::WinterfaceList						(std::string aHeader, bool aCanPage, bool aKillItems, MenuHook* aHook) : Winterface(aHeader, aKillItems, aHook)
+											WinterfaceList::WinterfaceList						(const std::string& aHeader, bool aCanPage, bool aKillItems, MenuHook* aHook) : Winterface(aHeader, aKillItems, aHook)
 {
 	Selected = 0;
 	Canceled = 0;

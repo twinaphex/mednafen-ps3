@@ -11,7 +11,7 @@ namespace
 	}
 }
 
-										FileListItem::FileListItem				(std::string aPath, std::string aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
+										FileListItem::FileListItem				(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
 {
 	FullPath = aPath;
 	Directory = aDirectory;
@@ -46,7 +46,7 @@ bool									FileListItem::GetBookMark				()
 }
 
 
-										FileList::FileList						(std::string aHeader, std::string aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookMarks)
+										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookMarks)
 {
 	Path = aPath;
 	
@@ -94,7 +94,7 @@ std::string								FileList::GetFile						()
 	return WasCanceled() ? "" : ((FileListItem*)GetSelected())->GetPath();
 }
 
-void									FileList::CollectFiles					(std::string aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters)
+void									FileList::CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters)
 {
 	std::vector<std::string> items;
 	Utility::ListDirectory(aPath, items);
@@ -154,7 +154,7 @@ void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
 }
 
 //TODO: This function is dangerous
-										FileSelect::FileSelect				(std::string aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
+										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
 {
 	Header = aHeader;
 	InputHook = aInputHook;

@@ -4,13 +4,13 @@
 class													WinterfaceMultiList : public WinterfaceList
 {
 	public:
-														WinterfaceMultiList				(std::string aHeader, bool aCanPage = true, bool aKillItems = true, MenuHook* aHook = 0);
+														WinterfaceMultiList				(const std::string& aHeader, bool aCanPage = true, bool aKillItems = true, MenuHook* aHook = 0);
 		virtual											~WinterfaceMultiList			();
 		virtual bool									Input							();
 		
 
 	public:		//Inlines
-		void											SetCategory						(std::string aCategory)
+		void											SetCategory						(const std::string& aCategory)
 		{
 			if(aCategory != CurrentCategory)
 			{

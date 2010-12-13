@@ -4,7 +4,7 @@
 class													WinterfaceList : public Winterface
 {
 	public:
-														WinterfaceList					(std::string aHeader, bool aCanPage = true, bool aKillItems = true, MenuHook* aHook = 0);
+														WinterfaceList					(const std::string& aHeader, bool aCanPage = true, bool aKillItems = true, MenuHook* aHook = 0);
 		virtual bool									Input							();
 		virtual bool									DrawLeft						();
 

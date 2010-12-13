@@ -17,7 +17,7 @@ class				Colors
 class				Utility
 {
 	public:
-		static std::string				GetExtension				(std::string aPath)
+		static std::string				GetExtension				(const std::string& aPath)
 		{
 			if(aPath.find(".") != std::string::npos)
 			{
@@ -27,7 +27,7 @@ class				Utility
 			return "";
 		}
 	
-		static void						ListDirectory				(std::string aPath, std::vector<std::string>& aOutput)
+		static void						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
 			Lv2FsFile dirhandle;
 			Lv2FsDirent item;
@@ -71,7 +71,7 @@ class				Utility
 			usleep(aMilliseconds * 1000);
 		}
 
-		static std::vector<std::string>	StringToVector				(std::string aString, char aSeparate)
+		static std::vector<std::string>	StringToVector				(const std::string& aString, char aSeparate)
 		{
 			std::vector<std::string> result;
 		
@@ -152,7 +152,7 @@ class				FastCounter
 class				Logger : public TextViewer
 {
 	public:
-									Logger						(std::string aHeader = "Message Log");
+									Logger						(const std::string& aHeader = "Message Log");
 									~Logger						();
 									
 		void						Log							(const char* aString, ...);

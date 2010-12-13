@@ -6,7 +6,7 @@ namespace
 	uint32_t		LongestLine = 13;
 }
 
-							Keyboard::Keyboard								(std::string aHeader, std::string aText) : Winterface(aHeader)
+							Keyboard::Keyboard								(const std::string& aHeader, const std::string& aText) : Winterface(aHeader)
 {
 	Text.reserve(256);
 

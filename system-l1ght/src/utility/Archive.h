@@ -4,7 +4,7 @@
 class												ArchiveList : public WinterfaceList
 {
 	public:
-													ArchiveList						(std::string aHeader, std::string aFileName, MenuHook* aInputHook = 0);
+													ArchiveList						(const std::string& aHeader, const std::string& aFileName, MenuHook* aInputHook = 0);
 		virtual										~ArchiveList					();
 
 		uint32_t									ItemCount						();
@@ -13,7 +13,7 @@ class												ArchiveList : public WinterfaceList
 		void										GetSelectedData					(uint32_t aSize, void* aData);
 		std::string									GetSelectedFileName				();
 		
-		static bool									IsArchive						(std::string aFileName);
+		static bool									IsArchive						(const std::string& aFileName);
 		
 	protected:
 		fex_t*										Archive;

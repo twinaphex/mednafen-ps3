@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-											ArchiveList::ArchiveList					(std::string aHeader, std::string aFileName, MenuHook* aInputHook) : WinterfaceList(aHeader, true, true, aInputHook)
+											ArchiveList::ArchiveList					(const std::string& aHeader, const std::string& aFileName, MenuHook* aInputHook) : WinterfaceList(aHeader, true, true, aInputHook)
 {
 	FileName = aFileName;
 
@@ -77,7 +77,7 @@ std::string									ArchiveList::GetSelectedFileName			()
 	return GetSelected()->GetText();
 }
 
-bool										ArchiveList::IsArchive						(std::string aFileName)
+bool										ArchiveList::IsArchive						(const std::string& aFileName)
 {
 	fex_type_t out;
 	fex_identify_file(&out, aFileName.c_str());

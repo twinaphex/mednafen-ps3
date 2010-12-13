@@ -4,8 +4,8 @@
 class							TextViewer : public Winterface
 {
 	public:
-								TextViewer					(std::string aFileName);
-								TextViewer					(std::string aText, std::string aHeader);
+								TextViewer					(const std::string& aFileName);
+								TextViewer					(const std::string& aText, const std::string& aHeader);
 								
 		virtual					~TextViewer					();
 		

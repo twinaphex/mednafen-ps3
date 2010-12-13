@@ -23,7 +23,7 @@
 	FT_Done_Face(FontFace);
 }
 
-void					Font::PutString					(std::string aString, uint32_t aX, uint32_t aY, uint32_t aColor)
+void					Font::PutString					(const std::string& aString, uint32_t aX, uint32_t aY, uint32_t aColor)
 {
 	for(int i = 0; i != aString.length(); i ++)
 	{

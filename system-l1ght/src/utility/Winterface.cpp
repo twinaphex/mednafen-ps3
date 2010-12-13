@@ -5,7 +5,7 @@ namespace
 	uint32_t wimage = 0;
 };
 
-											Winterface::Winterface								(std::string aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
+											Winterface::Winterface								(const std::string& aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
 {
 	KillItems = aKillItems;
 	Header = aHeader;

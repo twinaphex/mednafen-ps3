@@ -2,7 +2,7 @@
 
 //TODO: Handle categories better, invalid ones should not crash or be available
 
-											WinterfaceMultiList::WinterfaceMultiList			(std::string aHeader, bool aCanPage, bool aKillItems, MenuHook* aHook) : WinterfaceList(aHeader, aCanPage, false, aHook)
+											WinterfaceMultiList::WinterfaceMultiList			(const std::string& aHeader, bool aCanPage, bool aKillItems, MenuHook* aHook) : WinterfaceList(aHeader, aCanPage, false, aHook)
 {
 	MultiKillItems = aKillItems;
 }

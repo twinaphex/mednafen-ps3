@@ -10,7 +10,7 @@ void										ImageManager::Purge									()
 	Images.clear();
 }
 
-void										ImageManager::LoadDirectory							(std::string aPath)
+void										ImageManager::LoadDirectory							(const std::string& aPath)
 {
 	std::vector<std::string> items;
 	Utility::ListDirectory(aPath, items);
@@ -24,7 +24,7 @@ void										ImageManager::LoadDirectory							(std::string aPath)
 	}
 }
 	
-Texture*									ImageManager::LoadImage								(std::string aName, std::string aPath)
+Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)
 {
 	if(Images[aName] == 0)
 	{
