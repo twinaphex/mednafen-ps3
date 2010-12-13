@@ -154,6 +154,36 @@ uint8			GmbtMemRead				(uint32 addr)
 int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 {
 	//TODO:
+	if(!load)
+	{
+		std::ostringstream os(std::ios_base::out | std::ios_base::binary);
+		gambatte->saveState(os);
+		
+		void* buffer = malloc(os.str().size());
+		memcpy(buffer, os.str().data(), os.str().size());
+		
+		smem_write32le(sm, os.str().size());
+		smem_write(sm, buffer, os.str().size());
+		
+		free(buffer);
+		
+		return 1;
+	}
+	else
+	{
+		uint32_t size;
+		smem_read32le(sm, &size);
+		
+		char* buffer = (char*)malloc(size);
+		smem_read(sm, buffer, size);
+
+		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);		
+		gambatte->loadState(iss);
+		
+		free(buffer);
+
+		return 1;
+	}
 	return 0;
 }
 

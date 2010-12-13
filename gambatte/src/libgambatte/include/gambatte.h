@@ -28,12 +28,15 @@ class CPU;
 #include "int.h"
 #include <vector>
 
+//ROBO: Streams
+#include <iostream>
+
 namespace Gambatte {
 class GB {
 	CPU *const z80;
 	int stateNo;
 
-	void loadState(const char *filepath, bool osdMessage);
+	void loadState(std::istream& filename, bool osdMessage);
 
 public:
 	GB();
@@ -72,8 +75,11 @@ public:
 	bool isCgb() const;
 	void saveState();
 	void loadState();
-	void saveState(const char *filepath);
-	void loadState(const char *filepath);
+//ROBO: Take a stream
+//	void saveState(const char *filepath);
+//	void loadState(const char *filepath);
+	void saveState(std::ostream& filepath);
+	void loadState(std::istream& filepath);
 	void selectState(int n);
 	int currentState() const { return stateNo; }
 };

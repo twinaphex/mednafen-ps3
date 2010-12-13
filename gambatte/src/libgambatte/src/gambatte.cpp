@@ -128,7 +128,9 @@ void GB::setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned rgb32) 
 	z80->setDmgPaletteColor(palNum, colorNum, rgb32);
 }
 
-void GB::loadState(const char *const filepath, const bool osdMessage) {
+//ROBO: Take a stream
+//void GB::loadState(const char *const filepath, const bool osdMessage) {
+void GB::loadState(std::istream& filepath, const bool osdMessage) {
 	z80->saveSavedata();
 	
 	SaveState state;
@@ -142,23 +144,28 @@ void GB::loadState(const char *const filepath, const bool osdMessage) {
 	}
 }
 
+//ROBO: Don't need
 void GB::saveState() {
-	saveState(statePath(z80->saveBasePath(), stateNo).c_str());
-	z80->setOsdElement(newStateSavedOsdElement(stateNo));
+//	saveState(statePath(z80->saveBasePath(), stateNo).c_str());
+//	z80->setOsdElement(newStateSavedOsdElement(stateNo));
 }
 
 void GB::loadState() {
-	loadState(statePath(z80->saveBasePath(), stateNo).c_str(), true);
+//	loadState(statePath(z80->saveBasePath(), stateNo).c_str(), true);
 }
 
-void GB::saveState(const char *filepath) {
+//ROBO: Take a stream
+//void GB::saveState(const char *filepath) {
+void GB::saveState(std::ostream& filepath) {
 	SaveState state;
 	z80->setStatePtrs(state);
 	z80->saveState(state);
 	StateSaver::saveState(state, filepath);
 }
 
-void GB::loadState(const char *const filepath) {
+//ROBO: Take a stream
+//void GB::loadState(const char *const filepath) {
+void GB::loadState(std::istream& filepath) {
 	loadState(filepath, false);
 }
 

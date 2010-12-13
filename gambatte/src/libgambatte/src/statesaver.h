@@ -21,6 +21,10 @@
 
 class SaveState;
 
+//ROBO: Streams
+#include <iostream>
+
+
 class StateSaver {
 	StateSaver();
 	
@@ -29,9 +33,13 @@ public:
 	enum { SS_DIV = 1 << 2 };
 	enum { SS_WIDTH = 160 >> SS_SHIFT };
 	enum { SS_HEIGHT = 144 >> SS_SHIFT };
-	
-	static void saveState(const SaveState &state, const char *filename);
-	static bool loadState(SaveState &state, const char *filename);
+
+//ROBO: Take a stream	
+//	static void saveState(const SaveState &state, const char *filename);
+//	static bool loadState(SaveState &state, const char *filename);
+	static void saveState(const SaveState &state, std::ostream& file);
+	static bool loadState(SaveState &state, std::istream& file);
+
 };
 
 #endif
