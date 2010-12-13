@@ -13,8 +13,8 @@ DATA		:=
 LIBS		:=	
 LIBDIRS		+=	
 
-CFLAGS		+=-O3 -funroll-loops -funroll-all-loops -mcpu=cell --std=gnu99 -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR -I$(PSL1GHT)/include/freetype2
-CXXFLAGS	+=-O3 -funroll-loops -funroll-all-loops -mcpu=cell -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR -I$(PSL1GHT)/include/freetype2
+CFLAGS		+=-O2 -mcpu=cell --std=gnu99 -DNST_NO_ZLIB -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR -I$(PSL1GHT)/include/freetype2
+CXXFLAGS	+=-O2 -mcpu=cell -DNST_NO_ZLIB -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR -I$(PSL1GHT)/include/freetype2
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 

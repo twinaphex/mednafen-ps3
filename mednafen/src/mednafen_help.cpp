@@ -33,6 +33,7 @@ void						MednafenEmu::Init				()
 		Buffer = new Texture(1920, 1080);
 
 		std::vector<MDFNGI*> externalSystems;
+		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(vbamGetVBAM());
 		MDFNI_InitializeModules(externalSystems);
 
