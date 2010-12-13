@@ -241,10 +241,14 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 		memcpy(espec->SoundBuf, Samples, espec->SoundBufSize * 2);
 	}
 	
-	espec->DisplayRect.x = 0;
-	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = 256;
-	espec->DisplayRect.h = 240;
+	uint32_t clipsides = MDFN_GetSettingB("nest.clipsides");
+	uint32_t slstart = MDFN_GetSettingUI("nest.slstart");
+	uint32_t slend = MDFN_GetSettingUI("nest.slend");
+	
+	espec->DisplayRect.x = clipsides ? 8 : 0;
+	espec->DisplayRect.y = slstart;
+	espec->DisplayRect.w = clipsides ? 232 : 256;
+	espec->DisplayRect.h = slend - slstart;
 }
 
 void			NestSetInput			(int port, const char *type, void *ptr)
@@ -322,7 +326,10 @@ FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting NestSettings[] =
 {
-	{0}
+  { "nest.clipsides", MDFNSF_NOFLAGS, "Clip left+right 8 pixel columns.", NULL, MDFNST_BOOL, "0" },
+  { "nest.slstart", MDFNSF_NOFLAGS, "First displayed scanline in NTSC mode.", NULL, MDFNST_UINT, "8", "0", "239" },
+  { "nest.slend", MDFNSF_NOFLAGS, "Last displayed scanlines in NTSC mode.", NULL, MDFNST_UINT, "231", "0", "239" },
+  { NULL }
 };
 
 
