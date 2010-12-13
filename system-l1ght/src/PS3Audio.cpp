@@ -31,7 +31,7 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
-		RingBuffer[WriteCount & BufferMask] = i < aCount ? aSamples[i] : 0;
+		RingBuffer[WriteCount & BufferMask] = aSamples[i];
 	}
 }
 
