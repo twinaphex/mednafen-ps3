@@ -19,7 +19,8 @@ static const unsigned bsnesSerializerVersion = 4;
 #include <nall/array.hpp>
 #include <nall/bit.hpp>
 #include <nall/detect.hpp>
-#include <nall/dl.hpp>
+//ROBO: No dynamic loading (breaks supergameboy)
+//#include <nall/dl.hpp>
 #include <nall/endian.hpp>
 #include <nall/file.hpp>
 #include <nall/function.hpp>

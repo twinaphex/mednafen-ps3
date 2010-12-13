@@ -126,14 +126,15 @@ namespace nall {
       return file_size;
     }
 
-    bool truncate(unsigned size) {
+//ROBO: No ftruncate
+/*    bool truncate(unsigned size) {
       if(!fp) return false;  //file not open
       #if !defined(_WIN32)
       return ftruncate(fileno(fp), size) == 0;
       #else
       return _chsize(fileno(fp), size) == 0;
       #endif
-    }
+    }*/
 
     bool end() {
       if(!fp) return true;  //file not open
