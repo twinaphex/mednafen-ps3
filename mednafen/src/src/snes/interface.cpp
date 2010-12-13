@@ -262,12 +262,13 @@ static bool SaveMemorySub(bool load, const char *extension, SNES::MappedRAM *mem
   gp = gzopen(path.c_str(), "rb");
   if(!gp)
   {
-   ErrnoHolder ene(errno);
-   if(ene.Errno() == ENOENT)
+//ROBO: ENOENT strikes again
+//   ErrnoHolder ene(errno);
+//   if(ene.Errno() == ENOENT)
     return(true);
 
-   MDFN_PrintError(_("Error opening save file \"%s\": %s"), path.c_str(), ene.StrError());
-   return(false);
+//   MDFN_PrintError(_("Error opening save file \"%s\": %s"), path.c_str(), ene.StrError());
+//   return(false);
   }
 
   if(memoryA && memoryA->size() != 0 && memoryA->size() != -1U)
