@@ -124,13 +124,15 @@ void						MednafenEmu::Frame				()
 		Counter.Tick();
 	
 		Inputs->Process();
+		static uint32_t srate = 48000;
+		static bool sratelo = false;
 	
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
 		EmulatorSpec.LineWidths = VideoWidths;
 		EmulatorSpec.soundmultiplier = 1;
-		EmulatorSpec.SoundRate = 48000;
+		EmulatorSpec.SoundRate = srate;
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
@@ -141,6 +143,16 @@ void						MednafenEmu::Frame				()
 		if(Counter.DrawNow())
 		{
 			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
+			
+			if(!sratelo && EmulatorSpec.SoundBufSize < 799)
+			{
+				srate ++;
+			}
+			else if(!sratelo && EmulatorSpec.SoundBufSize > 801)
+			{
+				srate --;
+			}
+			else sratelo = true;
 			
 			if(GameInfo->soundchan > 1)
 			{

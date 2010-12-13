@@ -29,31 +29,9 @@ void					PS3Audio::Quit					()
 
 void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	static int ccc = 0;
-	static uint32_t cccc = 0;
-	
-	cccc += aCount;
-	ccc ++;
-	if(ccc == 60)
-	{
-		printf("SAMPINSERT: %d\n", cccc);
-		cccc = ccc = 0;
-	}
-
-	if(GetBufferAmount() < 0)
-	{
-		printf("UNDERRUN\n");
-	}
-
-	if((GetBufferFree() + ((int32_t)aCount)) >= BufferSize)
-	{
-		printf("OVERRUN %d - %d\n", (GetBufferFree() + ((int32_t)aCount)), aCount);
-//		while(GetBufferFree() + aCount >= BufferSize);
-	}
-
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
-		RingBuffer[WriteCount & BufferMask] = aSamples[i];
+		RingBuffer[WriteCount & BufferMask] = i < aCount ? aSamples[i] : 0;
 	}
 }
 
