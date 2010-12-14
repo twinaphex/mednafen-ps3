@@ -26,8 +26,6 @@ void				InitPS3					(void (*aExitFunction)() = 0);
 void				QuitPS3					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
-void				Restart					(const char* aSelfFile);
-void				TestError				(bool aCondition, const char* aMessage);
 
 extern Logger* ps3_log;
 

@@ -14,7 +14,7 @@ namespace
 }
 
 
-std::string							MednafenSettingItem::GetDescription				()
+const std::string&					MednafenSettingItem::GetDescription				()
 {
 	return Setting.desc->description;
 }
@@ -131,7 +131,7 @@ bool								MednafenSettingItem::Input						()
 	return ListItem::Input();
 }
 
-									MednafenSettings::MednafenSettings				(std::string aDefault) : WinterfaceMultiList("Emulator Settings", false, true, 0)
+									MednafenSettings::MednafenSettings				(const std::string& aDefault) : WinterfaceMultiList("Emulator Settings", false, true, 0)
 {
 	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
 
@@ -174,7 +174,3 @@ bool								MednafenSettingItem::Input						()
 	SideItems.push_back(new ListItem("[O] Close", FontManager::GetSmallFont()));	
 }
 
-std::string							MednafenSettings::GetHeader						()
-{
-	return std::string("[") + CurrentCategory + "] " + ((MednafenSettingItem*)GetSelected())->GetDescription();
-}

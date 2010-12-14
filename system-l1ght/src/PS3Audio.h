@@ -17,8 +17,8 @@ class							PS3Audio
 
 	protected:
 		static const int			BlockCount = 16;
-		static const int			BufferSize = 4096;
-		static const int			BufferMask = 0xFFF;
+		static const int			BufferSize = 8192;
+		static const int			BufferMask = 0x1FFF;
 
 		static sys_ppu_thread_t		ThreadID;	
 		static bool					ThreadDie;

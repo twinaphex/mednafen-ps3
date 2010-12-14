@@ -121,9 +121,9 @@ class				Utility
 class				PathBuild
 {
 	public:
-									PathBuild					(std::string aBase) : Base(aBase){}
+									PathBuild					(const std::string& aBase) : Base(aBase){}
 									
-		std::string					Build						(std::string aSub){return Base + "/" + aSub;}
+		std::string					Build						(const std::string& aSub){return Base + "/" + aSub;}
 									
 	protected:
 		std::string					Base;

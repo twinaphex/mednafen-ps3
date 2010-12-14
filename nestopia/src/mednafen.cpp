@@ -247,7 +247,7 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 	
 	espec->DisplayRect.x = clipsides ? 8 : 0;
 	espec->DisplayRect.y = slstart;
-	espec->DisplayRect.w = clipsides ? 232 : 256;
+	espec->DisplayRect.w = clipsides ? 240 : 256;
 	espec->DisplayRect.h = slend - slstart;
 }
 
