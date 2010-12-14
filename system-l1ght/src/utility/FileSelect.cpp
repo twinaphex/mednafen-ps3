@@ -23,28 +23,6 @@ namespace
 	}
 }
 
-std::string								FileListItem::GetPath					()
-{
-	return FullPath;
-}
-
-bool									FileListItem::GetDirectory				()
-{
-	return Directory;
-}
-
-void									FileListItem::SetBookMark				(bool aSet)
-{
-	BookMark = aSet;
-	TextColor = aSet ? Colors::SpecialNormal : Colors::Normal;
-	SelectedTextColor = aSet ? Colors::SpecialHighLight : Colors::HighLight;
-}
-
-bool									FileListItem::GetBookMark				()
-{
-	return BookMark;
-}
-
 
 										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookMarks)
 {
@@ -87,11 +65,6 @@ bool									FileList::Input							()
 	}
 
 	return 	WinterfaceList::Input();
-}
-
-std::string								FileList::GetFile						()
-{
-	return WasCanceled() ? "" : ((FileListItem*)GetSelected())->GetPath();
 }
 
 void									FileList::CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters)
@@ -153,7 +126,6 @@ void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
 	}
 }
 
-//TODO: This function is dangerous
 										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
 {
 	Header = aHeader;

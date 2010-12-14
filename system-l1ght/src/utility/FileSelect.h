@@ -5,13 +5,31 @@ class												FileListItem : public ListItem
 {
 	public:
 													FileListItem					(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMarked = false);
-
-		std::string									GetPath							();
 		
-		bool										GetDirectory					();
-		void										SetBookMark						(bool aSet);
-		bool										GetBookMark						();
-				
+	public:	//Inlines
+		const std::string&							GetPath							()
+		{
+			return FullPath;
+		}
+		
+		bool										GetDirectory					()
+		{
+			return Directory;
+		}
+		
+		void										SetBookMark						(bool aSet)
+		{
+			BookMark = aSet;
+			TextColor = aSet ? Colors::SpecialNormal : Colors::Normal;
+			SelectedTextColor = aSet ? Colors::SpecialHighLight : Colors::HighLight;
+		}
+		
+		bool										GetBookMark						()
+		{
+			return BookMark;
+		}
+		
+
 	protected:
 		std::string									FullPath;
 		bool										Directory;
@@ -24,8 +42,12 @@ class												FileList : public WinterfaceList
 													FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
 													
 		bool										Input							();
-		
-		std::string									GetFile							();
+
+	public:	//Inlines
+		std::string									GetFile							()
+		{
+			return WasCanceled() ? "" : ((FileListItem*)GetSelected())->GetPath();
+		}
 
 	protected:
 		void										CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters);

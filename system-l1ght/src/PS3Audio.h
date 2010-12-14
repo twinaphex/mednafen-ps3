@@ -10,8 +10,6 @@ class							PS3Audio
 		static void					AddSamples				(uint32_t* aSamples, uint32_t aCount);
 		static void					GetSamples				(uint32_t* aSamples, uint32_t aCount);
 
-		static void					Block					();
-
 		static volatile int32_t		GetBufferAmount			();
 		static volatile int32_t		GetBufferFree			();
 		
@@ -32,6 +30,8 @@ class							PS3Audio
 		static int32_t 				ReadCount;
 		static int32_t 				WriteCount;
 		static uint32_t				NextBlock;
+		static bool					InitialFill;
+		
 };
 
 #endif

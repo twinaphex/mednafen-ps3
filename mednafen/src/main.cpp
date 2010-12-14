@@ -126,9 +126,7 @@ int					main					()
 			{
 				MednafenEmu::DummyFrame();
 			}
-	
-			PS3Audio::Block();
-	
+
 			MednafenEmu::Frame();
 		}
 	

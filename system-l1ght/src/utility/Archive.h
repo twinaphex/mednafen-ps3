@@ -11,7 +11,7 @@ class												ArchiveList : public WinterfaceList
 
 		uint32_t									GetSelectedSize					();
 		void										GetSelectedData					(uint32_t aSize, void* aData);
-		std::string									GetSelectedFileName				();
+		const std::string&							GetSelectedFileName				();
 		
 		static bool									IsArchive						(const std::string& aFileName);
 		

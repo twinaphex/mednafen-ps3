@@ -45,7 +45,7 @@ class													Winterface : public Menu
 			return false;
 		}
 		
-		virtual std::string								GetHeader						()
+		virtual const std::string&						GetHeader						()
 		{
 			return Header;
 		}

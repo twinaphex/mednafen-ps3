@@ -19,7 +19,7 @@ class													ListItem
 			return LabelFont->GetHeight();
 		}
 		
-		virtual std::string								GetText							()
+		virtual const std::string&						GetText							()
 		{
 			return Text;
 		}

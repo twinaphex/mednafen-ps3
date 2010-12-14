@@ -7,6 +7,7 @@
 #include "src/PS3Input.h"
 #include "src/PS3Audio.h"
 
+#include "src/utility.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
 #include "src/utility/Menu.h"
@@ -18,7 +19,7 @@
 #include "src/utility/FileSelect.h"
 #include "src/utility/Archive.h"
 #include "src/utility/TextViewer.h"
-#include "src/utility.h"
+#include "src/utility/Logger.h"
 
 
 void				InitPS3					(void (*aExitFunction)() = 0);

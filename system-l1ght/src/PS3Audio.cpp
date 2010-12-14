@@ -1,7 +1,5 @@
 #include <ps3_system.h>
 
-static int16_t samples[1024];
-
 void					PS3Audio::Init					()
 {
 	audioInit();
@@ -40,7 +38,7 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 	if(BufferSize - GetBufferAmount() < aCount)
 	{
 //		throw "PS3Audio::AddSamples: Unresolved buffer overflow, did the audio thread hang?";
-		printf("Dropped %d samples: POP\n", aCount);
+		printf("PS3Audio::AddSamples: Dropped %d samples: POP\n", aCount);
 		return;
 	}
 
@@ -62,6 +60,7 @@ void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 
 	if(GetBufferAmount() < aCount)
 	{
+		//Would report, but inside menu this is hit all of the time
 		memset(aSamples, 0, aCount * 4);
 	}
 	else
@@ -73,14 +72,9 @@ void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 	}
 }
 
-bool					InitialFill = false;
-
-void					PS3Audio::Block					()
-{
-}
-
 void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
 {
+	int16_t samples[1024];
 	uint32_t onblock = (*(volatile u64*)(u64)Config.readIndex) + 1;
 
 	while(!PS3Audio::ThreadDie)
@@ -135,3 +129,4 @@ uint32_t 				PS3Audio::RingBuffer[BufferSize];
 int32_t 				PS3Audio::ReadCount = 0;
 int32_t 				PS3Audio::WriteCount = 0;
 uint32_t				PS3Audio::NextBlock = 0;
+bool					PS3Audio::InitialFill = false;

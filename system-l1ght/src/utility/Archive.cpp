@@ -28,7 +28,7 @@
 
 											ArchiveList::~ArchiveList					()
 {
-	fex_close(Archive);											
+	fex_close(Archive);					
 }
 
 uint32_t									ArchiveList::ItemCount						()
@@ -72,7 +72,7 @@ void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
 	throw "ArchiveList::GetSelectedData: Fex could not find file in archive";	
 }
 
-std::string									ArchiveList::GetSelectedFileName			()
+const std::string&							ArchiveList::GetSelectedFileName			()
 {
 	return GetSelected()->GetText();
 }

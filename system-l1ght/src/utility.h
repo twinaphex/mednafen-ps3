@@ -149,13 +149,5 @@ class				FastCounter
 		uint32_t					FrameCount;
 };
 
-class				Logger : public TextViewer
-{
-	public:
-									Logger						(const std::string& aHeader = "Message Log");
-									~Logger						();
-									
-		void						Log							(const char* aString, ...);
-};
 
 #endif
