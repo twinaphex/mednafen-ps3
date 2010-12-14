@@ -369,8 +369,14 @@ MDFNFILE::~MDFNFILE()
 bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, void* data, int size, const char *purpose, const bool suppress_notfound_pe)
 {
  f_size = size;
-	
+
  f_data = (uint8*)malloc(size);
+ 
+ if(!f_data || !data)
+ {
+ 	throw "MDFNFILE::Open: Failed to allocate room for file";
+ }
+ 
  memcpy(f_data, data, size);
 	
  const char *ld = strrchr(path, '.');

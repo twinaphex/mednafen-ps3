@@ -29,6 +29,21 @@ void					PS3Audio::Quit					()
 
 void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
+	if(BufferSize - GetBufferAmount() < aCount)
+	{
+		for(int i = 0; i != 10 && BufferSize - GetBufferAmount() < aCount; i ++)
+		{
+			Utility::Sleep(1);
+		}
+	}
+	
+	if(BufferSize - GetBufferAmount() < aCount)
+	{
+//		throw "PS3Audio::AddSamples: Unresolved buffer overflow, did the audio thread hang?";
+		printf("Dropped %d samples: POP\n", aCount);
+		return;
+	}
+
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
@@ -37,9 +52,24 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 
 void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	for(int i = 0; i != aCount; i ++, ReadCount ++)
+	if(GetBufferAmount() < aCount)
 	{
-		aSamples[i] = RingBuffer[ReadCount & BufferMask];
+		for(int i = 0; i != 10 && GetBufferAmount() < aCount; i ++)
+		{
+			Utility::Sleep(1);
+		}
+	}
+
+	if(GetBufferAmount() < aCount)
+	{
+		memset(aSamples, 0, aCount * 4);
+	}
+	else
+	{
+		for(int i = 0; i != aCount; i ++, ReadCount ++)
+		{
+			aSamples[i] = RingBuffer[ReadCount & BufferMask];
+		}
 	}
 }
 
@@ -51,32 +81,23 @@ void					PS3Audio::Block					()
 
 void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
 {
+	uint32_t onblock = (*(volatile u64*)(u64)Config.readIndex) + 1;
+
 	while(!PS3Audio::ThreadDie)
 	{
-		uint32_t old_block = *(volatile u64*)(u64)Config.readIndex;
-		uint32_t new_block = (old_block + 1) % BlockCount;
-		float* buf = (float*)(Config.audioDataStart + (new_block * sizeof(float) * 256 * 2));
-		
-		if (GetBufferAmount() < 256)
-		{
-			for (uint32_t i = 0; i < 256 * 2; i ++)
-			{
-				buf[i] = 0.0f;
-			}
-		}
-		else
-		{
-			GetSamples((uint32_t*)samples, 256);
-
-			for (uint32_t i = 0; i < 256 * 2; i ++)
-			{
-				buf[i] = ((float)samples[i]) / 32768.0f;
-			}
-		}
-		
-		while(old_block == *(volatile u64*)(u64)Config.readIndex)
+		onblock = (onblock + 1) % BlockCount;
+		while(onblock == *(volatile u64*)(u64)Config.readIndex)
 		{
 			Utility::Sleep(1);
+		}
+	
+		float* buf = (float*)(Config.audioDataStart + (onblock * sizeof(float) * 256 * 2));
+		
+		GetSamples((uint32_t*)samples, 256);
+
+		for (uint32_t i = 0; i < 256 * 2; i ++)
+		{
+			buf[i] = ((float)samples[i]) / 32768.0f;
 		}
 	}
 	
@@ -106,8 +127,6 @@ volatile int32_t 		PS3Audio::GetBufferFree			()
 
 uint32_t				PS3Audio::Port;
 AudioPortConfig			PS3Audio::Config;
-
-
 
 sys_ppu_thread_t		PS3Audio::ThreadID;	
 bool					PS3Audio::ThreadDie;
