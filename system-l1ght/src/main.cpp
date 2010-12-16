@@ -31,6 +31,8 @@ void				InitPS3					(void (*aExitFunction)())
 
 	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
 	SysLoadModule(SYSMODULE_PNGDEC);
+	
+	netInitialize();
 
 	PS3Video::Init();
 	PS3Audio::Init();

@@ -135,7 +135,9 @@ int NetplayStart(const char *PortDeviceCache[16], const uint32 PortDataLenCache[
   extra[16 + x] = PortDataLenCache[x];
 
 
- sendbuf[4 + 16 + 16 + 32] = MDFN_GetSettingUI("netmerge");
+//ROBO: No setting, argument
+// sendbuf[4 + 16 + 16 + 32] = MDFN_GetSettingUI("netmerge");
+ sendbuf[4 + 16 + 16 + 32] = netmerge;
 
  sendbuf[4 + 16 + 16 + 64] = local_players;
 

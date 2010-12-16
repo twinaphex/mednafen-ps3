@@ -1,5 +1,45 @@
 #include <mednafen_includes.h>
 
+#include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_addr() */
+#include <net/net.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+
+static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 = 0)
+{
+    int portno = atoi(aPort);
+    if(aPort2 != 0)
+    {
+    	portno = portno * 256 + atoi(aPort2);
+    }
+    
+	int socketFD = socket(AF_INET, SOCK_STREAM, 0);
+
+	struct hostent* server = gethostbyname(aIP);
+
+    struct sockaddr_in serv_addr;
+	memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_port = htons(portno);	
+	serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    
+	connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr));
+	return socketFD;
+}
+
+static int		slocket;
+
+void		MDFND_NetStart			()
+{
+#if 0
+	netInitialize();
+	slocket = MakeSocket("192.168.0.250", "4096");
+	MDFNI_NetplayStart(1, 1, "BillyBob", "doing", "sexybeef");
+#endif
+}
+
 uint32_t	MDFND_GetTime			()
 {
 	return (uint32_t)Utility::GetTicks();
@@ -27,11 +67,23 @@ bool		MDFND_ExitBlockingLoop	()
 
 int			MDFND_SendData			(const void *data, uint32_t len)		
 {
+#if 0
+	printf("SEND DATA\n");
+
+	write(slocket, data, len);
+	return 1;
+#endif
 	return 0;
 }
 
 int			MDFND_RecvData			(void *data, uint32_t len)				
 {
+#if 0
+	printf("RECV DATA\n");
+
+	read(slocket, data, len);
+	return 1;
+#endif
 	return 0;
 }
 

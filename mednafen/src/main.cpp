@@ -1,6 +1,6 @@
 #include <mednafen_includes.h>
 
-extern "C" int gettimeofday(){}
+extern "C" int gettimeofday(timeval*, void*){}
 extern "C" int getrusage(){}
 extern "C" int dup(int){}
 
@@ -115,6 +115,12 @@ int					main					()
 	try
 	{
 		InitPS3(Exit);
+	
+		FTPSelect bill("192.168.0.250", "21", "/");
+		std::string f = bill.GetFile();
+		ps3_log->Log(f.c_str());
+		ps3_log->Do();
+		
 	
 		MednafenEmu::Init();
 

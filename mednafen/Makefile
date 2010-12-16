@@ -23,7 +23,7 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 
 INCLUDE		:=	src include ../system-l1ght ../system-l1ght/src/fex  $(MEDNAFENINCLUDES) 
 DATA		:=	data
-LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec
+LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec -lnet
 LIBDIRS		+=	../system-l1ght ../nestopia ../gambatte ../vbam
 
 TITLE		:=	Mednafen

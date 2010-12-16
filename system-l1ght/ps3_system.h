@@ -16,6 +16,7 @@
 #include "src/utility/GUI/WinterfaceList.h"
 #include "src/utility/GUI/WinterfaceMultiList.h"
 #include "src/utility/GUI/WinterfaceIconGrid.h"
+#include "src/utility/FTP/FTP.h"
 #include "src/utility/Keyboard.h"
 #include "src/utility/FileSelect.h"
 #include "src/utility/Archive.h"

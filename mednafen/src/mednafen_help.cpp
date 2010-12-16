@@ -85,7 +85,10 @@ void						MednafenEmu::Quit				()
 	
 	IsInitialized = false;
 }
-							
+
+void		MDFND_NetStart			();
+
+
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
 	if(!IsLoaded && IsInitialized)
@@ -116,6 +119,10 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		}
 	
 		PCESkipHack = strcmp(GameInfo->shortname, "pce") == 0 || strcmp(GameInfo->shortname, "pce_fast") == 0;
+		
+#if 0
+		MDFND_NetStart();
+#endif
 		
 		IsLoaded = true;
 	}
