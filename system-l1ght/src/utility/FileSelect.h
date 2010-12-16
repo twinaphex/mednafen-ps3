@@ -4,7 +4,7 @@
 class												FileListItem : public ListItem
 {
 	public:
-													FileListItem					(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMarked = false);
+													FileListItem					(const std::string& aPath, const char* aName, bool aDirectory, bool aBookMarked = false);
 		
 	public:	//Inlines
 		const std::string&							GetPath							()

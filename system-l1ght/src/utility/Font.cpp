@@ -23,21 +23,32 @@
 	FT_Done_Face(FontFace);
 }
 
-void					Font::PutString					(const std::string& aString, uint32_t aX, uint32_t aY, uint32_t aColor)
+void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor)
 {
-	for(int i = 0; i != aString.length(); i ++)
+	for(int i = 0; i != strlen(aString); i ++)
 	{
-		uint32_t character = aString[i];
-	
-		FontCharacter* chara = CacheCharacter(character);
-		
-		if(chara->CharTexture)
+		if(aString[i] >= 32)
 		{
-			PS3Video::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
+			FontCharacter* chara = CacheCharacter(aString[i]);
+			
+			if(chara->CharTexture)
+			{
+				PS3Video::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
+			}
+			
+			aX += chara->Advance;
 		}
-		
-		aX += chara->Advance;
 	}
+}
+
+uint32_t				Font::GetWidth				()
+{
+	return Width;
+}
+
+uint32_t				Font::GetHeight				()					
+{
+	return Height;
 }
 
 FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)

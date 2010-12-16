@@ -18,7 +18,6 @@ class									FTPItem : public ListItem
 		const char*						GetPath							();
 
 	public:
-		char*							Name;
 		char*							Path;
 		bool							Directory;
 		bool							File;
@@ -32,7 +31,8 @@ class									FTPFileList : public WinterfaceList
 
 		const char*						GetFile							();
 
-		void							DoCommand						(const char* aCommand, bool aResult = true);
+		uint32_t						DoCommand						(const char* aCommand, bool aResult = true);
+		
 	protected:
 		int								OutSocket;
 		int								InSocket;

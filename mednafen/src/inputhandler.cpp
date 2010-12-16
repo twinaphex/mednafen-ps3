@@ -31,7 +31,7 @@ bool								MednafenSettingButton::Input					()
 bool								MednafenSettingButton::DrawLeft					()
 {
 	FontManager::GetBigFont()->PutString("Waiting for input", 40, 40, Colors::Normal);
-	FontManager::GetBigFont()->PutString(InputName, 40, 40 + FontManager::GetBigFont()->GetHeight() * 2, Colors::Normal);
+	FontManager::GetBigFont()->PutString(InputName.c_str(), 40, 40 + FontManager::GetBigFont()->GetHeight() * 2, Colors::Normal);
 	return false;
 }
 		

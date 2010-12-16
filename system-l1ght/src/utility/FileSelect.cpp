@@ -7,11 +7,11 @@ namespace
 		if(((FileListItem*)a)->GetDirectory() && !((FileListItem*)b)->GetDirectory())			return true;
 		if(((FileListItem*)b)->GetDirectory() && !((FileListItem*)a)->GetDirectory())			return false;
 	
-		return a->GetText() < b->GetText();
+		return strcmp(a->GetText(), b->GetText()) <= 0;
 	}
 }
 
-										FileListItem::FileListItem				(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
+										FileListItem::FileListItem				(const std::string& aPath, const char* aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
 {
 	FullPath = aPath;
 	Directory = aDirectory;
@@ -19,7 +19,7 @@ namespace
 	
 	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
 	{
-		LabelImage = Utility::GetExtension(aPath) + "ICON";
+		SetImage((Utility::GetExtension(aPath) + "ICON").c_str());
 	}
 }
 
@@ -90,7 +90,7 @@ void									FileList::CollectFiles					(const std::string& aPath, std::vector<L
 		if(filterfound)
 		{
 			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), aPath + items[i]) != BookMarks.end();
-			aItems.push_back(new FileListItem(aPath + items[i], items[i], items[i][items[i].length() - 1] == '/', bookmark));
+			aItems.push_back(new FileListItem(aPath + items[i], items[i].c_str(), items[i][items[i].length() - 1] == '/', bookmark));
 		}
 	}
 }
@@ -121,7 +121,7 @@ void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
 		Lv2FsStat statbuf;
 		if(0 == lv2FsStat(BookMarks[i].c_str(), &statbuf))
 		{
-			aItems.push_back(new FileListItem(BookMarks[i], nicename, statbuf.st_mode == 1, true));
+			aItems.push_back(new FileListItem(BookMarks[i], nicename.c_str(), statbuf.st_mode == 1, true));
 		}
 	}
 }

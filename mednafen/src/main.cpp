@@ -117,9 +117,13 @@ int					main					()
 		InitPS3(Exit);
 	
 		FTPSelect bill("192.168.0.250", "21", "/");
-		std::string f = bill.GetFile();
-		ps3_log->Log(f.c_str());
-		ps3_log->Do();
+
+		const char* out = bill.GetFile();
+		if(out)
+		{
+			ps3_log->Log(out);
+			ps3_log->Do();
+		}
 		
 	
 		MednafenEmu::Init();

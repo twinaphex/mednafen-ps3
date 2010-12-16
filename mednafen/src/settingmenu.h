@@ -4,13 +4,13 @@
 class												MednafenSettingItem : public ListItem
 {
 	public:
-													MednafenSettingItem				(MDFNCS aSetting, const std::string& aDisplay) : Setting(aSetting), ListItem(aDisplay){};
+													MednafenSettingItem				(MDFNCS aSetting, const char* aDisplay) : Setting(aSetting), ListItem(aDisplay){};
 													~MednafenSettingItem			(){};
 													
 		void										Draw							(uint32_t aX, uint32_t aY, bool aSelected);
 		bool										Input							();
 		
-		const std::string&							GetDescription					();
+		const char*									GetDescription					();
 	
 	protected:
 		MDFNCS										Setting;

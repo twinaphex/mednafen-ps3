@@ -34,8 +34,8 @@ namespace
 //TODO: This code can be dangerous
 bool						Keyboard::DrawLeft								()
 {
-	FontManager::GetBigFont()->PutString(Header, 16, 0, Colors::Normal);
-	FontManager::GetBigFont()->PutString(Text, 16, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
+	FontManager::GetBigFont()->PutString(Header.c_str(), 16, 0, Colors::Normal);
+	FontManager::GetBigFont()->PutString(Text.c_str(), 16, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
 	
 	uint32_t startX = 0;
 	

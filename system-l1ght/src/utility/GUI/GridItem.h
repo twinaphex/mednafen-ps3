@@ -4,7 +4,7 @@
 class								GridItem : public ListItem
 {
 	public:	//Inlines
-									GridItem							(const std::string& aText, const std::string& aImage);
+									GridItem							(const char* aText, const char* aImage);
 
 		virtual void				Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);
 		

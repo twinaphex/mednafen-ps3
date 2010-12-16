@@ -1,28 +1,5 @@
 #include <ps3_system.h>
 
-								FTPItem::FTPItem								(const char* aName, const char* aPath, struct ftpparse aData) : ListItem(aName)
-{
-	Name = strdup(aName);
-	Path = strdup(aPath);
-
-	File = aData.flagtryretr;
-	Directory = aData.flagtrycwd;
-	
-	LabelImage = Directory ? "FolderICON" : "FileICON";
-}
-
-								FTPItem::~FTPItem								()
-{
-	free(Name);
-	free(Path);
-}
-	
-const char*						FTPItem::GetPath								()
-{
-	return Path;
-}
-
-
 namespace
 {
 	bool								AlphaSortC								(ListItem* a, ListItem* b)
@@ -38,7 +15,7 @@ namespace
 		}
 
 	
-		return a->GetText() < b->GetText();
+		return strcmp(a->GetText(), b->GetText()) <= 0;
 	}
 
 	int		MakeSocket				(const char* aIP, const char* aPort, const char* aPort2 = 0)
@@ -64,37 +41,64 @@ namespace
 	}
 }
 
+
+								FTPItem::FTPItem								(const char* aName, const char* aPath, struct ftpparse aData) : ListItem(aName)
+{
+	Path = strdup(aPath);
+
+	File = aData.flagtryretr;
+	Directory = aData.flagtrycwd;
+	
+	SetImage(Directory ? "FolderICON" : "FileICON");
+}
+
+								FTPItem::~FTPItem								()
+{
+	free(Path);
+}
+	
+const char*						FTPItem::GetPath								()
+{
+	return Path;
+}
+
+
+
 								FTPFileList::FTPFileList				(const char* aHost, const char* aPort, const char* aPath) : WinterfaceList("[Remote Files]")
 {
 	OutSocket = MakeSocket("192.168.0.250", "21");
 
 	memset(Buffer, 0, 2048);
 	read(OutSocket, Buffer, 2048);
-	ps3_log->Log(Buffer);
 
-	DoCommand("USER anonymous\n");
-	ps3_log->Log(Buffer);
-	ps3_log->Do();
+	if(DoCommand("USER anonymous\n") != 331)
+	{
+		ps3_log->Log("FTP 'USER' command failed: %s", Buffer);
+		ps3_log->Do();
+		exit(1);
+	}
 	
-	DoCommand("PASS \n");
-	ps3_log->Log(Buffer);
-	ps3_log->Do();
+	if(DoCommand("PASS \n") != 230)
+	{
+		ps3_log->Log("FTP 'PASS' command failed: %s", Buffer);
+		ps3_log->Do();
+		exit(1);
+	}
 	
 	sprintf(Buffer, "CWD %s\n", aPath);
-	ps3_log->Log(Buffer);
-	ps3_log->Do();	
+	if(DoCommand(Buffer) != 250)
+	{
+		ps3_log->Log("FTP 'CWD' command failed: %s", Buffer);
+		ps3_log->Do();	
+		exit(1);
+	}
 	
-	DoCommand(Buffer);
-	ps3_log->Log(Buffer);
-	ps3_log->Do();
-	
-	DoCommand("PWD\n");
-	ps3_log->Log(Buffer);
-	ps3_log->Do();		
-	
-	DoCommand("PASV\n");
-	ps3_log->Log(Buffer);
-	ps3_log->Do();		
+	if(DoCommand("PASV\n") != 227)
+	{
+		ps3_log->Log("FTP 'PASV' command failed: %s", Buffer);
+		ps3_log->Do();		
+		exit(1);
+	}
 
 	char* parse = strchr(Buffer, '(') + 1;
 	uint32_t a, b, c, d, e, f;
@@ -134,8 +138,6 @@ namespace
 
 	close(InSocket);
 	close(OutSocket);
-	
-	ps3_log->Do();
 }
 
 								FTPFileList::~FTPFileList				()
@@ -144,10 +146,10 @@ namespace
 
 const char*						FTPFileList::GetFile					()
 {
-	return WasCanceled() ? "" : ((FTPItem*)GetSelected())->GetPath();
+	return WasCanceled() ? 0 : ((FTPItem*)GetSelected())->GetPath();
 }
 
-void							FTPFileList::DoCommand					(const char* aCommand, bool aResult)
+uint32_t						FTPFileList::DoCommand					(const char* aCommand, bool aResult)
 {
 	write(OutSocket, aCommand, strlen(aCommand));
 	
@@ -155,7 +157,13 @@ void							FTPFileList::DoCommand					(const char* aCommand, bool aResult)
 	{
 		memset(Buffer, 0, 2048);
 		read(OutSocket, Buffer, 2048);
+		
+		uint32_t code;
+		sscanf(Buffer, "%d", &code);
+		return code;
 	}
+	
+	return 0;
 }
 
 								FTPSelect::FTPSelect					(const char* aHeader, const char* aHost, const char* aPort, MenuHook* aInputHook)
@@ -184,13 +192,13 @@ void							FTPFileList::DoCommand					(const char* aCommand, bool aResult)
 
 const char*						FTPSelect::GetFile						()
 {
-	const char* result;
+	const char* result = 0;
 
 	while(!WantToDie())
 	{
 		Lists.top()->Do();
 		
-		if(*Lists.top()->GetFile() == 0)
+		if(Lists.top()->GetFile() == 0)
 		{
 			if(Lists.size() > 1)
 			{

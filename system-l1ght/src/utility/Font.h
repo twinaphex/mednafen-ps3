@@ -18,11 +18,10 @@ class										Font
 											Font						(uint32_t aPixelSize, bool aFixed);
 											~Font						();
 								
-		void								PutString					(const std::string& aString, uint32_t aX, uint32_t aY, uint32_t aColor);
-		Area								MeasureString				(const std::string& aString);
+		void								PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor);
 
-		uint32_t							GetWidth					()					{return Width;};
-		uint32_t							GetHeight					()					{return Height;};
+		uint32_t							GetWidth					();
+		uint32_t							GetHeight					();
 		
 	protected:
 		FontCharacter*						CacheCharacter				(uint32_t aCharacter);

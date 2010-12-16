@@ -4,17 +4,17 @@ namespace
 {
 	bool							CompareItems									(ListItem* a, ListItem* b)
 	{
-		if(a->GetText().find(".enable") != std::string::npos)			return true;
-		if(b->GetText().find(".enable") != std::string::npos)			return false;
-		if(a->GetText().find(".ps3.") != std::string::npos)				return true;
-		if(b->GetText().find(".ps3.") != std::string::npos)				return false;
+		if(strstr(a->GetText(), ".enable") != 0)						return true;
+		if(strstr(b->GetText(), ".enable") != 0)						return false;		
+		if(strstr(a->GetText(), ".ps3.") != 0)							return true;
+		if(strstr(b->GetText(), ".ps3.") != 0)							return false;		
 
-		return a->GetText() < b->GetText();
+		return strcmp(a->GetText(), b->GetText()) <= 0;
 	}
 }
 
 
-const std::string&					MednafenSettingItem::GetDescription				()
+const char*							MednafenSettingItem::GetDescription				()
 {
 	return Setting.desc->description;
 }

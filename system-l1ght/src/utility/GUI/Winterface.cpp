@@ -83,7 +83,7 @@ bool										Winterface::Draw									()
 	PS3Video::FillRectangle(left, Colors::BackGround);	
 
 	PS3Video::SetClip(top);
-	FontManager::GetBigFont()->PutString(GetHeader(), 2, 0, Colors::Normal);
+	FontManager::GetBigFont()->PutString(GetHeader().c_str(), 2, 0, Colors::Normal);
 	
 	PS3Video::SetClip(left);
 	if(DrawLeft())

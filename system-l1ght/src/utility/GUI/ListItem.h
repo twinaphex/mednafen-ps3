@@ -4,22 +4,26 @@
 class													ListItem
 {
 	public:
-														ListItem						(const std::string& aText, Font* aFont = 0, std::string aImage = "");
+														ListItem						(const char* aText, Font* aFont = 0, const char* aImage = "");
 		virtual											~ListItem						();
 
 		virtual bool									Input							();
 		virtual void									Draw							(uint32_t aX, uint32_t aY, bool aSelected);
 
 		virtual uint32_t								GetHeight						();
-		virtual const std::string&						GetText							();
+		virtual const char*								GetText							();
+		
+		virtual void									SetImage						(const char* aImage);
+		virtual const char*								GetImage						();
 		
 	protected:
 		Font*											LabelFont;
-		std::string										LabelImage;
-	
-		std::string										Text;
 		uint32_t										TextColor;
 		uint32_t										SelectedTextColor;
+
+	private:
+		char*											Text;
+		char*											LabelImage;
 };
 
 #endif

@@ -1,5 +1,15 @@
 #include <mednafen_includes.h>
 
+									MednafenCommandItem::MednafenCommandItem		(const char* aDisplay, const char* aIcon, const char* aCommand) : GridItem(aDisplay, aIcon)
+{
+	Command = strdup(aCommand);
+}
+
+									MednafenCommandItem::~MednafenCommandItem		()
+{
+	free(Command);
+}
+
 bool								MednafenCommandItem::Input						()
 {
 	if(PS3Input::ButtonDown(0, PS3_BUTTON_CROSS))

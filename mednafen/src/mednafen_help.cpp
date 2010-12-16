@@ -216,7 +216,7 @@ void						MednafenEmu::Frame				()
 				
 			if(MDFND_GetTime() - MessageTime < 5000)
 			{
-				FontManager::GetBigFont()->PutString(Message, 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
+				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 			}
 	
 			PS3Video::Flip();					

@@ -1,11 +1,11 @@
 #include <ps3_system.h>
 
-											ListItem::ListItem									(const std::string& aText, Font* aFont, std::string aImage)
+											ListItem::ListItem									(const char* aText, Font* aFont, const char* aImage)
 {
 	LabelFont = aFont == 0 ? FontManager::GetBigFont() : aFont;
-	LabelImage = aImage;
+	LabelImage = strdup(aImage);
 
-	Text = aText;
+	Text = strdup(aText);
 
 	TextColor = Colors::Normal;
 	SelectedTextColor = Colors::HighLight;
@@ -13,7 +13,8 @@
 
 											ListItem::~ListItem									()
 {
-
+	free(Text);
+	free(LabelImage);
 }
 
 bool										ListItem::Input										()
@@ -43,7 +44,25 @@ uint32_t									ListItem::GetHeight									()
 	return LabelFont->GetHeight();
 }
 
-const std::string&							ListItem::GetText									()
+const char*									ListItem::GetText									()
 {
 	return Text;
+}
+
+void										ListItem::SetImage									(const char* aImage)
+{
+	if(strlen(aImage) < strlen(LabelImage))
+	{
+		strcpy(LabelImage, aImage);
+	}
+	else
+	{
+		free(LabelImage);
+		LabelImage = strdup(aImage);
+	}
+}
+
+const char*									ListItem::GetImage									()
+{
+	return LabelImage;
 }

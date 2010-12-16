@@ -51,6 +51,11 @@ bool										WinterfaceList::DrawLeft							()
 
 bool										WinterfaceList::Input								()
 {
+	if(Items.size() == 0)
+	{
+		return false;
+	}
+
 	Selected += (PS3Input::ButtonPressed(0, PS3_BUTTON_DOWN) ? 1 : 0);
 	Selected -= (PS3Input::ButtonPressed(0, PS3_BUTTON_UP) ? 1 : 0);
 	
