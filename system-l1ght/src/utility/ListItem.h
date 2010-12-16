@@ -4,7 +4,7 @@
 class													ListItem
 {
 	public:
-														ListItem						(std::string aText, Font* aFont = 0, std::string aImage = "");
+														ListItem						(const std::string& aText, Font* aFont = 0, std::string aImage = "");
 
 		virtual void									Draw							(uint32_t aX, uint32_t aY, bool aSelected);
 

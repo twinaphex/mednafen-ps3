@@ -2,7 +2,6 @@
 
 #include "src/fex/fex/fex.h"
 
-
 #include "src/PS3Video.h"
 #include "src/PS3Input.h"
 #include "src/PS3Audio.h"
@@ -20,6 +19,7 @@
 #include "src/utility/Archive.h"
 #include "src/utility/TextViewer.h"
 #include "src/utility/Logger.h"
+#include "src/utility/WinterfaceIconGrid.h"
 
 
 void				InitPS3					(void (*aExitFunction)() = 0);

@@ -11,18 +11,18 @@ bool								MednafenCommandItem::Input						()
 	return false;
 }
 
-									MednafenCommands::MednafenCommands				() : WinterfaceList("Emulator Commands", false, true, 0)
+									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 5, 2, false)
 {
-	Items.push_back(new MednafenCommandItem("Change Game", "DoReload"));
-	Items.push_back(new MednafenCommandItem("Reset Game", "DoReset"));
-	Items.push_back(new MednafenCommandItem("Show Text File", "DoTextFile"));	
-	Items.push_back(new MednafenCommandItem("Save State", "DoSaveState"));
-	Items.push_back(new MednafenCommandItem("Load State", "DoLoadState"));
-	Items.push_back(new MednafenCommandItem("Take Screen Shot", "DoScreenShot"));
-	Items.push_back(new MednafenCommandItem("Enable Rewind", "DoToggleRewind"));	
-	Items.push_back(new MednafenCommandItem("Settings", "DoSettings"));
-	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig"));
-	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit"));
+	Items.push_back(new MednafenCommandItem("Change Game", "DoReload", "DoReload"));
+	Items.push_back(new MednafenCommandItem("Reset Game", "DoReset", "DoReset"));
+	Items.push_back(new MednafenCommandItem("Show Text File", "DoTextFile", "DoTextFile"));	
+	Items.push_back(new MednafenCommandItem("Save State", "DoSaveState", "DoSaveState"));
+	Items.push_back(new MednafenCommandItem("Load State", "DoLoadState", "DoLoadState"));
+	Items.push_back(new MednafenCommandItem("Take Screen Shot", "DoScreenShot", "DoScreenShot"));
+	Items.push_back(new MednafenCommandItem("Enable Rewind", "DoToggleRewind", "DoToggleRewind"));	
+	Items.push_back(new MednafenCommandItem("Settings", "DoSettings", "DoSettings"));
+	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig", "DoInputConfig"));
+	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
 
 	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
 	SideItems.push_back(new ListItem("[X] Run Command", FontManager::GetSmallFont()));

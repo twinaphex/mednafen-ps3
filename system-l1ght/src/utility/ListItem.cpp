@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-											ListItem::ListItem									(std::string aText, Font* aFont, std::string aImage)
+											ListItem::ListItem									(const std::string& aText, Font* aFont, std::string aImage)
 {
 	LabelFont = aFont == 0 ? FontManager::GetBigFont() : aFont;
 	LabelImage = aImage;

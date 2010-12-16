@@ -50,6 +50,9 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		memcpy(output->GetPixels(), Png.bmp_out, Png.width * Png.height * 4);
 		free(Png.bmp_out);
 		
+		output->SetFilter(true);
+		
+		
 		Images[aName] = output;
 	}
 	
