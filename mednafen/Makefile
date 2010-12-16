@@ -14,7 +14,7 @@ MEDNAFENINCLUDES=. src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu s
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCE		:=	src src/src src/src/cdrom src/src/compress src/src/gb src/src/gba src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \
+SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src/src/gba src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \
 				src/src/hw_cpu/v810/fpu-new src/src/hw_cpu/z80-fuse src/src/hw_misc/arcade_card src/src/hw_sound/gb_apu src/src/hw_sound/pce_psg \
 				src/src/hw_sound/sms_apu src/src/hw_sound/ym2413 src/src/hw_sound/ym2612 src/src/hw_video/huc6270 src/src/lynx src/src/md \
 				src/src/md/cart src/src/md/input src/src/mpcdec src/src/nes src/src/nes/boards src/src/nes/input src/src/nes/ntsc src/src/nes/ppu \

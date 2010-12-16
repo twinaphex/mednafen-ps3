@@ -11,6 +11,37 @@ namespace
 	Header = aHeader;
 }
 
+											Winterface::~Winterface								()
+{
+	if(KillItems)
+	{
+		for(std::vector<ListItem*>::iterator iter = SideItems.begin(); iter != SideItems.end(); iter ++)
+		{
+			delete (*iter);
+		}
+	}
+}
+
+bool										Winterface::DrawRight								()
+{
+	//TODO: Assume all items are the same size as item[0]
+	for(int i = 0; i != SideItems.size(); i ++)
+	{
+		SideItems[i]->Draw(16, i * SideItems[0]->GetHeight(), false);
+	}
+
+	return false;
+}
+
+bool										Winterface::Input									()
+{
+	if(PS3Input::ButtonDown(0, PS3_BUTTON_SELECT))
+	{
+		HideRight = !HideRight;
+	}
+	
+	return false;
+}
 
 bool										Winterface::Draw									()
 {
@@ -70,6 +101,16 @@ bool										Winterface::Draw									()
 	}
 	
 	return false;
+}
+
+bool										Winterface::DrawLeft								()
+{
+	return false;
+}
+
+const std::string&							Winterface::GetHeader								()
+{
+	return Header;
 }
 
 

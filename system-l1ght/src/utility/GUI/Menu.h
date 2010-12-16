@@ -11,13 +11,13 @@ class								Menu
 {
 	public:
 									Menu						(MenuHook* aHook = 0);
-		virtual						~Menu						(){};
+		virtual						~Menu						();
 
 		void						SetInputDelay				(uint32_t aDelay);
 		
 		bool						Do							();
 
-		void						SetHook						(MenuHook* aHook)				{Hook = aHook;};
+		void						SetHook						(MenuHook* aHook);
 
 		virtual bool				Draw						() = 0;
 		virtual bool				Input						() = 0;

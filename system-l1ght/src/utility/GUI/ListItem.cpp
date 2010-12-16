@@ -11,6 +11,17 @@
 	SelectedTextColor = Colors::HighLight;
 }
 
+											ListItem::~ListItem									()
+{
+
+}
+
+bool										ListItem::Input										()
+{	
+	return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);
+}
+
+
 void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(LabelImage);
@@ -27,3 +38,12 @@ void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 	LabelFont->PutString(Text, aX, aY, aSelected ? SelectedTextColor : TextColor);
 }
 		
+uint32_t									ListItem::GetHeight									()
+{
+	return LabelFont->GetHeight();
+}
+
+const std::string&							ListItem::GetText									()
+{
+	return Text;
+}

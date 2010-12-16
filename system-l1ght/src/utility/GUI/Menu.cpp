@@ -6,6 +6,11 @@
 	InputDelay = 5;
 }
 
+							Menu::~Menu					()
+{
+							
+}
+
 void						Menu::SetInputDelay			(uint32_t aDelay)
 {
 	if(aDelay > 10)
@@ -49,4 +54,9 @@ bool						Menu::Do					()
 	}
 	
 	return false;
+}
+
+void						Menu::SetHook				(MenuHook* aHook)
+{
+	Hook = aHook;
 }

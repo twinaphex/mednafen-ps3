@@ -2,10 +2,36 @@
 
 namespace
 {
+	Filter*			BuildFilter			(uint32_t aIndex)
+	{
+		if(aIndex == 0)	return new Identity();
+		if(aIndex == 1)	return new Identity2x();
+		if(aIndex == 2) return new Kreed_2xSaI();
+		if(aIndex == 3)	return new MaxSt_Hq2x();
+		if(aIndex == 4)	return new MaxSt_Hq3x();	
+		if(aIndex == 5)	return new Catrom2x();	
+		if(aIndex == 6)	return new Catrom3x();		
+		
+		return new Identity();
+	};
+
+	const MDFNSetting_EnumList	FilterEnumList[] =
+	{
+		{"none", 0, "none", ""},
+		{"int2x", 1, "int2x", ""},
+		{"k2xSaI", 2, "k2xSaI", ""},
+		{"hq2x", 3, "Hq2x", ""},
+		{"hq3x", 4, "Hq3x", ""},
+		{"catrom2x", 5, "Catrom2x", ""},
+		{"catrom3x", 6, "Catrom3x", ""},
+		{0, 0, 0, 0}
+	};
+
 	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".ps3." + b).c_str())
 
 	MDFNSetting SystemSettings[] = 
 	{
+		{"scaler", MDFNSF_NOFLAGS, "Special filter for screen scaling.", NULL, MDFNST_ENUM, "none", NULL, NULL, NULL, NULL, FilterEnumList },	
 		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "0", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"filter", MDFNSF_NOFLAGS, "Use bilinear filter for display", NULL, MDFNST_BOOL, "0"},
@@ -109,11 +135,13 @@ void						MednafenEmu::CloseGame			()
 		delete Inputs;
 		delete Surface;
 		delete TextFile;
+		delete Scaler;
 		
 		GameInfo = 0;
 		Surface = 0;
 		Inputs = 0;
 		TextFile = 0;
+		Scaler = 0;
 		
 		IsLoaded = false;		
 	}
@@ -196,8 +224,49 @@ void						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				()
 {
-	uint32_t real_x = VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x;
-	uint32_t real_width = VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w;
+	uint32_t aX = VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x;
+	uint32_t aY = EmulatorSpec.DisplayRect.y;
+	uint32_t aWidth = VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w;
+	uint32_t aHeight = EmulatorSpec.DisplayRect.h;
+
+	if(!Scaler)
+	{
+		Scaler = BuildFilter(MDFN_GetSettingUI(SETTINGNAME("scaler")));
+		Scaler->init(aWidth, aHeight);
+	}
+	
+	if(aWidth != Scaler->getWidth() || aHeight != Scaler->getHeight())
+	{
+		Scaler->init(aWidth, aHeight);
+	}
+
+	uint32_t* scaleIn = Scaler->inBuffer();
+	uint32_t scaleInP = Scaler->inPitch();
+	
+	uint32_t* scaleOut = Scaler->outBuffer();
+	uint32_t scaleOutP = Scaler->outPitch();
+	
+	uint32_t* bufferPix = Buffer->GetPixels();
+	uint32_t bufferP = Buffer->GetWidth();
+
+	uint32_t finalWidth = aWidth * Scaler->info().outWidth;
+	uint32_t finalHeight = aHeight * Scaler->info().outHeight;
+
+	for(int i = 0; i != aHeight; i ++)
+	{
+		memcpy(&scaleIn[i * scaleInP], &Surface->pixels[(aY + i) * Surface->pitchinpix + aX], aWidth * 4);
+	}
+
+	Scaler->filter();
+		
+	for(int i = 0; i != finalHeight; i ++)
+	{
+		memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
+	}
+
+	PS3Video::PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+
+/*
 
 	uint32_t* pix = Buffer->GetPixels();
 	uint32_t pixw = Buffer->GetWidth();
@@ -209,7 +278,7 @@ void						MednafenEmu::Blit				()
 		}
 	}
 	
-	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -228,6 +297,9 @@ void						MednafenEmu::DoCommand			(std::string aName)
 		if(aName == "DoExit")					Exit();
 		
 		Inputs->ReadSettings();
+		
+		delete Scaler;
+		Scaler = 0;
 	}
 }
 
@@ -256,7 +328,8 @@ MDFN_Surface*				MednafenEmu::Surface = 0;
 InputHandler*				MednafenEmu::Inputs = 0;
 TextViewer*					MednafenEmu::TextFile = 0;
 FastCounter					MednafenEmu::Counter;
-	
+Filter*						MednafenEmu::Scaler = 0;
+
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;

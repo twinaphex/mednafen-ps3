@@ -57,6 +57,7 @@ class	MednafenEmu
 		static InputHandler*			Inputs;		
 		static TextViewer*				TextFile;
 		static FastCounter				Counter;
+		static Filter*					Scaler;
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;

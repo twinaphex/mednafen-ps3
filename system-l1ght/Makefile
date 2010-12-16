@@ -7,7 +7,7 @@ include $(PSL1GHT)/Makefile.base
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCE		:=	src src/utility src/fex/fex src/fex/7z_C 
+SOURCE		:=	src src/utility src/utility/GUI src/fex/fex src/fex/7z_C 
 INCLUDE		:=	. src/fex
 DATA		:=	bin
 LIBS		:=	
