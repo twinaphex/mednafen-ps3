@@ -11,7 +11,7 @@ bool								MednafenCommandItem::Input						()
 	return false;
 }
 
-									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 5, 2, false)
+									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 3, 3, false)
 {
 	Items.push_back(new MednafenCommandItem("Change Game", "DoReload", "DoReload"));
 	Items.push_back(new MednafenCommandItem("Reset Game", "DoReset", "DoReset"));
@@ -22,7 +22,7 @@ bool								MednafenCommandItem::Input						()
 	Items.push_back(new MednafenCommandItem("Enable Rewind", "DoToggleRewind", "DoToggleRewind"));	
 	Items.push_back(new MednafenCommandItem("Settings", "DoSettings", "DoSettings"));
 	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig", "DoInputConfig"));
-	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
+//	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
 
 	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
 	SideItems.push_back(new ListItem("[X] Run Command", FontManager::GetSmallFont()));

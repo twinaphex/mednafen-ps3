@@ -28,7 +28,7 @@ void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 
 	if(image)
 	{
-		//TODO: Make this a Uitlity:: function
+		//TODO: Make this a Uitlity:: function (along with GridItem)
 		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(GetHeight() - 4) / (double)image->GetHeight()));
 	
 		PS3Video::PlaceTexture(image, aX, aY + 2, width, GetHeight() - 4);

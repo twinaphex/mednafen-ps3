@@ -53,6 +53,11 @@ bool								WinterfaceIconGrid::DrawLeft							()
 	{
 		for(int j = 0; j != Width; j ++)
 		{
+			if(i * Width + j >= Items.size())
+			{
+				break;
+			}
+		
 			Items[i * Width + j]->Draw(j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, j == XSelection && i == YSelection);
 		}
 	}
