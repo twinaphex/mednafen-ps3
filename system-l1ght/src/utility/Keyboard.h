@@ -10,10 +10,10 @@ class										Keyboard : public Winterface
 		bool								DrawLeft				();
 		bool								Input					();
 				
-		const std::string&					GetText					()								{return Text;};
+		std::string							GetText					()								{return Text;};
 		void								SetText					(const std::string& aText)		{Text = aText;};
 
-		const std::string&					GetHeader				()								{return Header;};
+		std::string							GetHeader				()								{return Header;};
 		void								SetHeader				(const std::string& aHeader)	{Header = aHeader;};
 				
 		bool								WasCanceled				()								{return Canceled;};

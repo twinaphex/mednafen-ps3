@@ -1,11 +1,11 @@
 #include <ps3_system.h>
 
 
-								FTPSelect::FTPSelect					(const char* aHeader, const char* aHost, const char* aPort, MenuHook* aInputHook)
+								FTPSelect::FTPSelect					(const std::string& aHeader, const std::string& aHost, const std::string& aPort, MenuHook* aInputHook)
 {
-	Header = strdup(aHeader);
-	Host = strdup(aHost);
-	Port = strdup(aPort);
+	Header = aHeader;
+	Host = aHost;
+	Port = aPort;
 
 	InputHook = aInputHook;
 	
@@ -19,29 +19,30 @@
 		delete Lists.top();
 		Lists.pop();
 	}
-	
-	free(Host);
-	free(Port);
-	free(Header);
 }
 
-void							FTPSelect::DownloadFile					(const char* aDest)
+void							FTPSelect::DownloadFile					(const std::string& aDest)
 {
 	Lists.top()->DownloadFile(aDest);
 }
 
-const char*						FTPSelect::GetFile						()
+std::string						FTPSelect::GetFileName					()
+{
+	return Lists.top()->GetSelected()->GetText();
+}
+
+std::string						FTPSelect::GetFile						()
 {
 	while(!WantToDie())
 	{
 		Lists.top()->Do();
 		
-		if(Lists.top()->GetChosenFile() == 0 && Lists.size() > 1)
+		if(Lists.top()->GetChosenFile().empty() && Lists.size() > 1)
 		{
 			delete Lists.top();
 			Lists.pop();
 		}
-		else if(Lists.top()->GetChosenFile() == 0)
+		else if(Lists.top()->GetChosenFile().empty())
 		{
 			return 0;
 		}

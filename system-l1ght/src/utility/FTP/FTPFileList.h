@@ -9,26 +9,27 @@ extern "C"
 class									FTPFileList : public WinterfaceList
 {
 	public:
-										FTPFileList						(const char* aHeader, const char* aHost, const char* aPort, const char* aPath);
+										FTPFileList						(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aPath);
 		virtual							~FTPFileList					();
 
-		void							DownloadFile					(const char* aDest);
+		void							DownloadFile					(const std::string& aDest);
 
-		const char*						GetChosenFile					();
+		std::string						GetChosenFile					();
 		
 	protected:
+		void							BuildListItem					(const std::string& aName);
+	
 		void							MakePassiveConnection			();
-		uint32_t						DoCommand						(const char* aCommand, uint32_t aNeededResult = 0, bool aResult = true);
+		uint32_t						DoCommand						(const std::string& aCommand, uint32_t aNeededResult = 0, bool aResult = true);
 
 		int								OutSocket;
 		int								InSocket;
 		char							Buffer[2048];
 				
-	private:
-		char*							Header;
-		char*							Host;
-		char*							Port;
-		char*							Path;
+		std::string						Header;
+		std::string						Host;
+		std::string						Port;
+		std::string						Path;
 };
 
 #endif

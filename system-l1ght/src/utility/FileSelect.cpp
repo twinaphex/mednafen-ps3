@@ -7,11 +7,11 @@ namespace
 		if(((FileListItem*)a)->GetDirectory() && !((FileListItem*)b)->GetDirectory())			return true;
 		if(((FileListItem*)b)->GetDirectory() && !((FileListItem*)a)->GetDirectory())			return false;
 	
-		return strcmp(a->GetText(), b->GetText()) <= 0;
+		return a->GetText() < b->GetText();
 	}
 }
 
-										FileListItem::FileListItem				(const std::string& aPath, const char* aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
+										FileListItem::FileListItem				(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
 {
 	FullPath = aPath;
 	Directory = aDirectory;
@@ -19,7 +19,7 @@ namespace
 	
 	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
 	{
-		SetImage((Utility::GetExtension(aPath) + "ICON").c_str());
+		LabelImage = Utility::GetExtension(aPath) + "ICON";
 	}
 }
 

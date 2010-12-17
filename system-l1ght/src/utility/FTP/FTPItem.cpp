@@ -1,26 +1,20 @@
 #include <ps3_system.h>
 
-								FTPItem::FTPItem								(const char* aName, const char* aPath, struct ftpparse aData) : ListItem(aName)
+								FTPItem::FTPItem								(const std::string& aName, const std::string& aPath, struct ftpparse aData) : ListItem(aName)
 {
-	Path = strdup(aPath);
+	Path = aPath;
 
 	File = aData.flagtryretr;
 	Directory = aData.flagtrycwd;
 	
-	SetImage(Directory ? "FolderICON" : "FileICON");
+	LabelImage = Directory ? "FolderICON" : "FileICON";
 }
 
 								FTPItem::~FTPItem								()
 {
-	free(Path);
 }
 
-const char*						FTPItem::GetFileName							()
-{
-	return GetText();
-}
-	
-const char*						FTPItem::GetPath								()
+std::string						FTPItem::GetPath								()
 {
 	return Path;
 }

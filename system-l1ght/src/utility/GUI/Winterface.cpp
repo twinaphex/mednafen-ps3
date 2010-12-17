@@ -7,12 +7,15 @@ namespace
 
 											Winterface::Winterface								(const std::string& aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
 {
+	Header = Utility::DuplicateString(aHeader.c_str());
+	
 	KillItems = aKillItems;
-	Header = aHeader;
 }
 
 											Winterface::~Winterface								()
 {
+	free(Header);
+
 	if(KillItems)
 	{
 		for(std::vector<ListItem*>::iterator iter = SideItems.begin(); iter != SideItems.end(); iter ++)
@@ -83,7 +86,7 @@ bool										Winterface::Draw									()
 	PS3Video::FillRectangle(left, Colors::BackGround);	
 
 	PS3Video::SetClip(top);
-	FontManager::GetBigFont()->PutString(GetHeader().c_str(), 2, 0, Colors::Normal);
+	FontManager::GetBigFont()->PutString(GetHeader(), 2, 0, Colors::Normal);
 	
 	PS3Video::SetClip(left);
 	if(DrawLeft())
@@ -108,7 +111,7 @@ bool										Winterface::DrawLeft								()
 	return false;
 }
 
-const std::string&							Winterface::GetHeader								()
+std::string									Winterface::GetHeader								()
 {
 	return Header;
 }

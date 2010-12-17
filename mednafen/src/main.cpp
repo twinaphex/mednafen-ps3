@@ -43,23 +43,21 @@ void				Exit					()
 	exit(0);
 }
 
-const char*			GetFile					()
+std::string			GetFile					()
 {
 	if(MDFN_GetSettingB("ftp.ps3.enable"))
 	{
 		FTPBrowser = new FTPSelect("Select ROM", MDFN_GetSettingS("ftp.ps3.host").c_str(), MDFN_GetSettingS("ftp.ps3.port").c_str(), &InputHook);
-		const char* file = FTPBrowser->GetFile();
+		std::string file = FTPBrowser->GetFile();
+		
+		if(file.empty())
+		{
+			return "";
+		}
+		
 		FTPBrowser->DownloadFile("/dev_hdd0/game/MDFN90002/USRDIR/");
 		
-		if(file)
-		{
-			romfilename = std::string("/dev_hdd0/game/MDFN90002/USRDIR/") + file;
-			return romfilename.c_str();
-		}
-		else
-		{
-			return 0;
-		}
+		return std::string("/dev_hdd0/game/MDFN90002/USRDIR/") + FTPBrowser->GetFileName();
 	}
 	else
 	{
@@ -86,19 +84,19 @@ const char*			GetFile					()
 
 void				ReloadEmulator			()
 {
-	const char* filename = GetFile();	
+	std::string filename = GetFile();	
 
-	if(filename == 0 && !MednafenEmu::IsGameLoaded())
+	if(filename.empty() && !MednafenEmu::IsGameLoaded())
 	{
 		Exit();
 	}
-	else if(filename == 0 && MednafenEmu::IsGameLoaded())
+	else if(filename.empty() && MednafenEmu::IsGameLoaded())
 	{
 		return;
 	}
 	else
 	{
-		ArchiveList archive(std::string("[Select ROM] ") + romfilename, romfilename);
+		ArchiveList archive(std::string("[Select ROM] ") + filename, filename);
 		
 		if(archive.ItemCount() == 0)
 		{
@@ -123,7 +121,7 @@ void				ReloadEmulator			()
 		data = malloc(size);
 		archive.GetSelectedData(size, data);
 		
-		if(ArchiveList::IsArchive(romfilename) && romfilename.rfind('/') != std::string::npos)
+		if(ArchiveList::IsArchive(filename) && romfilename.rfind('/') != std::string::npos)
 		{
 			romfilename = romfilename.substr(0, romfilename.rfind('/') + 1);
 			romfilename += archive.GetSelectedFileName();

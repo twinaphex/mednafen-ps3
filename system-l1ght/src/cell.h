@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>

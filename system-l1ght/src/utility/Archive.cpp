@@ -72,7 +72,7 @@ void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
 	throw "ArchiveList::GetSelectedData: Fex could not find file in archive";	
 }
 
-const std::string&							ArchiveList::GetSelectedFileName			()
+std::string									ArchiveList::GetSelectedFileName			()
 {
 	return GetSelected()->GetText();
 }

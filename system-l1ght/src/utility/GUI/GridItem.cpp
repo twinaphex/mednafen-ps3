@@ -1,13 +1,18 @@
 #include <ps3_system.h>
 
-							GridItem::GridItem							(const char* aText, const char* aImage) : ListItem(aText, FontManager::GetSmallFont(), aImage)
+							GridItem::GridItem							(const std::string& aText, const std::string& aImage) : ListItem(aText, FontManager::GetSmallFont(), aImage)
 {
 
 }
 
 void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
-	Texture* image = ImageManager::GetImage(GetImage());
+	Texture* image = ImageManager::GetImage(LabelImage);
+
+	if(aWidth == 0 || aHeight < LabelFont->GetHeight() + 1)
+	{
+		throw "GridItem::Draw: Output dimensions may not be zero";
+	}
 
 	if(image)
 	{
@@ -30,9 +35,9 @@ void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint
 
 uint32_t					GridItem::GetWidth							()
 {
-	if(ImageManager::GetImage(GetImage()))
+	if(ImageManager::GetImage(LabelImage))
 	{
-		return ImageManager::GetImage(GetImage())->GetWidth();
+		return ImageManager::GetImage(LabelImage)->GetWidth();
 	}
 	
 	return 0;
@@ -40,9 +45,9 @@ uint32_t					GridItem::GetWidth							()
 
 uint32_t					GridItem::GetHeight							()
 {
-	if(ImageManager::GetImage(GetImage()))
+	if(ImageManager::GetImage(LabelImage))
 	{
-		return ImageManager::GetImage(GetImage())->GetHeight();
+		return ImageManager::GetImage(LabelImage)->GetHeight();
 	}
 	
 	return 0;

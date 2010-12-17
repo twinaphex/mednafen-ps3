@@ -17,6 +17,41 @@ class				Colors
 class				Utility
 {
 	public:
+		static char*					JoinStrings					(const char* aFirst, const char* aSecond, const char* aThird = 0)
+		{
+			assert(aFirst != 0 && aSecond != 0);
+
+			int length = strlen(aFirst) + strlen(aSecond) + (aThird ? strlen(aThird) : 0) + 1;
+			char* result = (char*)malloc(length);
+			
+			strcpy(result, aFirst);
+			strcat(result, aSecond);
+
+			if(aThird)
+			{
+				strcat(result, aThird);
+			}
+			
+			return result;
+		}
+	
+		static char*					DuplicateString				(const char* aString)
+		{
+			if(aString == 0)
+			{
+				throw "Utility::DuplicateString: Duplicating NULL is bad for your heath.";
+			}
+		
+			char* result = strdup(aString);
+			
+			if(result == 0)
+			{
+				throw "Utility::DuplicateString: Out of memory?";
+			}
+			
+			return result;
+		}
+	
 		static std::string				GetExtension				(const std::string& aPath)
 		{
 			if(aPath.find(".") != std::string::npos)

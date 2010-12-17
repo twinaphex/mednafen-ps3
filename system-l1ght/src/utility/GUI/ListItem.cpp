@@ -1,27 +1,23 @@
 #include <ps3_system.h>
 
-											ListItem::ListItem									(const char* aText, Font* aFont, const char* aImage)
+											ListItem::ListItem									(const std::string& aText, Font* aFont, const std::string& aImage)
 {
+	Text = aText;
+	LabelImage = aImage;
+
 	LabelFont = aFont == 0 ? FontManager::GetBigFont() : aFont;
-	LabelImage = strdup(aImage);
-
-	Text = strdup(aText);
-
 	TextColor = Colors::Normal;
 	SelectedTextColor = Colors::HighLight;
 }
 
 											ListItem::~ListItem									()
 {
-	free(Text);
-	free(LabelImage);
 }
 
 bool										ListItem::Input										()
 {	
 	return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);
 }
-
 
 void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 {
@@ -44,25 +40,7 @@ uint32_t									ListItem::GetHeight									()
 	return LabelFont->GetHeight();
 }
 
-const char*									ListItem::GetText									()
+std::string									ListItem::GetText									()
 {
 	return Text;
-}
-
-void										ListItem::SetImage									(const char* aImage)
-{
-	if(strlen(aImage) < strlen(LabelImage))
-	{
-		strcpy(LabelImage, aImage);
-	}
-	else
-	{
-		free(LabelImage);
-		LabelImage = strdup(aImage);
-	}
-}
-
-const char*									ListItem::GetImage									()
-{
-	return LabelImage;
 }

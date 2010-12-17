@@ -9,18 +9,17 @@ extern "C"
 class									FTPItem : public ListItem
 {
 	public:
-										FTPItem							(const char* aName, const char* aPath, struct ftpparse aData);
+										FTPItem							(const std::string& aName, const std::string& aPath, struct ftpparse aData);
 		virtual							~FTPItem						();
 
-		const char*						GetFileName						();	
-		const char*						GetPath							();
+		std::string						GetPath							();
 		
 		bool							IsLink							();
 		bool							IsDirectory						();		
 		bool							IsFile							();		
 
 	protected:
-		char*							Path;
+		std::string						Path;
 		
 		bool							Directory;
 		bool							File;

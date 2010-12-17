@@ -7,7 +7,7 @@ namespace
 		if(((FTPItem*)a)->IsDirectory() && !((FTPItem*)b)->IsDirectory())	return true;
 		if(((FTPItem*)b)->IsDirectory() && !((FTPItem*)a)->IsDirectory())	return false;
 	
-		return strcmp(a->GetText(), b->GetText()) <= 0;
+		return a->GetText() < b->GetText();
 	}
 
 	int		MakeSocket				(const char* aIP, const char* aPort, const char* aPort2 = 0)
@@ -34,12 +34,12 @@ namespace
 }
 
 
-								FTPFileList::FTPFileList				(const char* aHeader, const char* aHost, const char* aPort, const char* aPath) : WinterfaceList(aHeader)
+								FTPFileList::FTPFileList				(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aPath) : WinterfaceList(aHeader)
 {
-	Header = strdup(aHeader);
-	Host = strdup(aHost);
-	Port = strdup(aPort);
-	Path = strdup(aPath);
+	Header = aHeader;
+	Host = aHost;
+	Port = aPort;
+	Path = aPath;
 
 	MakePassiveConnection();
 	
@@ -75,21 +75,17 @@ namespace
 
 								FTPFileList::~FTPFileList				()
 {
-	free(Header);
-	free(Host);
-	free(Port);
-	free(Path);
 }
 
-void							FTPFileList::DownloadFile				(const char* aDest)
+void							FTPFileList::DownloadFile				(const std::string& aDest)
 {
 	MakePassiveConnection();
 
-	sprintf(Buffer, "RETR %s\n", GetSelected()->GetText());
+	DoCommand("TYPE I\n");
+	sprintf(Buffer, "RETR %s\n", GetSelected()->GetText().c_str());
 	DoCommand(Buffer, 0, false);
 
-	sprintf(Buffer, "%s/%s", aDest, GetSelected()->GetText());
-	FILE* outputFile = fopen(aDest, "wb");
+	FILE* outputFile = fopen((aDest + "/" + GetSelected()->GetText()).c_str(), "wb");
 	uint32_t count;
 	
 	while(count = read(InSocket, Buffer, 2048))
@@ -103,14 +99,14 @@ void							FTPFileList::DownloadFile				(const char* aDest)
 	close(OutSocket);
 }
 
-const char*						FTPFileList::GetChosenFile				()
+std::string						FTPFileList::GetChosenFile				()
 {
-	return WasCanceled() ? 0 : ((FTPItem*)GetSelected())->GetPath();
+	return WasCanceled() ? "" : ((FTPItem*)GetSelected())->GetPath();
 }
 
 void							FTPFileList::MakePassiveConnection		()
 {
-	OutSocket = MakeSocket(Host, Port);
+	OutSocket = MakeSocket(Host.c_str(), Port.c_str());
 
 	memset(Buffer, 0, 2048);
 	read(OutSocket, Buffer, 2048);
@@ -118,7 +114,7 @@ void							FTPFileList::MakePassiveConnection		()
 	DoCommand("USER anonymous\n", 331);
 	DoCommand("PASS \n", 230);
 
-	sprintf(Buffer, "CWD %s\n", Path);
+	sprintf(Buffer, "CWD %s\n", Path.c_str());
 	DoCommand(Buffer, 250);
 
 
@@ -135,9 +131,9 @@ void							FTPFileList::MakePassiveConnection		()
 	InSocket = MakeSocket(newtarget, newport);
 }
 
-uint32_t						FTPFileList::DoCommand					(const char* aCommand, uint32_t aNeededResult, bool aResult)
+uint32_t						FTPFileList::DoCommand					(const std::string& aCommand, uint32_t aNeededResult, bool aResult)
 {
-	write(OutSocket, aCommand, strlen(aCommand));
+	write(OutSocket, aCommand.c_str(), aCommand.length());
 	
 	if(aResult)
 	{
@@ -149,7 +145,7 @@ uint32_t						FTPFileList::DoCommand					(const char* aCommand, uint32_t aNeeded
 		
 		if(aNeededResult && code != aNeededResult)
 		{
-			ps3_log->Log("FTP Command Failed: %s", aCommand);
+			ps3_log->Log("FTP Command Failed: %s", aCommand.c_str());
 			ps3_log->Do();
 			exit(1);
 		}
