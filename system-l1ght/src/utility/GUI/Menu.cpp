@@ -15,7 +15,8 @@ void						Menu::SetInputDelay			(uint32_t aDelay)
 {
 	if(aDelay > 10)
 	{
-		throw "Menu::SetInputDelay: Delay cannot be more than ten frames.";
+		printf("Menu::SetInputDelay: Delay cannot be more than ten frames, you tried '%d.\n", aDelay);
+		aDelay = 10;
 	}
 	
 	InputDelay = aDelay;

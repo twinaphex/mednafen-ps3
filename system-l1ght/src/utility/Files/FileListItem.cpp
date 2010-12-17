@@ -23,6 +23,8 @@
 	Directory = aData.flagtrycwd;
 	
 	SetBookMark(false);
+
+	LabelImage = IsDirectory() ? "FolderICON" : "FileICON";
 	
 	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
 	{

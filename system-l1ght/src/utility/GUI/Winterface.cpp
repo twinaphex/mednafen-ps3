@@ -23,17 +23,6 @@ namespace
 	}
 }
 
-bool										Winterface::DrawRight								()
-{
-	//TODO: Assume all items are the same size as item[0]
-	for(int i = 0; i != SideItems.size(); i ++)
-	{
-		SideItems[i]->Draw(16, i * SideItems[0]->GetHeight(), false);
-	}
-
-	return false;
-}
-
 bool										Winterface::Input									()
 {
 	if(PS3Input::ButtonDown(0, PS3_BUTTON_SELECT))
@@ -106,6 +95,17 @@ bool										Winterface::Draw									()
 
 bool										Winterface::DrawLeft								()
 {
+	return false;
+}
+
+bool										Winterface::DrawRight								()
+{
+	//TODO: Assume all items are the same size as item[0]
+	for(int i = 0; i != SideItems.size(); i ++)
+	{
+		SideItems[i]->Draw(16, i * SideItems[0]->GetHeight(), false);
+	}
+
 	return false;
 }
 

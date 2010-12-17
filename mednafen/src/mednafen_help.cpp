@@ -44,7 +44,9 @@ namespace
 		{"ps3.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
 		{"ftp.ps3.enable", MDFNSF_NOFLAGS, "Enable Loading from FTP Server.", NULL, MDFNST_BOOL, "0" },
 		{"ftp.ps3.host", MDFNSF_NOFLAGS, "Hostname for FTP Server.", NULL, MDFNST_STRING, "192.168.0.250" },
-		{"ftp.ps3.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" }
+		{"ftp.ps3.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" },
+		{"ftp.ps3.username", MDFNSF_NOFLAGS, "User name for FTP Server.", NULL, MDFNST_STRING, "anonymous" },
+		{"ftp.ps3.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" }
 	};
 }
 

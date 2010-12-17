@@ -25,6 +25,18 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 	return;
 }
 
+void				Abort					(const char* aMessage)
+{
+	printf("ABORT: %s\n", aMessage);
+	
+	if(ExitFunction)
+	{
+		ExitFunction();
+	}
+	
+	abort();
+}
+
 void				InitPS3					(void (*aExitFunction)())
 {
 	ExitFunction = aExitFunction;

@@ -47,7 +47,7 @@ std::string			GetFile					()
 
 	if(FileChooser == 0)
 	{
-		FileChooser = new Browser("Select ROM", MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), "", "", bookmarks, &InputHook);
+		FileChooser = new Browser("Select ROM", MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), MDFN_GetSettingS("ftp.ps3.username"), MDFN_GetSettingS("ftp.ps3.password"), bookmarks, MDFN_GetSettingB("ftp.ps3.enable"), &InputHook);
 	}
 	
 	FileChooser->Do();
@@ -55,7 +55,7 @@ std::string			GetFile					()
 	
 	return FileChooser->SelectedFile();
 
-/*	if(MDFN_GetSettingB("ftp.ps3.enable"))
+/*	if()
 	{
 		FTPBrowser = new FTPSelect("Select ROM", , &InputHook);
 		std::string file = FTPBrowser->GetFile();

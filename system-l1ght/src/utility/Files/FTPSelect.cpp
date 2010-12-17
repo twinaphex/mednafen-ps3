@@ -1,15 +1,17 @@
 #include <ps3_system.h>
 
 
-								FTPSelect::FTPSelect					(const std::string& aHeader, const std::string& aHost, const std::string& aPort, MenuHook* aInputHook)
+								FTPSelect::FTPSelect					(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, MenuHook* aInputHook)
 {
 	Header = aHeader;
 	Host = aHost;
 	Port = aPort;
+	UserName = aUserName;
+	Password = aPassword;
 
 	InputHook = aInputHook;
 	
-	Lists.push(new FTPFileList(Header, Host, Port, "/", "Anonymous", ""));
+	Lists.push(new FTPFileList(Header, Host, Port, "/", UserName, Password));
 }
 
 								FTPSelect::~FTPSelect					()
@@ -48,7 +50,7 @@ std::string						FTPSelect::GetFile						()
 		}
 		else if(((FileListItem*)Lists.top()->GetSelected())->IsDirectory())
 		{
-			Lists.push(new FTPFileList(Header, Host, Port, Lists.top()->GetChosenFile(), "Anonymous", ""));
+			Lists.push(new FTPFileList(Header, Host, Port, Lists.top()->GetChosenFile(), UserName, Password));
 		}
 		else
 		{

@@ -6,10 +6,13 @@ class													Winterface : public Menu
 	public:
 														Winterface						(const std::string& aHeader, bool aKillItems = true, MenuHook* aHook = 0);
 		virtual											~Winterface						();
-		virtual bool									DrawRight						();
+
 		virtual bool									Input							();
+		
 		virtual bool									Draw							();
 		virtual bool									DrawLeft						();
+		virtual bool									DrawRight						();
+		
 		virtual std::string								GetHeader						();
 		
 	protected:

@@ -33,6 +33,7 @@ void				InitPS3					(void (*aExitFunction)() = 0);
 void				QuitPS3					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
+void				Abort					(const char* aMessage);
 
 extern				PathBuild				Paths;
 

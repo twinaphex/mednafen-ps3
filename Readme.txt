@@ -5,7 +5,7 @@ It is currently based on mednafen version 0.9.15-wip
 
 Features:
 	Supports following systems:
-		Nintendo Enterainment System
+		Nintendo Entertainment System
 		Nintendo Game Boy
 		Nintendo Game Boy Color
 		Nintendo Game Boy Advance
@@ -19,7 +19,9 @@ Features:
 		Bandai WonderSwan Color
 
 	File browser, place your games on a USB drive, or FTP them to the internal drive
-	Load uncompressed or zipped images
+	Experimental FTP client
+	Load uncompressed or zip or 7zip images
+	Load individual files for inside zip or 7zip archives
 	
 	Save States
 	Fast forward	
@@ -36,7 +38,20 @@ Future:
 	Faster and better GBA support
 
 Use:
-	There are currently no default controls assigned, the first time you use a new system please press R3 and assign them in the settings menu.
+	FTP:
+		Set Up:
+			Press R3 to open the settings menu and press R1 until the ftp.ps3 options appear.
+			Set 'host' and 'port' to the address of the FTP server
+			Set 'username' and 'password' to the login of the FTP server
+			Set 'enable' to ON, then restart mednafen, an FTP option should be available on the first page.
+		Caveats:
+			The client is only tested with the 'vsftpd' server
+			FTP is an insecure protocol, any passwords will be sent plaintext across the network
+			The stored password is not masked in anyway and will be readable by anyone
+			I recommend setting up the server as read only with an anonymous login
+			Any loaded files will be saved in /dev_hdd0/game/MDFN90002/USRDIR/
+			 if you want to get rid of them, you'll have to clean them up manually
+			CD games will not work from FTP
 
 	Settings Menu:
 		Many settings will not take effect until mednafen is restarted
@@ -79,7 +94,6 @@ Commands:
 		Exit: Return to xmb
 
 Bugs and Issues:
-	Loading new games is not supported
 	Gameboy Advance support is spotty, some games can't get to full speed
 	Some features may be missing from WonderSwan and neo-geo pocket	
 

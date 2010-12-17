@@ -13,14 +13,20 @@ void										ImageManager::Purge									()
 void										ImageManager::LoadDirectory							(const std::string& aPath)
 {
 	std::vector<std::string> items;
-	Utility::ListDirectory(aPath, items);
-	
-	for(int i = 0 ; i != items.size(); i ++)
+
+	if(Utility::ListDirectory(aPath, items))
 	{
-		if(items[i].find(".png") != std::string::npos)
+		for(int i = 0 ; i != items.size(); i ++)
 		{
-			LoadImage(items[i].substr(0, items[i].length() - 4), aPath + items[i]);
+			if(items[i].find(".png") != std::string::npos)
+			{
+				LoadImage(items[i].substr(0, items[i].length() - 4), aPath + items[i]);
+			}
 		}
+	}
+	else
+	{
+		printf("ImageManager::LoadDirectory: Path '%s' not found\n", aPath.c_str());
 	}
 }
 	
@@ -35,7 +41,8 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		
 		if(Png.bmp_out == 0)
 		{
-			throw "ImageManager::LoadImage: Could not read png";
+			printf("ImageManager::LoadImage: Could not read '%s'\n", aPath.c_str());
+			return 0;
 		}
 		
 		Texture* output = new Texture(Png.width, Png.height);
@@ -44,7 +51,8 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		{
 			delete output;
 			free(Png.bmp_out);
-			throw "ImageManager::LoadImage: Image Bad ?";
+			printf("ImageManager::LoadImage: Image Bad ? '%s'\n", aPath.c_str());
+			return 0;
 		}
 
 		memcpy(output->GetPixels(), Png.bmp_out, Png.width * Png.height * 4);
@@ -52,11 +60,16 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		
 		output->SetFilter(true);
 		
-		
 		Images[aName] = output;
 	}
 	
 	return Images[aName];
 }
+
+Texture*									ImageManager::GetImage								(const std::string& aName)
+{
+	return Images[aName];
+}
+
 
 std::map<std::string, Texture*>				ImageManager::Images;

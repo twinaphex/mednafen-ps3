@@ -9,7 +9,7 @@ extern "C"
 class									FTPSelect
 {
 	public:
-										FTPSelect						(const std::string& aHeader, const std::string& aHost, const std::string& aPort, MenuHook* aInputHook = 0);
+										FTPSelect						(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, MenuHook* aInputHook = 0);
 										~FTPSelect						();
 
 		void							DownloadFile					(const std::string& aDest);
@@ -21,6 +21,8 @@ class									FTPSelect
 		std::string						Header;
 		std::string						Host;
 		std::string						Port;
+		std::string						UserName;
+		std::string						Password;
 	
 		std::stack<FTPFileList*>		Lists;
 

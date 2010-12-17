@@ -3,11 +3,17 @@
 #include "ttffont.bin.h"
 #include "fixedfont.bin.h"
 
-
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
-	FT_New_Memory_Face(FontManager::FreeType, (FT_Byte*)(aFixed ? fixedfont_bin : ttffont_bin), sizeof(ttffont_bin), 0, &FontFace);
-	FT_Set_Pixel_Sizes(FontFace, 0, aPixelSize); 
+	if(0 != FT_New_Memory_Face(FontManager::FreeType, (FT_Byte*)(aFixed ? fixedfont_bin : ttffont_bin), sizeof(ttffont_bin), 0, &FontFace))
+	{
+		Abort("Font::Font: FT_New_Memory_Face failed");
+	}
+	
+	if(0 != FT_Set_Pixel_Sizes(FontFace, 0, aPixelSize))
+	{
+		Abort("Font::Font: FT_Set_Pixel_Sizes failed");
+	}
 
 	Width = FontFace->size->metrics.max_advance / 64;
 	Height = FontFace->size->metrics.height / 64;
@@ -58,7 +64,11 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 		FontCharacter* character = new FontCharacter();
 
 		FT_UInt glyph_index = FT_Get_Char_Index(FontFace, aCharacter);
-		FT_Load_Glyph(FontFace, glyph_index, FT_LOAD_RENDER);
+
+		if(0 != FT_Load_Glyph(FontFace, glyph_index, FT_LOAD_RENDER))
+		{
+			Abort("Font::CacheCharacter: FT_Load_Glyph failed");
+		}
 
 		character->Advance = FontFace->glyph->advance.x >> 6;
 		character->Width = FontFace->glyph->bitmap.width;
@@ -97,7 +107,7 @@ Font*					FontManager::GetBigFont		()
 {
 	if(!FontsOpen)
 	{
-		throw "FontManager: Attempt to use before initialization";
+		Abort("FontManager: Attempt to use before initialization");
 	}
 	
 	return BigFont;
@@ -107,27 +117,17 @@ Font*					FontManager::GetSmallFont	()
 {
 	if(!FontsOpen)
 	{
-		throw "FontManager: Attempt to use before initialization";
+		Abort("FontManager: Attempt to use before initialization");
 	}
 
 	return SmallFont;
-}
-
-Font*					FontManager::GetTinyFont	()
-{
-	if(!FontsOpen)
-	{
-		throw "FontManager: Attempt to use before initialization";
-	}
-
-	return TinyFont;
 }
 
 Font*					FontManager::GetFixedFont	()
 {
 	if(!FontsOpen)
 	{
-		throw "FontManager: Attempt to use before initialization";
+		Abort("FontManager: Attempt to use before initialization");
 	}
 
 	return FixedFont;
@@ -137,11 +137,13 @@ void					FontManager::InitFonts		()
 {
 	if(!FontsOpen)
 	{
-		FT_Init_FreeType(&FreeType);
+		if(0 != FT_Init_FreeType(&FreeType))
+		{
+			Abort("FontManager::Init: Failed to initialize freetype");
+		}
 	
 		BigFont = new Font(PS3Video::GetScreenHeight() / 25);
 		SmallFont = new Font(PS3Video::GetScreenHeight() / 40);
-		TinyFont = new Font(12);
 		FixedFont = new Font(PS3Video::GetScreenHeight() / 36, true);
 	}
 	
@@ -154,7 +156,6 @@ void					FontManager::QuitFonts		()
 	{
 		delete BigFont;
 		delete SmallFont;
-		delete TinyFont;
 		delete FixedFont;
 		
 		FT_Done_FreeType(FreeType);
@@ -168,6 +169,5 @@ FT_Library				FontManager::FreeType = 0;
 bool					FontManager::FontsOpen = false;
 Font*					FontManager::BigFont = 0;
 Font*					FontManager::SmallFont = 0;
-Font*					FontManager::TinyFont = 0;
 Font*					FontManager::FixedFont = 0;
 

@@ -4,7 +4,7 @@
 {
 	if(aWidth == 0 || aHeight == 0 || aWidth > 16 || aHeight > 16)
 	{
-		throw "WinterfaceIconGrid::WinterfaceIconGrid: Invalid dimensions.";
+		Abort("WinterfaceIconGrid::WinterfaceIconGrid: Invalid dimensions.");
 	}
 
 	Width = aWidth;
@@ -12,6 +12,7 @@
 	
 	XSelection = 0;
 	YSelection = 0;
+	SelectedIndex = 0;
 }
 
 									WinterfaceIconGrid::~WinterfaceIconGrid					()
@@ -35,7 +36,9 @@ bool								WinterfaceIconGrid::Input								()
 	YSelection -= PS3Input::ButtonDown(0, PS3_BUTTON_UP) ? 1 : 0;
 	YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
 
-	if(Items[YSelection * Width + XSelection]->Input())
+	SelectedIndex = YSelection * Width + XSelection;
+
+	if(SelectedIndex < Items.size() && Items[SelectedIndex]->Input())
 	{
 		return true;
 	}

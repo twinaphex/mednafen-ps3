@@ -41,7 +41,6 @@ class										FontManager
 	public:
 		static Font*						GetBigFont					();
 		static Font*						GetSmallFont				();
-		static Font*						GetTinyFont					();
 		static Font*						GetFixedFont				();
 		
 	protected:
@@ -51,7 +50,6 @@ class										FontManager
 		static FT_Library					FreeType;	
 	
 		static bool							FontsOpen;
-		static Font*						TinyFont;		
 		static Font*						SmallFont;
 		static Font*						FixedFont;
 		static Font*						BigFont;

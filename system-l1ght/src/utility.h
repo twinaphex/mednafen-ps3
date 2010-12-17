@@ -27,7 +27,7 @@ class				Utility
 			return "";
 		}
 	
-		static void						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
+		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
 			Lv2FsFile dirhandle;
 			Lv2FsDirent item;
@@ -54,10 +54,12 @@ class				Utility
 				}
 				
 				lv2FsCloseDir(dirhandle);
+				
+				return true;
 			}
 			else
 			{
-				throw "Utility::ListDirectory: aPath was not a directory";
+				return false;
 			}
 		}
 	
