@@ -4,13 +4,13 @@
 class												MednafenCommandItem : public GridItem
 {
 	public:
-													MednafenCommandItem				(const char* aDisplay, const char* aIcon, const char* aCommand);
+													MednafenCommandItem				(const std::string& aDisplay, const std::string& aIcon, const std::string& aCommand);
 		virtual										~MednafenCommandItem			();
 													
 		bool										Input							();
 
 	protected:
-		char*										Command;
+		std::string									Command;
 };
 
 class												MednafenCommands : public WinterfaceIconGrid

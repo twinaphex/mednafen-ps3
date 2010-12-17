@@ -4,8 +4,8 @@ namespace
 {
 	bool								AlphaSortC								(ListItem* a, ListItem* b)
 	{
-		if(((FTPItem*)a)->IsDirectory() && !((FTPItem*)b)->IsDirectory())	return true;
-		if(((FTPItem*)b)->IsDirectory() && !((FTPItem*)a)->IsDirectory())	return false;
+		if(((FileListItem*)a)->IsDirectory() && !((FileListItem*)b)->IsDirectory())	return true;
+		if(((FileListItem*)b)->IsDirectory() && !((FileListItem*)a)->IsDirectory())	return false;
 	
 		return a->GetText() < b->GetText();
 	}
@@ -34,21 +34,32 @@ namespace
 }
 
 
-								FTPFileList::FTPFileList				(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aPath) : WinterfaceList(aHeader)
+								FTPFileList::FTPFileList				(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aPath, const std::string& aUserName, const std::string& aPassword) : WinterfaceList(aHeader)
 {
 	Header = aHeader;
 	Host = aHost;
 	Port = aPort;
 	Path = aPath;
+	UserName = aUserName;
+	Password = aPassword;
 
 	MakePassiveConnection();
 	
 	DoCommand("LIST\n", 0, false);
 	
-	read(InSocket, Buffer, 2048);
+	std::string data = "";
+	uint32_t count;
+
+	memset(Buffer, 0, 2048);
+	while(count = read(InSocket, Buffer, 2046))
+	{
+		data += Buffer;
+		memset(Buffer, 0, 2048);
+	}
 	
-	char* parbuffer = Buffer;
-	char* parend = Buffer;
+	char* parsebuffer = strdup(data.c_str());
+	char* parbuffer = parsebuffer;
+	char* parend = parsebuffer;
 	int32_t length = 0;
 	
 	while(*parend != 0)
@@ -57,7 +68,7 @@ namespace
 		{
 			struct ftpparse pdata;
 			ftpparse(&pdata, parbuffer, length);
-			Items.push_back(new FTPItem(std::string(pdata.name, pdata.namelen - 1).c_str(), (std::string(aPath) + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : "")).c_str(), pdata));
+			Items.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), Path + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata));
 			
 			parbuffer = parend + 1;
 			length = -1;
@@ -69,6 +80,7 @@ namespace
 
 	std::sort(Items.begin(), Items.end(), AlphaSortC);
 
+	free(parsebuffer);
 	close(InSocket);
 	close(OutSocket);
 }
@@ -81,11 +93,13 @@ void							FTPFileList::DownloadFile				(const std::string& aDest)
 {
 	MakePassiveConnection();
 
-	DoCommand("TYPE I\n");
+	DoCommand("TYPE I\n", 200);
+	
 	sprintf(Buffer, "RETR %s\n", GetSelected()->GetText().c_str());
 	DoCommand(Buffer, 0, false);
 
-	FILE* outputFile = fopen((aDest + "/" + GetSelected()->GetText()).c_str(), "wb");
+	sprintf(Buffer, "%s/%s", aDest.c_str(), GetSelected()->GetText().c_str());
+	FILE* outputFile = fopen(Buffer, "wb");
 	uint32_t count;
 	
 	while(count = read(InSocket, Buffer, 2048))
@@ -101,7 +115,7 @@ void							FTPFileList::DownloadFile				(const std::string& aDest)
 
 std::string						FTPFileList::GetChosenFile				()
 {
-	return WasCanceled() ? "" : ((FTPItem*)GetSelected())->GetPath();
+	return WasCanceled() ? "" : ((FileListItem*)GetSelected())->GetPath();
 }
 
 void							FTPFileList::MakePassiveConnection		()
@@ -111,15 +125,18 @@ void							FTPFileList::MakePassiveConnection		()
 	memset(Buffer, 0, 2048);
 	read(OutSocket, Buffer, 2048);
 
-	DoCommand("USER anonymous\n", 331);
-	DoCommand("PASS \n", 230);
+	sprintf(Buffer, "USER %s\n", UserName.c_str());
+	DoCommand(Buffer, 331);
+	
+	sprintf(Buffer, "PASS %s\n", Password.c_str());
+	DoCommand(Buffer, 230);
 
 	sprintf(Buffer, "CWD %s\n", Path.c_str());
 	DoCommand(Buffer, 250);
 
-
 	DoCommand("PASV\n", 227);
 
+	//TODO: Make sure it's valid
 	char* parse = strchr(Buffer, '(') + 1;
 	uint32_t a, b, c, d, e, f;
 	sscanf(parse, "%d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f);
@@ -145,9 +162,7 @@ uint32_t						FTPFileList::DoCommand					(const std::string& aCommand, uint32_t 
 		
 		if(aNeededResult && code != aNeededResult)
 		{
-			ps3_log->Log("FTP Command Failed: %s", aCommand.c_str());
-			ps3_log->Do();
-			exit(1);
+			throw "FTPFileList::DoCommand: FTP Command Failed";
 		}
 		
 		return code;

@@ -1,13 +1,12 @@
 #include <mednafen_includes.h>
 
-									MednafenCommandItem::MednafenCommandItem		(const char* aDisplay, const char* aIcon, const char* aCommand) : GridItem(aDisplay, aIcon)
+									MednafenCommandItem::MednafenCommandItem		(const std::string& aDisplay, const std::string& aIcon, const std::string& aCommand) : GridItem(aDisplay, aIcon)
 {
-	Command = strdup(aCommand);
+	Command = aCommand;
 }
 
 									MednafenCommandItem::~MednafenCommandItem		()
 {
-	free(Command);
 }
 
 bool								MednafenCommandItem::Input						()

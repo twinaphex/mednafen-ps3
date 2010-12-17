@@ -16,12 +16,14 @@
 #include "src/utility/GUI/WinterfaceList.h"
 #include "src/utility/GUI/WinterfaceMultiList.h"
 #include "src/utility/GUI/WinterfaceIconGrid.h"
-#include "src/utility/FTP/FTPItem.h"
-#include "src/utility/FTP/FTPFileList.h"
-#include "src/utility/FTP/FTPSelect.h"
+#include "src/utility/Files/FileListItem.h"
+#include "src/utility/Files/FTPFileList.h"
+#include "src/utility/Files/FTPSelect.h"
+#include "src/utility/Files/FileList.h"
+#include "src/utility/Files/FileSelect.h"
+#include "src/utility/Files/ArchiveList.h"
+#include "src/utility/Files/Browser.h"
 #include "src/utility/Keyboard.h"
-#include "src/utility/FileSelect.h"
-#include "src/utility/Archive.h"
 #include "src/utility/TextViewer.h"
 #include "src/utility/Logger.h"
 
@@ -31,6 +33,8 @@ void				InitPS3					(void (*aExitFunction)() = 0);
 void				QuitPS3					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
+
+extern				PathBuild				Paths;
 
 extern Logger* ps3_log;
 

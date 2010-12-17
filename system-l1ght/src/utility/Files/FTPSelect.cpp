@@ -9,7 +9,7 @@
 
 	InputHook = aInputHook;
 	
-	Lists.push(new FTPFileList(Header, Host, Port, "/"));
+	Lists.push(new FTPFileList(Header, Host, Port, "/", "Anonymous", ""));
 }
 
 								FTPSelect::~FTPSelect					()
@@ -46,9 +46,9 @@ std::string						FTPSelect::GetFile						()
 		{
 			return 0;
 		}
-		else if(((FTPItem*)Lists.top()->GetSelected())->IsDirectory())
+		else if(((FileListItem*)Lists.top()->GetSelected())->IsDirectory())
 		{
-			Lists.push(new FTPFileList(Header, Host, Port, Lists.top()->GetChosenFile()));
+			Lists.push(new FTPFileList(Header, Host, Port, Lists.top()->GetChosenFile(), "Anonymous", ""));
 		}
 		else
 		{

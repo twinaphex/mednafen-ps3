@@ -16,7 +16,7 @@ class													Winterface : public Menu
 		bool											KillItems;
 		std::vector<ListItem*>							SideItems;
 
-		char*											Header;
+		std::string										Header;
 		
 		static bool										HideRight;
 };

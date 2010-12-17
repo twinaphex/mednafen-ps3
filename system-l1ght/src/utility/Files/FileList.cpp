@@ -4,25 +4,12 @@ namespace
 {
 	bool								AlphaSortC								(ListItem* a, ListItem* b)
 	{
-		if(((FileListItem*)a)->GetDirectory() && !((FileListItem*)b)->GetDirectory())			return true;
-		if(((FileListItem*)b)->GetDirectory() && !((FileListItem*)a)->GetDirectory())			return false;
+		if(((FileListItem*)a)->IsDirectory() && !((FileListItem*)b)->IsDirectory())			return true;
+		if(((FileListItem*)b)->IsDirectory() && !((FileListItem*)a)->IsDirectory())			return false;
 	
 		return a->GetText() < b->GetText();
 	}
 }
-
-										FileListItem::FileListItem				(const std::string& aPath, const std::string& aName, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
-{
-	FullPath = aPath;
-	Directory = aDirectory;
-	SetBookMark(aBookMark);
-	
-	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
-	{
-		LabelImage = Utility::GetExtension(aPath) + "ICON";
-	}
-}
-
 
 										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookMarks)
 {
@@ -90,7 +77,7 @@ void									FileList::CollectFiles					(const std::string& aPath, std::vector<L
 		if(filterfound)
 		{
 			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), aPath + items[i]) != BookMarks.end();
-			aItems.push_back(new FileListItem(aPath + items[i], items[i].c_str(), items[i][items[i].length() - 1] == '/', bookmark));
+			aItems.push_back(new FileListItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', bookmark));
 		}
 	}
 }
@@ -121,61 +108,8 @@ void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
 		Lv2FsStat statbuf;
 		if(0 == lv2FsStat(BookMarks[i].c_str(), &statbuf))
 		{
-			aItems.push_back(new FileListItem(BookMarks[i], nicename.c_str(), statbuf.st_mode == 1, true));
+			aItems.push_back(new FileListItem(nicename, BookMarks[i], statbuf.st_mode == 1, true));
 		}
 	}
 }
 
-										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
-{
-	Header = aHeader;
-	InputHook = aInputHook;
-
-	Lists.push(new FileList(Header, "/", BookMarks, InputHook));
-}
-
-										FileSelect::~FileSelect				()
-{
-	while(Lists.size() != 0)
-	{
-		delete Lists.top();
-		Lists.pop();
-	}
-}
-
-
-std::string								FileSelect::GetFile					()
-{
-	std::string result;
-
-	while(!WantToDie())
-	{
-		Lists.top()->Do();
-		
-		if(Lists.top()->GetFile().empty())
-		{
-			if(Lists.size() > 1)
-			{
-				delete Lists.top();
-				Lists.pop();
-			}
-			else
-			{
-				break;
-			}
-			
-			continue;
-		}
-		
-		if(Lists.top()->GetFile()[Lists.top()->GetFile().length() - 1] == '/')
-		{
-			Lists.push(new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook));
-			continue;
-		}
-
-		result = Lists.top()->GetFile();
-		break;
-	}
-
-	return result;
-}

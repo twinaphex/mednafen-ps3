@@ -27,11 +27,9 @@ namespace
 			}
 	};
 	
-	MDFNInputHook	InputHook;
-	FileSelect*		Browser = 0;
-	FTPSelect*		FTPBrowser = 0;
+	MDFNInputHook				InputHook;
+	Browser* 					FileChooser;
 	std::vector<std::string>	bookmarks;
-	std::string romfilename;
 };
 
 
@@ -45,9 +43,21 @@ void				Exit					()
 
 std::string			GetFile					()
 {
-	if(MDFN_GetSettingB("ftp.ps3.enable"))
+	bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
+
+	if(FileChooser == 0)
 	{
-		FTPBrowser = new FTPSelect("Select ROM", MDFN_GetSettingS("ftp.ps3.host").c_str(), MDFN_GetSettingS("ftp.ps3.port").c_str(), &InputHook);
+		FileChooser = new Browser("Select ROM", MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), "", "", bookmarks, &InputHook);
+	}
+	
+	FileChooser->Do();
+	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
+	
+	return FileChooser->SelectedFile();
+
+/*	if(MDFN_GetSettingB("ftp.ps3.enable"))
+	{
+		FTPBrowser = new FTPSelect("Select ROM", , &InputHook);
 		std::string file = FTPBrowser->GetFile();
 		
 		if(file.empty())
@@ -61,7 +71,6 @@ std::string			GetFile					()
 	}
 	else
 	{
-		bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
 
 		if(!Browser)
 		{
@@ -79,7 +88,7 @@ std::string			GetFile					()
 		{
 			return 0;
 		}
-	}
+	}*/
 }
 
 void				ReloadEmulator			()
@@ -121,19 +130,19 @@ void				ReloadEmulator			()
 		data = malloc(size);
 		archive.GetSelectedData(size, data);
 		
-		if(ArchiveList::IsArchive(filename) && romfilename.rfind('/') != std::string::npos)
+		if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
 		{
-			romfilename = romfilename.substr(0, romfilename.rfind('/') + 1);
-			romfilename += archive.GetSelectedFileName();
+			filename = filename.substr(0, filename.rfind('/') + 1);
+			filename += archive.GetSelectedFileName();
 		}
 		else
 		{
-			romfilename = archive.GetSelectedFileName();
+			filename = archive.GetSelectedFileName();
 		}
 		
 	
 		MednafenEmu::CloseGame();
-		MednafenEmu::LoadGame(romfilename, data, size);
+		MednafenEmu::LoadGame(filename, data, size);
 		
 		if(data)
 		{

@@ -42,7 +42,7 @@ bool					TextViewer::DrawLeft					()
 		
 		if(Lines[Top + i].length() > Left)
 		{
-			FontManager::GetFixedFont()->PutString(Lines[Top + i].substr(Left).c_str(), 2, i * lineheight, Colors::Normal);
+			FontManager::GetFixedFont()->PutString(Lines[Top + i].substr(Left), 2, i * lineheight, Colors::Normal);
 		}
 	}
 	

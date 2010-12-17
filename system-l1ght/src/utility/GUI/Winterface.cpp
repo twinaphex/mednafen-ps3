@@ -7,15 +7,13 @@ namespace
 
 											Winterface::Winterface								(const std::string& aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
 {
-	Header = Utility::DuplicateString(aHeader.c_str());
+	Header = aHeader;
 	
 	KillItems = aKillItems;
 }
 
 											Winterface::~Winterface								()
 {
-	free(Header);
-
 	if(KillItems)
 	{
 		for(std::vector<ListItem*>::iterator iter = SideItems.begin(); iter != SideItems.end(); iter ++)
