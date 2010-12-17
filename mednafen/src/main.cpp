@@ -29,7 +29,9 @@ namespace
 	
 	MDFNInputHook	InputHook;
 	FileSelect*		Browser = 0;
+	FTPSelect*		FTPBrowser = 0;
 	std::vector<std::string>	bookmarks;
+	std::string romfilename;
 };
 
 
@@ -41,24 +43,56 @@ void				Exit					()
 	exit(0);
 }
 
+const char*			GetFile					()
+{
+	if(MDFN_GetSettingB("ftp.ps3.enable"))
+	{
+		FTPBrowser = new FTPSelect("Select ROM", MDFN_GetSettingS("ftp.ps3.host").c_str(), MDFN_GetSettingS("ftp.ps3.port").c_str(), &InputHook);
+		const char* file = FTPBrowser->GetFile();
+		FTPBrowser->DownloadFile("/dev_hdd0/game/MDFN90002/USRDIR/");
+		
+		if(file)
+		{
+			romfilename = std::string("/dev_hdd0/game/MDFN90002/USRDIR/") + file;
+			return romfilename.c_str();
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
+
+		if(!Browser)
+		{
+			Browser = new FileSelect("Select ROM", bookmarks, &InputHook);
+		}
+		
+		romfilename = Browser->GetFile();
+		MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
+		
+		if(!romfilename.empty())
+		{
+			return romfilename.c_str();
+		}
+		else
+		{
+			return 0;
+		}
+	}
+}
 
 void				ReloadEmulator			()
 {
-	bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
-	
-	if(!Browser)
-	{
-		Browser = new FileSelect("Select ROM", bookmarks, &InputHook);
-	}
-	
-	std::string romfilename = Browser->GetFile();
-	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
+	const char* filename = GetFile();	
 
-	if(romfilename.length() == 0 && !MednafenEmu::IsGameLoaded())
+	if(filename == 0 && !MednafenEmu::IsGameLoaded())
 	{
 		Exit();
 	}
-	else if(romfilename.length() == 0 && MednafenEmu::IsGameLoaded())
+	else if(filename == 0 && MednafenEmu::IsGameLoaded())
 	{
 		return;
 	}
@@ -115,16 +149,6 @@ int					main					()
 	try
 	{
 		InitPS3(Exit);
-	
-		FTPSelect bill("192.168.0.250", "21", "/");
-
-		const char* out = bill.GetFile();
-		if(out)
-		{
-			ps3_log->Log(out);
-			ps3_log->Do();
-		}
-		
 	
 		MednafenEmu::Init();
 
