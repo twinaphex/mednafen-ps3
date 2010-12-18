@@ -1,5 +1,6 @@
 #include <ps3_system.h>
 
+//HACK: Can't put them in FileEnumerator.h, so put them here
 LocalEnumerator					Enumerators::Local;
 FTPEnumerator					Enumerators::FTP;
 

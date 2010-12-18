@@ -1,9 +1,6 @@
 #ifndef SYSTEM__FILEENUMERATOR_H
 #define SYSTEM__FILEENUMERATOR_H
 
-class							LocalEnumerator;
-class							FTPEnumerator;
-
 class							FileEnumerator
 {
 	public:
@@ -23,6 +20,15 @@ class							FTPEnumerator : public FileEnumerator
 	public:
 		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput);
 		virtual std::string		ObtainFile				(const std::string& aPath);
+		
+	public:
+		static void				SetCredentials			(const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword);
+	
+	protected:
+		static std::string		Host;
+		static std::string		Port;
+		static std::string		UserName;
+		static std::string		Password;
 };
 
 class							Enumerators
@@ -58,6 +64,7 @@ class							Enumerators
 			return aPath;
 		}
 		
+		//HACK: These are defined in 'LocalEnumerator.cpp'
 		static LocalEnumerator	Local;
 		static FTPEnumerator	FTP;		
 };

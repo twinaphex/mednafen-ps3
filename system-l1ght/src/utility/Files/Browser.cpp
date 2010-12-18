@@ -1,14 +1,10 @@
 #include <ps3_system.h>
 
-								Browser::Browser							(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, std::vector<std::string>& aBookMarks, bool aEnableFTP, MenuHook* aInputHook) : WinterfaceList(aHeader, true, true, aInputHook), BookMarks(aBookMarks)
+								Browser::Browser							(const std::string& aHeader, std::vector<std::string>& aBookMarks, bool aEnableFTP, MenuHook* aInputHook) : WinterfaceList(aHeader, true, true, aInputHook), BookMarks(aBookMarks)
 {
 	Header = aHeader;
 	Hook = aInputHook;
 	
-	Host = aHost;
-	Port = aPort;
-	UserName = aUserName;
-	Password = aPassword;
 	EnableFTP = aEnableFTP;
 	
 	Items.push_back(new ListItem("Local"));
@@ -43,7 +39,11 @@ bool							Browser::Input								()
 		}
 		
 		Result = Files->GetFile();
-		return true;
+		
+		if(!Result.empty())
+		{
+			return true;		
+		}
 	}
 	else if(PS3Input::ButtonDown(0, PS3_BUTTON_CROSS))
 	{
@@ -58,7 +58,6 @@ bool							Browser::Input								()
 
 			if(!Result.empty())
 			{
-				Result = Enumerators::GetEnumerator("file:/").ObtainFile(Result);
 				return true;
 			}
 		}
@@ -73,8 +72,6 @@ bool							Browser::Input								()
 
 			if(!Result.empty())
 			{
-				Result = Enumerators::GetEnumerator("ftp:/").ObtainFile(Result);
-//				FTP->DownloadFile(Paths.Build("."));
 				return true;
 			}
 		}

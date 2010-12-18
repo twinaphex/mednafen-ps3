@@ -4,7 +4,7 @@
 class									Browser : public WinterfaceList
 {
 	public:
-										Browser								(const std::string& aHeader, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, std::vector<std::string>& aBookMarks, bool aEnableFTP, MenuHook* aInputHook = 0);
+										Browser								(const std::string& aHeader, std::vector<std::string>& aBookMarks, bool aEnableFTP, MenuHook* aInputHook = 0);
 		virtual							~Browser							();
 
 		std::string						SelectedFile						();
@@ -21,11 +21,6 @@ class									Browser : public WinterfaceList
 		bool							EnableFTP;
 		
 		std::string						Result;
-		
-		std::string						Host;
-		std::string						Port;		
-		std::string						UserName;
-		std::string						Password;		
 		
 		std::vector<std::string>&		BookMarks;
 };

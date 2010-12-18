@@ -89,7 +89,7 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 	
 	std::string Path = Enumerators::CleanPath(aPath);
 	
-	MakePassiveConnection(OutSocket, InSocket, "192.168.0.250", "21", "anonymous", "", Path);
+	MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, Path);
 	
 	DoCommand(OutSocket, "LIST\n", 0, false);
 	
@@ -134,15 +134,14 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 	int OutSocket;
 	int InSocket;
 
-	MakePassiveConnection(OutSocket, InSocket, "192.168.0.250", "21", "anonymous", "", "/");
+	MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, "/");
 
 	DoCommand(OutSocket, "TYPE I\n", 200);
 	
 	sprintf(Buffer, "RETR %s\n", Enumerators::CleanPath(aPath).c_str());
 	DoCommand(OutSocket, Buffer, 0, false);
 
-	sprintf(Buffer, "%s/%s", "/dev_hdd0/game/MDFN90002/USRDIR/", "temp.ftp");
-	FILE* outputFile = fopen(Buffer, "wb");
+	FILE* outputFile = fopen(Paths.Build("temp.ftp").c_str(), "wb");
 	uint32_t count;
 	
 	while(count = read(InSocket, Buffer, 2048))
@@ -155,5 +154,18 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 	close(InSocket);
 	close(OutSocket);
 
-	return std::string("/dev_hdd0/game/MDFN90002/USRDIR/temp.ftp");
+	return Paths.Build("temp.ftp");
 }
+
+void			FTPEnumerator::SetCredentials			(const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword)
+{
+	Host = aHost;
+	Port = aPort;
+	UserName = aUserName;
+	Password = aPassword;
+}
+
+std::string		FTPEnumerator::Host;
+std::string		FTPEnumerator::Port;
+std::string		FTPEnumerator::UserName;
+std::string		FTPEnumerator::Password;

@@ -47,64 +47,31 @@ std::string			GetFile					()
 
 	if(FileChooser == 0)
 	{
-		FileChooser = new Browser("Select ROM", MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), MDFN_GetSettingS("ftp.ps3.username"), MDFN_GetSettingS("ftp.ps3.password"), bookmarks, MDFN_GetSettingB("ftp.ps3.enable"), &InputHook);
+		FileChooser = new Browser("Select ROM", bookmarks, MDFN_GetSettingB("ftp.ps3.enable"), &InputHook);
 	}
 	
 	FileChooser->Do();
 	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
 	
 	return FileChooser->SelectedFile();
-
-/*	if()
-	{
-		FTPBrowser = new FTPSelect("Select ROM", , &InputHook);
-		std::string file = FTPBrowser->GetFile();
-		
-		if(file.empty())
-		{
-			return "";
-		}
-		
-		FTPBrowser->DownloadFile("/dev_hdd0/game/MDFN90002/USRDIR/");
-		
-		return std::string("/dev_hdd0/game/MDFN90002/USRDIR/") + FTPBrowser->GetFileName();
-	}
-	else
-	{
-
-		if(!Browser)
-		{
-			Browser = new FileSelect("Select ROM", bookmarks, &InputHook);
-		}
-		
-		romfilename = Browser->GetFile();
-		MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
-		
-		if(!romfilename.empty())
-		{
-			return romfilename.c_str();
-		}
-		else
-		{
-			return 0;
-		}
-	}*/
 }
 
 void				ReloadEmulator			()
 {
-	std::string filename = GetFile();	
+	std::string enumpath = GetFile();
 
-	if(filename.empty() && !MednafenEmu::IsGameLoaded())
+	if(enumpath.empty() && !MednafenEmu::IsGameLoaded())
 	{
 		Exit();
 	}
-	else if(filename.empty() && MednafenEmu::IsGameLoaded())
+	else if(enumpath.empty() && MednafenEmu::IsGameLoaded())
 	{
 		return;
 	}
 	else
 	{
+		std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
+	
 		ArchiveList archive(std::string("[Select ROM] ") + filename, filename);
 		
 		if(archive.ItemCount() == 0)
@@ -158,6 +125,8 @@ int					main					()
 		InitPS3(Exit);
 	
 		MednafenEmu::Init();
+
+		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), MDFN_GetSettingS("ftp.ps3.username"), MDFN_GetSettingS("ftp.ps3.password"));
 
 		ReloadEmulator();
 

@@ -17,7 +17,6 @@
 	}
 }
 
-
 std::string								FileSelect::GetFile					()
 {
 	std::string result;
