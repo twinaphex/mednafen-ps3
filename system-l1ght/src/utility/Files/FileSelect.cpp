@@ -5,7 +5,7 @@
 	Header = aHeader;
 	InputHook = aInputHook;
 
-	Lists.push(new FileList(Header, aPath, InputHook));
+	Lists.push(new FileList(Header, aPath, BookMarks, InputHook));
 }
 
 										FileSelect::~FileSelect				()
@@ -42,7 +42,7 @@ std::string								FileSelect::GetFile					()
 		
 		if(Lists.top()->GetFile()[Lists.top()->GetFile().length() - 1] == '/')
 		{
-			Lists.push(new FileList(Header, Lists.top()->GetFile(), InputHook));
+			Lists.push(new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook));
 			continue;
 		}
 

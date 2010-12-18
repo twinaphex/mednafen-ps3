@@ -11,11 +11,40 @@ namespace
 	}
 }
 
-										FileList::FileList						(const std::string& aHeader, const std::string& aPath, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook)
+										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookmarks)
 {
 	FileEnumerator& enumer = Enumerators::GetEnumerator(aPath);
 
 	Path = aPath;
+
+	if(aPath == "")
+	{
+		for(int i = 0; i != BookMarks.size(); i ++)
+		{
+			std::string nicename = BookMarks[i];
+	
+			if(nicename.empty())
+			{
+				continue;
+			}
+			
+			bool directory = false;
+			if(nicename[nicename.length() - 1] != '/')
+			{
+				nicename = nicename.substr(nicename.rfind('/') + 1);
+			}
+			else
+			{
+				nicename = nicename.substr(0, nicename.length() - 1);
+				nicename = nicename.substr(nicename.rfind('/') + 1);
+				nicename.push_back('/');
+				directory = true;
+			}
+			
+			Items.push_back(new FileListItem(nicename, BookMarks[i], directory, true));
+		}
+	}
+
 
 	std::vector<std::string> filters;
 	enumer.ListPath(aPath, filters, Items);
@@ -32,7 +61,7 @@ namespace
 
 bool									FileList::Input							()
 {
-/*	if(PS3Input::ButtonDown(0, PS3_BUTTON_R2))
+	if(PS3Input::ButtonDown(0, PS3_BUTTON_R2))
 	{
 		FileListItem* item = (FileListItem*)GetSelected();
 		std::vector<std::string>::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->GetPath());
@@ -47,7 +76,7 @@ bool									FileList::Input							()
 			BookMarks.push_back(item->GetPath());
 			item->SetBookMark(1);
 		}
-	}*/
+	}
 
 	return 	WinterfaceList::Input();
 }

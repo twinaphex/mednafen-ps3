@@ -4,7 +4,7 @@
 class												FileList : public WinterfaceList
 {
 	public:
-													FileList						(const std::string& aHeader, const std::string& aPath, MenuHook* aInputHook = 0);
+													FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks, MenuHook* aInputHook = 0);
 													
 		bool										Input							();
 
@@ -16,7 +16,7 @@ class												FileList : public WinterfaceList
 
 	protected:
 		std::string									Path;
-//		std::vector<std::string>&					BookMarks;
+		std::vector<std::string>&					BookMarks;
 };
 
 #endif

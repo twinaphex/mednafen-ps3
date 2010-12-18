@@ -32,7 +32,6 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 		
 		if(filterfound)
 		{
-//			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), Path + items[i]) != BookMarks.end();
 			aItems.push_back(new FileListItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', false));
 		}
 	}
