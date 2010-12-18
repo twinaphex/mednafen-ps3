@@ -13,7 +13,7 @@ class									Browser : public WinterfaceList
 
 	protected:
 		FileSelect*						Files;
-		FTPSelect*						FTP;
+		FileSelect*						FTP;
 		
 		std::string						Header;
 		MenuHook*						Hook;

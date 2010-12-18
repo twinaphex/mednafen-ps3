@@ -1,11 +1,11 @@
 #include <ps3_system.h>
 
-										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : BookMarks(aBookMarks)
+										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) : BookMarks(aBookMarks)
 {
 	Header = aHeader;
 	InputHook = aInputHook;
 
-	Lists.push(new FileList(Header, "/", BookMarks, InputHook));
+	Lists.push(new FileList(Header, aPath, InputHook));
 }
 
 										FileSelect::~FileSelect				()
@@ -43,7 +43,7 @@ std::string								FileSelect::GetFile					()
 		
 		if(Lists.top()->GetFile()[Lists.top()->GetFile().length() - 1] == '/')
 		{
-			Lists.push(new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook));
+			Lists.push(new FileList(Header, Lists.top()->GetFile(), InputHook));
 			continue;
 		}
 

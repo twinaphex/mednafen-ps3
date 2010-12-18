@@ -4,7 +4,7 @@
 class												FileSelect
 {
 	public:
-													FileSelect						(const std::string& aHeader, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
+													FileSelect						(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook = 0);
 													~FileSelect						();
 		std::string									GetFile							();
 

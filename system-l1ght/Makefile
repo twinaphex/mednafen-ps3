@@ -13,8 +13,8 @@ DATA		:=	bin
 LIBS		:=	
 LIBDIRS		+=	
 
-CFLAGS		+=-O3 -funroll-loops -funroll-all-loops --std=gnu99 -I$(PSL1GHT)/include/freetype2
-CXXFLAGS	+=-O3 -funroll-loops -funroll-all-loops -mcpu=cell -I$(PSL1GHT)/include/freetype2
+CFLAGS		+=-O2 --std=gnu99 -I$(PSL1GHT)/include/freetype2
+CXXFLAGS	+=-O2 -mcpu=cell -I$(PSL1GHT)/include/freetype2
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 

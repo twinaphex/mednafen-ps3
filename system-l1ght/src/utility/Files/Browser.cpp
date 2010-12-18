@@ -39,7 +39,7 @@ bool							Browser::Input								()
 	{
 		if(!Files)
 		{
-			Files = new FileSelect(Header, BookMarks, Hook);
+			Files = new FileSelect(Header, BookMarks, "file:/", Hook);
 		}
 		
 		Result = Files->GetFile();
@@ -51,13 +51,14 @@ bool							Browser::Input								()
 		{
 			if(!Files)
 			{
-				Files = new FileSelect(Header, BookMarks, Hook);
+				Files = new FileSelect(Header, BookMarks, "file:/", Hook);
 			}
 			
 			Result = Files->GetFile();
 
 			if(!Result.empty())
 			{
+				Result = Enumerators::GetEnumerator("file:/").ObtainFile(Result);
 				return true;
 			}
 		}
@@ -65,15 +66,15 @@ bool							Browser::Input								()
 		{
 			if(!FTP)
 			{
-				FTP = new FTPSelect(Header, Host, Port, UserName, Password, Hook);
+				FTP = new FileSelect(Header, BookMarks, "ftp:/", Hook);
 			}
 			
 			Result = FTP->GetFile();
 
 			if(!Result.empty())
 			{
-				FTP->DownloadFile(Paths.Build("."));
-				Result = Paths.Build(FTP->GetFileName());
+				Result = Enumerators::GetEnumerator("ftp:/").ObtainFile(Result);
+//				FTP->DownloadFile(Paths.Build("."));
 				return true;
 			}
 		}

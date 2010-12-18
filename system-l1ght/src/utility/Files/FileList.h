@@ -4,7 +4,7 @@
 class												FileList : public WinterfaceList
 {
 	public:
-													FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook = 0);
+													FileList						(const std::string& aHeader, const std::string& aPath, MenuHook* aInputHook = 0);
 													
 		bool										Input							();
 
@@ -15,11 +15,8 @@ class												FileList : public WinterfaceList
 		}
 
 	protected:
-		void										CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters);
-		void										CollectBookMarks				(std::vector<ListItem*>& aItems);
-	
 		std::string									Path;
-		std::vector<std::string>&					BookMarks;
+//		std::vector<std::string>&					BookMarks;
 };
 
 #endif

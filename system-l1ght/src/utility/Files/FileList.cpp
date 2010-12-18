@@ -11,16 +11,14 @@ namespace
 	}
 }
 
-										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookMarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookMarks)
+										FileList::FileList						(const std::string& aHeader, const std::string& aPath, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook)
 {
-	Path = aPath;
-	
-	CollectFiles(aPath, Items, Utility::StringToVector(aPath == "/" ? "hdd;usb" : "", ';'));
+	FileEnumerator& enumer = Enumerators::GetEnumerator(aPath);
 
-	if(aPath == "/")
-	{
-		CollectBookMarks(Items);
-	}
+	Path = aPath;
+
+	std::vector<std::string> filters;
+	enumer.ListPath(aPath, filters, Items);
 	
 	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
 	SideItems.push_back(new ListItem("[X] Select Item", FontManager::GetSmallFont()));	
@@ -34,7 +32,7 @@ namespace
 
 bool									FileList::Input							()
 {
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_R2))
+/*	if(PS3Input::ButtonDown(0, PS3_BUTTON_R2))
 	{
 		FileListItem* item = (FileListItem*)GetSelected();
 		std::vector<std::string>::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->GetPath());
@@ -49,67 +47,8 @@ bool									FileList::Input							()
 			BookMarks.push_back(item->GetPath());
 			item->SetBookMark(1);
 		}
-	}
+	}*/
 
 	return 	WinterfaceList::Input();
-}
-
-void									FileList::CollectFiles					(const std::string& aPath, std::vector<ListItem*>& aItems, std::vector<std::string> aFilters)
-{
-	std::vector<std::string> items;
-	Utility::ListDirectory(aPath, items);
-
-	for(int i = 0; i != items.size(); i ++)
-	{
-		bool filterfound = true;
-		
-		for(int j = 0; j != aFilters.size(); j ++)
-		{
-			filterfound = false;
-			
-			if(items[i].find(aFilters[j]) != std::string::npos)
-			{
-				filterfound = true;
-				break;
-			}
-		}
-		
-		if(filterfound)
-		{
-			bool bookmark = std::find(BookMarks.begin(), BookMarks.end(), aPath + items[i]) != BookMarks.end();
-			aItems.push_back(new FileListItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', bookmark));
-		}
-	}
-}
-
-void								FileList::CollectBookMarks				(std::vector<ListItem*>& aItems)
-{
-	for(int i = 0; i != BookMarks.size(); i ++)
-	{
-		std::string nicename = BookMarks[i];
-
-		if(nicename.empty())
-		{
-			continue;
-		}
-		
-		if(nicename[nicename.length() - 1] != '/')
-		{
-			nicename = nicename.substr(nicename.rfind('/') + 1);
-		}
-		else
-		{
-			nicename = nicename.substr(0, nicename.length() - 1);
-			nicename = nicename.substr(nicename.rfind('/') + 1);
-			nicename.push_back('/');
-		}
-		
-
-		Lv2FsStat statbuf;
-		if(0 == lv2FsStat(BookMarks[i].c_str(), &statbuf))
-		{
-			aItems.push_back(new FileListItem(nicename, BookMarks[i], statbuf.st_mode == 1, true));
-		}
-	}
 }
 
