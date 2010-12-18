@@ -13,6 +13,7 @@
 	XSelection = 0;
 	YSelection = 0;
 	SelectedIndex = 0;
+	Canceled = false;
 }
 
 									WinterfaceIconGrid::~WinterfaceIconGrid					()
@@ -38,11 +39,19 @@ bool								WinterfaceIconGrid::Input								()
 
 	SelectedIndex = YSelection * Width + XSelection;
 
-	if(SelectedIndex < Items.size() && Items[SelectedIndex]->Input())
+	if(PS3Input::ButtonDown(0, PS3_BUTTON_CIRCLE))
 	{
+		Canceled = true;
 		return true;
 	}
 
+	if(SelectedIndex < Items.size() && Items[SelectedIndex]->Input())
+	{
+		Canceled = false;
+		return true;
+	}
+
+	//TODO: What is Canceled's state if Winterface::Input returns true?
 	return Winterface::Input();
 }
 
@@ -66,4 +75,9 @@ bool								WinterfaceIconGrid::DrawLeft							()
 	}
 	
 	return false;
+}
+
+bool								WinterfaceIconGrid::WasCanceled							()
+{
+	return Canceled;
 }

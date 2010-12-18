@@ -87,6 +87,7 @@ bool										WinterfaceList::Input								()
 		return true;
 	}
 	
+	//TODO: What is Canceled's state if Winterface::Input returns true?
 	return Winterface::Input();
 }
 

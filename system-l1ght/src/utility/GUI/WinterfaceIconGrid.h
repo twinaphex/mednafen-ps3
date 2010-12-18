@@ -10,11 +10,15 @@ class								WinterfaceIconGrid : public Winterface
 		bool						Input									();
 		bool						DrawLeft								();
 	
+		bool						WasCanceled								();
+	
 	protected:
 		std::vector<GridItem*>		Items;
 		
 		uint32_t					Width;
 		uint32_t					Height;
+
+		bool						Canceled;
 
 		int32_t						XSelection;
 		int32_t						YSelection;
