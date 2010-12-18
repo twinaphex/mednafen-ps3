@@ -113,8 +113,10 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 		if(*parend == '\n')
 		{
 			struct ftpparse pdata;
-			ftpparse(&pdata, parbuffer, length);
-			aItems.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, false));
+			if(ftpparse(&pdata, parbuffer, length))
+			{
+				aItems.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, false));
+			}
 			
 			parbuffer = parend + 1;
 			length = -1;
