@@ -13,8 +13,19 @@ namespace
 		}
 		
 		int socketFD = socket(AF_INET, SOCK_STREAM, 0);
+		if(socketFD == -1)
+		{
+			snprintf(Buffer, 2048, "Socket open failed");
+			return -1;
+		}
 	
 		struct hostent* server = gethostbyname(aIP);
+		if(server == 0)
+		{
+			snprintf(Buffer, 2048, "Host lookup failed");
+			close(socketFD);
+			return -1;
+		}
 	
 		struct sockaddr_in serv_addr;
 		memset(&serv_addr, 0, sizeof(serv_addr));
@@ -22,7 +33,13 @@ namespace
 		serv_addr.sin_family = AF_INET;
 		bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 		
-		connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr));
+		if(-1 == connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr)))
+		{
+			snprintf(Buffer, 2048, "Connect open failed");
+			close(socketFD);
+			return -1;
+		}
+		
 		return socketFD;
 	}
 
@@ -53,6 +70,11 @@ namespace
 	void		MakePassiveConnection	(int& aOutSocket, int& aInSocket, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, const std::string& aPath)
 	{
 		aOutSocket = MakeSocket(aHost.c_str(), aPort.c_str());
+		if(aOutSocket == -1)
+		{
+			aInSocket = -1;
+			return;
+		}
 	
 		memset(Buffer, 0, 2048);
 		read(aOutSocket, Buffer, 2048);
@@ -78,6 +100,11 @@ namespace
 		sprintf(newport, "%d", e * 256 + f);
 	
 		aInSocket = MakeSocket(newtarget, newport);
+		if(aInSocket == -1)
+		{
+			close(aOutSocket);
+			aOutSocket = -1;
+		}
 	}
 
 };
