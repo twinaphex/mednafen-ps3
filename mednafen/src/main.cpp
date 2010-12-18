@@ -28,7 +28,7 @@ namespace
 	};
 	
 	MDFNInputHook				InputHook;
-	Browser* 					FileChooser;
+	FileSelect*					FileChooser;
 	std::vector<std::string>	bookmarks;
 };
 
@@ -47,13 +47,13 @@ std::string			GetFile					()
 
 	if(FileChooser == 0)
 	{
-		FileChooser = new Browser("Select ROM", bookmarks, MDFN_GetSettingB("ftp.ps3.enable"), &InputHook);
+		FileChooser = new FileSelect("Select ROM", bookmarks, "", &InputHook);
 	}
 	
-	FileChooser->Do();
+	std::string result = FileChooser->GetFile();
 	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
 	
-	return FileChooser->SelectedFile();
+	return result;
 }
 
 void				ReloadEmulator			()

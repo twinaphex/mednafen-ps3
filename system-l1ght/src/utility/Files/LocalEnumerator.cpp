@@ -1,9 +1,5 @@
 #include <ps3_system.h>
 
-//HACK: Can't put them in FileEnumerator.h, so put them here
-LocalEnumerator					Enumerators::Local;
-FTPEnumerator					Enumerators::FTP;
-
 void							LocalEnumerator::ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aItems)
 {
 	std::string Path = Enumerators::CleanPath(aPath);
@@ -14,6 +10,14 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 	for(int i = 0; i != items.size(); i ++)
 	{
 		bool filterfound = true;
+
+		if(Path == "/")
+		{
+			if(items[i].find("usb") == std::string::npos && items[i].find("hdd") == std::string::npos)
+			{
+				continue;
+			}
+		}
 		
 		for(int j = 0; j != aFilters.size(); j ++)
 		{

@@ -8,6 +8,13 @@ class							FileEnumerator
 		virtual std::string		ObtainFile				(const std::string& aPath) = 0;
 };
 
+class							EnumeratorEnumerator : public FileEnumerator
+{
+	public:
+		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput);
+		virtual std::string		ObtainFile				(const std::string& aPath);
+};
+
 class							LocalEnumerator	: public FileEnumerator
 {
 	public:
@@ -36,6 +43,11 @@ class							Enumerators
 	public:
 		static FileEnumerator&	GetEnumerator			(const std::string& aPath)
 		{
+			if(aPath.empty())
+			{
+				return Root;
+			}
+		
 			if(aPath.find("ftp:/") == 0)
 			{
 				return FTP;
@@ -64,7 +76,8 @@ class							Enumerators
 			return aPath;
 		}
 		
-		//HACK: These are defined in 'LocalEnumerator.cpp'
+		//HACK: These are defined in 'EnumeratorEnumerator.cpp'
+		static EnumeratorEnumerator	Root;
 		static LocalEnumerator	Local;
 		static FTPEnumerator	FTP;		
 };
