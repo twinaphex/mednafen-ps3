@@ -10,7 +10,6 @@ class									FileListItem : public ListItem
 {
 	public:
 										FileListItem					(const std::string& aName, const std::string& aPath, bool aDirectory, bool aBookMark);
-										FileListItem					(const std::string& aName, const std::string& aPath, struct ftpparse aData);
 
 		virtual							~FileListItem					();
 

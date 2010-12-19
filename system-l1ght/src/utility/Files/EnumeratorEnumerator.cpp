@@ -8,10 +8,14 @@ FTPEnumerator					Enumerators::FTP;
 void							EnumeratorEnumerator::ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aItems)
 {
 	aItems.push_back(new FileListItem("Local Storage", "file:/", true, false));
-	aItems.push_back(new FileListItem("FTP Storage", "ftp:/", true, false));	
+	
+	if(FTPEnumerator::GetEnabled())
+	{
+		aItems.push_back(new FileListItem("FTP Storage", "ftp:/", true, false));
+	}
 }
 
 std::string						EnumeratorEnumerator::ObtainFile			(const std::string& aPath)
 {
-	return "";
+	throw FileException("EnumeratorEnumerator::ObtainFile: EnumeratorEnumerator can't be used to get files.");
 }

@@ -9,10 +9,12 @@
 	{
 		FileList* list = new FileList(Header, aPath, BookMarks, InputHook);
 		Lists.push(list);
+		Valid = true;
 	}
 	catch(FileException ex)
 	{
 		ErrorDialog(ex.what()).Do();
+		Valid = false;
 	}
 }
 
@@ -27,45 +29,55 @@
 
 std::string								FileSelect::GetFile					()
 {
-	std::string result;
-
-	while(!WantToDie())
+	if(Valid)
 	{
-		Lists.top()->Do();
-		
-		if(Lists.top()->GetFile().empty())
+		std::string result;
+	
+		while(!WantToDie())
 		{
-			if(Lists.size() > 1)
+			Lists.top()->Do();
+			
+			if(Lists.top()->WasCanceled())
 			{
+				if(Lists.size() == 1)
+				{
+					return "";
+				}
+			
 				delete Lists.top();
 				Lists.pop();
+				
+				continue;
+			}
+			
+			if(Lists.top()->IsDirectory())
+			{
+				try
+				{
+					FileList* list = new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook);
+					Lists.push(list);
+				}
+				catch(FileException ex)
+				{
+					ErrorDialog(ex.what()).Do();
+				}
 			}
 			else
 			{
+				return Lists.top()->GetFile();
 				break;
 			}
-			
-			continue;
 		}
-		
-		if(Lists.top()->GetFile()[Lists.top()->GetFile().length() - 1] == '/')
-		{
-			try
-			{
-				FileList* list = new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook);
-				Lists.push(list);
-			}
-			catch(FileException ex)
-			{
-				ErrorDialog(ex.what()).Do();
-			}
-			
-			continue;
-		}
-
-		result = Lists.top()->GetFile();
-		break;
+	
+		return "";
 	}
+	else
+	{
+		throw FileException("FileSelect::GetFile: FileSelect object is invalid.");
+	}
+}
 
-	return result;
+bool									FileSelect::IsValid					()
+{
+	return Valid;
 }

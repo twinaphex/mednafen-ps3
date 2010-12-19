@@ -29,9 +29,14 @@ class							FTPEnumerator : public FileEnumerator
 		virtual std::string		ObtainFile				(const std::string& aPath);
 		
 	public:
+		static void				SetEnabled				(bool aEnabled);
+		static bool				GetEnabled				();
+		
 		static void				SetCredentials			(const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword);
 	
 	protected:
+		static bool				Enabled;
+	
 		static std::string		Host;
 		static std::string		Port;
 		static std::string		UserName;

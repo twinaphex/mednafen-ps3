@@ -17,11 +17,13 @@ namespace
 
 	Path = aPath;
 
-	if(aPath == "")
+	if(aPath.empty())
 	{
 		for(int i = 0; i != BookMarks.size(); i ++)
 		{
 			std::string nicename = BookMarks[i];
+	
+			//TODO: Validate path
 	
 			if(nicename.empty())
 			{
@@ -44,7 +46,6 @@ namespace
 			Items.push_back(new FileListItem(nicename, BookMarks[i], directory, true));
 		}
 	}
-
 
 	std::vector<std::string> filters;
 	enumer.ListPath(aPath, filters, Items);
@@ -81,3 +82,22 @@ bool									FileList::Input							()
 	return 	WinterfaceList::Input();
 }
 
+std::string								FileList::GetFile						()
+{
+	if(WasCanceled())
+	{
+		throw FileException("FileList::GetFile: Can't get a file if the list was canceled");
+	}
+
+	return ((FileListItem*)GetSelected())->GetPath();
+}
+
+bool									FileList::IsDirectory					()
+{
+	if(WasCanceled())
+	{
+		throw FileException("FileList::IsDirectory: Can't get a file if the list was canceled");
+	}
+	
+	return ((FileListItem*)GetSelected())->IsDirectory();
+}

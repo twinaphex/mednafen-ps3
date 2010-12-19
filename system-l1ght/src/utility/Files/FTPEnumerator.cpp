@@ -120,79 +120,93 @@ namespace
 
 void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aItems)
 {
-	int OutSocket;
-	int InSocket;
-	
-	std::string Path = Enumerators::CleanPath(aPath);
-	
-	MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, Path);
-	
-	DoCommand(OutSocket, "LIST\n", 0, false);
-	
-	std::string data = "";
-	uint32_t count;
-
-	memset(Buffer, 0, 2048);
-	while(count = read(InSocket, Buffer, 2046))
+	if(Enabled)
 	{
-		data += Buffer;
+		int OutSocket;
+		int InSocket;
+		
+		std::string Path = Enumerators::CleanPath(aPath);
+		
+		MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, Path);
+		
+		DoCommand(OutSocket, "LIST\n", 0, false);
+		
+		std::string data = "";
+		uint32_t count;
+	
 		memset(Buffer, 0, 2048);
-	}
-	
-	char* parsebuffer = strdup(data.c_str());
-	char* parbuffer = parsebuffer;
-	char* parend = parsebuffer;
-	int32_t length = 0;
-	
-	while(*parend != 0)
-	{
-		if(*parend == '\n')
+		while((count = read(InSocket, Buffer, 2046)))
 		{
-			struct ftpparse pdata;
-			if(ftpparse(&pdata, parbuffer, length))
-			{
-				aItems.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, false));
-			}
-			
-			parbuffer = parend + 1;
-			length = -1;
+			data += Buffer;
+			memset(Buffer, 0, 2048);
 		}
-
-		parend ++;
-		length ++;
+		
+		char* parsebuffer = strdup(data.c_str());
+		char* parbuffer = parsebuffer;
+		char* parend = parsebuffer;
+		int32_t length = 0;
+		
+		while(*parend != 0)
+		{
+			if(*parend == '\n')
+			{
+				struct ftpparse pdata;
+				if(ftpparse(&pdata, parbuffer, length))
+				{
+					aItems.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, false));
+				}
+				
+				parbuffer = parend + 1;
+				length = -1;
+			}
+	
+			parend ++;
+			length ++;
+		}
+	
+		free(parsebuffer);
+		close(InSocket);
+		close(OutSocket);
 	}
-
-	free(parsebuffer);
-	close(InSocket);
-	close(OutSocket);
+	else
+	{
+		throw FileException("FTP Access is not enabled");
+	}
 }
 
 std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 {
-	int OutSocket;
-	int InSocket;
-
-	MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, "/");
-
-	DoCommand(OutSocket, "TYPE I\n", 200);
-	
-	sprintf(Buffer, "RETR %s\n", Enumerators::CleanPath(aPath).c_str());
-	DoCommand(OutSocket, Buffer, 0, false);
-
-	FILE* outputFile = fopen(Paths.Build("temp.ftp").c_str(), "wb");
-	uint32_t count;
-	
-	while(count = read(InSocket, Buffer, 2048))
+	if(Enabled)
 	{
-		fwrite(Buffer, count, 1, outputFile);
-	}
+		int OutSocket;
+		int InSocket;
 	
-	fclose(outputFile);
-
-	close(InSocket);
-	close(OutSocket);
-
-	return Paths.Build("temp.ftp");
+		MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, "/");
+	
+		DoCommand(OutSocket, "TYPE I\n", 200);
+		
+		sprintf(Buffer, "RETR %s\n", Enumerators::CleanPath(aPath).c_str());
+		DoCommand(OutSocket, Buffer, 0, false);
+	
+		FILE* outputFile = fopen(Paths.Build("temp.ftp").c_str(), "wb");
+		uint32_t count;
+		
+		while((count = read(InSocket, Buffer, 2048)))
+		{
+			fwrite(Buffer, count, 1, outputFile);
+		}
+		
+		fclose(outputFile);
+	
+		close(InSocket);
+		close(OutSocket);
+	
+		return Paths.Build("temp.ftp");
+	}
+	else
+	{
+		throw FileException("FTP Access is not enabled");
+	}
 }
 
 void			FTPEnumerator::SetCredentials			(const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword)
@@ -202,6 +216,18 @@ void			FTPEnumerator::SetCredentials			(const std::string& aHost, const std::str
 	UserName = aUserName;
 	Password = aPassword;
 }
+
+void			FTPEnumerator::SetEnabled				(bool aEnabled)
+{
+	Enabled = aEnabled;
+}
+
+bool			FTPEnumerator::GetEnabled				()
+{
+	return Enabled;
+}
+
+bool			FTPEnumerator::Enabled = false;
 
 std::string		FTPEnumerator::Host;
 std::string		FTPEnumerator::Port;

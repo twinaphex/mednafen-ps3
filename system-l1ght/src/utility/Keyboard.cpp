@@ -3,7 +3,6 @@
 namespace
 {
 	const char*		Chars[2][5] = {{"`1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "}, {"!@#$%^&*()_+", "QWERTYUIOP{}|", "ASDFGHJKL:\"", "ZXCVBNM<>?", " "}};
-	uint32_t		LongestLine = 13;
 }
 
 							Keyboard::Keyboard								(const std::string& aHeader, const std::string& aText) : Winterface(aHeader)

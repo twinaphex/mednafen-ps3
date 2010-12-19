@@ -14,7 +14,7 @@ LIBS		:=
 LIBDIRS		+=	
 
 CFLAGS		+=-O2 --std=gnu99 -I$(PSL1GHT)/include/freetype2
-CXXFLAGS	+=-O2 -mcpu=cell -I$(PSL1GHT)/include/freetype2
+CXXFLAGS	+=-O2 -I$(PSL1GHT)/include/freetype2
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 

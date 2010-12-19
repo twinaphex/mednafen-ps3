@@ -2,29 +2,13 @@
 
 								FileListItem::FileListItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aBookMark) : ListItem(aName, 0, aDirectory ? "FolderICON" : "FileICON")
 {
+	//HACK: We get issues here at delete, std::string is an asshole
 	Path = aPath;
 
 	Directory = aDirectory;
 	File = !aDirectory;
 	
 	SetBookMark(aBookMark);
-	
-	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
-	{
-		LabelImage = Utility::GetExtension(aPath) + "ICON";
-	}
-}
-
-								FileListItem::FileListItem						(const std::string& aName, const std::string& aPath, struct ftpparse aData) : ListItem(aName)
-{
-	Path = aPath;
-
-	File = aData.flagtryretr;
-	Directory = aData.flagtrycwd;
-	
-	SetBookMark(false);
-
-	LabelImage = IsDirectory() ? "FolderICON" : "FileICON";
 	
 	if(ImageManager::GetImage(Utility::GetExtension(aPath) + "ICON"))
 	{

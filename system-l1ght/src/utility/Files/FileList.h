@@ -8,11 +8,8 @@ class												FileList : public WinterfaceList
 													
 		bool										Input							();
 
-	public:	//Inlines
-		std::string									GetFile							()
-		{
-			return WasCanceled() ? "" : ((FileListItem*)GetSelected())->GetPath();
-		}
+		std::string									GetFile							();
+		bool										IsDirectory						();
 
 	protected:
 		std::string									Path;

@@ -8,9 +8,12 @@ class												FileSelect
 													~FileSelect						();
 													
 		std::string									GetFile							();
+		bool										IsValid							();
 
 	protected:
 		std::stack<FileList*>						Lists;
+		bool										Valid;
+
 
 		std::string									Header;
 		std::vector<std::string>&					BookMarks;

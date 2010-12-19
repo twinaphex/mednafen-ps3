@@ -25,7 +25,6 @@
 #include <netdb.h>
 #include <net/net.h>
 
-
 #include <psl1ght/lv2.h>
 #include <psl1ght/lv2/filesystem.h>
 #include <sysutil/video.h>

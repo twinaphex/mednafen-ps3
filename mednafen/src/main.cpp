@@ -74,7 +74,7 @@ void				ReloadEmulator			()
 	{
 		std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
 	
-		ArchiveList archive(std::string("[Select ROM] ") + filename, filename);
+		ArchiveList archive(std::string("[Select ROM] ") + enumpath, filename);
 		
 		if(archive.ItemCount() == 0)
 		{
@@ -133,6 +133,7 @@ int					main					()
 	
 		MednafenEmu::Init();
 
+		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.ps3.enable"));
 		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), MDFN_GetSettingS("ftp.ps3.username"), MDFN_GetSettingS("ftp.ps3.password"));
 
 		ReloadEmulator();
@@ -149,9 +150,9 @@ int					main					()
 	
 		Exit();
 	}
-	catch(const char* s)
+	catch(std::exception s)
 	{
-		printf("EXCEPTION: %s\n\n", s);
+		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 	}
 }
