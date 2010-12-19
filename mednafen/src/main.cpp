@@ -28,7 +28,7 @@ namespace
 	};
 	
 	MDFNInputHook				InputHook;
-	FileSelect*					FileChooser;
+	FileSelect*					FileChooser = 0;
 	std::vector<std::string>	bookmarks;
 };
 
@@ -36,6 +36,8 @@ namespace
 void				Exit					()
 {
 	MednafenEmu::Quit();
+	
+	delete FileChooser;
 	
 	QuitPS3();
 	exit(0);
@@ -107,6 +109,11 @@ void				ReloadEmulator			()
 			filename = archive.GetSelectedFileName();
 		}
 		
+	
+		if(filename.rfind("/") != std::string::npos)
+		{
+			filename = filename.substr(filename.rfind("/") + 1);
+		}
 	
 		MednafenEmu::CloseGame();
 		MednafenEmu::LoadGame(filename, data, size);

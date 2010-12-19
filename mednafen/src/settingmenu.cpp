@@ -139,6 +139,13 @@ bool								MednafenSettingItem::Input						()
 	{
 		std::string header = "general";
 		
+		//HACK: Don't use filesys.*samedir
+		if(strstr(iter->second.name, "filesys.") != 0 && strstr(iter->second.name, "samedir") != 0)
+		{
+			MDFNI_SetSettingB(iter->second.name, false);
+			continue;
+		}
+		
 		if(std::string(iter->second.name).find(".ps3input.") != std::string::npos)
 		{
 			continue;

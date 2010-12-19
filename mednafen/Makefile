@@ -87,6 +87,9 @@ pkg: $(BUILD)
 
 run: $(BUILD)
 	@$(PS3LOADAPP) $(OUTPUT).self
+	
+socat: 
+	@socat udp-recv:18194 stdout
 
 else
 

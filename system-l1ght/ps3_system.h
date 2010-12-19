@@ -16,6 +16,8 @@
 #include "src/utility/GUI/WinterfaceList.h"
 #include "src/utility/GUI/WinterfaceMultiList.h"
 #include "src/utility/GUI/WinterfaceIconGrid.h"
+#include "src/utility/GUI/ErrorDialog.h"
+#include "src/utility/Files/FileException.h"
 #include "src/utility/Files/FileListItem.h"
 #include "src/utility/Files/FileEnumerator.h"
 #include "src/utility/Files/FileList.h"

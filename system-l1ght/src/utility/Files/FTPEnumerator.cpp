@@ -15,16 +15,16 @@ namespace
 		int socketFD = socket(AF_INET, SOCK_STREAM, 0);
 		if(socketFD == -1)
 		{
-			snprintf(Buffer, 2048, "Socket open failed");
+			throw FileException("FTP: Could not open socket");
 			return -1;
 		}
 	
+		//TODO: gethostby name is appently evil?
 		struct hostent* server = gethostbyname(aIP);
 		if(server == 0)
 		{
-			snprintf(Buffer, 2048, "Host lookup failed");
-			close(socketFD);
-			return -1;
+			close(socketFD);		
+			throw FileException("FTP: Host look up failed");
 		}
 	
 		struct sockaddr_in serv_addr;
@@ -35,9 +35,8 @@ namespace
 		
 		if(-1 == connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr)))
 		{
-			snprintf(Buffer, 2048, "Connect open failed");
 			close(socketFD);
-			return -1;
+			throw FileException("FTP: connect() failed");			
 		}
 		
 		return socketFD;
@@ -57,7 +56,7 @@ namespace
 			
 			if(aNeededResult && code != aNeededResult)
 			{
-				Abort("FTPFileList::DoCommand: FTP Command Failed");
+				throw FileException("FTP: Communication error");
 			}
 			
 			return code;
@@ -69,41 +68,51 @@ namespace
 
 	void		MakePassiveConnection	(int& aOutSocket, int& aInSocket, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, const std::string& aPath)
 	{
-		aOutSocket = MakeSocket(aHost.c_str(), aPort.c_str());
-		if(aOutSocket == -1)
+		aOutSocket = -1;
+		aInSocket = -1;
+	
+		try
 		{
-			aInSocket = -1;
-			return;
-		}
-	
-		memset(Buffer, 0, 2048);
-		read(aOutSocket, Buffer, 2048);
-	
-		sprintf(Buffer, "USER %s\n", aUserName.c_str());
-		DoCommand(aOutSocket, Buffer, 331);
+			aOutSocket = MakeSocket(aHost.c_str(), aPort.c_str());
 		
-		sprintf(Buffer, "PASS %s\n", aPassword.c_str());
-		DoCommand(aOutSocket, Buffer, 230);
-	
-		sprintf(Buffer, "CWD %s\n", aPath.c_str());
-		DoCommand(aOutSocket, Buffer, 250);
-	
-		DoCommand(aOutSocket, "PASV\n", 227);
-	
-		//TODO: Make sure it's valid
-		char* parse = strchr(Buffer, '(') + 1;
-		uint32_t a, b, c, d, e, f;
-		sscanf(parse, "%d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f);
-		char newtarget[200];
-		char newport[10];			
-		sprintf(newtarget, "%d.%d.%d.%d", a,b,c,d);
-		sprintf(newport, "%d", e * 256 + f);
-	
-		aInSocket = MakeSocket(newtarget, newport);
-		if(aInSocket == -1)
+			memset(Buffer, 0, 2048);
+			read(aOutSocket, Buffer, 2048);
+		
+			sprintf(Buffer, "USER %s\n", aUserName.c_str());
+			DoCommand(aOutSocket, Buffer, 331);
+			
+			sprintf(Buffer, "PASS %s\n", aPassword.c_str());
+			DoCommand(aOutSocket, Buffer, 230);
+		
+			sprintf(Buffer, "CWD %s\n", aPath.c_str());
+			DoCommand(aOutSocket, Buffer, 250);
+		
+			DoCommand(aOutSocket, "PASV\n", 227);
+		
+			//TODO: Make sure it's valid
+			char* parse = strchr(Buffer, '(') + 1;
+			uint32_t a, b, c, d, e, f;
+			sscanf(parse, "%d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f);
+			char newtarget[200];
+			char newport[10];			
+			sprintf(newtarget, "%d.%d.%d.%d", a,b,c,d);
+			sprintf(newport, "%d", e * 256 + f);
+		
+			aInSocket = MakeSocket(newtarget, newport);
+		}
+		catch(FileException ex)
 		{
-			close(aOutSocket);
-			aOutSocket = -1;
+			if(aOutSocket != -1)
+			{
+				close(aOutSocket);
+			}
+			
+			if(aInSocket != -1)
+			{
+				close(aInSocket);
+			}
+			
+			throw;
 		}
 	}
 

@@ -45,12 +45,12 @@ Use:
 			Set 'username' and 'password' to the login of the FTP server
 			Set 'enable' to ON, then restart mednafen, an FTP option should be available on the first page.
 		Caveats:
-			The client is only tested with the 'vsftpd' server
 			FTP is an insecure protocol, any passwords will be sent plaintext across the network
 			The stored password is not masked in anyway and will be readable by anyone
 			I recommend setting up the server as read only with an anonymous login
-			Any loaded files will be saved in /dev_hdd0/game/MDFN90002/USRDIR/
-			 if you want to get rid of them, you'll have to clean them up manually
+			The latest file is stored at /dev_hdd0/game/MDFN90002/USRDIR/temp.ftp
+			Attempting to access an unavailable server may delay the PS3 for over minute before the host lookup times out.
+			Attempting to load a large file may delay the PS3 while the file is transfered.
 			CD games will not work from FTP
 
 	Settings Menu:
