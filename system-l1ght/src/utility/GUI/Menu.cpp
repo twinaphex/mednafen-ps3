@@ -22,7 +22,7 @@ void						Menu::SetInputDelay			(uint32_t aDelay)
 	InputDelay = aDelay;
 }
 
-bool						Menu::Do					()
+void						Menu::Do					()
 {
 	uint32_t ticks = 0;
 
@@ -34,27 +34,24 @@ bool						Menu::Do					()
 		
 			if(Hook && Hook->Input())
 			{
-				PS3Input::Reset();			
-				return true;
+				break;
 			}
 			
 			if(Input())
 			{
-				PS3Input::Reset();			
-				return true;
+				break;
 			}
 		}
 		
 		if(Draw())
 		{
-			PS3Input::Reset();
-			return true;
+			break;
 		}
 				
 		PS3Video::Flip();
 	}
 	
-	return false;
+	PS3Input::Reset();
 }
 
 void						Menu::SetHook				(MenuHook* aHook)

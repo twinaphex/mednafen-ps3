@@ -13,7 +13,7 @@ class										Keyboard : public Winterface
 		std::string							GetText					()								{return Text;};
 		void								SetText					(const std::string& aText)		{Text = aText;};
 
-		std::string							GetHeader				()								{return Header;};
+		const char*							GetHeader				()								{return Header.c_str();};
 		void								SetHeader				(const std::string& aHeader)	{Header = aHeader;};
 				
 		bool								WasCanceled				()								{return Canceled;};

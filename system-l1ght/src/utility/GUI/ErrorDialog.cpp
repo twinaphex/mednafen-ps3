@@ -19,7 +19,7 @@ bool				ErrorDialog::Input						()
 
 bool				ErrorDialog::DrawLeft					()
 {
-	FontManager::GetBigFont()->PutString(Message, 32, 32, Colors::Normal);
+	FontManager::GetBigFont()->PutString(Message.c_str(), 32, 32, Colors::Normal);
 
 	return false;
 }

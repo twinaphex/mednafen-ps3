@@ -32,7 +32,7 @@ void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 		aX += width;
 	}
 
-	LabelFont->PutString(Text, aX, aY, aSelected ? SelectedTextColor : TextColor);
+	LabelFont->PutString(Text.c_str(), aX, aY, aSelected ? SelectedTextColor : TextColor);
 }
 		
 uint32_t									ListItem::GetHeight									()

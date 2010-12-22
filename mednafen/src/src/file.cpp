@@ -381,6 +381,8 @@ bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, 
 	
  const char *ld = strrchr(path, '.');
  f_ext = strdup(ld ? ld + 1 : "");
+ 
+ return 1;
 }
 
 

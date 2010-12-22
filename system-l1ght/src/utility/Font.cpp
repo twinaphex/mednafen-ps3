@@ -23,6 +23,7 @@
 {
 	for(std::map<uint32_t, FontCharacter*>::iterator i = Cache.begin(); i != Cache.end(); i ++)
 	{
+		delete i->second->CharTexture;
 		delete i->second;
 	}
 		

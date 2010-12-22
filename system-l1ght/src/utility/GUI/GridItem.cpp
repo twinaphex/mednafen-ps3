@@ -23,7 +23,7 @@ void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint
 
 	
 		PS3Video::PlaceTexture(image, aX, aY, width, aHeight, 0xFFFFFFFF);
-		LabelFont->PutString(GetText(), aX, aY + aHeight, TextColor);
+		LabelFont->PutString(GetText().c_str(), aX, aY + aHeight, TextColor);
 	}
 	
 	if(aSelected)

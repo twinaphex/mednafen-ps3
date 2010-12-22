@@ -109,9 +109,9 @@ bool										Winterface::DrawRight								()
 	return false;
 }
 
-std::string									Winterface::GetHeader								()
+const char*									Winterface::GetHeader								()
 {
-	return Header;
+	return Header.c_str();
 }
 
 

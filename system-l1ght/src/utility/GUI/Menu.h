@@ -15,7 +15,7 @@ class								Menu
 
 		void						SetInputDelay				(uint32_t aDelay);
 		
-		bool						Do							();
+		void						Do							();
 
 		void						SetHook						(MenuHook* aHook);
 

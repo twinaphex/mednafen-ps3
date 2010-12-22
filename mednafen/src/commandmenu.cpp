@@ -20,7 +20,7 @@ bool								MednafenCommandItem::Input						()
 	return false;
 }
 
-									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 3, 3, false)
+									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 3, 3, true)
 {
 	Items.push_back(new MednafenCommandItem("Change Game", "DoReload", "DoReload"));
 	Items.push_back(new MednafenCommandItem("Reset Game", "DoReset", "DoReset"));
