@@ -53,38 +53,41 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 	@$(FSELF) $(BUILDDIR)/$(notdir $<) $@
 
 %.bin.h: %.bin
+	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
+	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
 	@echo "[R2H] $(notdir $<)"
 	@$(RAW2H) $< $(BUILDDIR)/$(notdir $<).h $(BUILDDIR)/$(notdir $<).S $(notdir $(basename $<)_bin)
-	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $(BUILDDIR)/$(notdir $<).o
+	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $@.o
 
 %.vcg.h: %.vcg
+	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
+	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
 	@echo "[VPCOMP] $(notdir $<)"
 	@$(VPCOMP) $< $(notdir $(BUILDDIR)/$(basename $<).rvp)
 	@$(RAW2H)  $(BUILDDIR)/$(notdir $(basename $<).rvp) $(BUILDDIR)/$(notdir $<).h $(BUILDDIR)/$(notdir $<).S $(notdir $(basename $<)_bin)
-	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $(BUILDDIR)/$(notdir $<).o
+	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $@.o
 
 ################
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export VPATH	:=	$(foreach dir,$(SOURCE),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export VPATH	:=	../
 export BUILDDIR	:=	$(CURDIR)/$(BUILD)
 export DEPSDIR	:=	$(BUILDDIR)
 
-CFILES		:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.c)))
-CXXFILES	:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES		:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.S)))
-BINFILES	:= $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.bin)))
-VCGFILES	:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.vcg)))
+CFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.c))
+CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
+SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
+BINFILES	:= $(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
+VCGFILES	:= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.vcg))
 
 
 export OFILES	:=	$(CFILES:.c=.o) \
 					$(CXXFILES:.cpp=.o) \
 					$(SFILES:.S=.o) \
-					$(BINFILES:.bin=.bin.o) \
-					$(VCGFILES:.vcg=.vcg.o)
+					$(BINFILES:.bin=.bin.h.o) \
+					$(VCGFILES:.vcg=.vcg.h.o)
 
 
 export BINFILES	:=	$(BINFILES:.bin=.bin.h)
@@ -109,7 +112,7 @@ pkg: $(BUILD)
 	@mkdir -p $(BUILD)/pkg
 	@mkdir -p $(BUILD)/pkg/USRDIR
 	@cp $(ICON0) $(BUILD)/pkg/
-	@$(FSELF) -n $(BUILD)/$(TARGET).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN
+	@$(FSELF) -n $(TARGET) $(BUILD)/pkg/USRDIR/EBOOT.BIN
 	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) $(BUILD)/pkg/PARAM.SFO
 	@$(PKG) --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
 

@@ -16,7 +16,7 @@
 
 bool										ListItem::Input										()
 {	
-	return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);
+	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT);
 }
 
 void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
@@ -28,7 +28,7 @@ void										ListItem::Draw										(uint32_t aX, uint32_t aY, bool aSelected)
 		//TODO: Make this a Uitlity:: function (along with GridItem)
 		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(GetHeight() - 4) / (double)image->GetHeight()));
 	
-		PS3Video::PlaceTexture(image, aX, aY + 2, width, GetHeight() - 4);
+		ESVideo::PlaceTexture(image, aX, aY + 2, width, GetHeight() - 4);
 		aX += width;
 	}
 

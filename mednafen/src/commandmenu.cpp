@@ -11,7 +11,7 @@
 
 bool								MednafenCommandItem::Input						()
 {
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_CROSS))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		MednafenEmu::DoCommand(Command);
 		return true;

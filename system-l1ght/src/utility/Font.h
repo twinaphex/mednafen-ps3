@@ -18,7 +18,7 @@ class										Font
 											Font						(uint32_t aPixelSize, bool aFixed);
 											~Font						();
 								
-		void								PutString					(const std::string& aString, uint32_t aX, uint32_t aY, uint32_t aColor);
+		void								PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor);
 
 		uint32_t							GetWidth					();
 		uint32_t							GetHeight					();
@@ -35,7 +35,7 @@ class										Font
 
 class										FontManager
 {
-	friend class							PS3Video;
+	friend class							ESVideo;
 	friend class							Font;
 
 	public:

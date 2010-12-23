@@ -25,7 +25,7 @@ namespace
 
 bool										Winterface::Input									()
 {
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_SELECT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
 	{
 		HideRight = !HideRight;
 	}
@@ -42,8 +42,8 @@ bool										Winterface::Draw									()
 		wimage = 1;
 	}
 
-	uint32_t screenW = PS3Video::GetScreenWidth();
-	uint32_t screenH = PS3Video::GetScreenHeight();
+	uint32_t screenW = ESVideo::GetScreenWidth();
+	uint32_t screenH = ESVideo::GetScreenHeight();
 
 	uint32_t screenW10 = ((double)screenW) * .05;
 	uint32_t screenH10 = ((double)screenH) * .05;
@@ -59,23 +59,23 @@ bool										Winterface::Draw									()
 		left = Area(screenW10, screenH10 * 2 + 5, screenW - (screenW10 * 2), screenH - screenH10 * 3);	
 	}
 
-	PS3Video::SetClip(Area(0, 0, screenW, screenH));
+	ESVideo::SetClip(Area(0, 0, screenW, screenH));
 
-	PS3Video::FillRectangle(Area(0, 0, screenW - 1, screenH - 1), Colors::Border);
+	ESVideo::FillRectangle(Area(0, 0, screenW - 1, screenH - 1), Colors::Border);
 
 	if(ImageManager::GetImage("Background"))
 	{
 		//TODO: Fix for clipping
-		PS3Video::PlaceTexture(ImageManager::GetImage("Background"), 0, 0, screenW - 1, screenH - 1, 0xFFFFFFFF);
+		ESVideo::PlaceTexture(ImageManager::GetImage("Background"), 0, 0, screenW - 1, screenH - 1, 0xFFFFFFFF);
 	}
 
-	PS3Video::FillRectangle(top, Colors::BackGround);
-	PS3Video::FillRectangle(left, Colors::BackGround);	
+	ESVideo::FillRectangle(top, Colors::BackGround);
+	ESVideo::FillRectangle(left, Colors::BackGround);	
 
-	PS3Video::SetClip(top);
+	ESVideo::SetClip(top);
 	FontManager::GetBigFont()->PutString(GetHeader(), 2, 0, Colors::Normal);
 	
-	PS3Video::SetClip(left);
+	ESVideo::SetClip(left);
 	if(DrawLeft())
 	{
 		return true;
@@ -83,10 +83,10 @@ bool										Winterface::Draw									()
 
 	if(!HideRight)
 	{
-		PS3Video::SetClip(Area(0, 0, screenW, screenH));
-		PS3Video::FillRectangle(right, Colors::BackGround);
+		ESVideo::SetClip(Area(0, 0, screenW, screenH));
+		ESVideo::FillRectangle(right, Colors::BackGround);
 	
-		PS3Video::SetClip(right);
+		ESVideo::SetClip(right);
 		return DrawRight();
 	}
 	

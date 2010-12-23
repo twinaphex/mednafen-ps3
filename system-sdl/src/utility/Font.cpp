@@ -37,8 +37,12 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 			
 			if(chara && chara->CharTexture)
 			{
-				PS3Video::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
-				aX += chara->Advance;				
+				ESVideo::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
+			}
+			
+			if(chara)
+			{
+				aX += chara->Advance;
 			}
 		}
 	}
@@ -139,9 +143,9 @@ void					FontManager::InitFonts		()
 			Abort("FontManager::Init: Failed to initialize freetype");
 		}
 	
-		BigFont = new Font(PS3Video::GetScreenHeight() / 25);
-		SmallFont = new Font(PS3Video::GetScreenHeight() / 40);
-		FixedFont = new Font(PS3Video::GetScreenHeight() / 36, true);
+		BigFont = new Font(ESVideo::GetScreenHeight() / 25);
+		SmallFont = new Font(ESVideo::GetScreenHeight() / 40);
+		FixedFont = new Font(ESVideo::GetScreenHeight() / 36, true);
 	}
 	
 	FontsOpen = true;

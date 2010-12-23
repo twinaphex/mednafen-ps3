@@ -32,7 +32,7 @@ void										ImageManager::LoadDirectory							(const std::string& aPath)
 	
 Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)
 {
-	if(Images[aName] == 0)
+/*	if(Images[aName] == 0)
 	{
 		PngDatas Png;
 		memset(&Png, 0, sizeof(Png));
@@ -61,7 +61,7 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		output->SetFilter(true);
 		
 		Images[aName] = output;
-	}
+	}*/
 	
 	return Images[aName];
 }

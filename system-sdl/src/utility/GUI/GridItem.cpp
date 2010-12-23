@@ -22,14 +22,14 @@ void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint
 		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(aHeight) / (double)image->GetHeight()));
 
 	
-		PS3Video::PlaceTexture(image, aX, aY, width, aHeight, 0xFFFFFFFF);
+		ESVideo::PlaceTexture(image, aX, aY, width, aHeight, 0xFFFFFFFF);
 		LabelFont->PutString(GetText().c_str(), aX, aY + aHeight, TextColor);
 	}
 	
 	if(aSelected)
 	{
 		//TODO: Make a color in Utility::Colors
-		PS3Video::FillRectangle(Area(aX, aY, aWidth, aHeight + LabelFont->GetHeight()), 0x40404040);
+		ESVideo::FillRectangle(Area(aX, aY, aWidth, aHeight + LabelFont->GetHeight()), 0x40404040);
 	}
 }
 

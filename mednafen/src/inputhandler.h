@@ -10,7 +10,7 @@ class												MednafenSettingButton : public Winterface
 		virtual bool								Input							();
 		virtual bool								DrawLeft						();
 		
-		std::string									GetButton						();
+		uint32_t									GetButton						();
 		
 	protected:
 		std::string									InputName;
@@ -37,10 +37,7 @@ class												InputHandler
 			
 		uint32_t									ButtonCount;
 		uint32_t									ControllerBits[16];
-		uint32_t									PS3Button[32][2];
-		
-	public:
-		static MDFNSetting_EnumList					Buttons[];
+		uint32_t									Button[32][2];
 };
 
 #endif

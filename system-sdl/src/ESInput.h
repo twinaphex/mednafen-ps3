@@ -1,23 +1,15 @@
-#ifndef PS3INPUT_H
-#define PS3INPUT_H
+#ifndef ESINPUT_H
+#define ESINPUT_H
 
 
 enum
 {
-	PS3_BUTTON_START, PS3_BUTTON_SELECT, PS3_BUTTON_SQUARE, PS3_BUTTON_CROSS, 
-	PS3_BUTTON_TRIANGLE, PS3_BUTTON_CIRCLE, PS3_BUTTON_UP, PS3_BUTTON_DOWN, 
-	PS3_BUTTON_LEFT, PS3_BUTTON_RIGHT, PS3_BUTTON_L1, PS3_BUTTON_L2, 
-	PS3_BUTTON_L3, PS3_BUTTON_R1, PS3_BUTTON_R2, PS3_BUTTON_R3, PS3_BUTTON_COUNT
+	ES_BUTTON_UP = SDLK_UP, ES_BUTTON_DOWN = SDLK_DOWN, ES_BUTTON_LEFT = SDLK_LEFT, ES_BUTTON_RIGHT = SDLK_RIGHT, ES_BUTTON_ACCEPT = SDLK_RETURN, ES_BUTTON_CANCEL = SDLK_ESCAPE,
+	ES_BUTTON_SHIFT = SDLK_SPACE, ES_BUTTON_TAB = SDLK_TAB, ES_BUTTON_AUXLEFT1 = SDLK_F1, ES_BUTTON_AUXRIGHT1 = SDLK_F2, ES_BUTTON_AUXLEFT2 = SDLK_F3, ES_BUTTON_AUXRIGHT2 = SDLK_F4, 
+	ES_BUTTON_AUXLEFT3 = SDLK_F5, ES_BUTTON_AUXRIGHT3 = SDLK_F6, 
 };
 
-extern std::string ButtonNames[16];
-
-enum
-{
-	PS3_AXIS_LEFT_Y, PS3_AXIS_LEFT_X, PS3_AXIS_RIGHT_Y, PS3_AXIS_RIGHT_X, PS3_AXIS_COUNT
-};
-
-class				PS3Input
+class				ESInput
 {
 	public:
 		static void					Init					();
@@ -31,22 +23,21 @@ class				PS3Input
 		static bool					ButtonPressed			(uint32_t aPad, uint32_t aButton);
 		static uint32_t				ButtonTime				(uint32_t aPad, uint32_t aButton);	
 		static bool					ButtonDown				(uint32_t aPad, uint32_t aButton);
+		
+		static uint32_t				GetAnyButton			(uint32_t aPad);
+		static std::string			GetButtonName			(uint32_t aButton);
 	
 	public:
 		static const uint32_t		MAXPADS = 4;
-		static const uint32_t		BUTTONS = 16;
+		static const uint32_t		BUTTONS = 256;
 		static const uint32_t		AXISCOUNT = 4;
+
+//HACK:
+		static void					Refresh					();
 	
 	
 	protected:
 		static void					ProcessInputThread		(uint64_t aBcD);
-		static void					Refresh					();
-		
-		static sys_ppu_thread_t		ThreadID;
-		static volatile bool		ThreadDie;
-		
-		static PadInfo				Info;
-		static PadData				CurrentState[MAXPADS];
 
 		static uint32_t				HeldState[MAXPADS][BUTTONS];
 		static uint32_t				HeldTime[MAXPADS][BUTTONS];		

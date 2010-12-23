@@ -15,12 +15,12 @@ namespace
 		public:
 			bool	Input	()
 			{
-				if(PS3Input::ButtonDown(0, PS3_BUTTON_R3))
+				if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 				{
 					MednafenSettings("general").Do();
 				}
 				
-				if(PS3Input::ButtonDown(0, PS3_BUTTON_START))
+				if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
 					TextViewer(Paths.Build("mednafen/Readme.txt")).Do();
 				}
@@ -41,13 +41,13 @@ void				Exit					()
 	
 	delete FileChooser;
 	
-	QuitPS3();
+	QuitES();
 	exit(0);
 }
 
 std::string			GetFile					()
 {
-	bookmarks = Utility::StringToVector(MDFN_GetSettingS("ps3.bookmarks"), ';');
+	bookmarks = Utility::StringToVector(MDFN_GetSettingS("es.bookmarks"), ';');
 
 	if(FileChooser == 0)
 	{
@@ -55,7 +55,7 @@ std::string			GetFile					()
 	}
 	
 	std::string result = FileChooser->GetFile();
-	MDFNI_SetSetting("ps3.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
+	MDFNI_SetSetting("es.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
 	
 	return result;
 }
@@ -131,12 +131,12 @@ int					main					(int argc, char* argv[])
 {
 	try
 	{
-		InitPS3(Exit);
+		InitES(Exit);
 	
 		MednafenEmu::Init();
 
-		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.ps3.enable"));
-		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.ps3.host"), MDFN_GetSettingS("ftp.ps3.port"), MDFN_GetSettingS("ftp.ps3.username"), MDFN_GetSettingS("ftp.ps3.password"));
+		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.es.enable"));
+		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.es.host"), MDFN_GetSettingS("ftp.es.port"), MDFN_GetSettingS("ftp.es.username"), MDFN_GetSettingS("ftp.es.password"));
 
 		ReloadEmulator();
 

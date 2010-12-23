@@ -35,7 +35,7 @@ class										Font
 
 class										FontManager
 {
-	friend class							PS3Video;
+	friend class							ESVideo;
 	friend class							Font;
 
 	public:

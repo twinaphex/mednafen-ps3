@@ -1,7 +1,7 @@
-#ifndef PS3AUDIO_H
-#define	PS3AUDIO_H
+#ifndef ESAUDIO_H
+#define	ESAUDIO_H
 
-class							PS3Audio
+class							ESAudio
 {
 	public:	
 		static void					Init					();

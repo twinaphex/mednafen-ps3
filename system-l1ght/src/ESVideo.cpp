@@ -27,7 +27,7 @@ namespace
 	}
 };
 
-void					PS3Video::Init					()
+void					ESVideo::Init					()
 {
 	//Initialize rsx
 	void *host_addr = memalign(1024*1024, 8192*1024);
@@ -72,7 +72,7 @@ void					PS3Video::Init					()
 	FontManager::InitFonts();
 }
 
-void					PS3Video::Quit					()
+void					ESVideo::Quit					()
 {
 	//TODO: Clean up rsxMemory, not supported right now so not done right now
 
@@ -84,18 +84,18 @@ void					PS3Video::Quit					()
 	FontManager::QuitFonts();
 }
 
-void					PS3Video::SetClip				(Area aClip)
+void					ESVideo::SetClip				(Area aClip)
 {
 	//TODO: Just use the whole screen if aClip is invalid
 	Clip = aClip;
 }
 
-Area					PS3Video::GetClip				()
+Area					ESVideo::GetClip				()
 {
 	return Clip;
 }
 
-void					PS3Video::Flip					()
+void					ESVideo::Flip					()
 {
 	gcmSetFlip(GCMContext, NextBuffer);
 	realityFlushBuffer(GCMContext);
@@ -111,7 +111,7 @@ void					PS3Video::Flip					()
 	Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
-void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
+void					ESVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
 {
 	aX += Clip.X;
 	aY += Clip.Y;
@@ -126,12 +126,12 @@ void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	DrawQuad(Area(aX, aY, aWidth, aHeight), aColor);
 }
 
-void					PS3Video::FillRectangle			(Area aArea, uint32_t aColor)
+void					ESVideo::FillRectangle			(Area aArea, uint32_t aColor)
 {
 	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
 }
 
-void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
+void					ESVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
 {
 	ApplyTexture(aTexture, Area(aViewPort.X, aViewPort.Y, aViewPort.Width, aViewPort.Height));
 
@@ -159,7 +159,7 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 	realityBlendEnable(GCMContext, 1);		
 }
 
-void					PS3Video::PrepareBuffer			()
+void					ESVideo::PrepareBuffer			()
 {
 	NextBuffer = (NextBuffer + 1) & 1;
 
@@ -184,24 +184,24 @@ void					PS3Video::PrepareBuffer			()
 	VertexBufferPosition = 0;
 }
 
-void					PS3Video::Allocate				(uint32_t*& aMemory, uint32_t& aOffset, uint32_t aSize, uint32_t aAlign)
+void					ESVideo::Allocate				(uint32_t*& aMemory, uint32_t& aOffset, uint32_t aSize, uint32_t aAlign)
 {
 	aMemory = (uint32_t*)rsxMemAlign(aAlign, aSize);
 	
 	if(!aMemory)
 	{
-		Abort("PS3Video::Allocate: Couldn't allocate rsx memory");
+		Abort("ESVideo::Allocate: Couldn't allocate rsx memory");
 	}
 	
 	realityAddressToOffset(aMemory, &aOffset);
 }
 
-void					PS3Video::ApplyTexture			(Texture* aTexture, Area aRegion)
+void					ESVideo::ApplyTexture			(Texture* aTexture, Area aRegion)
 {
 	//TODO: Handle this better
 	if(aRegion.Right() > aTexture->Width || aRegion.Bottom() > aTexture->Height)
 	{
-		Abort("PS3Video::ApplyTexture: Area out of range");
+		Abort("ESVideo::ApplyTexture: Area out of range");
 	}
 
 	realityTexture tex;
@@ -219,7 +219,7 @@ void					PS3Video::ApplyTexture			(Texture* aTexture, Area aRegion)
 	realitySetTexture(GCMContext, 0, &tex);
 }
 
-void					PS3Video::ApplyVertexBuffer		(uint32_t aPosition)
+void					ESVideo::ApplyVertexBuffer		(uint32_t aPosition)
 {
 	int off_position = realityVertexProgramGetInputAttribute((realityVertexProgram*) nv40_vp_bin, "inputvertex.vertex");
 	int off_texture  = realityVertexProgramGetInputAttribute((realityVertexProgram*) nv40_vp_bin, "inputvertex.texcoord");
@@ -231,13 +231,13 @@ void					PS3Video::ApplyVertexBuffer		(uint32_t aPosition)
 	realityBindVertexBufferAttribute(GCMContext, off_texture, offset + 20, sizeof(Vertex), 2, REALITY_BUFFER_DATATYPE_FLOAT, REALITY_RSX_MEMORY);
 }
 
-void					PS3Video::DrawQuad				(Area aRegion, uint32_t aColor)
+void					ESVideo::DrawQuad				(Area aRegion, uint32_t aColor)
 {
 	ApplyVertexBuffer(VertexBufferPosition);
 
 	if((VertexBufferPosition + 4) * sizeof(Vertex) > 1024 * 1024)
 	{
-		Abort("PS3Video::DrawQuad: Out of vertex buffer room.");
+		Abort("ESVideo::DrawQuad: Out of vertex buffer room.");
 	}
 
 	Vertex* vertices = (Vertex*)VertexBuffer[NextBuffer];
@@ -249,18 +249,18 @@ void					PS3Video::DrawQuad				(Area aRegion, uint32_t aColor)
 	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
 }
 
-gcmContextData*			PS3Video::GCMContext;
-VideoResolution			PS3Video::Resolution;
-uint32_t				PS3Video::Aspect = 0;
+gcmContextData*			ESVideo::GCMContext;
+VideoResolution			ESVideo::Resolution;
+uint32_t				ESVideo::Aspect = 0;
 
-Area					PS3Video::Clip(0, 0, 100, 100);
+Area					ESVideo::Clip(0, 0, 100, 100);
 
-uint32_t*				PS3Video::Screen[3];
-uint32_t				PS3Video::ScreenOffset[3];
-uint32_t				PS3Video::NextBuffer = 0;
+uint32_t*				ESVideo::Screen[3];
+uint32_t				ESVideo::ScreenOffset[3];
+uint32_t				ESVideo::NextBuffer = 0;
 
-Texture*				PS3Video::FillerTexture = 0;
+Texture*				ESVideo::FillerTexture = 0;
 
-uint32_t*				PS3Video::VertexBuffer[2];	
-uint32_t				PS3Video::VertexBufferOffset[2];
-uint32_t				PS3Video::VertexBufferPosition = 0;
+uint32_t*				ESVideo::VertexBuffer[2];	
+uint32_t				ESVideo::VertexBufferOffset[2];
+uint32_t				ESVideo::VertexBufferPosition = 0;

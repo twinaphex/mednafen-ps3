@@ -10,7 +10,7 @@
 	Width = aWidth;
 	Height = aHeight;
 	
-	PS3Video::Allocate(Pixels, Offset, Width * Height * 4, 16);
+	ESVideo::Allocate(Pixels, Offset, Width * Height * 4, 16);
 
 	Filter = 0;
 }

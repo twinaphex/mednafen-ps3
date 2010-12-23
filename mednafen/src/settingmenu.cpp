@@ -6,8 +6,8 @@ namespace
 	{
 		if(a->GetText().find(".enable") != std::string::npos)			return true;
 		if(b->GetText().find(".enable") != std::string::npos)			return false;		
-		if(a->GetText().find(".ps3.") != std::string::npos)				return true;		
-		if(b->GetText().find(".ps3.") != std::string::npos)				return false;
+		if(a->GetText().find(".es.") != std::string::npos)				return true;		
+		if(b->GetText().find(".es.") != std::string::npos)				return false;
 
 		return a->GetText() < b->GetText();
 	}
@@ -34,22 +34,22 @@ void								MednafenSettingItem::Draw						(uint32_t aX, uint32_t aY, bool aSele
 		snprintf(buffer, 250, "%s", MDFN_GetSettingS(Setting.name).c_str());
 	}
 
-	FontManager::GetBigFont()->PutString(buffer, aX + (PS3Video::GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);				
+	FontManager::GetBigFont()->PutString(buffer, aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);				
 }
 
 bool								MednafenSettingItem::Input						()
 {
 	if(Setting.desc->type == MDFNST_BOOL)
 	{
-		if(PS3Input::ButtonDown(0, PS3_BUTTON_LEFT) || PS3Input::ButtonDown(0, PS3_BUTTON_RIGHT))
+		if(ESInput::ButtonDown(0, ES_BUTTON_LEFT) || ESInput::ButtonDown(0, ES_BUTTON_RIGHT))
 		{
 			MDFNI_SetSettingB(Setting.name, MDFN_GetSettingB(Setting.name) == 0);
 		}
 	}
 	else if(Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT)
 	{
-		int32_t value = PS3Input::ButtonDown(0, PS3_BUTTON_LEFT) ? -1 : 0;
-		value = PS3Input::ButtonDown(0, PS3_BUTTON_RIGHT) ? 1 : value;
+		int32_t value = ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+		value = ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
 
 		if(value != 0)
 		{
@@ -58,8 +58,8 @@ bool								MednafenSettingItem::Input						()
 	}
 	else if(Setting.desc->type == MDFNST_ENUM)
 	{
-		int32_t value = PS3Input::ButtonDown(0, PS3_BUTTON_LEFT) ? -1 : 0;
-		value = PS3Input::ButtonDown(0, PS3_BUTTON_RIGHT) ? 1 : value;
+		int32_t value = ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+		value = ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
 
 		if(value != 0)
 		{
@@ -100,7 +100,7 @@ bool								MednafenSettingItem::Input						()
 		}
 	}
 
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_CROSS))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		std::string result;
 		Keyboard kb(Setting.name, MDFN_GetSettingS(Setting.name));
@@ -111,11 +111,11 @@ bool								MednafenSettingItem::Input						()
 			MDFNI_SetSetting(Setting.name, kb.GetText().c_str());
 		}
 	}
-	else if(PS3Input::ButtonDown(0, PS3_BUTTON_TRIANGLE))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
 	{
 		MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
 	}
-	else if(PS3Input::ButtonDown(0, PS3_BUTTON_L2))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
 	{
 		std::vector<std::string> nomarks;
 		FileSelect browse("Select File", nomarks, "file:/");
@@ -146,7 +146,7 @@ bool								MednafenSettingItem::Input						()
 			continue;
 		}
 		
-		if(std::string(iter->second.name).find(".ps3input.") != std::string::npos)
+		if(std::string(iter->second.name).find(".esinput.") != std::string::npos)
 		{
 			continue;
 		}
@@ -173,11 +173,11 @@ bool								MednafenSettingItem::Input						()
 	
 	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
 	SideItems.push_back(new ListItem("[DPAD] Change Value", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[X] Use Keyboard", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[T] Reset to Default", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[R1] Change Category", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[L1] Change Category", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[L2] Set to File", FontManager::GetSmallFont()));			
-	SideItems.push_back(new ListItem("[O] Close", FontManager::GetSmallFont()));	
+	SideItems.push_back(new ListItem("[ACCEPT] Use Keyboard", FontManager::GetSmallFont()));
+	SideItems.push_back(new ListItem("[SHIFT] Reset to Default", FontManager::GetSmallFont()));
+	SideItems.push_back(new ListItem("[AUXRIGHT1] Change Category", FontManager::GetSmallFont()));	
+	SideItems.push_back(new ListItem("[AUXLEFT1] Change Category", FontManager::GetSmallFont()));	
+	SideItems.push_back(new ListItem("[TAB] Set to File", FontManager::GetSmallFont()));			
+	SideItems.push_back(new ListItem("[CANCEL] Close", FontManager::GetSmallFont()));	
 }
 

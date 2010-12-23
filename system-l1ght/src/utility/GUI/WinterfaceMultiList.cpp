@@ -30,7 +30,7 @@ bool										WinterfaceMultiList::Input							()
 {
 	std::string newCategory = CurrentCategory;
 
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_R1))
+	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT1))
 	{
 		std::map<std::string, std::vector<ListItem*> >::iterator current = Categories.find(CurrentCategory);
 		current ++;
@@ -45,7 +45,7 @@ bool										WinterfaceMultiList::Input							()
 		}
 	}
 
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_L1))
+	if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT1))
 	{
 		std::map<std::string, std::vector<ListItem*> >::iterator current = Categories.find(CurrentCategory);
 		

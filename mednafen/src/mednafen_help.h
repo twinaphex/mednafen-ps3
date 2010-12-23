@@ -42,7 +42,7 @@ class	MednafenEmu
 				Blit();
 			}
 			
-			PS3Video::Flip();					
+			ESVideo::Flip();					
 		}
 
 	protected:	//Internals

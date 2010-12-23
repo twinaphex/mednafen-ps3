@@ -1,11 +1,8 @@
 #include "ps3_system.h"
 
-#include "ttffont.bin.h"
-#include "fixedfont.bin.h"
-
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
-	if(0 != FT_New_Memory_Face(FontManager::FreeType, (FT_Byte*)(aFixed ? fixedfont_bin : ttffont_bin), sizeof(ttffont_bin), 0, &FontFace))
+	if(0 != FT_New_Face(FontManager::FreeType, aFixed ? "/Users/jason/Downloads/fixed.ttf" : "/Users/jason/Downloads/font.ttf", 0, &FontFace))
 	{
 		Abort("Font::Font: FT_New_Memory_Face failed");
 	}
@@ -30,20 +27,23 @@
 	FT_Done_Face(FontFace);
 }
 
-void					Font::PutString					(const std::string& aString, uint32_t aX, uint32_t aY, uint32_t aColor)
+void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor)
 {
-	for(int i = 0; i != aString.length(); i ++)
+	for(int i = 0; i != strlen(aString); i ++)
 	{
 		if(aString[i] >= 32)
 		{
 			FontCharacter* chara = CacheCharacter(aString[i]);
 			
-			if(chara->CharTexture)
+			if(chara && chara->CharTexture)
 			{
-				PS3Video::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
+				ESVideo::PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
 			}
 			
-			aX += chara->Advance;
+			if(chara)
+			{
+				aX += chara->Advance;
+			}
 		}
 	}
 }
@@ -143,9 +143,9 @@ void					FontManager::InitFonts		()
 			Abort("FontManager::Init: Failed to initialize freetype");
 		}
 	
-		BigFont = new Font(PS3Video::GetScreenHeight() / 25);
-		SmallFont = new Font(PS3Video::GetScreenHeight() / 40);
-		FixedFont = new Font(PS3Video::GetScreenHeight() / 36, true);
+		BigFont = new Font(ESVideo::GetScreenHeight() / 25);
+		SmallFont = new Font(ESVideo::GetScreenHeight() / 40);
+		FixedFont = new Font(ESVideo::GetScreenHeight() / 36, true);
 	}
 	
 	FontsOpen = true;

@@ -2,9 +2,9 @@
 
 #include "src/fex/fex/fex.h"
 
-#include "src/PS3Video.h"
-#include "src/PS3Input.h"
-#include "src/PS3Audio.h"
+#include "src/ESVideo.h"
+#include "src/ESInput.h"
+#include "src/ESAudio.h"
 
 #include "src/utility.h"
 #include "src/utility/Font.h"
@@ -29,13 +29,14 @@
 
 
 
-void				InitPS3					(void (*aExitFunction)() = 0);
-void				QuitPS3					();
+void				InitES					(void (*aExitFunction)() = 0);
+void				QuitES					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
 void				Abort					(const char* aMessage);
 
 extern				PathBuild				Paths;
 
-extern Logger* ps3_log;
+extern Logger* es_log;
+
 

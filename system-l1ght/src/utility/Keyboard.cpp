@@ -18,10 +18,10 @@ namespace
 	Canceled = false;
 	
 	SideItems.push_back(new ListItem("[DPAD] Move Selection", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[X] Input Character", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[T] Shift", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[S] Backspace", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[O] Finish", FontManager::GetSmallFont()));
+	SideItems.push_back(new ListItem("[ACCEPT] Input Character", FontManager::GetSmallFont()));
+	SideItems.push_back(new ListItem("[SHIFT] Shift", FontManager::GetSmallFont()));
+	SideItems.push_back(new ListItem("[TAB] Backspace", FontManager::GetSmallFont()));	
+	SideItems.push_back(new ListItem("[CANCEL] Finish", FontManager::GetSmallFont()));
 }
 
 							Keyboard::~Keyboard								()
@@ -55,30 +55,30 @@ bool						Keyboard::DrawLeft								()
 //TODO: This code can be dangerous
 bool						Keyboard::Input									()
 {
-	Row += PS3Input::ButtonDown(0, PS3_BUTTON_DOWN) ? 1 : 0;
-	Row -= PS3Input::ButtonDown(0, PS3_BUTTON_UP) ? 1 : 0;
+	Row += ESInput::ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
+	Row -= ESInput::ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
 	Row = Utility::Clamp(Row, 0, 4);
 	
-	Column += PS3Input::ButtonDown(0, PS3_BUTTON_RIGHT) ? 1 : 0;
-	Column -= PS3Input::ButtonDown(0, PS3_BUTTON_LEFT) ? 1 : 0;
+	Column += ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	Column -= ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
 	Column = Utility::Clamp(Column, 0, strlen(Chars[0][Row]) - 1);
 
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_CROSS))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		Text.push_back(Chars[Shift][Row][Column]);
 	}
-	else if(PS3Input::ButtonDown(0, PS3_BUTTON_TRIANGLE))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
 	{
 		Shift = Shift == 0 ? 1 : 0;
 	}
-	else if(PS3Input::ButtonDown(0, PS3_BUTTON_SQUARE))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
 	{
 		if(!Text.empty())
 		{
 			Text.erase(Text.length() - 1);
 		}
 	}
-	else if(PS3Input::ButtonDown(0, PS3_BUTTON_CIRCLE))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		return true;
 	}

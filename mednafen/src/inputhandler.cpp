@@ -10,22 +10,18 @@
 		
 bool								MednafenSettingButton::Input					()
 {
-	const MDFNSetting_EnumList* enums = InputHandler::Buttons;
-	int32_t result = 0;
-	
-	while(enums->string)
-	{
-		if(PS3Input::ButtonDown(0, enums->number))
-		{
-			Button = result;
-			return true;
-		}
-		
-		result ++;
-		enums ++;
-	}
+	static bool gotbutton = true;
 
-	return false;
+	if(gotbutton && ESInput::GetAnyButton(0))
+	{
+		return false;
+	}
+	
+	gotbutton = false;
+
+	Button = ESInput::GetAnyButton(0);
+	gotbutton = Button ? true : false;
+	return gotbutton;
 }
 
 bool								MednafenSettingButton::DrawLeft					()
@@ -35,9 +31,9 @@ bool								MednafenSettingButton::DrawLeft					()
 	return false;
 }
 		
-std::string							MednafenSettingButton::GetButton				()
+uint32_t							MednafenSettingButton::GetButton				()
 {
-	return InputHandler::Buttons[Button].string;
+	return Button;
 }
 
 								InputHandler::InputHandler				(MDFNGI* aGameInfo)
@@ -46,7 +42,7 @@ std::string							MednafenSettingButton::GetButton				()
 
 	ButtonCount = 0;
 	memset(ControllerBits, 0, sizeof(ControllerBits));
-	memset(PS3Button, 0, sizeof(PS3Button));
+	memset(Button, 0, sizeof(Button));
 	
 	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
 	{
@@ -57,7 +53,7 @@ std::string							MednafenSettingButton::GetButton				()
 	
 	for(int i = 0; i != ButtonCount; i ++)
 	{
-		if(PS3Button[i][0] != 0)
+		if(Button[i][0] != 0)
 		{
 			return;
 		}
@@ -81,9 +77,9 @@ void							InputHandler::Process					()
 
 		for(int i = 0; i != ButtonCount; i ++)
 		{
-			if(PS3Input::ButtonPressed(p, PS3Button[i][0]))
+			if(ESInput::ButtonPressed(p, Button[i][0]))
 			{
-				ControllerBits[p] |= PS3Button[i][1];
+				ControllerBits[p] |= Button[i][1];
 			}
 		}
 	}
@@ -107,8 +103,8 @@ void							InputHandler::Configure				()
 		MednafenSettingButton button(info[ButtonOrder[j][0]].Name);
 		button.Do();
 	
-		std::string settingname = std::string(GameInfo->shortname) + ".ps3input." + std::string(info[ButtonOrder[j][0]].SettingName);
-		MDFNI_SetSetting(settingname.c_str(), button.GetButton().c_str());
+		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + std::string(info[ButtonOrder[j][0]].SettingName);
+		MDFNI_SetSettingUI(settingname.c_str(), button.GetButton());
 	}
 }
 
@@ -118,16 +114,16 @@ void							InputHandler::ReadSettings			()
 		
 	if(info == 0)
 	{
-		memset(PS3Button, 0, sizeof(PS3Button));
+		memset(Button, 0, sizeof(Button));
 		return;
 	}
 		
-	BuildShifts(info, ButtonCount, PS3Button);
+	BuildShifts(info, ButtonCount, Button);
 		
 	for(int j = 0; j != ButtonCount; j ++)
 	{
-		std::string settingname = std::string(GameInfo->shortname) + ".ps3input." + std::string(info[PS3Button[j][0]].SettingName);
-		PS3Button[j][0] = MDFN_GetSettingUI(settingname.c_str());
+		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + std::string(info[Button[j][0]].SettingName);
+		Button[j][0] = MDFN_GetSettingUI(settingname.c_str());
 	}
 }
 
@@ -148,9 +144,9 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 		
 		for(int j = 0; j != buttoncount; j ++)
 		{
-			std::string settingname = std::string(MDFNSystems[i]->shortname) + ".ps3input." + std::string(info[ButtonOrder[j][0]].SettingName);
+			std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + std::string(info[ButtonOrder[j][0]].SettingName);
 			//TODO: These strdups will never be freed, poor captive strdups
-			MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, "START", 0, 0, 0, 0, Buttons};
+			MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
 			aSettings.push_back(thisinput);
 		}
 	}
@@ -198,21 +194,3 @@ void							InputHandler::BuildShifts				(const InputDeviceInputInfoStruct* aInfo
 		}
 	}
 }
-
-MDFNSetting_EnumList			InputHandler::Buttons[] = 
-{
-	{"START",		0,	"Start"},
-	{"SELECT",		1,	"Select"},
-	{"SQUARE",		2,	"Square"},
-	{"CROSS",		3,	"Cross"},		
-	{"TRIANGLE",	4,	"Triangle"},
-	{"CIRCLE", 		5,	"Circle"},		
-	{"UP", 			6,	"Up"},
-	{"DOWN", 		7,	"Down"},		
-	{"LEFT", 		8,	"Left"},		
-	{"RIGHT", 		9,	"Right"},		
-	{"L1", 			10, "L1"},		
-	{"R1", 			13, "R1"},
-	{0, 			-1,	0}
-};
-

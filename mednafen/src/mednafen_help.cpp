@@ -27,7 +27,7 @@ namespace
 		{0, 0, 0, 0}
 	};
 
-	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".ps3." + b).c_str())
+	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".es." + b).c_str())
 
 	MDFNSetting SystemSettings[] = 
 	{
@@ -39,14 +39,14 @@ namespace
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"}
 	};
 
-	MDFNSetting PS3Settings[] =
+	MDFNSetting ESSettings[] =
 	{
-		{"ps3.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
-		{"ftp.ps3.enable", MDFNSF_NOFLAGS, "Enable Loading from FTP Server.", NULL, MDFNST_BOOL, "0" },
-		{"ftp.ps3.host", MDFNSF_NOFLAGS, "Hostname for FTP Server.", NULL, MDFNST_STRING, "192.168.0.250" },
-		{"ftp.ps3.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" },
-		{"ftp.ps3.username", MDFNSF_NOFLAGS, "User name for FTP Server.", NULL, MDFNST_STRING, "anonymous" },
-		{"ftp.ps3.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" }
+		{"es.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
+		{"ftp.es.enable", MDFNSF_NOFLAGS, "Enable Loading from FTP Server.", NULL, MDFNST_BOOL, "0" },
+		{"ftp.es.host", MDFNSF_NOFLAGS, "Hostname for FTP Server.", NULL, MDFNST_STRING, "192.168.0.250" },
+		{"ftp.es.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" },
+		{"ftp.es.username", MDFNSF_NOFLAGS, "User name for FTP Server.", NULL, MDFNST_STRING, "anonymous" },
+		{"ftp.es.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" }
 	};
 }
 
@@ -56,9 +56,9 @@ void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
 	{
-		for(int i = 0; i != sizeof(PS3Settings) / sizeof(MDFNSetting); i++)
+		for(int i = 0; i != sizeof(ESSettings) / sizeof(MDFNSetting); i++)
 		{
-			Settings.push_back(PS3Settings[i]);
+			Settings.push_back(ESSettings[i]);
 		}
 
 		Buffer = new Texture(1920, 1080);
@@ -111,7 +111,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		if(GameInfo == 0)
 		{
-			ps3_log->Do();
+			es_log->Do();
 			Exit();
 		}
 	
@@ -180,7 +180,7 @@ void						MednafenEmu::Frame				()
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
-		EmulatorSpec.NeedRewind = PS3Input::ButtonPressed(0, PS3_BUTTON_L2);
+		EmulatorSpec.NeedRewind = ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
 		EmulatorSpec.skip = !Counter.DrawNow() && !PCESkipHack;
 		MDFNI_Emulate(&EmulatorSpec);
 		
@@ -200,7 +200,7 @@ void						MednafenEmu::Frame				()
 			
 			if(GameInfo->soundchan > 1)
 			{
-				PS3Audio::AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
+				ESAudio::AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
 			}
 			else
 			{
@@ -209,7 +209,7 @@ void						MednafenEmu::Frame				()
 					SamplesUp[i * 2] = Samples[i];
 					SamplesUp[i * 2 + 1] = Samples[i];
 				}
-				PS3Audio::AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
+				ESAudio::AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
 			}
 
 			Blit();			
@@ -226,10 +226,10 @@ void						MednafenEmu::Frame				()
 				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 			}
 	
-			PS3Video::Flip();					
+			ESVideo::Flip();					
 		}
 		
-		if(!PS3Input::ButtonPressed(0, PS3_BUTTON_L3) && PS3Input::ButtonDown(0, PS3_BUTTON_R3))
+		if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{
 			MednafenCommands().Do();
 		}
@@ -278,7 +278,7 @@ void						MednafenEmu::Blit				()
 		memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
 	}
 
-	PS3Video::PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	ESVideo::PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
 
 /*
 
@@ -292,7 +292,7 @@ void						MednafenEmu::Blit				()
 		}
 	}
 	
-	PS3Video::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
+	ESVideo::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -323,7 +323,7 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 	{
 		for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
 		{
-			std::string myname = std::string(MDFNSystems[i]->shortname) + ".ps3." + std::string(SystemSettings[j].name);		
+			std::string myname = std::string(MDFNSystems[i]->shortname) + ".es." + std::string(SystemSettings[j].name);		
 	
 			MDFNSetting thisone;
 			memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));

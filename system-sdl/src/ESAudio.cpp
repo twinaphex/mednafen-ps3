@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-void					PS3Audio::Init					()
+void					ESAudio::Init					()
 {
 	SDL_AudioSpec spec;
 	spec.freq = 48000;
@@ -14,27 +14,17 @@ void					PS3Audio::Init					()
 }
 
 
-void					PS3Audio::Quit					()
+void					ESAudio::Quit					()
 {
 	SDL_CloseAudio();
 }
 
-void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
+void					ESAudio::AddSamples				(uint32_t* aSamples, uint32_t aCount)
 {
 	SDL_LockAudio();
-
-//	if(BufferSize - GetBufferAmount() < aCount)
-//	{
-//		for(int i = 0; i != 10 && BufferSize - GetBufferAmount() < aCount; i ++)
-//		{
-//			Utility::Sleep(1);
-//		}
-//	}
 	
 	if(BufferSize - GetBufferAmount() < aCount)
 	{
-//		throw "PS3Audio::AddSamples: Unresolved buffer overflow, did the audio thread hang?";
-//		printf("PS3Audio::AddSamples: Dropped %d samples: POP\n", aCount);
 		return;
 	}
 
@@ -46,16 +36,8 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 	SDL_UnlockAudio();
 }
 
-void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
+void					ESAudio::GetSamples				(uint32_t* aSamples, uint32_t aCount)
 {
-//	if(GetBufferAmount() < aCount)
-//	{
-//		for(int i = 0; i != 10 && GetBufferAmount() < aCount; i ++)
-//		{
-//			Utility::Sleep(1);
-//		}
-//	}
-
 	if(GetBufferAmount() < aCount)
 	{
 		//Would report, but inside menu this is hit all of the time
@@ -70,7 +52,7 @@ void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 	}
 }
 
-void					PS3Audio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
+void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 {
 	uint32_t* buffer = (uint32_t*)stream;
 	
@@ -84,7 +66,7 @@ void					PS3Audio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 	}
 }
 
-volatile int32_t 		PS3Audio::GetBufferAmount		()
+volatile int32_t 		ESAudio::GetBufferAmount		()
 {
 	if(InitialFill == false)
 	{
@@ -99,15 +81,15 @@ volatile int32_t 		PS3Audio::GetBufferAmount		()
 	return (WriteCount - ReadCount);
 }
 
-volatile int32_t 		PS3Audio::GetBufferFree			()
+volatile int32_t 		ESAudio::GetBufferFree			()
 {
 	return BufferSize - (WriteCount - ReadCount);
 }
 
 
-SDL_AudioSpec			PS3Audio::Format;
-uint32_t 				PS3Audio::RingBuffer[BufferSize];
-int32_t 				PS3Audio::ReadCount = 0;
-int32_t 				PS3Audio::WriteCount = 0;
-uint32_t				PS3Audio::NextBlock = 0;
-bool					PS3Audio::InitialFill = false;
+SDL_AudioSpec			ESAudio::Format;
+uint32_t 				ESAudio::RingBuffer[BufferSize];
+int32_t 				ESAudio::ReadCount = 0;
+int32_t 				ESAudio::WriteCount = 0;
+uint32_t				ESAudio::NextBlock = 0;
+bool					ESAudio::InitialFill = false;

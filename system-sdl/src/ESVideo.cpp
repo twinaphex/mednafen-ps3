@@ -21,8 +21,10 @@ namespace
 	}
 };
 
-void					PS3Video::Init					()
+void					ESVideo::Init					()
 {
+	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
+
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -30,32 +32,35 @@ void					PS3Video::Init					()
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	Screen = SDL_SetVideoMode(640, 480, 32, SDL_OPENGL);
+	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL);
+	Width = dispinfo->current_w;
+	Height = dispinfo->current_h;
+		
 	FillerTexture = new Texture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
 	
 	FontManager::InitFonts();
 }
 
-void					PS3Video::Quit					()
+void					ESVideo::Quit					()
 {
 	FontManager::QuitFonts();
 }
 
-void					PS3Video::SetClip				(Area aClip)
+void					ESVideo::SetClip				(Area aClip)
 {
 	//TODO: Just use the whole screen if aClip is invalid
 	Clip = aClip;
 }
 
-Area					PS3Video::GetClip				()
+Area					ESVideo::GetClip				()
 {
 	return Clip;
 }
 
 //HACK:
 void				SetExit					();
-void					PS3Video::Flip					()
+void					ESVideo::Flip					()
 {
 	SDL_GL_SwapBuffers();
 	
@@ -69,7 +74,7 @@ void					PS3Video::Flip					()
 	}
 	
 	//HACK:
-	PS3Input::Refresh();	
+	ESInput::Refresh();	
 	
 	Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 	
@@ -86,7 +91,7 @@ void					PS3Video::Flip					()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
+void					ESVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
 {
 	aX += Clip.X;
 	aY += Clip.Y;
@@ -119,12 +124,12 @@ void					PS3Video::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	glEnd();
 }
 
-void					PS3Video::FillRectangle			(Area aArea, uint32_t aColor)
+void					ESVideo::FillRectangle			(Area aArea, uint32_t aColor)
 {
 	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
 }
 
-void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
+void					ESVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
 {
 	Area output(0, 0, GetScreenWidth(), GetScreenHeight());
 
@@ -132,9 +137,6 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
-
-	
-	aAspectOverride = true;
 
 	double underPercent = (double)aUnderscan / 100.0;
 						
@@ -170,8 +172,10 @@ void					PS3Video::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspe
 	glEnable(GL_BLEND);
 }
 
-SDL_Surface*			PS3Video::Screen;
+SDL_Surface*			ESVideo::Screen;
+uint32_t				ESVideo::Width;
+uint32_t				ESVideo::Height;
 
-Area					PS3Video::Clip(0, 0, 100, 100);
+Area					ESVideo::Clip(0, 0, 100, 100);
 
-Texture*				PS3Video::FillerTexture = 0;
+Texture*				ESVideo::FillerTexture = 0;

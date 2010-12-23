@@ -27,7 +27,7 @@ bool										WinterfaceList::DrawLeft							()
 	{
 		//TODO: Assume all items are the save size as item zero
 		uint32_t itemheight = Items[0]->GetHeight();
-		LinesDrawn = PS3Video::GetClip().Height / itemheight;
+		LinesDrawn = ESVideo::GetClip().Height / itemheight;
 		
 		//TODO: Fix it to draw one or two line lists!
 		if(LinesDrawn < 3)
@@ -63,13 +63,13 @@ bool										WinterfaceList::Input								()
 {
 	if(Items.size() != 0)
 	{
-		Selected += (PS3Input::ButtonPressed(0, PS3_BUTTON_DOWN) ? 1 : 0);
-		Selected -= (PS3Input::ButtonPressed(0, PS3_BUTTON_UP) ? 1 : 0);
+		Selected += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+		Selected -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
 	
 		if(CanPage)
 		{
-			Selected += (PS3Input::ButtonPressed(0, PS3_BUTTON_RIGHT) ? LinesDrawn : 0);
-			Selected -= (PS3Input::ButtonPressed(0, PS3_BUTTON_LEFT) ? LinesDrawn : 0);
+			Selected += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
+			Selected -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
 		}
 	
 		Selected = Utility::Clamp(Selected, 0, Items.size() - 1);
@@ -81,7 +81,7 @@ bool										WinterfaceList::Input								()
 		}
 	}
 		
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_CIRCLE))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		Canceled = true;
 		return true;

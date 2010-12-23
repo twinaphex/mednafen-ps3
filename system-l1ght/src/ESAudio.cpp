@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-void					PS3Audio::Init					()
+void					ESAudio::Init					()
 {
 	audioInit();
 	
@@ -18,14 +18,14 @@ void					PS3Audio::Init					()
 }
 
 
-void					PS3Audio::Quit					()
+void					ESAudio::Quit					()
 {
 	audioPortStop(Port);
 	audioPortClose(Port);
 	audioQuit();
 }
 
-void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
+void					ESAudio::AddSamples				(uint32_t* aSamples, uint32_t aCount)
 {
 	if(BufferSize - GetBufferAmount() < aCount)
 	{
@@ -37,8 +37,8 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 	
 	if(BufferSize - GetBufferAmount() < aCount)
 	{
-//		throw "PS3Audio::AddSamples: Unresolved buffer overflow, did the audio thread hang?";
-		printf("PS3Audio::AddSamples: Dropped %d samples: POP\n", aCount);
+//		throw "ESAudio::AddSamples: Unresolved buffer overflow, did the audio thread hang?";
+		printf("ESAudio::AddSamples: Dropped %d samples: POP\n", aCount);
 		return;
 	}
 
@@ -48,7 +48,7 @@ void					PS3Audio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 	}
 }
 
-void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
+void					ESAudio::GetSamples				(uint32_t* aSamples, uint32_t aCount)
 {
 	if(GetBufferAmount() < aCount)
 	{
@@ -72,12 +72,12 @@ void					PS3Audio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 	}
 }
 
-void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
+void					ESAudio::ProcessAudioThread		(uint64_t aBcD)
 {
 	int16_t samples[1024];
 	uint32_t onblock = (*(volatile u64*)(u64)Config.readIndex) + 1;
 
-	while(!PS3Audio::ThreadDie)
+	while(!ESAudio::ThreadDie)
 	{
 		onblock = (onblock + 1) % BlockCount;
 		while(onblock == *(volatile u64*)(u64)Config.readIndex)
@@ -95,11 +95,11 @@ void					PS3Audio::ProcessAudioThread	(uint64_t aBcD)
 		}
 	}
 	
-	PS3Audio::ThreadDie = false;
+	ESAudio::ThreadDie = false;
 	sys_ppu_thread_exit(0);
 }
 
-volatile int32_t 		PS3Audio::GetBufferAmount		()
+volatile int32_t 		ESAudio::GetBufferAmount		()
 {
 	if(InitialFill == false)
 	{
@@ -114,19 +114,19 @@ volatile int32_t 		PS3Audio::GetBufferAmount		()
 	return (WriteCount - ReadCount);
 }
 
-volatile int32_t 		PS3Audio::GetBufferFree			()
+volatile int32_t 		ESAudio::GetBufferFree			()
 {
 	return BufferSize - (WriteCount - ReadCount);
 }
 
-uint32_t				PS3Audio::Port;
-AudioPortConfig			PS3Audio::Config;
+uint32_t				ESAudio::Port;
+AudioPortConfig			ESAudio::Config;
 
-sys_ppu_thread_t		PS3Audio::ThreadID;	
-bool					PS3Audio::ThreadDie;
+sys_ppu_thread_t		ESAudio::ThreadID;	
+bool					ESAudio::ThreadDie;
 
-uint32_t 				PS3Audio::RingBuffer[BufferSize];
-int32_t 				PS3Audio::ReadCount = 0;
-int32_t 				PS3Audio::WriteCount = 0;
-uint32_t				PS3Audio::NextBlock = 0;
-bool					PS3Audio::InitialFill = false;
+uint32_t 				ESAudio::RingBuffer[BufferSize];
+int32_t 				ESAudio::ReadCount = 0;
+int32_t 				ESAudio::WriteCount = 0;
+uint32_t				ESAudio::NextBlock = 0;
+bool					ESAudio::InitialFill = false;

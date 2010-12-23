@@ -31,7 +31,7 @@
 bool					TextViewer::DrawLeft					()
 {
 	uint32_t lineheight = FontManager::GetFixedFont()->GetHeight();
-	LinesDrawn = PS3Video::GetClip().Height / lineheight;
+	LinesDrawn = ESVideo::GetClip().Height / lineheight;
 	
 	for(int i = 0; i != LinesDrawn; i ++)
 	{
@@ -51,17 +51,17 @@ bool					TextViewer::DrawLeft					()
 
 bool					TextViewer::Input						()
 {
-	Top += PS3Input::ButtonPressed(0, PS3_BUTTON_DOWN) ? 1 : 0;
-	Top -= PS3Input::ButtonPressed(0, PS3_BUTTON_UP) ? 1 : 0;
-	Top += PS3Input::ButtonPressed(0, PS3_BUTTON_R1) ? LinesDrawn : 0;
-	Top -= PS3Input::ButtonPressed(0, PS3_BUTTON_L1) ? LinesDrawn : 0;
+	Top += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
+	Top -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
+	Top += ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT1) ? LinesDrawn : 0;
+	Top -= ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT1) ? LinesDrawn : 0;
 	Top = Utility::Clamp(Top, 0, (int32_t)Lines.size() - 1);
 	
-	Left += PS3Input::ButtonPressed(0, PS3_BUTTON_RIGHT) ? 1 : 0;
-	Left -= PS3Input::ButtonPressed(0, PS3_BUTTON_LEFT) ? 1 : 0;	
+	Left += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	Left -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;	
 	Left = Utility::Clamp(Left, 0, (int32_t)LongestLine);
 
-	return PS3Input::ButtonDown(0, PS3_BUTTON_CROSS);
+	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT);
 }
 		
 void					TextViewer::LoadStream					(std::istream& aStream)

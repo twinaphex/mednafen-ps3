@@ -13,7 +13,7 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 
 		if(Path == "/")
 		{
-			if(items[i].find("usb") == std::string::npos && items[i].find("hdd") == std::string::npos)
+			if(items[i].find("Users") == std::string::npos)
 			{
 				continue;
 			}

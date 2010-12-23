@@ -62,7 +62,7 @@ namespace
 
 bool									FileList::Input							()
 {
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_R2))
+	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
 	{
 		FileListItem* item = (FileListItem*)GetSelected();
 		std::vector<std::string>::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->GetPath());

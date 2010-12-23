@@ -24,7 +24,7 @@ void						FastCounter::Tick					()
 
 bool						FastCounter::DrawNow				()
 {
-	return !PS3Input::ButtonPressed(0, Button) || Counter == 0;
+	return !ESInput::ButtonPressed(0, Button) || Counter == 0;
 }
 
 uint32_t					FastCounter::GetFPS					()

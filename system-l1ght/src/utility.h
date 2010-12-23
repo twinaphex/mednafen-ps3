@@ -134,7 +134,7 @@ class				PathBuild
 class				FastCounter
 {
 	public:
-									FastCounter					(uint32_t aSpeed = 4, uint32_t aButton = PS3_BUTTON_R2);
+									FastCounter					(uint32_t aSpeed = 4, uint32_t aButton = ES_BUTTON_AUXRIGHT2);
 									~FastCounter				();
 								
 		void						Tick						();

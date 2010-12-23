@@ -45,12 +45,12 @@ void		MDFND_Sleep				(uint32 ms)
 
 void		MDFND_PrintError		(const char *s)
 {
-	ps3_log->Log("ERROR: %s", s);
+	es_log->Log("ERROR: %s", s);
 }
 
 void		MDFND_Message			(const char *s)
 {
-	ps3_log->Log(" INFO: %s", s);
+	es_log->Log(" INFO: %s", s);
 }
 
 bool		MDFND_ExitBlockingLoop	()

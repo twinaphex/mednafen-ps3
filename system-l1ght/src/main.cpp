@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-Logger*				ps3_log;
+Logger*				es_log;
 
 namespace
 {
@@ -37,7 +37,7 @@ void				Abort					(const char* aMessage)
 	abort();
 }
 
-void				InitPS3					(void (*aExitFunction)())
+void				InitES					(void (*aExitFunction)())
 {
 	ExitFunction = aExitFunction;
 
@@ -46,22 +46,22 @@ void				InitPS3					(void (*aExitFunction)())
 	
 	netInitialize();
 
-	PS3Video::Init();
-	PS3Audio::Init();
-	PS3Input::Init();
+	ESVideo::Init();
+	ESAudio::Init();
+	ESInput::Init();
 
-	ps3_log = new Logger();
+	es_log = new Logger();
 }
 
-void				QuitPS3					()
+void				QuitES					()
 {
-	PS3Video::Quit();
-	PS3Audio::Quit();
-	PS3Input::Quit();
+	ESVideo::Quit();
+	ESAudio::Quit();
+	ESInput::Quit();
 
 	SysUnloadModule(SYSMODULE_PNGDEC);
 
-	delete ps3_log;
+	delete es_log;
 
 	sysUnregisterCallback(EVENT_SLOT0);
 }

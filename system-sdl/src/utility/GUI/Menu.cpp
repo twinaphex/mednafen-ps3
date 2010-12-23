@@ -48,10 +48,10 @@ void						Menu::Do					()
 			break;
 		}
 				
-		PS3Video::Flip();
+		ESVideo::Flip();
 	}
 	
-	PS3Input::Reset();
+	ESInput::Reset();
 }
 
 void						Menu::SetHook				(MenuHook* aHook)

@@ -29,17 +29,17 @@
 
 bool								WinterfaceIconGrid::Input								()
 {
-	XSelection += PS3Input::ButtonDown(0, PS3_BUTTON_RIGHT) ? 1 : 0;
-	XSelection -= PS3Input::ButtonDown(0, PS3_BUTTON_LEFT) ? 1 : 0;
+	XSelection += ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	XSelection -= ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
 	XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
 
-	YSelection += PS3Input::ButtonDown(0, PS3_BUTTON_DOWN) ? 1 : 0;
-	YSelection -= PS3Input::ButtonDown(0, PS3_BUTTON_UP) ? 1 : 0;
+	YSelection += ESInput::ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
+	YSelection -= ESInput::ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
 	YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
 
 	SelectedIndex = YSelection * Width + XSelection;
 
-	if(PS3Input::ButtonDown(0, PS3_BUTTON_CIRCLE))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		Canceled = true;
 		return true;
@@ -58,8 +58,8 @@ bool								WinterfaceIconGrid::Input								()
 
 bool								WinterfaceIconGrid::DrawLeft							()
 {
-	uint32_t iconWidth = PS3Video::GetClip().Width / Width - 4;
-	uint32_t iconHeight = PS3Video::GetClip().Height / Height - 4;	
+	uint32_t iconWidth = ESVideo::GetClip().Width / Width - 4;
+	uint32_t iconHeight = ESVideo::GetClip().Height / Height - 4;	
 
 	for(int i = 0; i != Height; i ++)
 	{

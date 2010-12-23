@@ -1,7 +1,7 @@
-#ifndef PS3VIDEO_H
-#define	PS3VIDEO_H
+#ifndef ESVIDEO_H
+#define	ESVIDEO_H
 
-class							PS3Video;
+class							ESVideo;
 class							Font;
 
 class							Area
@@ -23,7 +23,7 @@ class							Area
 
 class								Texture
 {
-	friend class					PS3Video;
+	friend class					ESVideo;
 
 	public:
 									Texture					(uint32_t aWidth, uint32_t aHeight);
@@ -37,9 +37,12 @@ class								Texture
 
 		void						SetFilter				(uint32_t aOn);
 		
+		void						Apply					();
+		
 	protected:
 		uint32_t*					Pixels;
-		uint32_t					Offset;
+		uint32_t					ID;
+		bool						Valid;
 	
 		uint32_t					Width;
 		uint32_t					Height;
@@ -47,7 +50,7 @@ class								Texture
 		uint32_t					Filter;
 };
 
-class								PS3Video
+class								ESVideo
 {
 	friend class					Texture;
 
@@ -55,8 +58,8 @@ class								PS3Video
 		static void					Init					();
 		static void					Quit					();
 								
-		static uint32_t				GetScreenWidth			()				{return Resolution.width;};
-		static uint32_t				GetScreenHeight			()				{return Resolution.height;};
+		static uint32_t				GetScreenWidth			()				{return Width;};
+		static uint32_t				GetScreenHeight			()				{return Height;};
 		static bool					IsWideScreen			()				{return true;};
 	
 		static void					SetClip					(Area aClip);
@@ -75,21 +78,13 @@ class								PS3Video
 		static void					ApplyVertexBuffer		(uint32_t aPosition);
 		static void					DrawQuad				(Area aRegion, uint32_t aColor);
 
-		static gcmContextData*		GCMContext;
-		static VideoResolution		Resolution;
-		static uint32_t				Aspect;
+		static SDL_Surface*			Screen;
+		static uint32_t				Width;
+		static uint32_t				Height;
 		
 		static Area					Clip;
-		
-		static uint32_t*			VertexBuffer[2];
-		static uint32_t				VertexBufferOffset[2];
-		static uint32_t				VertexBufferPosition;
 
 		static Texture*				FillerTexture;
-		
-		static uint32_t*			Screen[3];
-		static uint32_t				ScreenOffset[3];
-		static uint32_t				NextBuffer;
 };
 
 #endif
