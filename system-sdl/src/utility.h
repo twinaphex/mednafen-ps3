@@ -34,12 +34,15 @@ class				Utility
 			{
 				while((item = readdir(dirhandle)))
 				{
-					if(item->d_type == DT_DIR && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
+					struct stat statbuf;
+					stat((aPath + item->d_name).c_str(), &statbuf);
+				
+					if((statbuf.st_mode & S_IFDIR) && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
 					{
 						continue;
 					}
 
-					aOutput.push_back(std::string(item->d_name) + (item->d_type == DT_DIR ? "/" : ""));
+					aOutput.push_back(std::string(item->d_name) + ((statbuf.st_mode & S_IFDIR) ? "/" : ""));
 				}
 
 				closedir(dirhandle);				

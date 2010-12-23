@@ -152,6 +152,11 @@ int					main					(int argc, char* argv[])
 	
 		Exit();
 	}
+	catch(char* s)
+	{
+		printf("%s\n", s);
+		Exit();
+	}
 	catch(std::exception s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
