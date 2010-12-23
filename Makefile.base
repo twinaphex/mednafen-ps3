@@ -16,13 +16,10 @@ PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
 VPCOMP		:= $(PSL1GHT)/bin/vpcomp
 
-CFLAGS		:= -g \
-			   -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include
-CXXFLAGS	:= $(CFLAGS)
-LDFLAGS		:= -T $(PSL1GHT)/lib/linker.x \
-			   -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib
-
-DEPSOPTIONS	=	-MMD -MP -MF $(DEPSDIR)/$*.d
+CFLAGS		+= -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2
+CXXFLAGS	+= -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2
+LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib
+DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c
 	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
@@ -66,4 +63,67 @@ DEPSOPTIONS	=	-MMD -MP -MF $(DEPSDIR)/$*.d
 	@$(RAW2H)  $(BUILDDIR)/$(notdir $(basename $<).rvp) $(BUILDDIR)/$(notdir $<).h $(BUILDDIR)/$(notdir $<).S $(notdir $(basename $<)_bin)
 	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $(BUILDDIR)/$(notdir $<).o
 
+################
+
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export VPATH	:=	$(foreach dir,$(SOURCE),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export BUILDDIR	:=	$(CURDIR)/$(BUILD)
+export DEPSDIR	:=	$(BUILDDIR)
+
+CFILES		:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.c)))
+CXXFILES	:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.S)))
+BINFILES	:= $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.bin)))
+VCGFILES	:= $(foreach dir,$(SOURCE),$(notdir $(wildcard $(dir)/*.vcg)))
+
+
+export OFILES	:=	$(CFILES:.c=.o) \
+					$(CXXFILES:.cpp=.o) \
+					$(SFILES:.S=.o) \
+					$(BINFILES:.bin=.bin.o) \
+					$(VCGFILES:.vcg=.vcg.o)
+
+
+export BINFILES	:=	$(BINFILES:.bin=.bin.h)
+export VCGFILES	:=	$(VCGFILES:.vcg=.vcg.h)
+
+export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) \
+					-I$(CURDIR)/$(BUILD)
+export LIBPATHS :=      $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
+
+.PHONY: $(BUILD) clean
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+clean:
+	@echo Clean...
+	@rm -rf $(BUILD) $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+
+pkg: $(BUILD)
+	@echo Creating PKG...
+	@mkdir -p $(BUILD)/pkg
+	@mkdir -p $(BUILD)/pkg/USRDIR
+	@cp $(ICON0) $(BUILD)/pkg/
+	@$(FSELF) -n $(BUILD)/$(TARGET).elf $(BUILD)/pkg/USRDIR/EBOOT.BIN
+	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) $(BUILD)/pkg/PARAM.SFO
+	@$(PKG) --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
+
+run: $(BUILD)
+	@$(PS3LOADAPP) $(OUTPUT).self
+
+else
+
+DEPENDS	:= $(OFILES:.o=.d)
+
+$(OUTPUT): $(OFILES)
+$(OFILES): $(BINFILES)  $(VCGFILES)
+
+-include $(DEPENDS)
+
+endif
 

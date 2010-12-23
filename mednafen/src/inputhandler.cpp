@@ -188,7 +188,11 @@ void							InputHandler::BuildShifts				(const InputDeviceInputInfoStruct* aInfo
 			if(aInfo[j].ConfigOrder == i)
 			{
 				aOrder[found][0] = j;			
+#ifdef MSB_FIRST
 				aOrder[found][1] = (j < 8) ? 1 << (24 + j) : 1 << (16 + (j - 8));
+#else
+				aOrder[found][1] = 1 << j;
+#endif
 				found ++;
 			}
 		}
