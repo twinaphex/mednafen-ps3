@@ -1,3 +1,4 @@
 Building requires a working PSL1GHT build environment
 Compiling requires you to install libz and freetype2 built for PSL1GHT
 Please run make in system-l1ght, nestopia, vbam, and gambatte directories before mednafen
+If you get a message like 'udefined reference to 'vbamGetVBAM'', cd into the vbam directory and type 'make vbam-objmangle'
