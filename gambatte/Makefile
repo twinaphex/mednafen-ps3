@@ -1,14 +1,18 @@
 .SUFFIXES:
+ifeq ($(strip $(PLATFORM)),)
+PLATFORM = l1ght
+endif
+
 TARGET		:=	libgambatte.a
 BUILD		:=	build
 SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample src/libgambatte/src/video/filters
-INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system-l1ght
+INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system-$(PLATFORM)
 
-CFLAGS		:=-O2 --std=gnu99 -DHAVE_STDINT_H -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR
-CXXFLAGS	:=-O2 -DHAVE_STDINT_H -DSIZEOF_DOUBLE=8 -DMSB_FIRST -DHAVE_MKDIR
+CFLAGS		:=-O2 --std=gnu99 -DHAVE_STDINT_H
+CXXFLAGS	:=-O2 -DHAVE_STDINT_H
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
-include $(CURDIR)/../Makefile.base
+include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
-include $(CURDIR)/../../Makefile.base
+include $(CURDIR)/../../Makefile-$(PLATFORM).base
 endif

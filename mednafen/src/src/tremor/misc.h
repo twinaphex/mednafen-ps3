@@ -34,8 +34,15 @@
 #endif
 
 //ROBO: Magic is big-endian
-#define BIG_ENDIAN 102
-#define BYTE_ORDER BIG_ENDIAN
+#ifndef BYTE_ORDER
+# ifdef MSB_FIRST
+#  define BIG_ENDIAN 102
+#  define BYTE_ORDER BIG_ENDIAN
+# else
+#  define LITTLE_ENDIAN 103
+#  define BYTE_ORDER LITTLE_ENDIAN
+# endif
+#endif
 
 #if BYTE_ORDER==LITTLE_ENDIAN
 union magic {

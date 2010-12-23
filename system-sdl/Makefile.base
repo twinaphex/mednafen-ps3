@@ -1,0 +1,40 @@
+PREFIX		:= 
+OBJCOPY		:= $(PREFIX)objcopy
+AR			:= $(PREFIX)ar
+AS			:= $(PREFIX)gcc
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+LD			:= $(CXX)
+STRIP		:= $(PREFIX)strip
+
+CFLAGS		:= -g 
+CXXFLAGS	:= $(CFLAGS)
+LDFLAGS		:= 
+DEPSOPTIONS	= -MMD -MP -MF $(DEPSDIR)/$*.d
+
+%.o: %.c
+	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
+	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
+	@echo "[CC]  $(notdir $<)"
+	@$(CC) $(DEPSOPTIONS) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+%.o: %.cpp
+	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
+	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
+	@echo "[CXX] $(notdir $<)"
+	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+%.o: %.S
+	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
+	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
+	@echo "[CC]  $(notdir $<)"
+	@$(CC) $(DEPSOPTIONS) -x assembler-with-cpp $(ASFLAGS) $(INCLUDES) -c $< -o $@
+
+%.a:
+	@echo "[AR]  $(notdir $@)"
+	@$(AR) -rcs $@ $^
+
+%.elf:
+	@echo "[LD]  $(notdir $@)"
+	@$(LD) $^ $(LIBPATHS) $(LIBS) $(LDFLAGS) -o $@
+

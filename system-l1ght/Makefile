@@ -10,7 +10,7 @@ CFLAGS		:=-O2 --std=gnu99
 CXXFLAGS	:=-O2
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
-include $(CURDIR)/../Makefile.base
+include $(CURDIR)/../Makefile-l1ght.base
 else
-include $(CURDIR)/../../Makefile.base
+include $(CURDIR)/../../Makefile-l1ght.base
 endif

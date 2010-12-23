@@ -1,5 +1,9 @@
 .SUFFIXES:
 
+ifeq ($(strip $(PLATFORM)),)
+PLATFORM = l1ght
+endif
+
 ##Package Details
 SFOXML		=	package/sfo.xml
 ICON0		=	package/ICON0.png
@@ -9,7 +13,7 @@ CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 
 ##Mednafen config
 MEDNAFENFLAGS=-DWANT_NES_EMU -DWANT_SMS_EMU -DWANT_GB_EMU -DWANT_GBA_EMU -DWANT_MD_EMU -DWANT_WSWAN_EMU -DWANT_NGP_EMU -DWANT_PCE_EMU -DWANT_PCE_FAST_EMU -DWANT_VB_EMU -DWANT_LYNX_EMU -DNEED_Z80_EMULATOR -DNETWORK
-MEDNAFENCONFIG=-DPSS_STYLE=1 -DMSB_FIRST -DWORDS_BIGENDIAN -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.15\" -DMEDNAFEN_VERSION_NUMERIC=0x915 -DSIZEOF_DOUBLE=8
+MEDNAFENCONFIG=-DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.15\" -DMEDNAFEN_VERSION_NUMERIC=0x915 -DSIZEOF_DOUBLE=8
 MEDNAFENINCLUDES=. src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu src/src/sms src/src/hw_sound src/include/blip src/src/ngp src/src/ngp/TLCS-900h src/src/snes/src/lib
 
 ##Build info
@@ -21,18 +25,23 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 				src/src/md/cart src/src/md/input src/src/mpcdec src/src/nes src/src/nes/boards src/src/nes/input src/src/nes/ntsc src/src/nes/ppu \
 				src/src/nes/ppu/palettes src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input src/src/pce_fast \
 				src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
-INCLUDE		:=	src include ../system-l1ght ../system-l1ght/src/fex  $(MEDNAFENINCLUDES) 
+INCLUDE		:=	src include ../system-$(PLATFORM) $(MEDNAFENINCLUDES) 
 
-LIBDIRS		:=	../system-l1ght ../nestopia ../gambatte ../vbam
-LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec -lnet
+LIBDIRS		:=	../system-$(PLATFORM) ../nestopia ../gambatte ../vbam
+
+ifeq ($(strip $(PLATFORM)),l1ght)
+	LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec -lnet
+else
+	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lfreetype
+endif
 
 CFLAGS		+= -O2 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS	+= -O2 $(MEDNAFENCFLAGS) $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
-include $(CURDIR)/../Makefile.base
+include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
-include $(CURDIR)/../../Makefile.base
+include $(CURDIR)/../../Makefile-$(PLATFORM).base
 endif
 
 

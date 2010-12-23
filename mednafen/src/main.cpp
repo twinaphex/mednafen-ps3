@@ -1,8 +1,10 @@
 #include <mednafen_includes.h>
 
+#ifdef L1GHT
 extern "C" int gettimeofday(timeval*, void*){}
 extern "C" int getrusage(){}
 extern "C" int dup(int){}
+#endif
 
 PathBuild			Paths("/dev_hdd0/game/MDFN90002/USRDIR");
 
@@ -125,7 +127,7 @@ void				ReloadEmulator			()
 	}
 }
 
-int					main					()
+int					main					(int argc, char* argv[])
 {
 	try
 	{

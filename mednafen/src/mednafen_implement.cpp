@@ -1,12 +1,5 @@
 #include <mednafen_includes.h>
 
-#include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
-#include <arpa/inet.h>  /* for sockaddr_in and inet_addr() */
-#include <net/net.h>
-#include <netinet/in.h>
-#include <netdb.h>
-
-
 static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 = 0)
 {
     int portno = atoi(aPort);
@@ -113,16 +106,22 @@ void		MDFND_DispMessage		(UTF8 *text)
 
 MDFN_Thread*MDFND_CreateThread		(int (*fn)(void *), void *data)
 {
+#ifdef L1GHT
 	MDFN_Thread* thread = (MDFN_Thread*)malloc(sizeof(MDFN_Thread));
 	sys_ppu_thread_create((sys_ppu_thread_t*)&thread->data, (void(*)(uint64_t))fn, (uint64_t)data, 1001, 0x10000, THREAD_JOINABLE, 0);
 	return thread;
+#else
+	return 0;
+#endif
 }
 
 void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
 {
+#ifdef L1GHT
 	uint64_t out;
 	sys_ppu_thread_join((sys_ppu_thread_t)thread->data, &out);
 	free(thread);
+#endif	
 }
 
 void		MDFND_KillThread		(MDFN_Thread *thread)
@@ -132,6 +131,7 @@ void		MDFND_KillThread		(MDFN_Thread *thread)
 
 MDFN_Mutex*	MDFND_CreateMutex		(void)
 {
+#ifdef L1GHT
 	MDFN_Mutex* mutex = (MDFN_Mutex*)malloc(sizeof(MDFN_Mutex));
 	sys_lwmutex_attribute_t MutexAttrs;
 	memset(&MutexAttrs, 0, sizeof(sys_lwmutex_attribute_t));
@@ -140,22 +140,31 @@ MDFN_Mutex*	MDFND_CreateMutex		(void)
 	
 	sys_lwmutex_create((sys_lwmutex_t*)&mutex->data, &MutexAttrs);
 	return mutex;
+#else
+	return 0;
+#endif
 }
 
 void		MDFND_DestroyMutex		(MDFN_Mutex *mutex)
 {
+#ifdef L1GHT
 	sys_lwmutex_destroy((sys_lwmutex_t*)mutex->data);
 	free(mutex);
+#endif
 }
 
 int			MDFND_LockMutex			(MDFN_Mutex *mutex)
 {
+#ifdef L1GHT
 	sys_lwmutex_lock((sys_lwmutex_t*)mutex->data, 0);
+#endif
 	return 0;
 }
 
 int			MDFND_UnlockMutex		(MDFN_Mutex *mutex)
 {
+#ifdef L1GHT
 	sys_lwmutex_unlock((sys_lwmutex_t*)mutex->data);
+#endif
 	return 0;
 }
