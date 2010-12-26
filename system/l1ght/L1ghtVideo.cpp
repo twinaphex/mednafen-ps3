@@ -56,6 +56,9 @@ namespace
 	gcmSetDisplayBuffer(0, ScreenOffset[0], Resolution.width * 4, Resolution.width, Resolution.height);	
 	gcmSetDisplayBuffer(1, ScreenOffset[1], Resolution.width * 4, Resolution.width, Resolution.height);
 
+	esScreenWidth = Resolution.width;
+	esScreenHeight = Resolution.height;
+
 	//Make vertex buffer
 	Allocate(VertexBuffer[0], VertexBufferOffset[0], 1024 * 1024, 64);
 	Allocate(VertexBuffer[1], VertexBufferOffset[1], 1024 * 1024, 64);
@@ -82,24 +85,6 @@ namespace
 	}
 }
 
-void					L1ghtVideo::SetClip				(Area aClip)
-{
-	if(aClip.Right() > GetScreenWidth() || aClip.Bottom() > GetScreenHeight())
-	{
-		printf("Clip out of range: %d, %d, %d, %d\n", aClip.X, aClip.Y, aClip.Width, aClip.Height);
-		Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
-	}
-	else
-	{
-		Clip = aClip;
-	}
-}
-
-Area					L1ghtVideo::GetClip				()
-{
-	return Clip;
-}
-
 void					L1ghtVideo::Flip				()
 {
 	gcmSetFlip(GCMContext, NextBuffer);
@@ -113,16 +98,16 @@ void					L1ghtVideo::Flip				()
 	gcmResetFlipStatus();
 	
 	PrepareBuffer();
-	Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
 void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
 {
-	aX += Clip.X;
-	aY += Clip.Y;
+	aX += esClip.X;
+	aY += esClip.Y;
 
 	//TODO: Better clipping
-	if(aX + aWidth >= Clip.Right() || aY + aHeight >= (Clip.Bottom() + 10))
+	if(aX + aWidth >= esClip.Right() || aY + aHeight >= (esClip.Bottom() + 10))
 	{
 		return;
 	}
@@ -140,24 +125,7 @@ void					L1ghtVideo::PresentFrame		(Texture* aTexture, Area aViewPort, bool aAsp
 {
 	ApplyTexture(aTexture, Area(aViewPort.X, aViewPort.Y, aViewPort.Width, aViewPort.Height));
 
-	Area output(0, 0, Resolution.width, Resolution.height);
-	
-	aAspectOverride = (Aspect == VIDEO_ASPECT_4_3) ? true : aAspectOverride;
-
-	double underPercent = (double)aUnderscan / 100.0;
-						
-	double widthP = (aAspectOverride ? Resolution.width : Resolution.width - ((double)Resolution.width * .125)) * (underPercent / 2);
-	double heightP = Resolution.height * (underPercent / 2);
-		
-	if(aAspectOverride)
-	{
-		output = Area(widthP, heightP, Resolution.width - widthP * 2, Resolution.height - heightP * 2);
-	}
-	else
-	{
-		uint32_t barSize = ((double)Resolution.width) * .125;
-		output = Area(barSize + widthP, heightP, Resolution.width - barSize * 2 - widthP * 2, Resolution.height - heightP * 2);
-	}
+	Area output = CalculatePresentArea(aAspectOverride, aUnderscan);
 	
 	realityBlendEnable(GCMContext, 0);	
 	DrawQuad(output, 0xFFFFFFFF);

@@ -38,13 +38,8 @@ class								L1ghtVideo : public ESVideo
 									~L1ghtVideo				();
 									
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight) {return new L1ghtTexture(aWidth, aHeight);};
-								
-		uint32_t					GetScreenWidth			()				{return Resolution.width;};
-		uint32_t					GetScreenHeight			()				{return Resolution.height;};
+							
 		bool						IsWideScreen			()				{return true;};
-	
-		void						SetClip					(Area aClip);
-		Area						GetClip					();
 	
 		void						Flip					();
 		
@@ -62,8 +57,6 @@ class								L1ghtVideo : public ESVideo
 		gcmContextData*				GCMContext;
 		VideoResolution				Resolution;
 		uint32_t					Aspect;
-		
-		Area						Clip;
 		
 		uint32_t*					VertexBuffer[2];
 		uint32_t					VertexBufferOffset[2];

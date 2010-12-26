@@ -44,8 +44,6 @@ class				ESInput
 				return false;
 			}
 		}
-
-	
 };
 
 #endif

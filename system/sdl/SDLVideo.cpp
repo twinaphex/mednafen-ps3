@@ -20,8 +20,8 @@
 	SDL_ShowCursor(SDL_DISABLE);
 	SDL_WM_SetCaption("Mednafen PS3", "Mednafen PS3");
 	
-	Width = dispinfo->current_w;
-	Height = dispinfo->current_h;
+	esScreenWidth = dispinfo->current_w;
+	esScreenHeight = dispinfo->current_h;
 		
 	FillerTexture = new SDLTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
@@ -30,24 +30,6 @@
 						SDLVideo::~SDLVideo				()
 {
 	delete FillerTexture;
-}
-
-void					SDLVideo::SetClip				(Area aClip)
-{
-	if(aClip.Right() > GetScreenWidth() || aClip.Bottom() > GetScreenHeight())
-	{
-		printf("Clip out of range: %d, %d, %d, %d\n", aClip.X, aClip.Y, aClip.Width, aClip.Height);
-		Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
-	}
-	else
-	{
-		Clip = aClip;
-	}
-}
-
-Area					SDLVideo::GetClip				()
-{
-	return Clip;
 }
 
 //HACK:
@@ -65,7 +47,7 @@ void					SDLVideo::Flip					()
 		}
 	}
 	
-	Clip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 	
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -80,11 +62,11 @@ void					SDLVideo::Flip					()
 
 void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
 {
-	aX += Clip.X;
-	aY += Clip.Y;
+	aX += esClip.X;
+	aY += esClip.Y;
 
 	//TODO: Better clipping
-	if(aX + aWidth >= Clip.Right() || aY + aHeight >= (Clip.Bottom() + 10))
+	if(aX + aWidth >= esClip.Right() || aY + aHeight >= (esClip.Bottom() + 10))
 	{
 		return;
 	}
@@ -118,27 +100,12 @@ void					SDLVideo::FillRectangle			(Area aArea, uint32_t aColor)
 
 void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
 {
-	Area output(0, 0, GetScreenWidth(), GetScreenHeight());
+	Area output = CalculatePresentArea(aAspectOverride, aUnderscan);
 
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
-
-	double underPercent = (double)aUnderscan / 100.0;
-						
-	double widthP = (aAspectOverride ? GetScreenWidth() : GetScreenWidth() - ((double)GetScreenWidth() * .125)) * (underPercent / 2);
-	double heightP = GetScreenHeight() * (underPercent / 2);
-		
-	if(aAspectOverride)
-	{
-		output = Area(widthP, heightP, GetScreenWidth() - widthP * 2, GetScreenHeight() - heightP * 2);
-	}
-	else
-	{
-		uint32_t barSize = ((double)GetScreenWidth()) * .125;
-		output = Area(barSize + widthP, heightP, GetScreenWidth() - barSize * 2 - widthP * 2, GetScreenHeight() - heightP * 2);
-	}
 
 	((SDLTexture*)aTexture)->Apply();
 	glDisable(GL_BLEND);

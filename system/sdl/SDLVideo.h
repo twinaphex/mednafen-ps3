@@ -42,12 +42,7 @@ class								SDLVideo : public ESVideo
 	
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight) {return new SDLTexture(aWidth, aHeight);};
 	
-		uint32_t					GetScreenWidth			()				{return Width;};
-		uint32_t					GetScreenHeight			()				{return Height;};
 		bool						IsWideScreen			()				{return true;};
-	
-		void						SetClip					(Area aClip);
-		Area						GetClip					();
 	
 		void						Flip					();
 		
@@ -57,11 +52,6 @@ class								SDLVideo : public ESVideo
 		
 	protected:
 		SDL_Surface*				Screen;
-		uint32_t					Width;
-		uint32_t					Height;
-		
-		Area						Clip;
-
 		Texture*					FillerTexture;
 };
 
