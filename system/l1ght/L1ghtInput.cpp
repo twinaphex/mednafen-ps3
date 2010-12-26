@@ -89,7 +89,7 @@ std::string			L1ghtInput::GetButtonName				(uint32_t aButton)
 
 void				L1ghtInput::Assert						(uint32_t aPad, uint32_t aButton)
 {
-	if(aPad >= PadCount() || aButton >= BUTTONS)
+	if(aPad >= MAXPADS || aButton >= BUTTONS)
 	{
 		Abort("L1ghtInput: Pad or Button out of range");
 	}

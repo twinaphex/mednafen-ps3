@@ -28,6 +28,7 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 				src/src/nes/ppu/palettes src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input src/src/pce_fast \
 				src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
 
+#SDL Port gets SNES, lucky
 ifeq ($(strip $(PLATFORM)),sdl)
 MEDNAFENFLAGS+=-DWANT_SNES_EMU 
 

@@ -11,14 +11,6 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 	{
 		bool filterfound = true;
 
-		if(Path == "/")
-		{
-			if(items[i].find("Users") == std::string::npos)
-			{
-				continue;
-			}
-		}
-		
 		for(int j = 0; j != aFilters.size(); j ++)
 		{
 			filterfound = false;

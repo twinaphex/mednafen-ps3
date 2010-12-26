@@ -43,9 +43,14 @@ class				Utility
 					{
 						break;
 					}
-			
+					
 					//TODO: !1! is a directory
 					if(item.d_type == 1 && (strcmp(item.d_name, ".") == 0 || strcmp(item.d_name, "..") == 0))
+					{
+						continue;
+					}
+
+					if(aPath == "/" && (!strstr(item.d_name, "hdd") || !strstr(item.d_name, "usb")))
 					{
 						continue;
 					}

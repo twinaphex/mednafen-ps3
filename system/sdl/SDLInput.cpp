@@ -116,7 +116,7 @@ std::string			SDLInput::GetButtonName					(uint32_t aButton)
 
 void				SDLInput::Assert						(uint32_t aPad, uint32_t aButton)
 {
-	if(aPad >= PadCount() || (IsJoystickButton(aButton) && aButton >= BUTTONS) || (!IsJoystickButton(aButton) && (aButton & 0xFFFF) >= MAXKEYS))
+	if(aPad >= MAXPADS || (IsJoystickButton(aButton) && aButton >= BUTTONS) || (!IsJoystickButton(aButton) && (aButton & 0xFFFF) >= MAXKEYS))
 	{
 		Abort("SDLInput: Pad or Button out of range.");
 	}

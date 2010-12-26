@@ -1,13 +1,16 @@
 #include <mednafen_includes.h>
 
+///HACK: These might not be nessicary anymore, include them anyway
 #ifdef L1GHT
 extern "C" int gettimeofday(timeval*, void*){}
 extern "C" int getrusage(){}
 extern "C" int dup(int){}
-#endif
 
 PathBuild			Paths("/dev_hdd0/game/MDFN90002/USRDIR/");
-//PathBuild			Paths("/Users/jason/.mednafen/");
+#else
+//HACK: Hardcoded path, what a joke
+PathBuild			Paths("/Users/jason/.mednafen/");
+#endif
 
 namespace
 {
