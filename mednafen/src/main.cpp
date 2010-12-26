@@ -6,7 +6,8 @@ extern "C" int getrusage(){}
 extern "C" int dup(int){}
 #endif
 
-PathBuild			Paths("/dev_hdd0/game/MDFN90002/USRDIR");
+PathBuild			Paths("/dev_hdd0/game/MDFN90002/USRDIR/");
+//PathBuild			Paths("/Users/jason/.mednafen/");
 
 namespace
 {
@@ -15,12 +16,12 @@ namespace
 		public:
 			bool	Input	()
 			{
-				if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+				if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 				{
 					MednafenSettings("general").Do();
 				}
 				
-				if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
+				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
 					TextViewer(Paths.Build("mednafen/Readme.txt")).Do();
 				}

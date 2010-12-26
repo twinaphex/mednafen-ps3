@@ -42,7 +42,7 @@ class	MednafenEmu
 				Blit();
 			}
 			
-			ESVideo::Flip();					
+			es_video->Flip();					
 		}
 
 	protected:	//Internals

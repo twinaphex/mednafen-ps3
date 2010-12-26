@@ -16,9 +16,9 @@ PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
 VPCOMP		:= $(PSL1GHT)/bin/vpcomp
 
-CFLAGS		+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib
+CFLAGS		+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CXXFLAGS	+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c
@@ -48,9 +48,9 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 	@$(LD) $^ $(LIBPATHS) $(LIBS) $(LDFLAGS) -o $@
 
 %.self: %.elf
-	@$(STRIP) $< -o $(BUILDDIR)/$(notdir $<)
-	@$(SPRX) $(BUILDDIR)/$(notdir $<)
-	@$(FSELF) $(BUILDDIR)/$(notdir $<) $@
+	@$(STRIP) $<
+	@$(SPRX) $<
+	@$(FSELF) $< $@
 
 %.bin.h: %.bin
 	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
@@ -105,16 +105,13 @@ $(BUILD):
 
 clean:
 	@echo Clean...
-	@rm -rf $(BUILD) $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+	@rm -rf $(BUILD) $(OUTPUT).$(TYPE) $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
 
 pkg: $(BUILD)
 	@echo Creating PKG...
-	@mkdir -p $(BUILD)/pkg
-	@mkdir -p $(BUILD)/pkg/USRDIR
-	@cp $(ICON0) $(BUILD)/pkg/
-	@$(FSELF) -n $(TARGET) $(BUILD)/pkg/USRDIR/EBOOT.BIN
-	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) $(BUILD)/pkg/PARAM.SFO
-	@$(PKG) --contentid $(CONTENTID) $(BUILD)/pkg/ $(OUTPUT).pkg
+	@$(FSELF) -n $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN
+	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
 
 run: $(BUILD)
 	@$(PS3LOADAPP) $(OUTPUT).self
@@ -123,7 +120,10 @@ else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-$(OUTPUT): $(OFILES)
+ifneq ($(TYPE),a)
+$(OUTPUT).self: $(OUTPUT).elf
+endif
+$(OUTPUT).$(TYPE): $(OFILES)
 $(OFILES): $(BINFILES)  $(VCGFILES)
 
 -include $(DEPENDS)

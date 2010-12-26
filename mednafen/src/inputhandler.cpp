@@ -12,15 +12,15 @@ bool								MednafenSettingButton::Input					()
 {
 	static bool gotbutton = true;
 
-	if(gotbutton && ESInput::GetAnyButton(0))
+	if(gotbutton && es_input->GetAnyButton(0) != 0xFFFFFFFF)
 	{
 		return false;
 	}
 	
 	gotbutton = false;
 
-	Button = ESInput::GetAnyButton(0);
-	gotbutton = Button ? true : false;
+	Button = es_input->GetAnyButton(0);
+	gotbutton = (Button != 0xFFFFFFFF) ? true : false;
 	return gotbutton;
 }
 
@@ -77,7 +77,7 @@ void							InputHandler::Process					()
 
 		for(int i = 0; i != ButtonCount; i ++)
 		{
-			if(ESInput::ButtonPressed(p, Button[i][0]))
+			if(es_input->ButtonPressed(p, Button[i][0]))
 			{
 				ControllerBits[p] |= Button[i][1];
 			}

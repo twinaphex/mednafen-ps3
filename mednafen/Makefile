@@ -17,7 +17,9 @@ MEDNAFENCONFIG=-DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.15\" -DMEDNAF
 MEDNAFENINCLUDES=. src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu src/src/sms src/src/hw_sound src/include/blip src/src/ngp src/src/ngp/TLCS-900h src/src/snes/src/lib
 
 ##Build info
-TARGET		:=	mednafen.elf
+TARGET		:=	mednafen
+TYPE		:=	elf
+PACKAGE		:=	mednafen.pkg
 BUILD		:=	build
 SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src/src/gba src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \
 				src/src/hw_cpu/v810/fpu-new src/src/hw_cpu/z80-fuse src/src/hw_misc/arcade_card src/src/hw_sound/gb_apu src/src/hw_sound/pce_psg \
@@ -40,9 +42,9 @@ CXXFILES	:=	src/src/snes/interface.cpp src/src/snes/src/cartridge/cartridge.cpp 
 CFILES		:=	src/src/snes/src/lib/libco/libco.c
 endif
 
-INCLUDE		:=	src include ../system-$(PLATFORM) $(MEDNAFENINCLUDES) 
+INCLUDE		:=	src include ../system $(MEDNAFENINCLUDES) 
 
-LIBDIRS		:=	../system-$(PLATFORM) ../nestopia ../gambatte ../vbam
+LIBDIRS		:=	../system ../nestopia ../gambatte ../vbam
 
 ifeq ($(strip $(PLATFORM)),l1ght)
 	LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec -lnet

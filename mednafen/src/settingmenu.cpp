@@ -34,22 +34,22 @@ void								MednafenSettingItem::Draw						(uint32_t aX, uint32_t aY, bool aSele
 		snprintf(buffer, 250, "%s", MDFN_GetSettingS(Setting.name).c_str());
 	}
 
-	FontManager::GetBigFont()->PutString(buffer, aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);				
+	FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);				
 }
 
 bool								MednafenSettingItem::Input						()
 {
 	if(Setting.desc->type == MDFNST_BOOL)
 	{
-		if(ESInput::ButtonDown(0, ES_BUTTON_LEFT) || ESInput::ButtonDown(0, ES_BUTTON_RIGHT))
+		if(es_input->ButtonDown(0, ES_BUTTON_LEFT) || es_input->ButtonDown(0, ES_BUTTON_RIGHT))
 		{
 			MDFNI_SetSettingB(Setting.name, MDFN_GetSettingB(Setting.name) == 0);
 		}
 	}
 	else if(Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT)
 	{
-		int32_t value = ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
-		value = ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+		int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+		value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
 
 		if(value != 0)
 		{
@@ -58,8 +58,8 @@ bool								MednafenSettingItem::Input						()
 	}
 	else if(Setting.desc->type == MDFNST_ENUM)
 	{
-		int32_t value = ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
-		value = ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+		int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+		value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
 
 		if(value != 0)
 		{
@@ -100,7 +100,7 @@ bool								MednafenSettingItem::Input						()
 		}
 	}
 
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		std::string result;
 		Keyboard kb(Setting.name, MDFN_GetSettingS(Setting.name));
@@ -111,11 +111,11 @@ bool								MednafenSettingItem::Input						()
 			MDFNI_SetSetting(Setting.name, kb.GetText().c_str());
 		}
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
+	else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))
 	{
 		MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
+	else if(es_input->ButtonDown(0, ES_BUTTON_TAB))
 	{
 		std::vector<std::string> nomarks;
 		FileSelect browse("Select File", nomarks, "file:/");

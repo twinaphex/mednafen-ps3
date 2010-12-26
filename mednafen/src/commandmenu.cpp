@@ -11,7 +11,7 @@
 
 bool								MednafenCommandItem::Input						()
 {
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		MednafenEmu::DoCommand(Command);
 		return true;

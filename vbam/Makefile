@@ -3,7 +3,8 @@ ifeq ($(strip $(PLATFORM)),)
 PLATFORM = l1ght
 endif
 
-TARGET		:=	libvbam.a
+TARGET		:=	libvbam
+TYPE		:=	a
 BUILD		:=	build
 SOURCE		:=	src src/src src/src/common src/src/apu src/src/gb src/src/gba 
 INCLUDE		:=	../mednafen/src src/src src/fex

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export PLATFORM=sdl
-cd system-sdl
+cd system
 make clean
 make -j2
 cd ../nestopia

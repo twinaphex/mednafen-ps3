@@ -61,7 +61,7 @@ void						MednafenEmu::Init				()
 			Settings.push_back(ESSettings[i]);
 		}
 
-		Buffer = new Texture(1920, 1080);
+		Buffer = es_video->CreateTexture(1920, 1080);
 
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(GetNestopia());
@@ -180,7 +180,7 @@ void						MednafenEmu::Frame				()
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
-		EmulatorSpec.NeedRewind = ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
+		EmulatorSpec.NeedRewind = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
 		EmulatorSpec.skip = !Counter.DrawNow() && !PCESkipHack;
 		MDFNI_Emulate(&EmulatorSpec);
 		
@@ -200,7 +200,7 @@ void						MednafenEmu::Frame				()
 			
 			if(GameInfo->soundchan > 1)
 			{
-				ESAudio::AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
+				es_audio->AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
 			}
 			else
 			{
@@ -209,7 +209,7 @@ void						MednafenEmu::Frame				()
 					SamplesUp[i * 2] = Samples[i];
 					SamplesUp[i * 2 + 1] = Samples[i];
 				}
-				ESAudio::AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
+				es_audio->AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
 			}
 
 			Blit();			
@@ -226,10 +226,10 @@ void						MednafenEmu::Frame				()
 				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 			}
 	
-			ESVideo::Flip();					
+			es_video->Flip();					
 		}
 		
-		if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{
 			MednafenCommands().Do();
 		}
@@ -278,7 +278,7 @@ void						MednafenEmu::Blit				()
 		memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
 	}
 
-	ESVideo::PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
 
 /*
 
@@ -292,7 +292,7 @@ void						MednafenEmu::Blit				()
 		}
 	}
 	
-	ESVideo::PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
+	es_video->PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)

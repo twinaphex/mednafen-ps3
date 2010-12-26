@@ -1,6 +1,7 @@
 #!/bin/sh
 
-cd system-l1ght
+export PLATFORM=l1ght
+cd system
 make clean
 make -j2
 cd ../nestopia
