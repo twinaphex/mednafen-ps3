@@ -186,8 +186,26 @@ void						MednafenEmu::Frame				()
 		
 		if(Counter.DrawNow())
 		{
+			//VIDEO
 			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
-			
+
+			Blit();			
+	
+			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
+			{
+				char buffer[128];
+				snprintf(buffer, 128, "%d", Counter.GetFPS());
+				FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
+			}
+				
+			if(MDFND_GetTime() - MessageTime < 5000)
+			{
+				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
+			}
+	
+			es_video->Flip();					
+
+			//AUDIO			
 			if(!sratelo && EmulatorSpec.SoundBufSize < 799)
 			{
 				srate ++;
@@ -211,22 +229,6 @@ void						MednafenEmu::Frame				()
 				}
 				es_audio->AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
 			}
-
-			Blit();			
-	
-			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
-			{
-				char buffer[128];
-				snprintf(buffer, 128, "%d", Counter.GetFPS());
-				FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
-			}
-				
-			if(MDFND_GetTime() - MessageTime < 5000)
-			{
-				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
-			}
-	
-			es_video->Flip();					
 		}
 		
 		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))

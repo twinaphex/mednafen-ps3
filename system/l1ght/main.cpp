@@ -1,16 +1,9 @@
 #include <ps3_system.h>
 
-Logger*				es_log = 0;
-ESVideo*			es_video = 0;
-ESAudio*			es_audio = 0;
-ESInput*			es_input = 0;
-
-
 namespace
 {
 	volatile bool	want_to_die = false;
 	volatile bool	want_to_sleep = false;
-	void			(*ExitFunction)() = 0;
 };
 
 static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
@@ -29,64 +22,43 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 	return;
 }
 
-void				Abort					(const char* aMessage)
-{
-	printf("ABORT: %s\n", aMessage);
-	
-	if(ExitFunction)
-	{
-		ExitFunction();
-	}
-	
-	abort();
-}
 
-void				InitES					(void (*aExitFunction)())
+void				ESSUB_Init				()
 {
-	ExitFunction = aExitFunction;
-
 	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
 	SysLoadModule(SYSMODULE_PNGDEC);
 	
 	netInitialize();
-
-	es_video = new L1ghtVideo();
-	es_audio = new L1ghtAudio();
-	es_input = new L1ghtInput();
-	
-	FontManager::InitFonts();
-
-	es_log = new Logger();
 }
 
-void				QuitES					()
+void				ESSUB_Quit				()
 {
-	delete es_log;
-
-	FontManager::QuitFonts();
-
-	delete es_video;
-	delete es_audio;
-	delete es_input;
-
 	SysUnloadModule(SYSMODULE_PNGDEC);
 	sysUnregisterCallback(EVENT_SLOT0);
 }
 
-volatile bool		WantToDie				()
+ESVideo*			ESSUB_MakeVideo			()
+{
+	return new L1ghtVideo();
+}
+
+ESAudio*			ESSUB_MakeAudio			()
+{
+	return new L1ghtAudio();
+}
+
+ESInput*			ESSUB_MakeInput			()
+{
+	return new L1ghtInput();
+}
+
+bool				ESSUB_WantToDie			()
 {
 	sysCheckCallback();
-	
-	if(want_to_die)
-	{
-		ExitFunction();
-		exit(1);
-	}
-	
 	return want_to_die;
 }
 
-volatile bool		WantToSleep				()
+bool				ESSUB_WantToSleep		()
 {
 	sysCheckCallback();
 	return want_to_sleep;
