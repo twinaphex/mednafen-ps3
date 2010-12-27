@@ -5,11 +5,6 @@
 extern "C" int gettimeofday(timeval*, void*){}
 extern "C" int getrusage(){}
 extern "C" int dup(int){}
-
-PathBuild			Paths("/dev_hdd0/game/MDFN90002/USRDIR/");
-#else
-//HACK: Hardcoded path, what a joke
-PathBuild			Paths("/Users/jason/.mednafen/");
 #endif
 
 namespace
@@ -26,7 +21,7 @@ namespace
 				
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
-					TextViewer(Paths.Build("mednafen/Readme.txt")).Do();
+					TextViewer(es_paths->Build("mednafen/Readme.txt")).Do();
 				}
 				
 				return false;

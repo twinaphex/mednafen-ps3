@@ -38,7 +38,7 @@ bool										Winterface::Draw									()
 	//HACK:
 	if(wimage == 0)
 	{
-		ImageManager::LoadDirectory(Paths.Build("assets/png/"));
+		ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
 		wimage = 1;
 	}
 

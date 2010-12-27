@@ -10,6 +10,8 @@ enum
 
 class				SDLInput : public ESInput
 {
+	friend class							SDLVideo;
+
 	public:
 											SDLInput				();
 											~SDLInput				();
@@ -33,12 +35,9 @@ class				SDLInput : public ESInput
 	
 		void								Assert					(uint32_t aPad, uint32_t aButton);
 		bool								IsJoystickButton		(uint32_t aButton);
-		static uint32_t						RefreshESInput			(uint32_t aInterval, void* aParam);
 		void								Refresh					();
 		
 		std::vector<SDL_Joystick*>			Joysticks;
-
-		SDL_TimerID							RefreshTimer;
 
 		uint32_t							KeyState[MAXKEYS];
 		uint32_t							KeySingle[MAXKEYS];

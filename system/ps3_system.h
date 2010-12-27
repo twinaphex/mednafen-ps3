@@ -5,10 +5,6 @@
 #include "src/ESAudio.h"
 #include "src/ESInput.h"
 
-extern ESVideo*			es_video;
-extern ESAudio*			es_audio;
-extern ESInput*			es_input;
-
 #ifdef L1GHT
 # include "l1ght/cell.h"
 # include "l1ght/L1ghtVideo.h"
@@ -45,7 +41,11 @@ extern ESInput*			es_input;
 #include "src/utility/TextViewer.h"
 #include "src/utility/Logger.h"
 
-
+extern ESVideo*			es_video;
+extern ESAudio*			es_audio;
+extern ESInput*			es_input;
+extern PathBuild*		es_paths;
+extern Logger*			es_log;
 
 void				InitES					(void (*aExitFunction)() = 0);
 void				QuitES					();
@@ -53,8 +53,5 @@ volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
 void				Abort					(const char* aMessage);
 
-extern				PathBuild				Paths;
-
-extern Logger* es_log;
 
 

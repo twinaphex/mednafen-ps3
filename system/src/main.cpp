@@ -4,6 +4,7 @@ Logger*				es_log = 0;
 ESVideo*			es_video = 0;
 ESAudio*			es_audio = 0;
 ESInput*			es_input = 0;
+PathBuild*			es_paths = 0;
 
 namespace
 {
@@ -18,6 +19,7 @@ ESAudio*			ESSUB_MakeAudio			();
 ESInput*			ESSUB_MakeInput			();
 bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
+std::string			ESSUB_GetBaseDirectory	();
 
 void				Abort					(const char* aMessage)
 {
@@ -36,6 +38,9 @@ void				InitES					(void (*aExitFunction)())
 	ExitFunction = aExitFunction;
 
 	ESSUB_Init();
+
+	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
+
 	es_video = ESSUB_MakeVideo();
 	es_audio = ESSUB_MakeAudio();
 	es_input = ESSUB_MakeInput();
@@ -56,6 +61,8 @@ void				QuitES					()
 	delete es_video;
 
 	ESSUB_Quit();
+	
+	delete es_paths;
 }
 
 volatile bool		WantToDie				()

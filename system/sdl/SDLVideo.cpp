@@ -32,12 +32,12 @@
 	delete FillerTexture;
 }
 
-//HACK:
-void				SetExit					();
+void					SetExit							();
 void					SDLVideo::Flip					()
 {
 	SDL_GL_SwapBuffers();
-	
+
+//TODO: Maybe a better place to handle the event loop	
 	SDL_Event event;
 	while(SDL_PollEvent(&event))
 	{
@@ -46,6 +46,9 @@ void					SDLVideo::Flip					()
 			SetExit();
 		}
 	}
+	
+	((SDLInput*)es_input)->Refresh();
+//TODO: Done with event loop
 	
 	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 	

@@ -44,3 +44,8 @@ volatile bool		ESSUB_WantToSleep		()
 {
 	return false;
 }
+
+std::string			ESSUB_GetBaseDirectory	()
+{
+	return std::string(getenv("HOME")) + "/.mednafen/";
+}

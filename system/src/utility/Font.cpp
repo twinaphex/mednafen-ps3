@@ -2,7 +2,7 @@
 
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
-	if(0 != FT_New_Face(FontManager::FreeType, aFixed ? Paths.Build("assets/font/fixed.ttf").c_str() : Paths.Build("assets/font/prop.ttf").c_str(), 0, &FontFace))
+	if(0 != FT_New_Face(FontManager::FreeType, aFixed ? es_paths->Build("assets/font/fixed.ttf").c_str() : es_paths->Build("assets/font/prop.ttf").c_str(), 0, &FontFace))
 	{
 		Abort("Font::Font: FT_New_Face failed");
 	}

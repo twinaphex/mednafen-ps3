@@ -18,7 +18,6 @@ MDFNGI*							GetNestopia				();
 MDFNGI*							GetGambatte				();
 extern "C" MDFNGI*				vbamGetVBAM				();
 
-extern PathBuild				Paths;
 extern std::vector<MDFNGI *>	MDFNSystems;
 
 

@@ -74,7 +74,7 @@ void						MednafenEmu::Init				()
 		GenerateSettings(Settings);
 		InputHandler::GenerateSettings(Settings);
 
-		MDFNI_Initialize(Paths.Build("mednafen").c_str(), Settings);
+		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
 	}
 	
 	IsInitialized = true;	

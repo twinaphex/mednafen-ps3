@@ -188,7 +188,7 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 		sprintf(Buffer, "RETR %s\n", Enumerators::CleanPath(aPath).c_str());
 		DoCommand(OutSocket, Buffer, 0, false);
 	
-		FILE* outputFile = fopen(Paths.Build("temp.ftp").c_str(), "wb");
+		FILE* outputFile = fopen(es_paths->Build("temp.ftp").c_str(), "wb");
 		uint32_t count;
 		
 		while((count = read(InSocket, Buffer, 2048)))
@@ -201,7 +201,7 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 		close(InSocket);
 		close(OutSocket);
 	
-		return Paths.Build("temp.ftp");
+		return es_paths->Build("temp.ftp");
 	}
 	else
 	{

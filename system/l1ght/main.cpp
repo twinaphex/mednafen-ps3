@@ -63,3 +63,8 @@ bool				ESSUB_WantToSleep		()
 	sysCheckCallback();
 	return want_to_sleep;
 }
+
+std::string			ESSUB_GetBaseDirectory	()
+{
+	return "/dev_hdd0/game/MDFN90002/USRDIR/";
+}

@@ -70,8 +70,8 @@ uint32_t							MednafenSettingButton::GetButton				()
 
 void							InputHandler::Process					()
 {
-	//TODO: Support more input types
-	for(int p = 0; p != GameInfo->InputInfo->InputPorts; p ++)	
+	//TODO: Support more input types, more than two controllers
+	for(int p = 0; p != GameInfo->InputInfo->InputPorts && p != 2; p ++)	
 	{
 		ControllerBits[p] = 0;
 

@@ -9,7 +9,6 @@
 using namespace Gambatte;
 
 #include "ps3_system.h"
-extern PathBuild Paths;
 
 namespace
 {
@@ -97,7 +96,7 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 	resampler = ResamplerInfo::get(0).create(2097152, 48000, 35112);
 	
 	//TODO: Move it
-	gambatte->set_savedir(Paths.Build("").c_str());
+	gambatte->set_savedir(es_paths->Build("").c_str());
 	
 	sampleoverflow = 0;
 	memset(samples, 0, sizeof(samples));
