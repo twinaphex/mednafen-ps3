@@ -6,9 +6,9 @@ CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
 
-CFLAGS		+= -DMDSDL -g -I/opt/local/include -I/opt/local/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
-CXXFLAGS	+= -DMDSDL -g -I/opt/local/include -I/opt/local/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
-LDFLAGS		+= `sdl-config --static-libs` -lpng
+CFLAGS		+= -DMDSDL -g -I/usr/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
+CXXFLAGS	+= -DMDSDL -g -I/usr/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
+LDFLAGS		+= `sdl-config --static-libs` -lGL -lpng
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c
