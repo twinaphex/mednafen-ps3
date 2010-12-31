@@ -50,7 +50,7 @@ class				Utility
 						continue;
 					}
 
-					if(aPath == "/" && (!strstr(item.d_name, "hdd") || !strstr(item.d_name, "usb")))
+					if(aPath == "/" && (!strstr(item.d_name, "hdd") && !strstr(item.d_name, "usb")))
 					{
 						continue;
 					}
