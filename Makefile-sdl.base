@@ -1,3 +1,4 @@
+PREFIX		:= i586-mingw32msvc-
 OBJCOPY		:= $(PREFIX)objcopy
 AR			:= $(PREFIX)ar
 AS			:= $(PREFIX)gcc
@@ -6,9 +7,9 @@ CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
 
-CFLAGS		+= -DMDSDL -g -I/usr/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
+CFLAGS		+= -DMDSDL -g -I/usr/include/freetype2 --std=gnu99 `/usr/i586-mingw32msvc/bin/sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
 CXXFLAGS	+= -DMDSDL -g -I/usr/include/freetype2 `sdl-config --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
-LDFLAGS		+= `sdl-config --static-libs` -lGL -lpng
+LDFLAGS		+= `/usr/i586-mingw32msvc/bin/sdl-config --static-libs` -lopengl32 -lpng -lwsock32
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c
@@ -58,7 +59,7 @@ export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 clean:
 	@echo Clean...

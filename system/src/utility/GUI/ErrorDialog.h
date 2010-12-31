@@ -14,3 +14,4 @@ class						ErrorDialog : public Winterface
 };
 
 #endif
+

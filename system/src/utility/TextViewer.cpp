@@ -88,3 +88,4 @@ void					TextViewer::LoadStream					(std::istream& aStream)
 	SideItems.push_back(new ListItem("[L1] Page Up", FontManager::GetSmallFont()));	
 	SideItems.push_back(new ListItem("[R1] Page Down", FontManager::GetSmallFont()));
 }
+

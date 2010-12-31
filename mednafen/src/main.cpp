@@ -151,7 +151,7 @@ int					main					(int argc, char* argv[])
 	
 		Exit();
 	}
-	catch(char* s)
+	catch(const char* s)
 	{
 		printf("%s\n", s);
 		Exit();

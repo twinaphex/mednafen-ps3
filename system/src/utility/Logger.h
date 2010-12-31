@@ -11,3 +11,4 @@ class				Logger : public TextViewer
 };
 
 #endif
+

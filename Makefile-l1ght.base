@@ -16,8 +16,8 @@ PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
 VPCOMP		:= $(PSL1GHT)/bin/vpcomp
 
-CFLAGS		+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-CXXFLAGS	+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PSL1GHT)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CFLAGS		+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PS3DEV)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CXXFLAGS	+= -DPLATFORM=\"l1ght\" -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PS3DEV)/ppu/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
 LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
@@ -101,7 +101,7 @@ export LIBPATHS :=      $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 clean:
 	@echo Clean...

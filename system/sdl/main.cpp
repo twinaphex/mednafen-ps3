@@ -49,3 +49,4 @@ std::string			ESSUB_GetBaseDirectory	()
 {
 	return std::string(getenv("HOME")) + "/.mednafen/";
 }
+

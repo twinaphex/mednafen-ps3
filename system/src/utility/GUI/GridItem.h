@@ -12,3 +12,4 @@ class								GridItem : public ListItem
 		virtual uint32_t			GetHeight							();
 };
 #endif
+

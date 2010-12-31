@@ -49,3 +49,4 @@ time is correct in the local time zone, and gmtime() for REMOTE* times.
 extern int ftpparse(struct ftpparse *,char *,int);
 
 #endif
+

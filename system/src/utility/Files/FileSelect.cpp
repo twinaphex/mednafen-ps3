@@ -81,3 +81,4 @@ bool									FileSelect::IsValid					()
 {
 	return Valid;
 }
+

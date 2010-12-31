@@ -1,5 +1,6 @@
 #include <mednafen_includes.h>
 
+#if 0
 static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 = 0)
 {
     int portno = atoi(aPort);
@@ -23,6 +24,7 @@ static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 =
 }
 
 static int		slocket;
+#endif
 
 void		MDFND_NetStart			()
 {

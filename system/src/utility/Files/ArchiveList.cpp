@@ -91,3 +91,4 @@ bool										ArchiveList::IsArchive						(const std::string& aFileName)
 
 	return true;
 }
+
