@@ -48,9 +48,9 @@ INCLUDE		:=	src include ../system $(MEDNAFENINCLUDES)
 LIBDIRS		:=	../system ../nestopia ../gambatte ../vbam
 
 ifeq ($(strip $(PLATFORM)),l1ght)
-	LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lfreetype -lsysmodule -lpngdec -lnet
+	LIBS		:=	-lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lsysutil -lio -lz -lm -lsysmodule -lnet
 else
-	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lfreetype
+	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm
 endif
 
 CFLAGS		+= -O2 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)

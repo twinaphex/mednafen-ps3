@@ -69,7 +69,7 @@ volatile bool		WantToDie				()
 {
 	want_to_die = ESSUB_WantToDie();
 
-	if(want_to_die)
+	if(want_to_die && ExitFunction)
 	{
 		ExitFunction();
 		exit(1);

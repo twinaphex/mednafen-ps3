@@ -1,4 +1,7 @@
-PREFIX		:= ppu-
+ifeq ($(strip $(PREFIX)),)
+PREFIX=ppu-
+endif
+
 OBJCOPY		:= $(PREFIX)objcopy
 AR			:= $(PREFIX)ar
 AS			:= $(PREFIX)gcc
@@ -16,9 +19,15 @@ PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
 VPCOMP		:= $(PSL1GHT)/bin/vpcomp
 
-CFLAGS		+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PS3DEV)/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include -I$(PS3DEV)/ppu/include/freetype2 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng
+
+ifeq ($(strip $(FREETYPECONFIG)),)
+FREETYPECONFIG=freetype-config
+endif
+
+
+CFLAGS		+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs`
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c

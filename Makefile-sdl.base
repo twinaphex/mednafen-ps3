@@ -1,4 +1,3 @@
-PREFIX		:= i586-mingw32msvc-
 OBJCOPY		:= $(PREFIX)objcopy
 AR			:= $(PREFIX)ar
 AS			:= $(PREFIX)gcc
@@ -11,9 +10,13 @@ ifeq ($(strip $(SDLCONFIG)),)
 SDLCONFIG=sdl-config
 endif
 
-CFLAGS		+= -DMDSDL -g -I/usr/include/freetype2 --std=gnu99 `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
-CXXFLAGS	+= -DMDSDL -g -I/usr/include/freetype2 `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
-LDFLAGS		+= `$(SDLCONFIG) --static-libs` -lpng
+ifeq ($(strip $(FREETYPECONFIG)),)
+FREETYPECONFIG=freetype-config
+endif
+
+CFLAGS		+= -DMDSDL -g --std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
+CXXFLAGS	+= -DMDSDL -g `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
+LDFLAGS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 ifeq ($(strip $(TARGETPLATFORM)),windows)
