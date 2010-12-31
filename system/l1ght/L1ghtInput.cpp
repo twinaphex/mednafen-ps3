@@ -4,6 +4,8 @@ namespace
 {
 	uint32_t		ButtonIndex[][2] = {{2,8}, {2, 1}, {3, 0x80}, {3, 0x40}, {3, 0x10}, {3, 0x20}, {2, 0x10}, {2, 0x40}, {2, 0x80}, {2, 0x20}, {3, 4}, {3, 1}, {2, 2}, {3, 8}, {3, 2}, {2, 4}};
 	std::string		ButtonNames[16] = {"START", "SELECT", "SQUARE", "CROSS", "TRIANGLE", "CIRCLE", "UP", "DOWN", "LEFT", "RIGHT", "L1", "L2", "L3", "R1", "R2", "R3"};	
+	enum{PS3_AXIS_LEFT_Y, PS3_AXIS_LEFT_X, PS3_AXIS_RIGHT_Y, PS3_AXIS_RIGHT_X, PS3_AXIS_COUNT};
+
 }
 
 					L1ghtInput::L1ghtInput					()
@@ -47,13 +49,20 @@ void				L1ghtInput::Reset						()
 
 int32_t				L1ghtInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 {
-	//TODO: 
-	return 0;
+	Assert(aPad, 0, aAxis);
+
+	int realaxis = AXISCOUNT + (AXISCOUNT - 1 - aAxis);
+	return (int16_t)(CurrentState[aPad].button[realaxis]) - 0x80;
 }
 
 bool				L1ghtInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
+
+	if(aButton == ES_BUTTON_UP && GetAxis(aPad, PS3_AXIS_LEFT_Y) < -0x40)	return true;
+	if(aButton == ES_BUTTON_DOWN && GetAxis(aPad, PS3_AXIS_LEFT_Y) > 0x40)	return true;	
+	if(aButton == ES_BUTTON_LEFT && GetAxis(aPad, PS3_AXIS_LEFT_X) < -0x40)return true;
+	if(aButton == ES_BUTTON_RIGHT && GetAxis(aPad, PS3_AXIS_LEFT_X) > 0x40)return true;
 
 	return HeldState[aPad][aButton];
 }
@@ -87,9 +96,9 @@ std::string			L1ghtInput::GetButtonName				(uint32_t aButton)
 	return ButtonNames[aButton];
 }
 
-void				L1ghtInput::Assert						(uint32_t aPad, uint32_t aButton)
+void				L1ghtInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
 {
-	if(aPad >= MAXPADS || aButton >= BUTTONS)
+	if(aPad >= MAXPADS || aButton >= BUTTONS || aAxis >= AXISCOUNT)
 	{
 		Abort("L1ghtInput: Pad or Button out of range");
 	}

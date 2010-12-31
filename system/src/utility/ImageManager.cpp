@@ -59,8 +59,12 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 	
 		if (setjmp(png_jmpbuf(png_ptr)))
 			Abort("[read_png_file] Error during read_image");
-	
+
+#ifdef L1GHT	
 		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_SWAP_ALPHA, 0);
+#else
+		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_BGR, 0);
+#endif
 	
 		fclose(fp);
 

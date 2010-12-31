@@ -47,6 +47,12 @@ volatile bool		ESSUB_WantToSleep		()
 
 std::string			ESSUB_GetBaseDirectory	()
 {
+#ifndef __WIN32__
 	return std::string(getenv("HOME")) + "/.mednafen/";
+#else
+	char path[MAX_PATH];
+	SHGetFolderPathA(0, CSIDL_APPDATA, 0, 0, path);
+	return std::string(path) + "/mednafen/";
+#endif
 }
 

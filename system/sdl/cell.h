@@ -29,6 +29,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #else
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <shlobj.h>
 #include <winsock.h>
 #endif
 

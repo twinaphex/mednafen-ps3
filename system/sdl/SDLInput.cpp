@@ -82,11 +82,14 @@ uint32_t			SDLInput::GetAnyButton					(uint32_t aPad)
 		}
 	}
 
-	for(int i = 0; i != (SDL_JoystickNumAxes(Joysticks[aPad]) * 2 + SDL_JoystickNumHats(Joysticks[aPad]) * 4 + SDL_JoystickNumButtons(Joysticks[aPad])); i ++)
+	if(Joysticks.size() > aPad)
 	{
-		if(HeldState[aPad][i])
+		for(int i = 0; i != (SDL_JoystickNumAxes(Joysticks[aPad]) * 2 + SDL_JoystickNumHats(Joysticks[aPad]) * 4 + SDL_JoystickNumButtons(Joysticks[aPad])); i ++)
 		{
-			return i;
+			if(HeldState[aPad][i])
+			{
+				return i;
+			}
 		}
 	}
 

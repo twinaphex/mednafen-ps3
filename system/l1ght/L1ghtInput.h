@@ -31,7 +31,7 @@ class				L1ghtInput : public ESInput
 		static const uint32_t		BUTTONS = 16;
 		static const uint32_t		AXISCOUNT = 4;
 
-		void						Assert					(uint32_t aPad, uint32_t aButton);
+		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
 
 		static void					ProcessInputThread		(uint64_t aBcD);
 		void						Refresh					();
