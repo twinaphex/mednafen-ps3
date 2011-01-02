@@ -43,6 +43,10 @@ typedef long (*SIO1open)(unsigned long *);
 
 #include <windows.h>
 
+//ROBO: No __stdcall
+#undef CALLBACK
+#define CALLBACK
+
 typedef long (CALLBACK* GPUopen)(HWND);
 typedef long (CALLBACK* SPUopen)(HWND);
 typedef long (CALLBACK* PADopen)(HWND);

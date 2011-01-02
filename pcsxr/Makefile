@@ -6,12 +6,12 @@ endif
 TARGET		:=	libpcsxr
 TYPE		:=	a
 BUILD		:=	build
-SOURCE		:=	src/libpcsxcore src src/dfxvideo 
+SOURCE		:=	src/libpcsxcore src src/dfxvideo src/dfinput src/spunull
 INCLUDE		:=	src src/libpcsxcore ../mednafen/src
 DATA		:=	bin
 LIBS		:=	
 LIBDIRS		:=	
-CFLAGS		:=-O2 -DNOPSXREC -fgnu89-inline
+CFLAGS		:=-O2 -DNOPSXREC -fgnu89-inline -D_WINDOWS
 CXXFLAGS	:=-O2 -DNOPSXREC
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))

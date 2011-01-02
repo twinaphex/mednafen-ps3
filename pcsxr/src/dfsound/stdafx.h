@@ -29,8 +29,6 @@
 #define INLINE __inline
 #endif
 
-#include "resource.h"
-
 #pragma warning (disable:4996)
 
 #else

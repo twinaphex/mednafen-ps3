@@ -13,7 +13,7 @@ extern "C"
 {
 	void		SysInit					();
 	void		SysClose				();
-	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch);
+	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys);
 }
 
 int				PcsxrLoad				(const char *name, MDFNFILE *fp)
@@ -67,7 +67,7 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
     {
     }
 
-	SysFrame(espec->surface->pixels, espec->surface->pitch32);
+	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8));
 
     //TODO: Support color shift
     //TODO: Support multiplayer
@@ -98,14 +98,22 @@ void			PcsxrDoSimpleCommand	(int cmd)
 
 static const InputDeviceInputInfoStruct GamepadIDII[] =
 {
- { "a", "A", 7, IDIT_BUTTON_CAN_RAPID, NULL },
- { "b", "B", 6, IDIT_BUTTON_CAN_RAPID, NULL },
- { "select", "SELECT", 4, IDIT_BUTTON, NULL },
- { "start", "START", 5, IDIT_BUTTON, NULL },
- { "up", "UP", 0, IDIT_BUTTON, "down" },
+ { "select", "SELECT", 15, IDIT_BUTTON, NULL },
+ { "l3", "L3", 13, IDIT_BUTTON, NULL },
+ { "r3", "R3", 10, IDIT_BUTTON, NULL },
+ { "start", "START", 14, IDIT_BUTTON, NULL },
+ { "up", "UP", 0, IDIT_BUTTON, "down"},
+ { "right", "RIGHT", 3, IDIT_BUTTON, "left" },
  { "down", "DOWN", 1, IDIT_BUTTON, "up" },
  { "left", "LEFT", 2, IDIT_BUTTON, "right" },
- { "right", "RIGHT", 3, IDIT_BUTTON, "left" },
+ { "l2", "L2", 12, IDIT_BUTTON, NULL },
+ { "r2", "R2", 9, IDIT_BUTTON, NULL },
+ { "l1", "L1", 11, IDIT_BUTTON, NULL },
+ { "r1", "R1", 8, IDIT_BUTTON, NULL },
+ { "triangle", "TRIANGLE", 4, IDIT_BUTTON, 0 },
+ { "circle", "CIRCLE", 5, IDIT_BUTTON, 0 },
+ { "cross", "CROSS", 6, IDIT_BUTTON, 0 },
+ { "square", "SQUARE", 7, IDIT_BUTTON, 0 },
 };
 
 static InputDeviceInfoStruct InputDeviceInfoPSXPort[] =

@@ -719,12 +719,12 @@ int LoadPlugins() {
 
 	ReleasePlugins();
 
-	if (UsingIso()) {
+//	if (UsingIso()) {
 		LoadCDRplugin(NULL);
-	} else {
-		sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Cdr);
-		if (LoadCDRplugin(Plugin) == -1) return -1;
-	}
+//	} else {
+//		sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Cdr);
+//		if (LoadCDRplugin(Plugin) == -1) return -1;
+//	}
 
 	sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Gpu);
 	if (LoadGPUplugin(Plugin) == -1) return -1;

@@ -31,6 +31,12 @@
 #include <sys/time.h>
 #endif
 
+//ROBO: No __stdcall
+#ifdef CALLBACK
+#undef CALLBACK
+#endif
+#define CALLBACK
+
 static FILE *cdHandle = NULL;
 static FILE *cddaHandle = NULL;
 static FILE *subHandle = NULL;

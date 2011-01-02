@@ -51,9 +51,7 @@ namespace
 }
 
 
-
-//Not yet
-//extern MDFNGI*				GetPCSX();
+extern MDFNGI*				GetPCSX();
 void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
@@ -66,7 +64,7 @@ void						MednafenEmu::Init				()
 		Buffer = es_video->CreateTexture(1920, 1080);
 
 		std::vector<MDFNGI*> externalSystems;
-//Not yet		externalSystems.push_back(GetPCSX());
+		externalSystems.push_back(GetPCSX());
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
 #ifdef L1GHT

@@ -1,61 +1,62 @@
 #include "psxcommon.h"
 #include "plugins.h"
 #include "dfxvideo/externals.h"
+#include "dfinput/pad.h"
 
-void CALLBACK			laGPUinit();
+void			laGPUinit();
 long					laGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
-long CALLBACK			laGPUclose();
-long CALLBACK			laGPUshutdown();
-void CALLBACK			laGPUupdateLace(void); // VSYNC
-uint32_t CALLBACK		laGPUreadStatus(void); // READ STATUS
-void CALLBACK			laGPUwriteStatus(uint32_t gdata);
-void CALLBACK			laGPUreadDataMem(uint32_t * pMem, int iSize);
-uint32_t CALLBACK		laGPUreadData(void);
-void CALLBACK			laGPUwriteDataMem(uint32_t * pMem, int iSize);
-void CALLBACK			laGPUwriteData(uint32_t gdata);
-long CALLBACK			laGPUconfigure(void);
-long CALLBACK			laGPUdmaChain(uint32_t * baseAddrL, uint32_t addr);
-void CALLBACK			laGPUabout(void); // ABOUT
-long CALLBACK			laGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
-void CALLBACK			laGPUshowScreenPic(unsigned char * pMem);
-void CALLBACK			laGPUvBlank(int val);
+long			laGPUclose();
+long			laGPUshutdown();
+void			laGPUupdateLace(void); // VSYNC
+uint32_t		laGPUreadStatus(void); // READ STATUS
+void			laGPUwriteStatus(uint32_t gdata);
+void			laGPUreadDataMem(uint32_t * pMem, int iSize);
+uint32_t		laGPUreadData(void);
+void			laGPUwriteDataMem(uint32_t * pMem, int iSize);
+void			laGPUwriteData(uint32_t gdata);
+long			laGPUconfigure(void);
+long			laGPUdmaChain(uint32_t * baseAddrL, uint32_t addr);
+void			laGPUabout(void); // ABOUT
+long			laGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
+void			laGPUshowScreenPic(unsigned char * pMem);
+void			laGPUvBlank(int val);
 void					laGPUkeypressed(int keycode){}
 long					laGPUtest();
 
-long					auSPUopen (void){return 0;};
-long CALLBACK			auSPUinit(void){return 0;};
-long CALLBACK			auSPUshutdown(void){return 0;};
-long CALLBACK			auSPUclose(void){return 0;};
-void CALLBACK			auSPUplaySample(unsigned char u){};
-void CALLBACK			auSPUwriteRegister(unsigned long u, unsigned short y){};
-unsigned short CALLBACK auSPUreadRegister(unsigned long u){return 0;};
-void CALLBACK			auSPUwriteDMA(unsigned short u){};
-unsigned short CALLBACK	auSPUreadDMA(void){return 0;};
-void CALLBACK			auSPUwriteDMAMem(unsigned short *i, int l){};
-void CALLBACK			auSPUreadDMAMem(unsigned short *i, int l){};
-void CALLBACK			auSPUplayADPCMchannel(xa_decode_t *n){};
-void CALLBACK			auSPUregisterCallback(void (CALLBACK *callback)(void)){};
-long CALLBACK			auSPUconfigure(void){return 0;};
-long CALLBACK			auSPUtest(void){return 0;};
-void CALLBACK			auSPUabout(void){};
-long CALLBACK			auSPUfreeze(uint32_t i, SPUFreeze_t *j){return 0;};
-void CALLBACK			auSPUasync(uint32_t o){};
-void CALLBACK			auSPUplayCDDAchannel(short * m, int i){};
+long			auSPUopen (void);
+long			auSPUinit(void);
+long			auSPUshutdown(void);
+long			auSPUclose(void);
+void			auSPUplaySample(unsigned char u);
+void			auSPUwriteRegister(unsigned long u, unsigned short y);
+unsigned short	auSPUreadRegister(unsigned long u);
+void			auSPUwriteDMA(unsigned short u);
+unsigned short	auSPUreadDMA(void);
+void			auSPUwriteDMAMem(unsigned short *i, int l);
+void			auSPUreadDMAMem(unsigned short *i, int l);
+void			auSPUplayADPCMchannel(xa_decode_t *n);
+void			auSPUregisterCallback(void (*callback)(void));
+long			auSPUconfigure(void);
+long			auSPUtest(void);
+void			auSPUabout(void);
+long			auSPUfreeze(uint32_t i, SPUFreeze_t *j);
+void			auSPUasync(uint32_t o);
+void			auSPUplayCDDAchannel(short * m, int i);
 
-long inPADinit(long flags){return 0;}
-long inPADshutdown(void){return 0;}
-long inPADopen(unsigned long *Disp){return 0;};
-long inPADclose(void){return 0;}
-long inPADquery(void){return 0;}
-unsigned char inPADstartPoll(int pad){return 0;}
-unsigned char inPADpoll(unsigned char value){return 0;}
-static long inPADreadPort(int num, PadDataS *pad){return 0;}
-long inPADreadPort1(PadDataS *pad){return 0;}
-long inPADreadPort2(PadDataS *pad){return 0;}
-long inPADkeypressed(void){return 0;}
-long inPADconfigure(void){return 0;}
-void inPADabout(void){return;}
-long inPADtest(void){return 0;}
+long			inPADinit(long flags);
+long			inPADshutdown(void);
+long			inPADopen(unsigned long *Disp);
+long			inPADclose(void);
+long			inPADquery(void);
+unsigned char	inPADstartPoll(int pad);
+unsigned char	inPADpoll(unsigned char value);
+long			inPADreadPort(int num, PadDataS *pad);
+long			inPADreadPort1(PadDataS *pad);
+long			inPADreadPort2(PadDataS *pad);
+long			inPADkeypressed(void);
+long			inPADconfigure(void);
+void			inPADabout(void);
+long			inPADtest(void);
 
 void ClosePlugins()
 {
@@ -127,8 +128,8 @@ void*		SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "SPUplayADPCMchannel") == 0) return auSPUplayADPCMchannel;
     if(strcmp(sym, "SPUfreeze") == 0) return auSPUfreeze;
     if(strcmp(sym, "SPUregisterCallback") == 0) return auSPUregisterCallback;
-    if(strcmp(sym, "SPUasync") == 0) return auSPUasync;
-    if(strcmp(sym, "SPUplayCDDAchannel") == 0) return auSPUplayCDDAchannel;
+//    if(strcmp(sym, "SPUasync") == 0) return auSPUasync;
+//    if(strcmp(sym, "SPUplayCDDAchannel") == 0) return auSPUplayCDDAchannel;
 
     if(strcmp(sym, "PADinit") == 0) return inPADinit;
     if(strcmp(sym, "PADshutdown") == 0) return inPADshutdown;
@@ -147,7 +148,7 @@ void*		SysLoadSym			(void *lib, const char *sym)
 
 
 	printf("Not Loaded Sym: %s\n", sym);
-	return 0;
+	return PI;
 }
 
 void SysUpdate()
@@ -182,7 +183,7 @@ int SysInit()
     strcpy(Config.BiosDir, "C:\\Users\\Jason\\Desktop\\");
     strcpy(Config.Bios, "SCPH1001.BIN");
 
-    SetIsoFile("C:\\Users\\Jason\\Desktop\\Beyond the Beyond.bin");
+    SetIsoFile("C:\\Users\\Jason\\Desktop\\test.bin");
 
 	EmuInit();
 	LoadPlugins();
@@ -205,15 +206,20 @@ int SysInit()
 
 //Execute a frame and grab the frame from the Video plugin.
 //This won't work without a patch to the psx cpu to return on vblanks
-void		SysFrame			(uint32_t* aPixels, uint32_t aPitch)
+void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys)
 {
+	printf("%d\n", aKeys);
+
+	g.PadState[0].JoyKeyStatus = ~aKeys;
+	g.PadState[0].KeyStatus = ~aKeys;
+
 	psxCpu->Execute();
 
-	for(int i = 0; i != 512; i++)
+	for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
 	{
-		int startxy = (1024 * i);
+		int startxy = (1024 * (i + PSXDisplay.DisplayPosition.x)) + PSXDisplay.DisplayPosition.x;
 		uint32_t* destpix = &aPixels[aPitch * i];
-		for(int j = 0; j != 1024; j++)
+		for(int j = 0; j != PSXDisplay.DisplayMode.x; j++)
 		{
 			int s = psxVuw[startxy++];
 			destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;

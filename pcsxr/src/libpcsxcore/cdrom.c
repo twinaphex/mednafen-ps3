@@ -126,6 +126,12 @@ static struct SubQ *subq;
 extern unsigned int msf2sec(char *msf);
 extern void sec2msf(unsigned int s, char *msf);
 
+//ROBO: No __stdcall
+#ifdef CALLBACK
+#undef CALLBACK
+#endif
+#define CALLBACK
+
 
 extern u16 *iso_play_cdbuf;
 extern u16 iso_play_bufptr;

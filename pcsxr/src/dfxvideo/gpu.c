@@ -1,3 +1,5 @@
+//Lazy updates fix? Gone I guess
+
 /***************************************************************************
                           gpu.c  -  description
                              -------------------
@@ -17,15 +19,15 @@
 
 #define _IN_GPU
 
+#include <string.h>
+#include <stdlib.h>
+
 #include "externals.h"
 #include "gpu.h"
 #include "prim.h"
 #include "stdint.h"
 #include "psemu_plugin_defs.h"
 #include "swap.h"
-
-#define _(x)  (x)
-#define N_(x) (x)
 
 //From elsewhere
 unsigned int  dwGPUVersion=0;
@@ -38,64 +40,43 @@ unsigned short sSetMask;
 unsigned long  lSetMask;
 
 ////////////////////////////////////////////////////////////////////////
-// PPDK developer must change libraryName field and can change revision and build
-////////////////////////////////////////////////////////////////////////
-
-const  unsigned char version  = 1;    // do not touch - library for PSEmu 1.x
-const  unsigned char revision = 1;
-const  unsigned char build    = 17;   // increase that with each version
-
-static char *libraryName      = N_("Soft Driver");
-static char *libraryInfo      = N_("P.E.Op.S. Soft Driver V1.17\nCoded by Pete Bernert and the P.E.Op.S. team\n");
-static char *PluginAuthor     = N_("Pete Bernert and the P.E.Op.S. team");
-
-////////////////////////////////////////////////////////////////////////
 // memory image of the PSX vram 
 ////////////////////////////////////////////////////////////////////////
-
-unsigned char  *psxVSecure;
-unsigned char  *psxVub;
-signed   char  *psxVsb;
-unsigned short *psxVuw;
-unsigned short *psxVuw_eom;
-signed   short *psxVsw;
-uint32_t  *psxVul;
-int32_t  *psxVsl;
+unsigned char			*psxVSecure;
+unsigned char			*psxVub;
+signed   char			*psxVsb;
+unsigned short			*psxVuw;
+unsigned short			*psxVuw_eom;
+signed   short			*psxVsw;
+uint32_t				*psxVul;
+int32_t					*psxVsl;
 
 ////////////////////////////////////////////////////////////////////////
 // GPU globals
 ////////////////////////////////////////////////////////////////////////
 
-static long       lGPUdataRet;
-long              lGPUstatusRet;
-char              szDispBuf[64];
-char              szMenuBuf[36];
-char              szDebugText[512];
-uint32_t     ulStatusControl[256];
+static long				lGPUdataRet;
+long					lGPUstatusRet;
+uint32_t				ulStatusControl[256];
 
-static uint32_t gpuDataM[256];
-static unsigned   char gpuCommand = 0;
-static long       gpuDataC = 0;
-static long       gpuDataP = 0;
+//Command buffer data
+static uint32_t			gpuDataM[256];
+static unsigned char	gpuCommand = 0;
+static long				gpuDataC = 0;
+static long				gpuDataP = 0;
 
-VRAMLoad_t        VRAMWrite;
-VRAMLoad_t        VRAMRead;
-DATAREGISTERMODES DataWriteMode;
-DATAREGISTERMODES DataReadMode;
+//Block transfer value
+VRAMLoad_t				VRAMWrite;
+VRAMLoad_t				VRAMRead;
+DATAREGISTERMODES		DataWriteMode;
+DATAREGISTERMODES		DataReadMode;
 
-BOOL              bSkipNextFrame = FALSE;
-DWORD             dwLaceCnt=0;
-int               iColDepth;
-int               iWindowMode;
-short             sDispWidths[8] = {256,320,512,640,368,384,512,640};
-PSXDisplay_t      PSXDisplay;
-PSXDisplay_t      PreviousPSXDisplay;
-long              lSelectedSlot=0;
-BOOL              bChangeWinMode=FALSE;
-BOOL              bDoLazyUpdate=FALSE;
-uint32_t          lGPUInfoVals[16];
-static int        iFakePrimBusy=0;
-uint32_t          vBlank=0;
+short					sDispWidths[8] = {256,320,512,640,368,384,512,640};
+PSXDisplay_t			PSXDisplay;
+PSXDisplay_t			PreviousPSXDisplay;
+uint32_t				lGPUInfoVals[16];
+static int				iFakePrimBusy=0;
+uint32_t        		vBlank=0;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -105,8 +86,6 @@ uint32_t          vBlank=0;
 long CALLBACK laGPUinit()                                // GPU INIT
 {
  memset(ulStatusControl,0,256*sizeof(uint32_t));  // init save state scontrol field
-
- szDebugText[0] = 0;                                     // init debug text buffer
 
  psxVSecure = (unsigned char *)malloc((iGPUHeight*2)*1024 + (1024*1024)); // always alloc one extra MB for soft drawing funcs security
  if (!psxVSecure)
@@ -164,15 +143,9 @@ long CALLBACK laGPUinit()                                // GPU INIT
 ////////////////////////////////////////////////////////////////////////
 long laGPUopen(unsigned long * disp,char * CapText,char * CfgFile)
 {
- unsigned long d = 1;
-
  bDoVSyncUpdate = TRUE;
 
- if(disp)
-	*disp=d;                                     // wanna x pointer? ok
-
- if(d) return 0;
- return -1;
+ return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -295,13 +268,6 @@ void CALLBACK laGPUupdateLace(void)                      // VSYNC
  if(PSXDisplay.Interlaced)                             // interlaced mode?
   {
    lGPUstatusRet^=0x80000000;
-  }
- else                                                  // non-interlaced?
-  {
-   if(dwActFixes&64)                                   // lazy screen update fix
-    {
-     bDoLazyUpdate=FALSE;
-    }
   }
 
  bDoVSyncUpdate=FALSE;                                 // vsync done
@@ -458,10 +424,6 @@ void CALLBACK laGPUwriteStatus(uint32_t gdata)      // WRITE STATUS
  
      bDoVSyncUpdate=TRUE;
 
-     if (!(PSXDisplay.Interlaced))                      // stupid frame skipping option
-      {
-       if(dwActFixes&64) bDoLazyUpdate=TRUE;
-      }
     }return;
    //--------------------------------------------------//
    // setting width
@@ -824,8 +786,7 @@ ENDVRAM:
  if(DataWriteMode==DR_NORMAL)
   {
    void (* *primFunc)(unsigned char *);
-   if(bSkipNextFrame) primFunc=primTableSkip;
-   else               primFunc=primTableJ;
+   primFunc=primTableJ;
 
    for(;i<iSize;)
     {
@@ -971,10 +932,6 @@ void laGPUgetScreenPic(unsigned char * pMem){memset(pMem, 0, 128 * 96 * 3);}
 void CALLBACK laGPUshowScreenPic(unsigned char * pMem){}
 void CALLBACK laGPUsetfix(uint32_t dwFixBits){dwEmuFixes=dwFixBits;}
 void CALLBACK laGPUvBlank( int val ){vBlank = val;}
-char * CALLBACK PSEgetLibName(void){return _(libraryName);}
-unsigned long CALLBACK PSEgetLibType(void){return  PSE_LT_GPU;}
-unsigned long CALLBACK PSEgetLibVersion(void){return version<<16|revision<<8|build;}
-char * laGPUgetLibInfos(void){return _(libraryInfo);}
 void CALLBACK laGPUmakeSnapshot(void){}
 long CALLBACK laGPUclose(){return 0;}
 long CALLBACK laGPUshutdown(){free(psxVSecure);return 0;}
