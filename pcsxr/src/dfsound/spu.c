@@ -81,6 +81,9 @@ int             bSPUIsOpen=0;
 
 unsigned long dwNewChannel=0;                          // flags for faster testing, if new channel starts
 
+#undef CALLBACK
+#define CALLBACK
+
 void (CALLBACK *irqCallback)(void)=0;                  // func of main emu, called on spu irq
 void (CALLBACK *cddavCallback)(unsigned short,unsigned short)=0;
 
@@ -1092,7 +1095,6 @@ long CALLBACK auSPUinit(void)
  iSPUIRQWait = 1;
  lastch = -1;
 
- ReadConfig();                                         // read user stuff
  SetupStreams();                                       // prepare streaming
 
  return 0;

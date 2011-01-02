@@ -15,6 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#undef CALLBACK
+#define CALLBACK
+
 void SetupTimer(void);
 void RemoveTimer(void);
 void CALLBACK SPUplayADPCMchannel(xa_decode_t *xap);

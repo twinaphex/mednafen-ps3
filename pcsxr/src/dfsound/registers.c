@@ -46,6 +46,9 @@
 // WRITE REGISTERS: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
+#undef CALLBACK
+#define CALLBACK
+
 void CALLBACK auSPUwriteRegister(unsigned long reg, unsigned short val)
 {
  const unsigned long r=reg&0xfff;

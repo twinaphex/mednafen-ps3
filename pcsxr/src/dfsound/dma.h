@@ -25,6 +25,9 @@
 //*************************************************************************//
 
 
+#undef CALLBACK
+#define CALLBACK
+
 unsigned short CALLBACK SPUreadDMA(void);
 void CALLBACK SPUreadDMAMem(unsigned short * pusPSXMem,int iSize);
 void CALLBACK SPUwriteDMA(unsigned short val);

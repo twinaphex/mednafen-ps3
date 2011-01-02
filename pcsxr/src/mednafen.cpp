@@ -13,7 +13,7 @@ extern "C"
 {
 	void		SysInit					();
 	void		SysClose				();
-	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys);
+	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 }
 
 int				PcsxrLoad				(const char *name, MDFNFILE *fp)
@@ -67,21 +67,18 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
     {
     }
 
-	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8));
+	uint32_t width, height;
+	uint32_t sndsize;
+	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)espec->SoundBuf, &sndsize);
+	espec->SoundBufSize = sndsize;
 
     //TODO: Support color shift
     //TODO: Support multiplayer
 
-    if(espec->SoundBuf && (espec->SoundBufMaxSize > espec->SoundRate / 60))
-    {
-        espec->SoundBufSize = 48000 / 60;
-        memset(espec->SoundBuf, 0, espec->SoundBufSize * 2);
-    }
-
     espec->DisplayRect.x = 0;
     espec->DisplayRect.y = 0;
-    espec->DisplayRect.w = 1024;
-    espec->DisplayRect.h = 512;
+    espec->DisplayRect.w = width;
+    espec->DisplayRect.h = height;
 }
 
 void			PcsxrSetInput			(int port, const char *type, void *ptr)
@@ -194,7 +191,7 @@ MDFNGI	PcsxrInfo =
 	nominal_height:		512,
 	fb_width:			1024,
 	fb_height:			512,
-	soundchan:			1
+	soundchan:			2
 };
 	
 MDFNGI* GetPCSX()

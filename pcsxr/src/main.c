@@ -4,7 +4,7 @@
 #include "dfinput/pad.h"
 
 void			laGPUinit();
-long					laGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
+long			laGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
 long			laGPUclose();
 long			laGPUshutdown();
 void			laGPUupdateLace(void); // VSYNC
@@ -20,8 +20,8 @@ void			laGPUabout(void); // ABOUT
 long			laGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
 void			laGPUshowScreenPic(unsigned char * pMem);
 void			laGPUvBlank(int val);
-void					laGPUkeypressed(int keycode){}
-long					laGPUtest();
+void			laGPUkeypressed(int keycode){}
+long			laGPUtest();
 
 long			auSPUopen (void);
 long			auSPUinit(void);
@@ -67,7 +67,6 @@ int PI()
 	return 0;
 }
 
-extern int wanna_leave;
 
 void SysPrintf(const char *fmt, ...)
 {
@@ -128,8 +127,8 @@ void*		SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "SPUplayADPCMchannel") == 0) return auSPUplayADPCMchannel;
     if(strcmp(sym, "SPUfreeze") == 0) return auSPUfreeze;
     if(strcmp(sym, "SPUregisterCallback") == 0) return auSPUregisterCallback;
-//    if(strcmp(sym, "SPUasync") == 0) return auSPUasync;
-//    if(strcmp(sym, "SPUplayCDDAchannel") == 0) return auSPUplayCDDAchannel;
+    if(strcmp(sym, "SPUasync") == 0) return auSPUasync;
+    if(strcmp(sym, "SPUplayCDDAchannel") == 0) return auSPUplayCDDAchannel;
 
     if(strcmp(sym, "PADinit") == 0) return inPADinit;
     if(strcmp(sym, "PADshutdown") == 0) return inPADshutdown;
@@ -151,16 +150,15 @@ void*		SysLoadSym			(void *lib, const char *sym)
 	return PI;
 }
 
-void SysUpdate()
+//Setting wanna_leave to 1 causes the cpu emu to return
+extern int wanna_leave;
+void				SysUpdate()
 {
 	wanna_leave = 1;
 }
 
-void SysRunGui()
-{
-}
-
-void SysReset(){}
+void				SysRunGui()		{/* Nothing */}
+void				SysReset()		{/* TODO */}
 
 void SysClose()
 {
@@ -206,10 +204,11 @@ int SysInit()
 
 //Execute a frame and grab the frame from the Video plugin.
 //This won't work without a patch to the psx cpu to return on vblanks
-void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys)
-{
-	printf("%d\n", aKeys);
+extern uint8_t SoundBuf[48000];
+extern uint32_t SoundBufLen;
 
+void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
+{
 	g.PadState[0].JoyKeyStatus = ~aKeys;
 	g.PadState[0].KeyStatus = ~aKeys;
 
@@ -217,7 +216,7 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys)
 
 	for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
 	{
-		int startxy = (1024 * (i + PSXDisplay.DisplayPosition.x)) + PSXDisplay.DisplayPosition.x;
+		int startxy = (1024 * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
 		uint32_t* destpix = &aPixels[aPitch * i];
 		for(int j = 0; j != PSXDisplay.DisplayMode.x; j++)
 		{
@@ -225,4 +224,11 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys)
 			destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
 		}
 	}
+
+	*aWidth = PSXDisplay.DisplayMode.x;
+	*aHeight = PSXDisplay.DisplayMode.y;
+
+	memcpy(aSound, SoundBuf, SoundBufLen);
+	*aSoundLen = SoundBufLen / 4;
+	SoundBufLen = 0;
 }
