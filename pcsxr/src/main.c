@@ -151,20 +151,23 @@ void*		SysLoadSym			(void *lib, const char *sym)
 }
 
 //Setting wanna_leave to 1 causes the cpu emu to return
-extern int wanna_leave;
-void				SysUpdate()
-{
-	wanna_leave = 1;
-}
-
+extern int			wanna_leave;
+void				SysUpdate()		{wanna_leave = 1;}
 void				SysRunGui()		{/* Nothing */}
 void				SysReset()		{/* TODO */}
+void				SysClose()		{EmuShutdown();ReleasePlugins();}
 
-void SysClose()
+
+//MCD hack
+static char*		MCD1[MAXPATHLEN];
+static char*		MCD2[MAXPATHLEN];
+void				SetMCDS			(const char* aOne, const char* aTwo)
 {
-    EmuShutdown();
-    ReleasePlugins();
+	if(aOne)strncpy(MCD1, aOne, MAXPATHLEN);
+	if(aTwo)strncpy(MCD2, aTwo, MAXPATHLEN);
 }
+
+uint32_t    DoesFileExist           (const char* aPath);
 
 int SysInit()
 {
@@ -180,6 +183,8 @@ int SysInit()
     strcpy(Config.Net, "Disabled");
     strcpy(Config.BiosDir, "C:\\Users\\Jason\\Desktop\\");
     strcpy(Config.Bios, "SCPH1001.BIN");
+	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
+	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
     SetIsoFile("C:\\Users\\Jason\\Desktop\\test.bin");
 
@@ -196,6 +201,18 @@ int SysInit()
 
 	PAD1_open(0);
 	PAD2_open(0);
+
+	if(!DoesFileExist(MCD1))
+	{
+		CreateMcd(MCD1);
+	}
+
+	if(!DoesFileExist(MCD2))
+	{
+		CreateMcd(MCD2);
+	}
+
+	LoadMcds(MCD1, MCD2);
 
 	CheckCdrom();
 	EmuReset();

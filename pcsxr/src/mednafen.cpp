@@ -1,5 +1,6 @@
 #include <src/mednafen.h>
 #include <src/git.h>
+#include <ps3_system.h>
 #include <src/general.h>
 
 namespace
@@ -14,10 +15,22 @@ extern "C"
 	void		SysInit					();
 	void		SysClose				();
 	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
+	void		SetMCDS					(const char* aOne, const char* aTwo);
+
+
+
+	uint32_t	DoesFileExist			(const char* aPath)
+	{
+		return Utility::FileExists(aPath) ? 1 : 0;
+	}
 }
 
 int				PcsxrLoad				(const char *name, MDFNFILE *fp)
 {
+	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+	std::string filename2 = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2");
+	SetMCDS(filename.c_str(), filename2.c_str());
+
 	SysInit();
 	return 1;
 }
