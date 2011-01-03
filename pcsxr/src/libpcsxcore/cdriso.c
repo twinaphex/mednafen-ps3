@@ -30,7 +30,8 @@
 #include <windows.h>
 #undef CALLBACK
 #else
-#include <pthread.h>
+//ROBO: Ditch thead
+//#include <pthread.h>
 #include <sys/time.h>
 #endif
 
@@ -60,7 +61,7 @@ static boolean isMode1ISO = FALSE;
 #ifdef _WIN32
 static HANDLE threadid;
 #else
-static pthread_t threadid;
+//static pthread_t threadid;
 #endif
 static unsigned int initial_offset = 0;
 static volatile boolean playing = FALSE;
@@ -297,7 +298,7 @@ static void stopCDDA() {
 #ifdef _WIN32
 	WaitForSingleObject(threadid, INFINITE);
 #else
-	pthread_join(threadid, NULL);
+//	pthread_join(threadid, NULL);
 #endif
 
 	if (cddaHandle != NULL) {
@@ -331,7 +332,7 @@ static void startCDDA(unsigned int offset) {
 #ifdef _WIN32
 	threadid = (HANDLE)_beginthread(playthread, 0, NULL);
 #else
-	pthread_create(&threadid, NULL, playthread, NULL);
+//	pthread_create(&threadid, NULL, playthread, NULL);
 #endif
 }
 

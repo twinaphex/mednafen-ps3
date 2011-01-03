@@ -1,8 +1,10 @@
 #include "psxcommon.h"
 #include "plugins.h"
-#include "gxvideo/globals.h"
+//#include "gxvideo/globals.h"
+#include "dfxvideo/externals.h"
 #include "dfinput/pad.h"
 
+#if 0
 void			auGPUinit();
 long			auGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
 long			auGPUclose();
@@ -22,6 +24,27 @@ void			auGPUshowScreenPic(unsigned char * pMem);
 void			auGPUvBlank(int val);
 void			auGPUkeypressed(int keycode){}
 long			auGPUtest();
+#endif
+
+void			laGPUinit();
+long			laGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
+long			laGPUclose();
+long			laGPUshutdown();
+void			laGPUupdateLace(void); // VSYNC
+uint32_t		laGPUreadStatus(void); // READ STATUS
+void			laGPUwriteStatus(uint32_t gdata);
+void			laGPUreadDataMem(uint32_t * pMem, int iSize);
+uint32_t		laGPUreadData(void);
+void			laGPUwriteDataMem(uint32_t * pMem, int iSize);
+void			laGPUwriteData(uint32_t gdata);
+long			laGPUconfigure(void);
+long			laGPUdmaChain(uint32_t * baseAddrL, uint32_t addr);
+void			laGPUabout(void); // ABOUT
+long			laGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
+void			lauGPUshowScreenPic(unsigned char * pMem);
+void			laGPUvBlank(int val);
+void			laGPUkeypressed(int keycode){}
+long			laGPUtest();
 
 long			auSPUopen (void);
 long			auSPUinit(void);
@@ -62,7 +85,7 @@ void ClosePlugins()
 {
 }
 
-int PI()
+int PluginStub()
 {
 	return 0;
 }
@@ -91,6 +114,7 @@ void		SysCloseLibrary		(void *lib)				{/*Nothing*/}
 
 void*		SysLoadSym			(void *lib, const char *sym)
 {
+#if 0
 	if(strcmp(sym, "GPUinit") == 0) return auGPUinit;
     if(strcmp(sym, "GPUshutdown") == 0) return auGPUshutdown;
     if(strcmp(sym, "GPUopen") == 0) return auGPUopen;
@@ -110,6 +134,26 @@ void*		SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "GPUconfigure") == 0) return auGPUconfigure;
     if(strcmp(sym, "GPUtest") == 0) return auGPUtest;
     if(strcmp(sym, "GPUabout") == 0) return auGPUabout;
+#endif
+	if(strcmp(sym, "GPUinit") == 0) return laGPUinit;
+    if(strcmp(sym, "GPUshutdown") == 0) return laGPUshutdown;
+    if(strcmp(sym, "GPUopen") == 0) return laGPUopen;
+    if(strcmp(sym, "GPUclose") == 0) return laGPUclose;
+    if(strcmp(sym, "GPUreadData") == 0) return laGPUreadData;
+    if(strcmp(sym, "GPUreadDataMem") == 0) return laGPUreadDataMem;
+    if(strcmp(sym, "GPUreadStatus") == 0) return laGPUreadStatus;
+    if(strcmp(sym, "GPUwriteData") == 0) return laGPUwriteData;
+    if(strcmp(sym, "GPUwriteDataMem") == 0) return laGPUwriteDataMem;
+    if(strcmp(sym, "GPUwriteStatus") == 0) return laGPUwriteStatus;
+    if(strcmp(sym, "GPUdmaChain") == 0) return laGPUdmaChain;
+    if(strcmp(sym, "GPUupdateLace") == 0) return laGPUupdateLace;
+    if(strcmp(sym, "GPUkeypressed") == 0) return laGPUkeypressed;
+    if(strcmp(sym, "GPUfreeze") == 0) return laGPUfreeze;
+//    if(strcmp(sym, "GPUshowScreenPic") == 0) return laGPUshowScreenPic;
+    if(strcmp(sym, "GPUvBlank") == 0) return laGPUvBlank;
+    if(strcmp(sym, "GPUconfigure") == 0) return laGPUconfigure;
+    if(strcmp(sym, "GPUtest") == 0) return laGPUtest;
+    if(strcmp(sym, "GPUabout") == 0) return laGPUabout;
 
 	if(strcmp(sym, "SPUinit") == 0) return auSPUinit;
 	if(strcmp(sym, "SPUshutdown") == 0) return auSPUshutdown;
@@ -146,11 +190,11 @@ void*		SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "PADtest") == 0) return inPADtest;
 
 
-	printf("Not Loaded Sym: %s\n", sym);
-	return PI;
+	printf("Not Loaded Sym, returning stub: %s\n", sym);
+	return PluginStub;
 }
 
-//Setting wanna_leave to 1 causes the cpu emu to return
+//Setting wanna_leave to 1 causes the cpu emu to return, but this is a patch by me
 extern int			wanna_leave;
 void				SysUpdate()		{wanna_leave = 1;}
 void				SysRunGui()		{/* Nothing */}
@@ -159,8 +203,8 @@ void				SysClose()		{EmuShutdown();ReleasePlugins();}
 
 
 //MCD hack
-static char*		MCD1[MAXPATHLEN];
-static char*		MCD2[MAXPATHLEN];
+static char			MCD1[MAXPATHLEN];
+static char			MCD2[MAXPATHLEN];
 void				SetMCDS			(const char* aOne, const char* aTwo)
 {
 	if(aOne)strncpy(MCD1, aOne, MAXPATHLEN);
@@ -181,28 +225,38 @@ int SysInit()
     strcpy(Config.Pad2, "builtin");
     strcpy(Config.Cdr, "builtin");
     strcpy(Config.Net, "Disabled");
-    strcpy(Config.BiosDir, "C:\\Users\\Jason\\Desktop\\");
+    strcpy(Config.BiosDir, "/dev_usb006/");
+//	strcpy(Config.BiosDir, "C:\\Users\\Jason\\Desktop\\");
+//	strcpy(Config.BiosDir, "/home/jason/pcsxr/");
     strcpy(Config.Bios, "SCPH1001.BIN");
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
-    SetIsoFile("C:\\Users\\Jason\\Desktop\\test.bin");
+    SetIsoFile("/dev_usb006/test.bin");
+//	SetIsoFile("C:\\Users\\Jason\\Desktop\\test.bin");
+//	SetIsoFile("/home/jason/pcsxr/test.bin");
 
+	printf("EmuInit\n");
 	EmuInit();
+	printf("LoadPlugins\n");
 	LoadPlugins();
 
+	printf("CDR_open()\n");
 	CDR_open();
 
-	auGPUopen(0, 0, 0);
+	printf("auGPUopen\n");
+	laGPUopen(0, 0, 0);
 	GPU_registerCallback(GPUbusy);
 
+	printf("SPUopen\n");
 	auSPUopen();
 	SPU_registerCallback(SPUirq);
 
+	printf("PADOpen\n");
 	PAD1_open(0);
 	PAD2_open(0);
 
-	if(!DoesFileExist(MCD1))
+/*	if(!DoesFileExist(MCD1))
 	{
 		CreateMcd(MCD1);
 	}
@@ -212,10 +266,14 @@ int SysInit()
 		CreateMcd(MCD2);
 	}
 
-	LoadMcds(MCD1, MCD2);
+	LoadMcds(MCD1, MCD2);*/
 
+	printf("CheckCDROM\n");
 	CheckCdrom();
+	printf("EmuReset\n");
 	EmuReset();
+
+	printf("INIT\n");
 //	LoadCdrom();
 }
 
@@ -224,15 +282,15 @@ int SysInit()
 extern uint8_t SoundBuf[48000];
 extern uint32_t SoundBufLen;
 //#ifdef __LITTLE_ENDIAN__
-#define RED(x) (x & 0xff)
-#define BLUE(x) ((x>>16) & 0xff)
-#define GREEN(x) ((x>>8) & 0xff)
-#define COLOR(x) (x & 0xffffff)
+//#define RED(x) (x & 0xff)
+//#define BLUE(x) ((x>>16) & 0xff)
+//#define GREEN(x) ((x>>8) & 0xff)
+//#define COLOR(x) (x & 0xffffff)
 //#elif defined __BIG_ENDIAN__
-//#define RED(x) ((x>>24) & 0xff)
-//#define BLUE(x) ((x>>8) & 0xff)
-//#define GREEN(x) ((x>>16) & 0xff)
-//#define COLOR(x) SWAP32(x & 0xffffff)
+#define RED(x) ((x>>24) & 0xff)
+#define BLUE(x) ((x>>8) & 0xff)
+#define GREEN(x) ((x>>16) & 0xff)
+#define COLOR(x) SWAP32(x & 0xffffff)
 //#endif
 
 
@@ -247,7 +305,7 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	//Grab the frame
 	int x = 0, y = 0, w = 320, h = 240;
 
-	if (g_gpu.dsp.mode.x)
+/*	if (g_gpu.dsp.mode.x)
 	{
 		x = g_gpu.dsp.position.x;
 	    y = g_gpu.dsp.position.y;
@@ -285,7 +343,20 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	}
 
 	*aWidth = w;
-	*aHeight = h;
+	*aHeight = h;*/
+
+	for(int i = 0; i != 512; i ++)
+	{
+		for(int j = 0; j != 1024; j ++)
+		{
+			int s = psxVuw[i * 1024 + j];
+			s = ((s & 0xFF) << 8) | ((s & 0xFF00) >> 8);
+			aPixels[i * aPitch + j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+		}
+	}
+
+	*aWidth = 1024;
+	*aHeight = 512;
 
 	//Grab the audio
 	memcpy(aSound, SoundBuf, SoundBufLen);
@@ -294,3 +365,4 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 
 	printf("%d\n", *aSoundLen);
 }
+

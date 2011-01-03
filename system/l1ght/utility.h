@@ -26,6 +26,13 @@ class				Utility
 			
 			return "";
 		}
+
+		static bool						FileExists					(const std::string& aPath)
+		{
+			Lv2FsStat statbuf;
+			lv2FsStat(aPath.c_str(), &statbuf);
+			return (statbuf.st_mode & 0100000);
+		}
 	
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{

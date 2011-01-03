@@ -1004,12 +1004,12 @@ void RemoveTimer(void)
  if(iUseTimer==1) timeEndPeriod(1);                    // windows timer? stop it
 
 #else
- if(!iUseTimer)                                        // linux tread?
-  {
-   int i=0;
-   while(!bThreadEnded && i<2000) {usleep(1000L);i++;} // -> wait until thread has ended
-   if(thread!=(pthread_t)-1) {pthread_cancel(thread);thread=(pthread_t)-1;}  // -> cancel thread anyway
-  }
+// if(!iUseTimer)                                        // linux tread?
+//  {
+//   int i=0;
+//   while(!bThreadEnded && i<2000) {usleep(1000L);i++;} // -> wait until thread has ended
+//   if(thread!=(pthread_t)-1) {pthread_cancel(thread);thread=(pthread_t)-1;}  // -> cancel thread anyway
+//  }
 
 #endif
 

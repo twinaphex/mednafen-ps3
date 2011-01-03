@@ -45,15 +45,20 @@ extern "C" {
 #include <zlib.h>
 
 // Define types
+//ROBO: Some types are defined by psl1ght
+//#ifndef L1GHT
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;
+//#endif
 typedef int64_t s64;
 typedef intptr_t sptr;
 
+//#ifndef L1GHT
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
+//#endif
 typedef uint64_t u64;
 typedef uintptr_t uptr;
 

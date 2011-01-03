@@ -54,7 +54,7 @@ else
 endif
 
 #Not yet
-LIBDIRS	+=	../pcsxr
+LIBDIRS		+= ../pcsxr
 LIBS		+= -lpcsxr
 
 CFLAGS		+= -O2 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)

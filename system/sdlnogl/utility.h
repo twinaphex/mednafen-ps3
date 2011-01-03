@@ -24,7 +24,15 @@ class				Utility
 			
 			return "";
 		}
-	
+
+		static bool						FileExists					(const std::string& aPath)
+		{
+			struct stat statbuf;
+			stat(aPath.c_str(), &statbuf);
+
+			return (statbuf.st_mode & S_IFREG);
+		}
+
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
 			DIR* dirhandle;
