@@ -30,26 +30,26 @@
 #include "swap.h"
 
 //From elsewhere
-unsigned int  dwGPUVersion=0;
-int           iGPUHeight=512;
-int           iGPUHeightMask=511;
-int           GlobalTextIL=0;
-int           iTileCheat=0;
-BOOL           bCheckMask;
-unsigned short sSetMask;
-unsigned long  lSetMask;
+unsigned int		dwGPUVersion=0;
+int					iGPUHeight=512;
+int					iGPUHeightMask=511;
+int					GlobalTextIL=0;
+int					iTileCheat=0;
+BOOL				bCheckMask;
+unsigned short		sSetMask;
+unsigned long		lSetMask;
 
 ////////////////////////////////////////////////////////////////////////
 // memory image of the PSX vram 
 ////////////////////////////////////////////////////////////////////////
-unsigned char			*psxVSecure;
-unsigned char			*psxVub;
-signed   char			*psxVsb;
-unsigned short			*psxVuw;
-unsigned short			*psxVuw_eom;
-signed   short			*psxVsw;
-uint32_t				*psxVul;
-int32_t					*psxVsl;
+unsigned char		*psxVSecure;
+unsigned char		*psxVub;
+signed   char		*psxVsb;
+unsigned short		*psxVuw;
+unsigned short		*psxVuw_eom;
+signed   short		*psxVsw;
+uint32_t			*psxVul;
+int32_t				*psxVsl;
 
 ////////////////////////////////////////////////////////////////////////
 // GPU globals

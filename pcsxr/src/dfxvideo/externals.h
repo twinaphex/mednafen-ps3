@@ -90,48 +90,16 @@ typedef struct PSXRECTTAG
  short y1;
 } PSXRect_t;
 
-// linux defines for some windows stuff
-#ifndef CALLBACK
 #define CALLBACK
-#endif
-
-#ifndef FALSE
 #define FALSE 0
-#endif
-
-#ifndef TRUE
 #define TRUE 1
-#endif
-
-#ifndef BOOL
 #define BOOL unsigned short
-#endif
-
-#ifndef LOWORD
 #define LOWORD(l)           ((unsigned short)(l))
-#endif
-
-#ifndef HIWORD
 #define HIWORD(l)           ((unsigned short)(((uint32_t)(l) >> 16) & 0xFFFF))
-#endif
-
-#ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef uint32_t
 #define DWORD uint32_t
-#endif
 
-#ifndef __int64
-#define __int64 long long int 
-#endif
-
-#ifndef __WIN32__
 typedef struct RECTTAG
 {
  int left;
@@ -139,7 +107,6 @@ typedef struct RECTTAG
  int right;
  int bottom;
 } RECT;
-#endif 
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -174,157 +141,64 @@ typedef struct PSXDISPLAYTAG
 
 // draw.c
 
-#ifndef _IN_DRAW
 
-extern char *         pCaptionText;
+extern int32_t			GlobalTextAddrX,GlobalTextAddrY,GlobalTextTP;
+extern int32_t			GlobalTextREST,GlobalTextABR,GlobalTextPAGE;
+extern short			ly0,lx0,ly1,lx1,ly2,lx2,ly3,lx3;
+extern long				lLowerpart;
+extern BOOL				bCheckMask;
+extern unsigned long	lSetMask;
+extern short			g_m1;
+extern short			g_m2;
+extern short			g_m3;
+extern short			DrawSemiTrans;
 
-extern int            iResX;
-extern int            iResY;
-extern int32_t           GlobalTextAddrX,GlobalTextAddrY,GlobalTextTP;
-extern int32_t           GlobalTextREST,GlobalTextABR,GlobalTextPAGE;
-extern short          ly0,lx0,ly1,lx1,ly2,lx2,ly3,lx3;
-extern long           lLowerpart;
-extern BOOL           bIsFirstFrame;
-extern int            iWinSize;
-extern BOOL           bCheckMask;
-extern unsigned long  lSetMask;
-extern BOOL           bDeviceOK;
-extern short          g_m1;
-extern short          g_m2;
-extern short          g_m3;
-extern short          DrawSemiTrans;
-extern int            iUseGammaVal;
-extern int            iMaintainAspect;
-extern int            iDesktopCol;
-extern int            iUseNoStretchBlt;
-extern int            iShowFPS;
-extern int            iFastFwd;
-extern int            iDebugMode;
-extern int            iFVDisplay;
-extern PSXPoint_t     ptCursorPoint[];
-extern unsigned short usCursorActive;
 
-#endif
+extern BOOL				bUsingTWin;
+extern TWin_t			TWin;
+extern void				(*primTableJ[256])(unsigned char *);
+extern unsigned short	usMirror;
+extern int				iDither;
+extern uint32_t			dwEmuFixes;
+extern int				iUseDither;
+extern int32_t			drawX;
+extern int32_t			drawY;
+extern int32_t			drawW;
+extern int32_t			drawH;
 
-// prim.c
 
-#ifndef _IN_PRIMDRAW
-
-extern BOOL           bUsingTWin;
-extern TWin_t         TWin;
-//extern unsigned long  clutid;
-extern void (*primTableJ[256])(unsigned char *);
-extern void (*primTableSkip[256])(unsigned char *);
-extern unsigned short  usMirror;
-extern int            iDither;
-extern uint32_t  dwCfgFixes;
-extern uint32_t  dwActFixes;
-extern uint32_t  dwEmuFixes;
-extern int            iUseFixes;
-extern int            iUseDither;
-extern BOOL           bDoVSyncUpdate;
-extern int32_t           drawX;
-extern int32_t           drawY;
-extern int32_t           drawW;
-extern int32_t           drawH;
-
-#endif
-
-// gpu.c
-
-#ifndef _IN_GPU
-
-extern VRAMLoad_t     VRAMWrite;
-extern VRAMLoad_t     VRAMRead;
+extern VRAMLoad_t		VRAMWrite;
+extern VRAMLoad_t		VRAMRead;
 extern DATAREGISTERMODES DataWriteMode;
 extern DATAREGISTERMODES DataReadMode;
-extern int            iColDepth;
-extern int            iWindowMode;
-extern char           szDispBuf[];
-extern char           szMenuBuf[];
-extern char           szDebugText[];
-extern short          sDispWidths[];
-extern BOOL           bDebugText;
-//extern unsigned int   iMaxDMACommandCounter;
-//extern unsigned long  dwDMAChainStop;
-extern PSXDisplay_t   PSXDisplay;
-extern PSXDisplay_t   PreviousPSXDisplay;
-extern BOOL           bSkipNextFrame;
-extern long           lGPUstatusRet;
-//extern long           drawingLines;
-extern unsigned char  * psxVSecure;
-extern unsigned char  * psxVub;
-extern signed char    * psxVsb;
-extern unsigned short * psxVuw;
-extern signed short   * psxVsw;
-extern uint32_t  * psxVul;
-extern int32_t    * psxVsl;
-extern unsigned short * psxVuw_eom;
-extern BOOL           bChangeWinMode;
-extern long           lSelectedSlot;
-extern BOOL           bInitCap;
-extern DWORD          dwLaceCnt;
-extern uint32_t  lGPUInfoVals[];
-extern uint32_t  ulStatusControl[];
-extern uint32_t  vBlank;
-extern BOOL           bCheckMask;
-extern unsigned short sSetMask;
-extern unsigned long  lSetMask;
+extern short			sDispWidths[];
+extern PSXDisplay_t		PSXDisplay;
+extern PSXDisplay_t		PreviousPSXDisplay;
+extern long				lGPUstatusRet;
+extern unsigned char*	psxVSecure;
+extern unsigned char*	psxVub;
+extern signed char*		psxVsb;
+extern unsigned short*	psxVuw;
+extern signed short*	psxVsw;
+extern uint32_t*		psxVul;
+extern int32_t*			psxVsl;
+extern unsigned short*	psxVuw_eom;
+extern uint32_t			ulStatusControl[];
+extern uint32_t			vBlank;
 
-#endif
+extern uint32_t			lGPUInfoVals[];
+extern BOOL				bCheckMask;
+extern unsigned short	sSetMask;
+extern unsigned long	lSetMask;
 
-// menu.c
+extern int				iGPUHeight;
+extern int				iGPUHeightMask;
+extern int				GlobalTextIL;
 
-#ifndef _IN_MENU
-
-extern uint32_t dwCoreFlags;
-
-#endif
-
-// key.c
-
-#ifndef _IN_KEY
-
-extern unsigned long  ulKeybits;
-
-#endif
-
-// fps.c
-
-#ifndef _IN_FPS
-
-extern int            UseFrameLimit;
-extern int            UseFrameSkip;
-extern float          fFrameRate;
-extern int            iFrameLimit;
-extern float          fFrameRateHz;
-extern float          fps_skip;
-extern float          fps_cur;
-
-#endif
-
-// key.c
-
-#ifndef _IN_KEY
-
-#endif
-
-// cfg.c
-
-#ifndef _IN_CFG
-
-extern char * pConfigFile;
-
-#endif
-
-// zn.c
-
-#ifndef _IN_ZN
-
-extern uint32_t dwGPUVersion;
-extern int           iGPUHeight;
-extern int           iGPUHeightMask;
-extern int           GlobalTextIL;
-extern int           iTileCheat;
-
-#endif
+//Checkeroni
+extern int				iTileCheat;
+extern int				UseFrameSkip;			//Always 0 now
+extern uint32_t			dwGPUVersion;			//Always 0 now
+extern BOOL				bDoVSyncUpdate;			//Value is never checked
+extern uint32_t			dwActFixes;				//Never assigned to
+extern uint32_t			dwCfgFixes;				//Never referenced

@@ -28,9 +28,7 @@ extern "C" {
 
 //#define ENABLE_SIO1API 1
 
-#ifndef _WIN32
-
-typedef void* HWND;
+//ROBO: We are never windows
 #define CALLBACK
 
 typedef long (*GPUopen)(unsigned long *, char *, char *);
@@ -38,22 +36,6 @@ typedef long (*SPUopen)(void);
 typedef long (*PADopen)(unsigned long *);
 typedef long (*NETopen)(unsigned long *);
 typedef long (*SIO1open)(unsigned long *);
-
-#else
-
-#include <windows.h>
-
-//ROBO: No __stdcall
-#undef CALLBACK
-#define CALLBACK
-
-typedef long (CALLBACK* GPUopen)(HWND);
-typedef long (CALLBACK* SPUopen)(HWND);
-typedef long (CALLBACK* PADopen)(HWND);
-typedef long (CALLBACK* NETopen)(HWND);
-typedef long (CALLBACK* SIO1open)(HWND);
-
-#endif
 
 #include "spu.h"
 

@@ -1207,7 +1207,7 @@ __inline int shl10idiv(int x, int y);
 
 __inline int shl10idiv(int x, int y)
 {
- __int64 bi=x;
+ int64_t bi=x;
  bi<<=10;
  return bi/y;
 }

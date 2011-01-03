@@ -206,6 +206,19 @@ int SysInit()
 //This won't work without a patch to the psx cpu to return on vblanks
 extern uint8_t SoundBuf[48000];
 extern uint32_t SoundBufLen;
+//#ifdef __LITTLE_ENDIAN__
+#define RED(x) (x & 0xff)
+#define BLUE(x) ((x>>16) & 0xff)
+#define GREEN(x) ((x>>8) & 0xff)
+#define COLOR(x) (x & 0xffffff)
+//#elif defined __BIG_ENDIAN__
+//#define RED(x) ((x>>24) & 0xff)
+//#define BLUE(x) ((x>>8) & 0xff)
+//#define GREEN(x) ((x>>16) & 0xff)
+//#define COLOR(x) SWAP32(x & 0xffffff)
+//#endif
+
+
 
 void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
 {
@@ -214,18 +227,36 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 
 	psxCpu->Execute();
 
-	for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
+	if(PSXDisplay.RGB24New)
 	{
-		int startxy = (1024 * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
-		uint32_t* destpix = &aPixels[aPitch * i];
-		for(int j = 0; j != PSXDisplay.DisplayMode.x; j++)
+		for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
 		{
-			int s = psxVuw[startxy++];
-			destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+			int startxy = ((1024) * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
+			unsigned char* pD = (unsigned char *)&psxVuw[startxy];
+			uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
+			for(int j = 0; j != 320; j++)
+			{
+				uint32_t lu = *((uint32_t *)pD);
+				destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
+				pD += 3;
+			}
+		}
+	}
+	else
+	{
+		for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
+		{
+			int startxy = (1024 * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
+			uint32_t* destpix = &aPixels[aPitch * i];
+			for(int j = 0; j != 320; j++)
+			{
+				int s = psxVuw[startxy++];
+				destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+			}
 		}
 	}
 
-	*aWidth = PSXDisplay.DisplayMode.x;
+	*aWidth = 320;
 	*aHeight = PSXDisplay.DisplayMode.y;
 
 	memcpy(aSound, SoundBuf, SoundBufLen);

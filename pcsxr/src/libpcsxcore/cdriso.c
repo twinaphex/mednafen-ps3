@@ -23,18 +23,18 @@
 #include "cdrom.h"
 #include "cdriso.h"
 
-#ifdef _WIN32
+#ifdef __WIN32__
+//ROBO: Fix for pluings.h
+#undef HWND
 #include <process.h>
 #include <windows.h>
+#undef CALLBACK
 #else
 #include <pthread.h>
 #include <sys/time.h>
 #endif
 
 //ROBO: No __stdcall
-#ifdef CALLBACK
-#undef CALLBACK
-#endif
 #define CALLBACK
 
 static FILE *cdHandle = NULL;

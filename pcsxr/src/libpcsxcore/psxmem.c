@@ -24,7 +24,8 @@
 #include "psxmem.h"
 #include "r3000a.h"
 #include "psxhw.h"
-#include <sys/mman.h>
+//ROBO: No mmap
+//#include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
@@ -65,6 +66,7 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
+//ROBO: No memmap
 	psxM = malloc(0x220000);
 //	psxM = mmap(0, 0x00220000,
 //		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -131,6 +133,7 @@ void psxMemReset() {
 }
 
 void psxMemShutdown() {
+//ROBO: No mmap
 //	munmap(psxM, 0x00220000);
 	free(psxM);
 
