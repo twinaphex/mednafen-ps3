@@ -6,7 +6,7 @@ endif
 TARGET		:=	libpcsxr
 TYPE		:=	a
 BUILD		:=	build
-SOURCE		:=	src/libpcsxcore src src/dfxvideo src/dfinput src/dfsound
+SOURCE		:=	src/libpcsxcore src src/gxvideo src/dfinput src/dfsound
 INCLUDE		:=	src src/libpcsxcore ../mednafen/src
 DATA		:=	bin
 LIBS		:=	

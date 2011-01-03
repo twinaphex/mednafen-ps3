@@ -1,27 +1,27 @@
 #include "psxcommon.h"
 #include "plugins.h"
-#include "dfxvideo/externals.h"
+#include "gxvideo/globals.h"
 #include "dfinput/pad.h"
 
-void			laGPUinit();
-long			laGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
-long			laGPUclose();
-long			laGPUshutdown();
-void			laGPUupdateLace(void); // VSYNC
-uint32_t		laGPUreadStatus(void); // READ STATUS
-void			laGPUwriteStatus(uint32_t gdata);
-void			laGPUreadDataMem(uint32_t * pMem, int iSize);
-uint32_t		laGPUreadData(void);
-void			laGPUwriteDataMem(uint32_t * pMem, int iSize);
-void			laGPUwriteData(uint32_t gdata);
-long			laGPUconfigure(void);
-long			laGPUdmaChain(uint32_t * baseAddrL, uint32_t addr);
-void			laGPUabout(void); // ABOUT
-long			laGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
-void			laGPUshowScreenPic(unsigned char * pMem);
-void			laGPUvBlank(int val);
-void			laGPUkeypressed(int keycode){}
-long			laGPUtest();
+void			auGPUinit();
+long			auGPUopen(unsigned long * disp, char * CapText, char * CfgFile);
+long			auGPUclose();
+long			auGPUshutdown();
+void			auGPUupdateLace(void); // VSYNC
+uint32_t		auGPUreadStatus(void); // READ STATUS
+void			auGPUwriteStatus(uint32_t gdata);
+void			auGPUreadDataMem(uint32_t * pMem, int iSize);
+uint32_t		auGPUreadData(void);
+void			auGPUwriteDataMem(uint32_t * pMem, int iSize);
+void			auGPUwriteData(uint32_t gdata);
+long			auGPUconfigure(void);
+long			auGPUdmaChain(uint32_t * baseAddrL, uint32_t addr);
+void			auGPUabout(void); // ABOUT
+long			auGPUfreeze(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
+void			auGPUshowScreenPic(unsigned char * pMem);
+void			auGPUvBlank(int val);
+void			auGPUkeypressed(int keycode){}
+long			auGPUtest();
 
 long			auSPUopen (void);
 long			auSPUinit(void);
@@ -91,25 +91,25 @@ void		SysCloseLibrary		(void *lib)				{/*Nothing*/}
 
 void*		SysLoadSym			(void *lib, const char *sym)
 {
-	if(strcmp(sym, "GPUinit") == 0) return laGPUinit;
-    if(strcmp(sym, "GPUshutdown") == 0) return laGPUshutdown;
-    if(strcmp(sym, "GPUopen") == 0) return laGPUopen;
-    if(strcmp(sym, "GPUclose") == 0) return laGPUclose;
-    if(strcmp(sym, "GPUreadData") == 0) return laGPUreadData;
-    if(strcmp(sym, "GPUreadDataMem") == 0) return laGPUreadDataMem;
-    if(strcmp(sym, "GPUreadStatus") == 0) return laGPUreadStatus;
-    if(strcmp(sym, "GPUwriteData") == 0) return laGPUwriteData;
-    if(strcmp(sym, "GPUwriteDataMem") == 0) return laGPUwriteDataMem;
-    if(strcmp(sym, "GPUwriteStatus") == 0) return laGPUwriteStatus;
-    if(strcmp(sym, "GPUdmaChain") == 0) return laGPUdmaChain;
-    if(strcmp(sym, "GPUupdateLace") == 0) return laGPUupdateLace;
-    if(strcmp(sym, "GPUkeypressed") == 0) return laGPUkeypressed;
-    if(strcmp(sym, "GPUfreeze") == 0) return laGPUfreeze;
-    if(strcmp(sym, "GPUshowScreenPic") == 0) return laGPUshowScreenPic;
-    if(strcmp(sym, "GPUvBlank") == 0) return laGPUvBlank;
-    if(strcmp(sym, "GPUconfigure") == 0) return laGPUconfigure;
-    if(strcmp(sym, "GPUtest") == 0) return laGPUtest;
-    if(strcmp(sym, "GPUabout") == 0) return laGPUabout;
+	if(strcmp(sym, "GPUinit") == 0) return auGPUinit;
+    if(strcmp(sym, "GPUshutdown") == 0) return auGPUshutdown;
+    if(strcmp(sym, "GPUopen") == 0) return auGPUopen;
+    if(strcmp(sym, "GPUclose") == 0) return auGPUclose;
+    if(strcmp(sym, "GPUreadData") == 0) return auGPUreadData;
+    if(strcmp(sym, "GPUreadDataMem") == 0) return auGPUreadDataMem;
+    if(strcmp(sym, "GPUreadStatus") == 0) return auGPUreadStatus;
+    if(strcmp(sym, "GPUwriteData") == 0) return auGPUwriteData;
+    if(strcmp(sym, "GPUwriteDataMem") == 0) return auGPUwriteDataMem;
+    if(strcmp(sym, "GPUwriteStatus") == 0) return auGPUwriteStatus;
+    if(strcmp(sym, "GPUdmaChain") == 0) return auGPUdmaChain;
+    if(strcmp(sym, "GPUupdateLace") == 0) return auGPUupdateLace;
+    if(strcmp(sym, "GPUkeypressed") == 0) return auGPUkeypressed;
+    if(strcmp(sym, "GPUfreeze") == 0) return auGPUfreeze;
+    if(strcmp(sym, "GPUshowScreenPic") == 0) return auGPUshowScreenPic;
+    if(strcmp(sym, "GPUvBlank") == 0) return auGPUvBlank;
+    if(strcmp(sym, "GPUconfigure") == 0) return auGPUconfigure;
+    if(strcmp(sym, "GPUtest") == 0) return auGPUtest;
+    if(strcmp(sym, "GPUabout") == 0) return auGPUabout;
 
 	if(strcmp(sym, "SPUinit") == 0) return auSPUinit;
 	if(strcmp(sym, "SPUshutdown") == 0) return auSPUshutdown;
@@ -188,7 +188,7 @@ int SysInit()
 
 	CDR_open();
 
-	laGPUopen(0, 0, 0);
+	auGPUopen(0, 0, 0);
 	GPU_registerCallback(GPUbusy);
 
 	auSPUopen();
@@ -227,41 +227,50 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 
 	psxCpu->Execute();
 
-	uint32_t dx = sDispWidths[(lGPUstatusRet >> 16) & 7];
-	uint32_t dy = 240 + 240 * ((lGPUstatusRet >> 19) & 1);
+	//Grab the frame
+	int x = 0, y = 0, w = 320, h = 240;
 
-	if(PSXDisplay.RGB24New)
+	if (g_gpu.dsp.mode.x)
 	{
-		for(int i = 0; i != dy; i++)
+		x = g_gpu.dsp.position.x;
+	    y = g_gpu.dsp.position.y;
+	    w = (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x;
+	    h = (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y;
+
+		if(g_gpu.status_reg & STATUS_RGB24)
 		{
-			int startxy = ((1024) * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
-			unsigned char* pD = (unsigned char *)&psxVuw[startxy];
-			uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
-			for(int j = 0; j != dx; j++)
+			for(int i = 0; i != h; i++)
 			{
-				uint32_t lu = *((uint32_t *)pD);
-				destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
-				pD += 3;
+				int startxy = ((1024) * (i + y)) + x;
+				unsigned char* pD = (unsigned char *)&g_gpu.psx_vram.u16[startxy];
+				uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
+				for(int j = 0; j != w; j++)
+				{
+					uint32_t lu = *((uint32_t *)pD);
+					destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
+					pD += 3;
+				}
+			}
+		}
+		else
+		{
+			for(int i = 0; i != h; i++)
+			{
+				int startxy = (1024 * (i + y)) + x;
+				uint32_t* destpix = &aPixels[aPitch * i];
+				for(int j = 0; j != w; j++)
+				{
+					int s = g_gpu.psx_vram.u16[startxy++];
+					destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+				}
 			}
 		}
 	}
-	else
-	{
-		for(int i = 0; i != dy; i++)
-		{
-			int startxy = (1024 * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
-			uint32_t* destpix = &aPixels[aPitch * i];
-			for(int j = 0; j != dx; j++)
-			{
-				int s = psxVuw[startxy++];
-				destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
-			}
-		}
-	}
 
-	*aWidth = dx;
-	*aHeight = dy;
+	*aWidth = w;
+	*aHeight = h;
 
+	//Grab the audio
 	memcpy(aSound, SoundBuf, SoundBufLen);
 	*aSoundLen = SoundBufLen / 4;
 	SoundBufLen = 0;
