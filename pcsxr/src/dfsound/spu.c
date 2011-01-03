@@ -1126,42 +1126,15 @@ long CALLBACK auSPUclose(void)
  return 0;
 }
 
-// SPUSHUTDOWN: called by main emu on final exit
 long CALLBACK auSPUshutdown(void)
 {
  auSPUclose();
- RemoveStreams();                                      // no more streaming
-
  return 0;
 }
 
-// SPUTEST: we don't test, we are always fine ;)
-long CALLBACK auSPUtest(void)
-{
- return 0;
-}
-
-// SPUCONFIGURE: call config dialog
-long CALLBACK auSPUconfigure(void)
-{
- return 0;
-}
-
-// SPUABOUT: show about window
-void CALLBACK auSPUabout(void)
-{
-}
-
-// SETUP CALLBACKS
-// this functions will be called once, 
-// passes a callback that should be called on SPU-IRQ/cdda volume change
-void CALLBACK auSPUregisterCallback(void (CALLBACK *callback)(void))
-{
- irqCallback = callback;
-}
-
-void CALLBACK auSPUregisterCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned short,unsigned short))
-{
- cddavCallback = CDDAVcallback;
-}
+long CALLBACK auSPUtest(void){return 0;}
+long CALLBACK auSPUconfigure(void){ return 0;}
+void CALLBACK auSPUabout(void){}
+void CALLBACK auSPUregisterCallback(void (CALLBACK *callback)(void))	{irqCallback = callback;}
+void CALLBACK auSPUregisterCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned short,unsigned short)){cddavCallback = CDDAVcallback;}
 

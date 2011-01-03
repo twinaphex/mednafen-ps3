@@ -227,14 +227,17 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 
 	psxCpu->Execute();
 
+	uint32_t dx = sDispWidths[(lGPUstatusRet >> 16) & 7];
+	uint32_t dy = 240 + 240 * ((lGPUstatusRet >> 19) & 1);
+
 	if(PSXDisplay.RGB24New)
 	{
-		for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
+		for(int i = 0; i != dy; i++)
 		{
 			int startxy = ((1024) * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
 			unsigned char* pD = (unsigned char *)&psxVuw[startxy];
 			uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
-			for(int j = 0; j != 320; j++)
+			for(int j = 0; j != dx; j++)
 			{
 				uint32_t lu = *((uint32_t *)pD);
 				destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
@@ -244,11 +247,11 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	}
 	else
 	{
-		for(int i = 0; i != PSXDisplay.DisplayMode.y; i++)
+		for(int i = 0; i != dy; i++)
 		{
 			int startxy = (1024 * (i + PSXDisplay.DisplayPosition.y)) + PSXDisplay.DisplayPosition.x;
 			uint32_t* destpix = &aPixels[aPitch * i];
-			for(int j = 0; j != 320; j++)
+			for(int j = 0; j != dx; j++)
 			{
 				int s = psxVuw[startxy++];
 				destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
@@ -256,10 +259,12 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 		}
 	}
 
-	*aWidth = 320;
-	*aHeight = PSXDisplay.DisplayMode.y;
+	*aWidth = dx;
+	*aHeight = dy;
 
 	memcpy(aSound, SoundBuf, SoundBufLen);
 	*aSoundLen = SoundBufLen / 4;
 	SoundBufLen = 0;
+
+	printf("%d\n", *aSoundLen);
 }

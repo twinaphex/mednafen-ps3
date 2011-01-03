@@ -2,7 +2,7 @@
 #define _IN_OSS
 #include "externals.h"
 
-uint8_t SoundBuf[48000];
+uint8_t SoundBuf[96000];
 uint32_t SoundBufLen = 0;
 
 // SETUP SOUND
