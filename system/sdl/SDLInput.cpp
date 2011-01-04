@@ -140,16 +140,18 @@ void				SDLInput::Refresh						()
 	
 		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
 		{
-			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);
-			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);
+			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
+			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 1]);
+			buttonIndex += 2;
 		}
 
 		for(int j = 0; j != SDL_JoystickNumHats(Joysticks[i]); j ++)
 		{
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_UP, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_DOWN, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);			
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_LEFT, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_RIGHT, HeldState[i][buttonIndex], SingleState[i][buttonIndex ++]);			
+			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_UP, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
+			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_DOWN, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);			
+			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_LEFT, HeldState[i][buttonIndex + 2], SingleState[i][buttonIndex + 2]);
+			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_RIGHT, HeldState[i][buttonIndex + 3], SingleState[i][buttonIndex + 3]);			
+			buttonIndex += 4;
 		}
 	
 		for(int j = 0; j != SDL_JoystickNumButtons(Joysticks[i]); j ++)
