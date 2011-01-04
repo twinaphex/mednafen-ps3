@@ -1,6 +1,5 @@
 #include <ps3_system.h>
 
-#include <errno.h>
 namespace
 {
 	char		Buffer[2048];
@@ -43,18 +42,21 @@ namespace
 
 	uint32_t	DoCommand				(int aSocket, const std::string& aCommand, uint32_t aNeededResult = 0, bool aResult = true)
 	{
-		write(aSocket, aCommand.c_str(), aCommand.length());
+		send(aSocket, aCommand.c_str(), aCommand.length(), 0);
 		
 		if(aResult)
 		{
 			memset(Buffer, 0, 2048);
-			read(aSocket, Buffer, 2048);
+			recv(aSocket, Buffer, 2048, 0);
 			
-			uint32_t code;
+			printf("BUFF=%s\n", Buffer);
+
+			uint32_t code = 0;
 			sscanf(Buffer, "%d", &code);
 			
 			if(aNeededResult && code != aNeededResult)
 			{
+				printf("%d - %d\n", aNeededResult, code);
 				throw FileException("FTP: Communication error");
 			}
 			
@@ -75,7 +77,7 @@ namespace
 			aOutSocket = MakeSocket(aHost.c_str(), aPort.c_str());
 		
 			memset(Buffer, 0, 2048);
-			read(aOutSocket, Buffer, 2048);
+			recv(aOutSocket, Buffer, 2048, 0);
 		
 			sprintf(Buffer, "USER %s\n", aUserName.c_str());
 			DoCommand(aOutSocket, Buffer, 331);
@@ -90,7 +92,7 @@ namespace
 		
 			//TODO: Make sure it's valid
 			char* parse = strchr(Buffer, '(') + 1;
-			uint32_t a, b, c, d, e, f;
+			uint32_t a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 			sscanf(parse, "%d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f);
 			char newtarget[200];
 			char newport[10];			
@@ -134,7 +136,7 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 		uint32_t count;
 	
 		memset(Buffer, 0, 2048);
-		while((count = read(InSocket, Buffer, 2046)))
+		while((count = recv(InSocket, Buffer, 2046, 0)))
 		{
 			data += Buffer;
 			memset(Buffer, 0, 2048);
@@ -190,7 +192,7 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 		FILE* outputFile = fopen(es_paths->Build("temp.ftp").c_str(), "wb");
 		uint32_t count;
 		
-		while((count = read(InSocket, Buffer, 2048)))
+		while((count = recv(InSocket, Buffer, 2048, 0)))
 		{
 			fwrite(Buffer, count, 1, outputFile);
 		}
