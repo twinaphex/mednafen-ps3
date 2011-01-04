@@ -60,6 +60,9 @@
 #define N_(x) (x)
 #endif
 
+#define APIENTER printf("ENTER: %s\n", __FUNCTION__);
+#define APIEXIT printf("EXIT: %s\n", __FUNCTION__);
+
 ////////////////////////////////////////////////////////////////////////
 // PPDK developer must change libraryName field and can change revision and build
 ////////////////////////////////////////////////////////////////////////
@@ -268,11 +271,14 @@ void CALLBACK auGPUmakeSnapshot(void) {
 ////////////////////////////////////////////////////////////////////////
 
 long CALLBACK auGPUinit() {
-	fprintf(stderr, "%s\n", __FUNCTION__);
+APIENTER
 	memset(g_gpu.ulStatusControl, 0, 256 * sizeof(uint32_t)); // init save state scontrol field
 	g_gpu.psxVSecure.u8 = (uint8_t *) malloc((512 * 2) * 1024 + (1024 * 1024)); // always alloc one extra MB for soft drawing funcs security
 	if (!g_gpu.psxVSecure.u8)
+	{
+		APIEXIT
 		return -1;
+	}
 
 	//!!! ATTENTION !!!
 	g_gpu.psx_vram.u8 = g_gpu.psxVSecure.u8 + 512 * 1024; // security offset into double sized psx vram!
@@ -294,17 +300,21 @@ long CALLBACK auGPUinit() {
 
 	// device initialised already !
 	g_gpu.status_reg = 0x14802000;
+	APIEXIT
 	return 0;
 }
 
 /* Here starts all... */
 long auGPUopen(unsigned long * disp, char * CapText, char * CfgFile) {
+	APIENTER
 	unsigned long d;
 
 	d = 1;
 
 	if (disp)
 		*disp = d; // wanna x pointer? ok
+
+	APIEXIT
 
 	if (d)
 		return 0;
@@ -316,7 +326,6 @@ long auGPUopen(unsigned long * disp, char * CapText, char * CfgFile) {
 ////////////////////////////////////////////////////////////////////////
 
 long CALLBACK auGPUclose() {
-	fprintf(stderr, "%s\n", __FUNCTION__);
 	//ReleaseKeyHandler(); // de-subclass window
 	return 0;
 }
@@ -576,13 +585,15 @@ void CALLBACK auGPUcursor(int iPlayer, int x, int y) {
 
 void CALLBACK auGPUupdateLace(void) // VSYNC
 {
-
+APIENTER
 	g_gpu.status_reg ^= STATUS_ODDLINES;
 
 	if (g_gpu.status_reg & STATUS_DISPLAYDISABLED) {
 //		do_clear_screen_buffer();
+		APIEXIT
 		return;
 	}
+APIEXIT
 
 	/* I do not roughly emulate interlace, I just draw 1/2 frame
 	 * to save CPU, and improve render */
@@ -609,6 +620,7 @@ uint32_t CALLBACK auGPUreadStatus(void) // READ STATUS
 ////////////////////////////////////////////////////////////////////////
 
 void CALLBACK auGPUwriteStatus(uint32_t gdata) {
+APIENTER
 	uint32_t lCommand = (gdata >> 24) & 0xff;
 	g_gpu.ulStatusControl[lCommand] = gdata; // store command for freezing
 	switch (lCommand) {
@@ -632,14 +644,17 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		g_soft.GlobalTextTP = 0;
 		g_soft.GlobalTextABR = 0;
 		g_prim.bUsingTWin = 0;
+		APIEXIT
 		return;
 	case 0x01:
 		/* reset command buffer */
 		//fprintf(stderr, "Reset command buffer not implemented\n");
+		APIEXIT
 		return;
 	case 0x02:
 		/* reset IRQ */
 		//fprintf(stderr, "Reset IRQ not implemented\n");
+		APIEXIT
 		return;
 	case 0x03:
 		/* Enable or disable the display */
@@ -647,6 +662,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 			g_gpu.status_reg |= STATUS_DISPLAYDISABLED;
 		else
 			g_gpu.status_reg &= ~STATUS_DISPLAYDISABLED;
+		APIEXIT
 		return;
 	case 0x04:
 		/* Set the transfering mode */
@@ -659,6 +675,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 			g_gpu.DataReadMode = DR_VRAMTRANSFER;
 		g_gpu.status_reg &= ~STATUS_DMABITS; // Clear the current settings of the DMA bits
 		g_gpu.status_reg |= (gdata << 29); // Set the DMA bits according to the received data
+		APIEXIT
 		return;
 	case 0x05:
 		/* setting display position */
@@ -666,6 +683,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		g_gpu.dsp.position.x = (short) (gdata & 0x3ff);
 		//fprintf(stderr, "Update display position X=%d,Y=%d\n",
 		//		g_gpu.dsp.position.x, g_gpu.dsp.position.y);
+		APIEXIT
 		return;
 	case 0x06:
 		/* Set width */
@@ -673,6 +691,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		g_gpu.dsp.range.x1 = (short) ((gdata >> 12) & 0x0fff);
 		//fprintf(stderr, "Setrange x0 : %d, x1 : %d\n", g_gpu.dsp.range.x0,
 		//		g_gpu.dsp.range.x1);
+		APIEXIT
 		return;
 	case 0x07:
 		/* Set height */
@@ -680,6 +699,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		g_gpu.dsp.range.y1 = (short) ((gdata >> 10) & 0x3ff);
 		//fprintf(stderr, "Setrange y0 : %d, y1 : %d\n", g_gpu.dsp.range.y0,
 		//		g_gpu.dsp.range.y1);
+		APIEXIT
 		return;
 	case 0x08:
 		/* setting display infos */
@@ -744,6 +764,7 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		} else {
 			g_gpu.status_reg &= ~STATUS_INTERLACED;
 		}
+		APIEXIT
 		return;
 	case 0x10:
 		/* ask about GPU version and other stuff */
@@ -751,32 +772,40 @@ void CALLBACK auGPUwriteStatus(uint32_t gdata) {
 		switch (gdata) {
 		case 0x02:
 			g_gpu.lGPUdataRet = g_gpu.lGPUInfoVals[INFO_TW]; // tw infos
+			APIEXIT
 			return;
 		case 0x03:
 			g_gpu.lGPUdataRet = g_gpu.lGPUInfoVals[INFO_DRAWSTART]; // draw start
+			APIEXIT
 			return;
 		case 0x04:
 			g_gpu.lGPUdataRet = g_gpu.lGPUInfoVals[INFO_DRAWEND]; // draw end
+			APIEXIT
 			return;
 		case 0x05:
 		case 0x06:
 			g_gpu.lGPUdataRet = g_gpu.lGPUInfoVals[INFO_DRAWOFF]; // draw offset
+			APIEXIT
 			return;
 		case 0x07:
 			if (0)
 				g_gpu.lGPUdataRet = 0x01;
 			else
 				g_gpu.lGPUdataRet = 0x02; // gpu type
+			APIEXIT
 			return;
 		case 0x08:
 		case 0x0F: // some bios addr?
 			g_gpu.lGPUdataRet = 0xBFC03720;
+			APIEXIT
 			return;
 		}
+		APIEXIT
 		return;
 	default:
 		fprintf(stderr, "Unknow command %02x\n", lCommand);
 	}
+	APIEXIT
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -815,10 +844,14 @@ inline void FinishedVRAMRead(void) {
 ////////////////////////////////////////////////////////////////////////
 
 void CALLBACK auGPUreadDataMem(uint32_t * pMem, int iSize) {
+APIENTER
 	int i;
 
 	if (g_gpu.DataReadMode != DR_VRAMTRANSFER)
+	{
+		APIEXIT
 		return;
+	}
 
 	g_gpu.status_reg &= ~STATUS_IDLE;
 
@@ -882,6 +915,7 @@ void CALLBACK auGPUreadDataMem(uint32_t * pMem, int iSize) {
 	}
 
 	ENDREAD: g_gpu.status_reg |= STATUS_IDLE;
+	APIEXIT
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -966,6 +1000,7 @@ const unsigned char primTableCX[256] = {
 		0, 0, 0, 0, 0, 0, 0, 0 };
 
 void CALLBACK auGPUwriteDataMem(uint32_t * pMem, int iSize) {
+	APIENTER
 	unsigned char command;
 	uint32_t gdata = 0;
 	int i = 0;
@@ -1085,6 +1120,8 @@ void CALLBACK auGPUwriteDataMem(uint32_t * pMem, int iSize) {
 
 	g_gpu.status_reg |= STATUS_READYFORCOMMANDS;
 	g_gpu.status_reg |= STATUS_IDLE;
+
+APIEXIT
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1137,20 +1174,28 @@ void SetFixes(void) {
 unsigned long lUsedAddr[3];
 
 inline char CheckForEndlessLoop(unsigned long laddr) {
+APIENTER
+
 	if (laddr == lUsedAddr[1])
+	{
+		APIEXIT
 		return 1;
+	}
 	if (laddr == lUsedAddr[2])
-		return 1;
+	{APIEXIT return 1;}
+
 
 	if (laddr < lUsedAddr[0])
 		lUsedAddr[1] = laddr;
 	else
 		lUsedAddr[2] = laddr;
 	lUsedAddr[0] = laddr;
+	APIEXIT
 	return 0;
 }
 
 long CALLBACK auGPUdmaChain(uint32_t * baseAddrL, uint32_t addr) {
+APIENTER
 	uint32_t dmaMem;
 	unsigned char * baseAddrB;
 	short count;
@@ -1181,6 +1226,7 @@ long CALLBACK auGPUdmaChain(uint32_t * baseAddrL, uint32_t addr) {
 	} while (addr != 0xffffff);
 
 	g_gpu.status_reg |= STATUS_IDLE;
+APIEXIT
 	return 0;
 }
 

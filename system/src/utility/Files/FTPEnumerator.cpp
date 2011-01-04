@@ -1,5 +1,6 @@
 #include <ps3_system.h>
 
+#include <errno.h>
 namespace
 {
 	char		Buffer[2048];
@@ -11,12 +12,11 @@ namespace
 		{
 			portno = portno * 256 + atoi(aPort2);
 		}
-		
+
 		int socketFD = socket(AF_INET, SOCK_STREAM, 0);
 		if(socketFD == -1)
 		{
 			throw FileException("FTP: Could not open socket");
-			return -1;
 		}
 	
 		//TODO: gethostby name is appently evil?
@@ -31,12 +31,11 @@ namespace
 		memset(&serv_addr, 0, sizeof(serv_addr));
 		serv_addr.sin_port = htons(portno);	
 		serv_addr.sin_family = AF_INET;
-		memcpy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-		
+		memcpy((char *)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
+
 		if(-1 == connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr)))
 		{
-			close(socketFD);
-			throw FileException("FTP: connect() failed");			
+			throw FileException("FTP: connect() failed");
 		}
 		
 		return socketFD;

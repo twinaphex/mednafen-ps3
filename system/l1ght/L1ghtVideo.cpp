@@ -4,7 +4,7 @@ extern "C"
 {
 	extern realityFragmentProgram nv30_fp;
 }
-#include <nv40_vp.vcg.h>
+#include "nv40_vp.vcg.h"
 
 namespace
 {

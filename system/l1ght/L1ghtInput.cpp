@@ -118,7 +118,13 @@ void				L1ghtInput::ProcessInputThread			(uint64_t aBcD)
 		Utility::Sleep(15);
 		input->Refresh();
 	}
-	
+
+	if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
+	{
+		abort();
+		exit(10);
+	}
+
 	input->ThreadDie = false;
 	sys_ppu_thread_exit(0);	
 }

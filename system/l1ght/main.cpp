@@ -26,14 +26,11 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 void				ESSUB_Init				()
 {
 	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
-	SysLoadModule(SYSMODULE_PNGDEC);
-	
 	netInitialize();
 }
 
 void				ESSUB_Quit				()
 {
-	SysUnloadModule(SYSMODULE_PNGDEC);
 	sysUnregisterCallback(EVENT_SLOT0);
 }
 
