@@ -305,6 +305,11 @@ uint8 Gamepad6::Read()
 void Gamepad6::Update(const void *data)
 {
  buttons = ((uint8 *)data)[0] | (((uint8 *)data)[1] << 8);
+
+ if(++timeout > 24)
+ {
+   count = 0;
+ }
 }
 
 

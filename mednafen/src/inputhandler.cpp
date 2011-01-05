@@ -1,13 +1,22 @@
 #include <mednafen_includes.h>
 
+									MednafenInputSelect::MednafenInputSelect		(const std::vector<std::string>& aInputNames) : WinterfaceList("Select Controller Type", true, 0)
+{
+	for(int i = 0; i != aInputNames.size(); i ++)
+	{
+		Items.push_back(new ListItem(aInputNames[i], 0));
+	}
+}
+
+
 									MednafenSettingButton::MednafenSettingButton	(std::string aInputName) : Winterface("Configuring Inputs")
 {
 	Button = 0;
 	InputName = aInputName;
-	
+
 	SideItems.push_back(new ListItem("Press Input Button", FontManager::GetSmallFont()));
 }
-		
+
 bool								MednafenSettingButton::Input					()
 {
 	static bool gotbutton = true;
@@ -16,7 +25,7 @@ bool								MednafenSettingButton::Input					()
 	{
 		return false;
 	}
-	
+
 	gotbutton = false;
 
 	Button = es_input->GetAnyButton(0);
@@ -30,7 +39,7 @@ bool								MednafenSettingButton::DrawLeft					()
 	FontManager::GetBigFont()->PutString(InputName.c_str(), 40, 40 + FontManager::GetBigFont()->GetHeight() * 2, Colors::Normal);
 	return false;
 }
-		
+
 uint32_t							MednafenSettingButton::GetButton				()
 {
 	return Button;
@@ -43,14 +52,15 @@ uint32_t							MednafenSettingButton::GetButton				()
 	ButtonCount = 0;
 	memset(ControllerBits, 0, sizeof(ControllerBits));
 	memset(Button, 0, sizeof(Button));
-	
+
+	ReadSettings();
+
 	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
 	{
-		MDFNI_SetInput(i, "gamepad", &ControllerBits[i], 4);
+		printf("%s\n", PadType.c_str());
+		MDFNI_SetInput(i, PadType.c_str(), &ControllerBits[i], 4);
 	}
-	
-	ReadSettings();
-	
+
 	for(int i = 0; i != ButtonCount; i ++)
 	{
 		if(Button[i][0] != 0)
@@ -58,7 +68,7 @@ uint32_t							MednafenSettingButton::GetButton				()
 			return;
 		}
 	}
-	
+
 	Configure();
 	ReadSettings();
 }
@@ -71,7 +81,7 @@ uint32_t							MednafenSettingButton::GetButton				()
 void							InputHandler::Process					()
 {
 	//TODO: Support more input types, more than two controllers
-	for(int p = 0; p != GameInfo->InputInfo->InputPorts && p != 2; p ++)	
+	for(int p = 0; p != GameInfo->InputInfo->InputPorts && p != 2; p ++)
 	{
 		ControllerBits[p] = 0;
 
@@ -87,42 +97,65 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
+	//Get Controller type
+	std::vector<std::string> inputtypes;
+	for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
+	{
+		inputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName);
+	}
+
+	MednafenInputSelect controlselect(inputtypes);
+
+	//TODO: Let it be canceled?
+	do
+	{
+		controlselect.Do();
+	} while(controlselect.WasCanceled());
+
+	PadType = controlselect.GetSelected()->GetText();
+	MDFNI_SetSetting((std::string(GameInfo->shortname) + ".esinput.port1").c_str(), PadType.c_str());
+
+	//Get Buttons
 	uint32_t buttoncount;
-	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, buttoncount);
-	
+	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, PadType.c_str(), buttoncount);
+
 	if(info == 0)
 	{
 		return;
 	}
-	
+
 	uint32_t ButtonOrder[32][2];
 	BuildShifts(info, buttoncount, ButtonOrder);
-	
+
 	for(int j = 0; j != buttoncount; j ++)
 	{
 		MednafenSettingButton button(info[ButtonOrder[j][0]].Name);
 		button.Do();
-	
-		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + std::string(info[ButtonOrder[j][0]].SettingName);
+
+		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(info[ButtonOrder[j][0]].SettingName);
 		MDFNI_SetSettingUI(settingname.c_str(), button.GetButton());
 	}
 }
 
 void							InputHandler::ReadSettings			()
 {
-	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, ButtonCount);
-		
+	PadType = MDFN_GetSettingS((std::string(GameInfo->shortname) + ".esinput.port1").c_str());
+
+	printf("%s\n", PadType.c_str());
+
+	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, PadType.c_str(), ButtonCount);
+
 	if(info == 0)
 	{
 		memset(Button, 0, sizeof(Button));
 		return;
 	}
-		
+
 	BuildShifts(info, ButtonCount, Button);
-		
+
 	for(int j = 0; j != ButtonCount; j ++)
 	{
-		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + std::string(info[Button[j][0]].SettingName);
+		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(info[Button[j][0]].SettingName);
 		Button[j][0] = MDFN_GetSettingUI(settingname.c_str());
 	}
 }
@@ -131,40 +164,52 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 {
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
-		uint32_t buttoncount;
-		const InputDeviceInputInfoStruct* info = GetGamepad(MDFNSystems[i]->InputInfo, buttoncount);
-		
-		if(info == 0)
+		for(int k = 0; k != MDFNSystems[i]->InputInfo->Types[0].NumTypes; k ++)
 		{
-			continue;
-		}
-		
-		uint32_t ButtonOrder[32][2];
-		BuildShifts(info, buttoncount, ButtonOrder);
-		
-		for(int j = 0; j != buttoncount; j ++)
-		{
-			std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + std::string(info[ButtonOrder[j][0]].SettingName);
-			//TODO: These strdups will never be freed, poor captive strdups
-			MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
-			aSettings.push_back(thisinput);
+			if(k == 0)
+			{
+				//TODO: Strdup will no be freed
+				MDFNSetting thisinput = {strdup((std::string(MDFNSystems[i]->shortname) + ".esinput.port1").c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_STRING, "gamepad"};
+				aSettings.push_back(thisinput);
+			}
+
+			//TODO: Support port expanders
+			if(MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].PortExpanderDeviceInfo)
+			{
+				continue;
+			}
+
+			uint32_t buttoncount;
+			const InputDeviceInputInfoStruct* info = GetGamepad(MDFNSystems[i]->InputInfo, MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName, buttoncount);
+
+			if(info == 0 || !IsInputSupported(info, buttoncount))
+			{
+				continue;
+			}
+
+			for(int j = 0; j != buttoncount; j ++)
+			{
+				std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName + "." + std::string(info[j].SettingName);
+				//TODO: These strdups will never be freed, poor captive strdups
+				MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
+				aSettings.push_back(thisinput);
+			}
 		}
 	}
 }
 
 
-const InputDeviceInputInfoStruct*	InputHandler::GetGamepad				(const InputInfoStruct* aInfo, uint32_t& aInputCount)
+const InputDeviceInputInfoStruct*	InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char* aName, uint32_t& aInputCount)
 {
-	//TODO: Support other controls
 	for(int i = 0; i != aInfo->Types[0].NumTypes; i ++)
 	{
-		if(strcmp(aInfo->Types[0].DeviceInfo[i].ShortName, "gamepad") == 0)
+		if(strcmp(aInfo->Types[0].DeviceInfo[i].ShortName, aName) == 0)
 		{
 			aInputCount = aInfo->Types[0].DeviceInfo[i].NumInputs;
 			return aInfo->Types[0].DeviceInfo[i].IDII;
 		}
 	}
-	
+
 	aInputCount = 0;
 	return 0;
 }
@@ -176,14 +221,14 @@ void							InputHandler::BuildShifts				(const InputDeviceInputInfoStruct* aInfo
 	int found = 0;
 
 	memset(aOrder, 0, sizeof(aOrder));
-		
+
 	for(int i = 0; i != 0xFFFFFFFF && found != aButtonCount; i ++)
 	{
 		for(int j = 0; j != aButtonCount; j ++)
 		{
 			if(aInfo[j].ConfigOrder == i)
 			{
-				aOrder[found][0] = j;			
+				aOrder[found][0] = j;
 #ifdef MSB_FIRST
 				aOrder[found][1] = (j < 8) ? 1 << (24 + j) : 1 << (16 + (j - 8));
 #else
@@ -193,4 +238,22 @@ void							InputHandler::BuildShifts				(const InputDeviceInputInfoStruct* aInfo
 			}
 		}
 	}
+}
+
+bool							InputHandler::IsInputSupported			(const InputDeviceInputInfoStruct* aInfo, uint32_t aButtonCount)
+{
+	if(aButtonCount > 16 || aButtonCount == 0)
+	{
+		return false;
+	}
+
+	for(int i = 0; i != aButtonCount; i ++)
+	{
+		if(aInfo[i].Type != IDIT_BUTTON && aInfo[i].Type != IDIT_BUTTON_CAN_RAPID)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

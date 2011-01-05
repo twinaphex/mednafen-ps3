@@ -218,9 +218,12 @@ const InputDeviceInputInfoStruct Gamepad6IDII[11] =
  { "z", "Z", 10, IDIT_BUTTON_CAN_RAPID, NULL },
 };
 
+//ROBO: Fix this based on genesis-plus gx
 Gamepad6::Gamepad6()
 {
-
+	select = 0x40;
+	timeout = 0;
+	count = 0;
 }
 
 Gamepad6::~Gamepad6()
@@ -230,81 +233,71 @@ Gamepad6::~Gamepad6()
 
 void Gamepad6::Write(uint8 data)
 {
-    data = (data >> 6) & 1;
+    if(!(select & 0x40) && (data & 0x40))
+	{
+		count ++;
+		timeout = 0;
+	}
 
-    /* Ignore cases where TH isn't changed */
-    if(data == select)
-        return;
-
-    /* Update state of TH */
-    select = data;
-
-    /* Reset the timeout counter */
-    timeout = 0;
-
-    /* Bump the state counter */
-    ++count;
+	select = data;
 }
 
 uint8 Gamepad6::Read()
 {
-    uint8 temp = 0x3F;
+	uint32_t temp = (select & 0x40) | 0x3F;
+	uint32_t step = temp >> 6;
 
-    if(count <= 4 || count >= 8)
-    {
-        if(select)
-        {
-            temp = 0x3F;
-            if(buttons & INPUT_UP)    temp &= ~0x01;
-            if(buttons & INPUT_DOWN)  temp &= ~0x02;
-            if(buttons & INPUT_LEFT)  temp &= ~0x04;
-            if(buttons & INPUT_RIGHT) temp &= ~0x08;
-            if(buttons & INPUT_B)     temp &= ~0x10;
-            if(buttons & INPUT_C)     temp &= ~0x20;
-            return temp | 0x40;
-        }
-        else
-        {
-            temp = 0x33;
-            if(buttons & INPUT_UP)    temp &= ~0x01;
-            if(buttons & INPUT_DOWN)  temp &= ~0x02;
-            if(buttons & INPUT_A)     temp &= ~0x10;
-            if(buttons & INPUT_START) temp &= ~0x20;
-            return temp;
-        }
-    }
-    else
-    switch(count)
-    {
-        case 5:
-            temp = 0x30;
-            if(buttons & INPUT_A) temp &= ~0x10;
-            if(buttons & INPUT_START) temp &= ~0x20;
-            return temp;
+	step += (count & 3) << 1;
 
-        case 6:
-            temp = 0x3F;
-            if(buttons & INPUT_Z)     temp &= ~0x01;
-            if(buttons & INPUT_Y)     temp &= ~0x02;
-            if(buttons & INPUT_X)     temp &= ~0x04;
-            if(buttons & INPUT_MODE)  temp &= ~0x08;
-            if(buttons & INPUT_B)     temp &= ~0x10;
-            if(buttons & INPUT_C)     temp &= ~0x20;
-            return temp | 0x40;
+	if(step == 1 || step == 3 || step == 5)
+	{
+        if(buttons & INPUT_UP)    temp &= ~0x01;
+        if(buttons & INPUT_DOWN)  temp &= ~0x02;
+        if(buttons & INPUT_LEFT)  temp &= ~0x04;
+        if(buttons & INPUT_RIGHT) temp &= ~0x08;
+        if(buttons & INPUT_B)     temp &= ~0x10;
+        if(buttons & INPUT_C)     temp &= ~0x20;
+	}
+	else if(step == 0 || step == 2)
+	{
+        if(buttons & INPUT_UP)    temp &= ~0x01;
+        if(buttons & INPUT_DOWN)  temp &= ~0x02;
+        if(buttons & INPUT_A)     temp &= ~0x10;
+        if(buttons & INPUT_START) temp &= ~0x20;
+		temp &= ~0x0C;
+	}
+	else if(step == 4)
+	{
+        if(buttons & INPUT_A) temp &= ~0x10;
+        if(buttons & INPUT_START) temp &= ~0x20;
+		temp &= ~0xF;
+	}
+	else if(step == 6)
+	{
+        if(buttons & INPUT_A) temp &= ~0x10;
+        if(buttons & INPUT_START) temp &= ~0x20;
+	}
+	else if(step == 7)
+	{
+        if(buttons & INPUT_Z)     temp &= ~0x01;
+        if(buttons & INPUT_Y)     temp &= ~0x02;
+        if(buttons & INPUT_X)     temp &= ~0x04;
+        if(buttons & INPUT_MODE)  temp &= ~0x08;
+        if(buttons & INPUT_B)     temp &= ~0x10;
+        if(buttons & INPUT_C)     temp &= ~0x20;
+	}
 
-        case 7:
-            temp = 0x3F;
-            if(buttons & INPUT_A)     temp &= ~0x10;
-            if(buttons & INPUT_START) temp &= ~0x20;
-            return temp;
-    }
-
-    return -1;
+	return temp;
 }
 
 void Gamepad6::Update(const void *data)
 {
  buttons = ((uint8 *)data)[0] | (((uint8 *)data)[1] << 8);
+
+ if(++timeout > 24)
+ {
+   count = 0;
+ }
 }
 
 
