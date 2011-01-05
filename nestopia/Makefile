@@ -11,8 +11,8 @@ INCLUDE		:=	../mednafen/src
 DATA		:=	bin
 LIBS		:=	
 LIBDIRS		:=	
-CFLAGS		:=-O2 --std=gnu99 -DNST_NO_ZLIB
-CXXFLAGS	:=-O2 -DNST_NO_ZLIB
+CFLAGS		:=-O2 --std=gnu99 -DNST_NO_ZLIB -DNST_NO_SCALEX -DNST_NO_HQ2X -DNST_NO_2XSAI
+CXXFLAGS	:=-O2 -DNST_NO_ZLIB -DNST_NO_SCALEX -DNST_NO_HQ2X -DNST_NO_2XSAI
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 include $(CURDIR)/../Makefile-$(PLATFORM).base

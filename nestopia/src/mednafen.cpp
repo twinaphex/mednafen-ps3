@@ -23,24 +23,24 @@
 using namespace Nes::Api;
 using namespace Nes;
 
-
 namespace
 {
 	EmulateSpecStruct*			ESpec;
+
+	bool						GameOpen = false;
 
 	Nes::Api::Emulator			Nestopia;
 	Video::Output* 				EmuVideo;
 	Sound::Output* 				EmuSound;
 	Input::Controllers*			EmuPads;
-	
-	std::string					SaveFileName;
-	std::string					StateFileName;
+
 	uint32_t					Samples[48000];
-	uint8_t*					Ports[4] = {0, 0, 0, 0};
+	uint8_t*					Ports[Input::NUM_PADS] = {0, 0, 0, 0};
 }
 
 bool NST_CALLBACK			VideoLock						(void* userData, Video::Output& video)
 {
+	//TODO: Support 16-bit and YUV
 	video.pixels = ESpec->surface->pixels;
 	video.pitch = ESpec->surface->pitch32 * 4;
 	return true;
@@ -48,12 +48,15 @@ bool NST_CALLBACK			VideoLock						(void* userData, Video::Output& video)
 
 void NST_CALLBACK 			VideoUnlock						(void* userData, Video::Output& video)
 {
+	/*NOTHING*/
 }
 
 void NST_CALLBACK 			DoLog							(void *userData, const char *string, Nes::ulong length)
 {
+	/*NOTHING*/
 }
 
+//TODO: Fill this in properly
 void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 {
 	unsigned char *compbuffer;
@@ -68,14 +71,14 @@ void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 		case User::File::LOAD_TURBOFILE: // for loading turbofile data
 		{
 			std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-		
+
 			std::ifstream savefile(filename.c_str(), std::ifstream::in | std::ifstream::binary );
 
 			if (savefile.is_open())
 			{
 				file.SetContent(savefile);
 			}
-		
+
 			return;
 		}
 
@@ -85,7 +88,7 @@ void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 		case User::File::SAVE_TURBOFILE: // for saving turbofile data
 		{
 			std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-		
+
 			std::ofstream batteryFile(filename.c_str(), std::ifstream::out | std::ifstream::binary );
 			const void* savedata;
 			unsigned long savedatasize;
@@ -94,73 +97,94 @@ void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 
 			if (batteryFile.is_open())
 				batteryFile.write((const char*) savedata, savedatasize);
-			return;		
+			return;
 		}
 	}
 }
 
+int				NestLoad				(const char *name, MDFNFILE *fp);
+bool			NestTestMagic			(const char *name, MDFNFILE *fp);
+void			NestCloseGame			(void);
+bool			NestToggleLayer			(int which);
+void			NestInstallReadPatch	(uint32 address);
+void			NestRemoveReadPatches	(void);
+uint8			NestMemRead				(uint32 addr);
+int				NestStateAction			(StateMem *sm, int load, int data_only);
+void			NestEmulate				(EmulateSpecStruct *espec);
+void			NestSetInput			(int port, const char *type, void *ptr);
+void			NestDoSimpleCommand		(int cmd);
+
 int				NestLoad				(const char *name, MDFNFILE *fp)
 {
+	if(GameOpen)
+	{
+		NestCloseGame();
+	}
+
+	GameOpen = true;
+
+	//Setup some nestopia callbacks
 	Video::Output::lockCallback.Set(VideoLock, 0);
 	Video::Output::unlockCallback.Set(VideoUnlock, 0);
 	User::fileIoCallback.Set(DoFileIO, 0);
 	User::logCallback.Set(DoLog, 0);
 
+	//Make nestopia input-output objects
 	EmuVideo = new Video::Output;
 	EmuSound = new Sound::Output;
 	EmuPads  = new Input::Controllers;
 
-	Video::RenderState renderState;
-	renderState.bits.count = 32;
-	renderState.bits.mask.r = 0x00ff0000;
-	renderState.bits.mask.g = 0x0000ff00;
-	renderState.bits.mask.b = 0x000000ff;
-	renderState.filter = Video::RenderState::FILTER_NONE;
-	renderState.width = 256;
-	renderState.height = 240;	
-	Video(Nestopia).SetRenderState(renderState);
-
+	//Setup sound buffer
 	EmuSound->samples[0] = (void*)Samples;
 	EmuSound->length[0] = 48000 / 60;
 	EmuSound->samples[1] = NULL;
 	EmuSound->length[1] = 0;
 
+	//Make stream from file in memory, and load it
 	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);
 	Machine(Nestopia).LoadCartridge(file, Machine::FAVORED_NES_NTSC, Machine::DONT_ASK_PROFILE);
 
+	//TODO: Support more controllers
 	Input(Nestopia).ConnectController(0, Input::PAD1);
 	Input(Nestopia).ConnectController(1, Input::PAD2);
 
+	//Here we go
 	Machine(Nestopia).Power(true);
-	
+
 	return 1;
 }
 
+//TODO: Support more file formats and FDS
 bool			NestTestMagic			(const char *name, MDFNFILE *fp)
 {
 	if(fp->data[0] == 'N' && fp->data[1] == 'E' && fp->data[2] == 'S' && fp->data[3] == 0x1A)
 		return true;
-		
+
 	return false;
 }
 
 void			NestCloseGame			(void)
 {
-	Machine(Nestopia).Power(false);
-	Machine(Nestopia).Unload();
-	
-	if(EmuVideo)	delete EmuVideo;
-	if(EmuSound)	delete EmuSound;
-	if(EmuPads)		delete EmuPads;
-	
-	EmuVideo = 0;
-	EmuSound = 0;
-	EmuPads = 0;
+	if(GameOpen)
+	{
+		Machine(Nestopia).Power(false);
+		Machine(Nestopia).Unload();
+
+		delete EmuVideo;
+		delete EmuSound;
+		delete EmuPads;
+
+		EmuVideo = 0;
+		EmuSound = 0;
+		EmuPads = 0;
+
+		GameOpen = false;
+	}
 }
 
 bool			NestToggleLayer			(int which)
 {
-	//TODO:
+	//TODO: Nestopia has no external way to support this, I don't think it's important enough for patch either.
 	return false;
 }
 
@@ -182,33 +206,33 @@ uint8			NestMemRead				(uint32 addr)
 
 int				NestStateAction			(StateMem *sm, int load, int data_only)
 {
-	//TODO:
+	//TODO: Should I let them be zipped?
 	if(!load)
 	{
 		std::ostringstream os(std::ios_base::out | std::ios_base::binary);
 		Nes::Result res = Machine(Nestopia).SaveState(os, Nes::Api::Machine::USE_COMPRESSION);
-		
+
 		void* buffer = malloc(os.str().size());
 		memcpy(buffer, os.str().data(), os.str().size());
-		
+
 		smem_write32le(sm, os.str().size());
 		smem_write(sm, buffer, os.str().size());
-		
+
 		free(buffer);
-		
+
 		return 1;
 	}
 	else
 	{
 		uint32_t size;
 		smem_read32le(sm, &size);
-		
+
 		char* buffer = (char*)malloc(size);
 		smem_read(sm, buffer, size);
 
 		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);		
 		Nes::Result res = Machine(Nestopia).LoadState(iss);
-		
+
 		free(buffer);
 
 		return 1;
@@ -220,6 +244,7 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
+	//Update sound
 	if(espec->SoundFormatChanged)
 	{
 		Sound(Nestopia).SetSampleBits(16);
@@ -227,24 +252,46 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 		Sound(Nestopia).SetVolume(Sound::ALL_CHANNELS, 100);
 		Sound(Nestopia).SetSpeaker(Sound::SPEAKER_MONO);
 	}
-	
-	//TODO: Support color shift
-	//TODO: Support multiplayer
-	EmuPads->pad[0].buttons = 0;
-	if(Ports[0]) EmuPads->pad[0].buttons = Ports[0][0];
 
+	//Update colors
+	//TODO: Support 16-bit and YUV
+	if(espec->VideoFormatChanged)
+	{
+	    Video::RenderState renderState;
+    	renderState.bits.count = 32;
+	    renderState.bits.mask.r = 0xFF << espec->surface->format.Rshift;
+    	renderState.bits.mask.g = 0xFF << espec->surface->format.Gshift;
+	    renderState.bits.mask.b = 0xFF << espec->surface->format.Bshift;
+    	renderState.filter = Video::RenderState::FILTER_NONE;
+		renderState.width = 256;
+		renderState.height = 240;
+    	Video(Nestopia).SetRenderState(renderState);
+	}
+
+	//Update input
+	//TODO: Support more controllers
+	for(int i = 0; i != Input::NUM_PADS; i ++)
+	{
+		EmuPads->pad[i].buttons = Ports[i] ? Ports[i][0] : 0;
+	}
+
+	//Do frame
 	Nestopia.Execute(espec->skip ? 0 : EmuVideo, EmuSound, EmuPads);
-	
+
+	//Copy sound
+	//TODO: This can't possibly be the correct way to calculate the number of samples, can it?
 	if(espec->SoundBuf && (espec->SoundBufMaxSize > espec->SoundRate / 60))
 	{
 		espec->SoundBufSize = espec->SoundRate / 60;
 		memcpy(espec->SoundBuf, Samples, espec->SoundBufSize * 2);
 	}
-	
+
+	//Set video
+	//TODO: Don't get the setting every frame, it's probably slow
 	uint32_t clipsides = MDFN_GetSettingB("nest.clipsides");
 	uint32_t slstart = MDFN_GetSettingUI("nest.slstart");
 	uint32_t slend = MDFN_GetSettingUI("nest.slend");
-	
+
 	espec->DisplayRect.x = clipsides ? 8 : 0;
 	espec->DisplayRect.y = slstart;
 	espec->DisplayRect.w = clipsides ? 240 : 256;
@@ -253,7 +300,7 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 
 void			NestSetInput			(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port <= 4)
+	if(port >= 0 && port < Input::NUM_PADS)
 	{
 		Ports[port] = (uint8_t*)ptr;
 	}
@@ -269,55 +316,43 @@ void			NestDoSimpleCommand		(int cmd)
 	{
 		Machine(Nestopia).Reset(1);
 	}
+
+	//TODO: Commands for FDS
 }
 
+//TODO: Define more control types
 static const InputDeviceInputInfoStruct GamepadIDII[] =
 {
- { "a", "A", 7, IDIT_BUTTON_CAN_RAPID, NULL },
- { "b", "B", 6, IDIT_BUTTON_CAN_RAPID, NULL },
- { "select", "SELECT", 4, IDIT_BUTTON, NULL },
- { "start", "START", 5, IDIT_BUTTON, NULL },
- { "up", "UP", 0, IDIT_BUTTON, "down" },
- { "down", "DOWN", 1, IDIT_BUTTON, "up" },
- { "left", "LEFT", 2, IDIT_BUTTON, "right" },
- { "right", "RIGHT", 3, IDIT_BUTTON, "left" },
+	{"a",		"A",		7, IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"b",		"B",		6, IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"select",	"SELECT",	4, IDIT_BUTTON,				NULL},
+	{"start",	"START",	5, IDIT_BUTTON,				NULL},
+	{"up",		"UP",		0, IDIT_BUTTON,				"down"},
+	{"down",	"DOWN",		1, IDIT_BUTTON,				"up"},
+	{"left",	"LEFT",		2, IDIT_BUTTON,				"right"},
+	{"right",	"RIGHT",	3, IDIT_BUTTON,				"left"},
 };
 
 static InputDeviceInfoStruct InputDeviceInfoNESPort[] =
 {
- // None
- {
-  "none",
-  "none",
-  NULL,
-  0,
-  NULL
- },
-
- // Gamepad
- {
-  "gamepad",
-  "Gamepad",
-  NULL,
-  sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),
-  GamepadIDII,
- },
+	{"none",	"none",		NULL, 0,														NULL},
+	{"gamepad",	"Gamepad",	NULL, sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct), GamepadIDII},
 };
 
 
 static const InputPortInfoStruct PortInfo[] =
 {
- { 0, "port1", "Port 1", sizeof(InputDeviceInfoNESPort) / sizeof(InputDeviceInfoStruct), InputDeviceInfoNESPort, "gamepad" },
+	{0, "port1", "Port 1", sizeof(InputDeviceInfoNESPort) / sizeof(InputDeviceInfoStruct), InputDeviceInfoNESPort, "gamepad"},
 };
 
-InputInfoStruct		NestInput = 
+InputInfoStruct		NestInput =
 {
 	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
 	PortInfo
 };
 
 
-FileExtensionSpecStruct	extensions[] = 
+FileExtensionSpecStruct	extensions[] =
 {
 	{".nes", "iNES Format ROM Image"},
 	{0, 0}
@@ -326,14 +361,15 @@ FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting NestSettings[] =
 {
-  { "nest.clipsides", MDFNSF_NOFLAGS, "Clip left+right 8 pixel columns.", NULL, MDFNST_BOOL, "0" },
-  { "nest.slstart", MDFNSF_NOFLAGS, "First displayed scanline in NTSC mode.", NULL, MDFNST_UINT, "8", "0", "239" },
-  { "nest.slend", MDFNSF_NOFLAGS, "Last displayed scanlines in NTSC mode.", NULL, MDFNST_UINT, "231", "0", "239" },
-  { NULL }
+	{"nest.clipsides",	MDFNSF_NOFLAGS,	"Clip left+right 8 pixel columns.",			NULL, MDFNST_BOOL, "0"},
+	{"nest.slstart",	MDFNSF_NOFLAGS,	"First displayed scanline in NTSC mode.",	NULL, MDFNST_UINT, "8", "0", "239"},
+	{"nest.slend",		MDFNSF_NOFLAGS,	"Last displayed scanlines in NTSC mode.",	NULL, MDFNST_UINT, "231", "0", "239"},
+	{NULL}
 };
 
 
-MDFNGI	NestInfo = 
+//TODO: Masterclock and fps
+MDFNGI	NestInfo =
 {
 	shortname:			"nest",
 	fullname:			"Nestopia NES",
@@ -348,7 +384,7 @@ MDFNGI	NestInfo =
 	TestMagicCD:		0,
 	CloseGame:			NestCloseGame,
 	ToggleLayer:		NestToggleLayer,
-	LayerNames:			"Background\0Sprites\0",
+	LayerNames:			"Screen\0",
 	InstallReadPatch:	NestInstallReadPatch,
 	RemoveReadPatches:	NestRemoveReadPatches,
 	MemRead:			NestMemRead,
@@ -358,7 +394,7 @@ MDFNGI	NestInfo =
 	DoSimpleCommand:	NestDoSimpleCommand,
 	Settings:			NestSettings,
 	MasterClock:		0,
-	fps:				0,
+	fps:				60,
 	multires:			false,
 	nominal_width:		256,
 	nominal_height:		240,
@@ -366,7 +402,7 @@ MDFNGI	NestInfo =
 	fb_height:			256,
 	soundchan:			1
 };
-	
+
 MDFNGI* GetNestopia()
 {
 	return &NestInfo;
