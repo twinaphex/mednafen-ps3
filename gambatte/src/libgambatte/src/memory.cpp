@@ -1879,9 +1879,10 @@ void Memory::videoBufferChange() {
 	display.videoBufferChange();
 }
 
-void Memory::setVideoFilter(const unsigned int n) {
-	display.setVideoFilter(n);
-}
+//ROBO: No filters
+//void Memory::setVideoFilter(const unsigned int n) {
+//	display.setVideoFilter(n);
+//}
 
 void Memory::setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned long rgb32) {
 	display.setDmgPaletteColor(palNum, colorNum, rgb32);

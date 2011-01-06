@@ -18,13 +18,14 @@
  ***************************************************************************/
 #include "video.h"
 #include "videoblitter.h"
-#include "video/filters/filter.h"
-#include "video/filters/catrom2x.h"
-#include "video/filters/catrom3x.h"
-#include "video/filters/kreed2xsai.h"
-#include "video/filters/maxsthq2x.h"
-#include "video/filters/maxsthq3x.h"
-#include "filterinfo.h"
+//ROBO: No filters
+//#include "video/filters/filter.h"
+//#include "video/filters/catrom2x.h"
+//#include "video/filters/catrom3x.h"
+//#include "video/filters/kreed2xsai.h"
+//#include "video/filters/maxsthq2x.h"
+//#include "video/filters/maxsthq3x.h"
+//#include "filterinfo.h"
 #include "savestate.h"
 #include "video/basic_add_event.h"
 #include <cstring>
@@ -86,7 +87,8 @@ LCD::LCD(const unsigned char *const oamram, const unsigned char *const vram_in) 
 	bgTileMap(vram + 0x1800),
 	wdTileMap(bgTileMap),
 	vBlitter(NULL),
-	filter(NULL),
+//ROBO: No filters
+//	filter(NULL),
 	dbuffer(NULL),
 	draw(NULL),
 	gbcToFormat(gbcToRgb32),
@@ -127,23 +129,26 @@ LCD::LCD(const unsigned char *const oamram, const unsigned char *const vram_in) 
 		setDmgPaletteColor(i, (3 - (i & 3)) * 85 * 0x010101);
 	}
 
-	filters.push_back(NULL);
-	filters.push_back(new Catrom2x);
-	filters.push_back(new Catrom3x);
-	filters.push_back(new Kreed_2xSaI);
-	filters.push_back(new MaxSt_Hq2x);
-	filters.push_back(new MaxSt_Hq3x);
+//ROBO: No Filters
+//	filters.push_back(NULL);
+//	filters.push_back(new Catrom2x);
+//	filters.push_back(new Catrom3x);
+//	filters.push_back(new Kreed_2xSaI);
+//	filters.push_back(new MaxSt_Hq2x);
+//	filters.push_back(new MaxSt_Hq3x);
 
 	reset(oamram, false);
 	setDoubleSpeed(false);
 
-	setVideoFilter(0);
+//ROBO: No filters
+//	setVideoFilter(0);
 }
 
 LCD::~LCD() {
 // 	delete []filter_buffer;
-	for (std::size_t i = 0; i < filters.size(); ++i)
-		delete filters[i];
+//ROBO: No filters
+//	for (std::size_t i = 0; i < filters.size(); ++i)
+//		delete filters[i];
 }
 
 void LCD::reset(const unsigned char *const oamram, const bool cgb_in) {
@@ -297,7 +302,8 @@ void LCD::videoBufferChange() {
 	}
 }
 
-void LCD::setVideoFilter(const unsigned n) {
+//ROBO: No filters
+/*void LCD::setVideoFilter(const unsigned n) {
 	const unsigned oldw = videoWidth();
 	const unsigned oldh = videoHeight();
 
@@ -328,14 +334,18 @@ std::vector<const Gambatte::FilterInfo*> LCD::filterInfo() const {
 		v.push_back(&filters[i]->info());
 
 	return v;
-}
+}*/
 
+//ROBO: No filters
 unsigned int LCD::videoWidth() const {
-	return filter ? filter->info().outWidth : 160;
+//	return filter ? filter->info().outWidth : 160;
+	return 160;
 }
 
+//ROBO: No filters
 unsigned int LCD::videoHeight() const {
-	return filter ? filter->info().outHeight : 144;
+//	return filter ? filter->info().outHeight : 144;
+	return 144;
 }
 
 template<class Blend>
@@ -380,9 +390,10 @@ void LCD::updateScreen(const unsigned long cycleCounter) {
 				osdElement.reset();
 		}
 
-		if (filter) {
-			filter->filter(static_cast<Gambatte::uint_least32_t*>(tmpbuf ? tmpbuf : pb.pixels), (tmpbuf ? videoWidth() : pb.pitch));
-		}
+//ROBO: No filters
+//		if (filter) {
+//			filter->filter(static_cast<Gambatte::uint_least32_t*>(tmpbuf ? tmpbuf : pb.pixels), (tmpbuf ? videoWidth() : pb.pitch));
+//		}
 
 		if (tmpbuf) {
 			switch (pb.format) {
@@ -904,10 +915,11 @@ void LCD::setDBuffer() {
 	gbcToFormat = &gbcToRgb32;
 	dmgColors = dmgColorsRgb32;
 
-	if (filter) {
-		dbuffer = filter->inBuffer();
-		dpitch = filter->inPitch();
-	} else if (pb.format == Gambatte::PixelBuffer::RGB32) {
+//ROBO: No filters
+//	if (filter) {
+//		dbuffer = filter->inBuffer();
+//		dpitch = filter->inPitch();
+/*	} else*/ if (pb.format == Gambatte::PixelBuffer::RGB32) {
 		dbuffer = pb.pixels;
 		dpitch = pb.pitch;
 	} else {

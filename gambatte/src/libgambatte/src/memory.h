@@ -31,7 +31,8 @@ class SaveState;
 
 namespace Gambatte {
 class InputStateGetter;
-class FilterInfo;
+//ROBO: No filters
+//class FilterInfo;
 }
 
 class Memory {
@@ -216,7 +217,8 @@ public:
 	void setSoundBuffer(Gambatte::uint_least32_t *const buf) { sound.setBuffer(buf); }
 	unsigned fillSoundBuffer(unsigned long cc);
 	void setVideoBlitter(Gambatte::VideoBlitter * vb);
-	void setVideoFilter(unsigned int n);
+//ROBO: No filters
+//	void setVideoFilter(unsigned int n);
 	
 	void videoBufferChange();
 	
@@ -227,10 +229,11 @@ public:
 	unsigned videoHeight() const {
 		return display.videoHeight();
 	}
-	
-	std::vector<const Gambatte::FilterInfo*> filterInfo() const {
-		return display.filterInfo();
-	}
+
+//ROBO: No filters	
+//	std::vector<const Gambatte::FilterInfo*> filterInfo() const {
+//		return display.filterInfo();
+//	}
 	
 	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned long rgb32);
 };

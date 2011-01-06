@@ -21,10 +21,12 @@
 
 namespace Gambatte {
 class VideoBlitter;
-struct FilterInfo;
+//ROBO: No Filters
+//struct FilterInfo;
 }
 
-class Filter;
+//ROBO: No filters
+//class Filter;
 class SaveState;
 
 #include <vector>
@@ -70,7 +72,8 @@ class LCD {
 	const unsigned char *wdTileMap;
 
 	Gambatte::VideoBlitter *vBlitter;
-	Filter *filter;
+//ROBO: No filters
+//	Filter *filter;
 
 	void *dbuffer;
 	void (LCD::*draw)(unsigned xpos, unsigned ypos, unsigned endX);
@@ -107,7 +110,8 @@ class LCD {
 	Rgb32ToUyvy rgb32ToUyvy;
 	std::auto_ptr<OsdElement> osdElement;
 
-	std::vector<Filter*> filters;
+//ROBO: No filters
+//	std::vector<Filter*> filters;
 
 	unsigned char drawStartCycle;
 	unsigned char scReadOffset;
@@ -165,8 +169,9 @@ public:
 	void loadState(const SaveState &state, const unsigned char *oamram);
 	void setVideoBlitter(Gambatte::VideoBlitter *vb);
 	void videoBufferChange();
-	void setVideoFilter(unsigned n);
-	std::vector<const Gambatte::FilterInfo*> filterInfo() const;
+//ROBO: No filters
+//	void setVideoFilter(unsigned n);
+//	std::vector<const Gambatte::FilterInfo*> filterInfo() const;
 	unsigned videoWidth() const;
 	unsigned videoHeight() const;
 	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned long rgb32);

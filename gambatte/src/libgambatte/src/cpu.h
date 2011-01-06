@@ -71,14 +71,16 @@ public:
 	unsigned int videoHeight() const {
 		return memory.videoHeight();
 	}
-	
-	void setVideoFilter(const unsigned int n) {
-		memory.setVideoFilter(n);
-	}
-	
-	std::vector<const Gambatte::FilterInfo*> filterInfo() const {
-		return memory.filterInfo();
-	}
+
+//ROBO: No filters	
+//	void setVideoFilter(const unsigned int n) {
+//		memory.setVideoFilter(n);
+//	}
+
+//ROBO: No filters	
+//	std::vector<const Gambatte::FilterInfo*> filterInfo() const {
+//		return memory.filterInfo();
+//	}
 	
 	void setInputStateGetter(Gambatte::InputStateGetter *getInput) {
 		memory.setInputStateGetter(getInput);

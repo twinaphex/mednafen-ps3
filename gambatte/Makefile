@@ -6,7 +6,7 @@ endif
 TARGET		:=	libgambatte
 TYPE		:=	a
 BUILD		:=	build
-SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample src/libgambatte/src/video/filters
+SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample
 INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system
 
 CFLAGS		:=-O2 --std=gnu99 -DHAVE_STDINT_H

@@ -13,6 +13,7 @@ using namespace Gambatte;
 namespace
 {
 	EmulateSpecStruct*			ESpec;
+	bool						GameLoaded = false;
 
 	class gbblitter : public VideoBlitter
 	{
@@ -21,7 +22,7 @@ namespace
 			{
 				buffer.pixels = 0;
 			}
-			
+
 								~gbblitter				()
 			{
 				if(buffer.pixels)
@@ -29,30 +30,30 @@ namespace
 					free(buffer.pixels);
 				}
 			}
-		
+
 			void				setBufferDimensions		(unsigned aWidth, unsigned aHeight)
 			{
 				if(buffer.pixels)
 				{
 					free(buffer.pixels);
 				}
-				
+
 				width = aWidth;
 				height = aHeight;
-			
+
 				buffer.pixels = malloc(aWidth * aHeight * 4);
 				buffer.pitch = aWidth;
 			}
-			
+
 			const PixelBuffer	inBuffer				()
 			{
 				return buffer;
 			}
-			
+
 			void				blit					()
 			{
 				uint32_t* sourceptr = (uint32_t*)buffer.pixels;
-			
+
 				for(int i = 0; i != height; i ++)
 				{
 					for(int j = 0; j != width ; j ++)
@@ -78,9 +79,9 @@ namespace
 
 	GB*							gambatte;
 	Resampler*					resampler;
-	gbblitter* 					blitter;
-	gbinput*					input;
-	
+	gbblitter 					blitter;
+	gbinput						input;
+
 	uint32_t					samples[48000];
 	uint32_t					resamples[48000];
 	int32_t						sampleoverflow;
@@ -88,49 +89,71 @@ namespace
 	uint8_t*					Ports[4] = {0, 0, 0, 0};
 }
 
+int				GmbtLoad				(const char *name, MDFNFILE *fp);
+bool			GmbtTestMagic			(const char *name, MDFNFILE *fp);
+void			GmbtCloseGame			(void);
+bool			GmbtToggleLayer			(int which);
+void			GmbtInstallReadPatch	(uint32 address);
+void			GmbtRemoveReadPatches	(void);
+uint8			GmbtMemRead				(uint32 addr);
+int				GmbtStateAction			(StateMem *sm, int load, int data_only);
+void			GmbtEmulate				(EmulateSpecStruct *espec);
+void			GmbtSetInput			(int port, const char *type, void *ptr);
+void			GmbtDoSimpleCommand		(int cmd);
+
 int				GmbtLoad				(const char *name, MDFNFILE *fp)
 {
+	if(GameLoaded)
+	{
+		GmbtCloseGame();
+	}
+
+	GameLoaded = true;
+
+	//Create emulator
 	gambatte = new GB();
-	blitter = new gbblitter();
-	input = new gbinput();
+	//TODO: Which resampler is best
 	resampler = ResamplerInfo::get(0).create(2097152, 48000, 35112);
-	
-	//TODO: Move it
-	gambatte->set_savedir(es_paths->Build("").c_str());
-	
+
+	//Internal routines patched to get filename from mednafen
+//	gambatte->set_savedir(es_paths->Build("").c_str());
+
+	//Init Sound
 	sampleoverflow = 0;
 	memset(samples, 0, sizeof(samples));
 	memset(resamples, 0, sizeof(resamples));
 
+	//Load game
 	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);	
 	gambatte->load(file, false);
-	gambatte->setVideoBlitter(blitter);
-	gambatte->setInputStateGetter(input);
-	
+
+	//Set Input and video
+	gambatte->setVideoBlitter(&blitter);
+	gambatte->setInputStateGetter(&input);
+
 	return 1;
 }
 
 bool			GmbtTestMagic			(const char *name, MDFNFILE *fp)
 {
 	static const uint8 GBMagic[8] = { 0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B };
-
-	if(fp->size < 0x10C || memcmp(fp->data + 0x104, GBMagic, 8))
-		return(FALSE);
-
-	return(TRUE);
+	return fp->size > 0x10C && !memcmp(fp->data + 0x104, GBMagic, 8);
 }
 
 void			GmbtCloseGame			(void)
 {
-	delete resampler;
-	delete input;
-	delete blitter;
-	delete gambatte;
+	if(GameLoaded)
+	{
+		delete resampler;
+		delete gambatte;
+	}
+
+	GameLoaded = false;
 }
 
 bool			GmbtToggleLayer			(int which)
 {
-	//TODO:
+	//TODO: I'm not going out of my way to support this
 	return false;
 }
 
@@ -157,28 +180,28 @@ int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 	{
 		std::ostringstream os(std::ios_base::out | std::ios_base::binary);
 		gambatte->saveState(os);
-		
+
 		void* buffer = malloc(os.str().size());
 		memcpy(buffer, os.str().data(), os.str().size());
-		
+
 		smem_write32le(sm, os.str().size());
 		smem_write(sm, buffer, os.str().size());
-		
+
 		free(buffer);
-		
+
 		return 1;
 	}
 	else
 	{
 		uint32_t size;
 		smem_read32le(sm, &size);
-		
+
 		char* buffer = (char*)malloc(size);
 		smem_read(sm, buffer, size);
 
-		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);		
+		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);
 		gambatte->loadState(iss);
-		
+
 		free(buffer);
 
 		return 1;
@@ -190,36 +213,42 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
+	//Setup sound
 	if(espec->SoundFormatChanged)
 	{
 		resampler->adjustRate(2097152, espec->SoundRate);
 	}
-	
+
 	//TODO: Support color shift
 
+	//Setup input
 	if(Ports[0])
 	{
-		input->inputs.startButton = (Ports[0][0] & 8) ? 1 : 0;
-		input->inputs.selectButton = (Ports[0][0] & 4) ? 1 : 0;
-		input->inputs.bButton = (Ports[0][0] & 2) ? 1 : 0;
-		input->inputs.aButton = (Ports[0][0] & 1) ? 1 : 0;
-		input->inputs.dpadUp = (Ports[0][0] & 0x40) ? 1 : 0;
-		input->inputs.dpadDown = (Ports[0][0] & 0x80) ? 1 : 0;
-		input->inputs.dpadLeft = (Ports[0][0] & 0x20) ? 1 : 0;
-		input->inputs.dpadRight = (Ports[0][0] & 0x10) ? 1 : 0;
+		input.inputs.startButton	= (Ports[0][0] & 8) ? 1 : 0;
+		input.inputs.selectButton	= (Ports[0][0] & 4) ? 1 : 0;
+		input.inputs.bButton		= (Ports[0][0] & 2) ? 1 : 0;
+		input.inputs.aButton		= (Ports[0][0] & 1) ? 1 : 0;
+		input.inputs.dpadUp			= (Ports[0][0] & 0x40) ? 1 : 0;
+		input.inputs.dpadDown		= (Ports[0][0] & 0x80) ? 1 : 0;
+		input.inputs.dpadLeft		= (Ports[0][0] & 0x20) ? 1 : 0;
+		input.inputs.dpadRight		= (Ports[0][0] & 0x10) ? 1 : 0;
 	}
 
+	//Run frame
 	uint32_t samps = gambatte->runFor((Gambatte::uint_least32_t*)samples, 35112 - sampleoverflow);
 	sampleoverflow += samps;
 	sampleoverflow -= 35112;
+
+	//Grab sound
 	uint32_t count = resampler->resample((short*)resamples, (short*)samples, samps);
 
-	if(espec->SoundBuf && (espec->SoundBufMaxSize > espec->SoundRate / 60))
+	if(espec->SoundBuf && (espec->SoundBufMaxSize >= count))
 	{
 		espec->SoundBufSize = count;
 		memcpy(espec->SoundBuf, resamples, espec->SoundBufSize * 4);
 	}
-	
+
+	//Set frame size
 	espec->DisplayRect.x = 0;
 	espec->DisplayRect.y = 0;
 	espec->DisplayRect.w = 160;
@@ -248,45 +277,26 @@ void			GmbtDoSimpleCommand		(int cmd)
 
 static const InputDeviceInputInfoStruct IDII[] =
 {
-	{ "a", "A", 		/*VIRTB_1,*/ 7, IDIT_BUTTON_CAN_RAPID, NULL },
-	{ "b", "B", 		/*VIRTB_0,*/ 6, IDIT_BUTTON_CAN_RAPID, NULL },
-	{ "select", "SELECT",	/*VIRTB_SELECT,*/ 4, IDIT_BUTTON, NULL },
-	{ "start", "START",	/*VIRTB_START,*/ 5, IDIT_BUTTON, NULL },
-	{ "right", "RIGHT",	/*VIRTB_DP0_R,*/ 3, IDIT_BUTTON, "left" },
-	{ "left", "LEFT",	/*VIRTB_DP0_L,*/ 2, IDIT_BUTTON, "right" },
-	{ "up", "UP", 	/*VIRTB_DP0_U,*/ 0, IDIT_BUTTON, "down" },
-	{ "down", "DOWN",	/*VIRTB_DP0_D,*/ 1, IDIT_BUTTON, "up" },
+	{"a",		"A",		7, IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"b",		"B",		6, IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"select",	"SELECT",	4, IDIT_BUTTON,				NULL},
+	{"start",	"START",	5, IDIT_BUTTON,				NULL},
+	{"right",	"RIGHT",	3, IDIT_BUTTON,				"left"},
+	{"left",	"LEFT",		2, IDIT_BUTTON,				"right"},
+	{"up",		"UP",		0, IDIT_BUTTON,				"down"},
+	{"down",	"DOWN",		1, IDIT_BUTTON,				"up"},
 };
 
-static InputDeviceInfoStruct InputDeviceInfo[] =
-{
-	{
-		"gamepad",
-		"Gamepad",
-		NULL,
-		sizeof(IDII) / sizeof(InputDeviceInputInfoStruct),
-		IDII,
-	}
-};
-
-static const InputPortInfoStruct PortInfo[] =
-{
-	{ 0, "builtin", "Built-In", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" }
-};
-
-static InputInfoStruct GmbtInput =
-{
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
-	PortInfo
-};
-
+static InputDeviceInfoStruct InputDeviceInfo[] =	{{"gamepad", "Gamepad", NULL, 8, IDII,}};
+static const InputPortInfoStruct PortInfo[] =		{{0, "builtin", "Built-In", 1, InputDeviceInfo, "gamepad"}};
+static InputInfoStruct GmbtInput =					{1, PortInfo};
 
 static FileExtensionSpecStruct	extensions[] = 
 {
-	{".gb", "Game Boy Rom"},
-	{".gbc", "Game Boy Color Rom"},	
-	{".cgb", "Game Boy Color Rom"},		
-	{0, 0}
+	{".gb",		"Game Boy Rom"},
+	{".gbc",	"Game Boy Color Rom"},
+	{".cgb",	"Game Boy Color Rom"},
+	{0,			0}
 };
 
 
@@ -311,7 +321,7 @@ static MDFNGI	GmbtInfo =
 	TestMagicCD:		0,
 	CloseGame:			GmbtCloseGame,
 	ToggleLayer:		GmbtToggleLayer,
-	LayerNames:			"Background\0Sprites\0Window\0",
+	LayerNames:			"Screen\0",
 	InstallReadPatch:	GmbtInstallReadPatch,
 	RemoveReadPatches:	GmbtRemoveReadPatches,
 	MemRead:			GmbtMemRead,

@@ -24,7 +24,8 @@ class CPU;
 #include "videoblitter.h"
 #include "inputstate.h"
 #include "inputstategetter.h"
-#include "filterinfo.h"
+//ROBO: No filters
+//#include "filterinfo.h"
 #include "int.h"
 #include <vector>
 
@@ -66,9 +67,10 @@ public:
 	unsigned videoWidth() const;
 	unsigned videoHeight() const;
 	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned rgb32);
-	
-	void setVideoFilter(unsigned n);
-	std::vector<const FilterInfo*> filterInfo() const;
+
+//ROBO: No filters	
+//	void setVideoFilter(unsigned n);
+//	std::vector<const FilterInfo*> filterInfo() const;
 	void setInputStateGetter(InputStateGetter *getInput);
 	
 	void set_savedir(const char *sdir);

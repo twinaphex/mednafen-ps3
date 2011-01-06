@@ -19,11 +19,17 @@
 #include "common/SoundDriver.h"
 
 //MEDNAFEN
-EmulateSpecStruct*					ESpec;
-uint8_t*							Ports[4];
-uint32_t							SoundFrame;
-uint32_t							FrameCount;
-uint32_t							SkipHack;
+namespace
+{
+	EmulateSpecStruct*					ESpec;
+
+	bool								GameLoaded = false;
+
+	uint8_t*							Ports[4];
+	uint32_t							SoundFrame;
+	uint32_t							FrameCount;
+	uint32_t							SkipHack;
+}
 
 //SYSTEM
 void								InitSystem								();
@@ -33,11 +39,21 @@ extern struct EmulatedSystem		emulator;
 
 int				VbamLoad				(const char *name, MDFNFILE *fp)
 {
+	if(GameLoaded)
+	{
+		VbamCloseGame();
+	}
+
+	//Reset the skiphack counter
 	FrameCount = 0;
 
+	//Setup sound
+	//TODO: Support more sample rates
 	soundInit();
 	soundSetSampleRate(48000);
 
+	//Load and apply game settings
+	//TODO: Support GB and GBC
 	CPULoadRom(fp->data, fp->size);
 	emulator = GBASystem;
 
@@ -50,62 +66,76 @@ int				VbamLoad				(const char *name, MDFNFILE *fp)
 	sdlApplyPerImagePreferences();
 	doMirroring(mirroringEnable);
 
+	//Reset system
 	soundReset();
 	CPUInit(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbam.bios").c_str()).c_str(), MDFN_GetSettingB("vbam.usebios"));
 	CPUReset();
 	emulating = 1;
 
+	//Load save game
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	emulator.emuReadBattery(filename.c_str());
-	
+
+	//This refreshes timer and generates colormaps
 	InitSystem();
-		
+
+	GameLoaded = true;
+
 	return 1;
 }
 
 bool			VbamTestMagic			(const char *name, MDFNFILE *fp)
 {
-	if(!strcasecmp(fp->ext, "gba") || !strcasecmp(fp->ext, "agb"))
-		return(TRUE);
-
-	return(FALSE);
+	//TODO: Real magic number?
+	return !strcasecmp(fp->ext, "gba") || !strcasecmp(fp->ext, "agb");
 }
 
 void			VbamCloseGame			(void)
 {
-	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-	emulator.emuWriteBattery(filename.c_str());
-	
-	emulator.emuCleanUp();
+	if(GameLoaded)
+	{
+		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+		emulator.emuWriteBattery(filename.c_str());
+
+		emulator.emuCleanUp();
+	}
+
+	GameLoaded = false;
 }
 
 
 void			VbamEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
-			
+
+	//Update sound
 	if(ESpec->SoundFormatChanged)
 	{
-		soundSetSampleRate(ESpec->SoundRate);	
+		soundSetSampleRate(ESpec->SoundRate);
 	}
 
+	//TODO: Support color shift
+
+	//Skip hack
 	if((FrameCount % 60) == 0)
 	{
 		SkipHack = MDFN_GetSettingB("vbam.skiphack");
 	}
 
-	SoundFrame = 0;
-
 	systemFrameSkip = ESpec->skip || (SkipHack && ((FrameCount ++) % 3 != 0));
-	
+
+	//Set the display size
 	espec->DisplayRect.x = 0;
 	espec->DisplayRect.y = 0;
 	espec->DisplayRect.w = 240;
 	espec->DisplayRect.h = 160;
 
+	//Run the emulator, this will return at the end of a frame
 	emulator.emuMain(1000000);
 
+	//Copy the number of samples generated on this frame
 	ESpec->SoundBufSize = SoundFrame;
+	SoundFrame = 0;
 }
 
 void			VbamSetInput			(int port, const char *type, void *ptr)
@@ -120,11 +150,11 @@ void			VbamDoSimpleCommand		(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET)
 	{
-		CPUReset();	
+		CPUReset();
 	}
 	else if(cmd == MDFN_MSC_POWER)
 	{
-		CPUReset();	
+		CPUReset();
 	}
 }
 
@@ -139,16 +169,16 @@ int				VbamStateAction			(StateMem *sm, int load, int data_only)		{return 0;}
 //SYSTEM DESCRIPTIONS
 static const InputDeviceInputInfoStruct IDII[] =
 {
-	{ "a", "A", 7, IDIT_BUTTON_CAN_RAPID, NULL },
-	{ "b", "B", 6, IDIT_BUTTON_CAN_RAPID, NULL },
-	{ "select", "SELECT", 4, IDIT_BUTTON, NULL },
-	{ "start", "START", 5, IDIT_BUTTON, NULL },
-	{ "right", "RIGHT", 3, IDIT_BUTTON, "left" },
-	{ "left", "LEFT", 2, IDIT_BUTTON, "right" },
-	{ "up", "UP", 0, IDIT_BUTTON, "down" },
-	{ "down", "DOWN", 1, IDIT_BUTTON, "up" },
-	{ "shoulder_r", "SHOULDER R", 9, IDIT_BUTTON, NULL },
-	{ "shoulder_l", "SHOULDER L", 8, IDIT_BUTTON, NULL },
+	{"a",				"A",			7,	IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"b",				"B",			6,	IDIT_BUTTON_CAN_RAPID,	NULL},
+	{"select",			"SELECT",		4,	IDIT_BUTTON,			NULL},
+	{"start",			"START",		5,	IDIT_BUTTON,			NULL},
+	{"right",			"RIGHT",		3,	IDIT_BUTTON,			"left"},
+	{"left",			"LEFT",			2,	IDIT_BUTTON,			"right"},
+	{"up",				"UP",			0,	IDIT_BUTTON,			"down"},
+	{"down",			"DOWN",			1,	IDIT_BUTTON,			"up"},
+	{"shoulder_r",		"SHOULDER R",	9,	IDIT_BUTTON,			NULL},
+	{"shoulder_l",		"SHOULDER L",	8,	IDIT_BUTTON,			NULL},
 };
 
 static InputDeviceInfoStruct InputDeviceInfo[] =
@@ -162,36 +192,37 @@ static InputDeviceInfoStruct InputDeviceInfo[] =
 	}
 };
 
-static const InputPortInfoStruct PortInfo[] = 
-{ 
-	{ 0, "builtin", "Built-In", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" } 
+static const InputPortInfoStruct PortInfo[] =
+{
+	{0, "builtin", "Built-In", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad"}
 };
 
-static InputInfoStruct VbamInput = 
+static InputInfoStruct VbamInput =
 {
 	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
 	PortInfo
 };
 
-static FileExtensionSpecStruct	extensions[] = 
+static FileExtensionSpecStruct	extensions[] =
 {
 	{".gba", "Game Boy Advance Rom"},
-	{".agb", "Game Boy Advance Rom"},	
+	{".agb", "Game Boy Advance Rom"},
 	{0, 0}
 };
 
 
 static MDFNSetting VbamSettings[] =
 {
-	{"vbam.skiphack", MDFNSF_NOFLAGS, "Skip 1 of every three frames", NULL, MDFNST_BOOL, "1"},
-	{"vbam.usebios", MDFNSF_NOFLAGS, "Enable GBA Bios Use", NULL, MDFNST_BOOL, "0"},	
-	{"vbam.bios", MDFNSF_EMU_STATE, "Path to optional GBA BIOS ROM image.", NULL, MDFNST_STRING, "gbabios.bin"},
-	{"vbam.vbaover", MDFNSF_NOFLAGS, "Path to vba-over.ini", NULL, MDFNST_STRING, "vba-over.ini"},
+	{"vbam.skiphack",	MDFNSF_NOFLAGS,		"Skip 1 of every three frames",			NULL, MDFNST_BOOL,	"1"},
+	{"vbam.usebios",	MDFNSF_NOFLAGS,		"Enable GBA Bios Use",					NULL, MDFNST_BOOL,	"0"},
+	{"vbam.bios",		MDFNSF_EMU_STATE,	"Path to optional GBA BIOS ROM image.",	NULL, MDFNST_STRING, "gbabios.bin"},
+	{"vbam.vbaover",	MDFNSF_NOFLAGS,		"Path to vba-over.ini",					NULL, MDFNST_STRING, "vba-over.ini"},
 	{0}
 };
 
 
-static MDFNGI	VbamInfo = 
+//TODO: MasterClock and fps
+static MDFNGI	VbamInfo =
 {
 	shortname:			"vbam",
 	fullname:			"VBA-M Game Boy Advance",
@@ -224,7 +255,7 @@ static MDFNGI	VbamInfo =
 	fb_height:			160,
 	soundchan:			2
 };
-	
+
 extern "C" MDFNGI* GetVBAM()
 {
 	return &VbamInfo;

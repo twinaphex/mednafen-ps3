@@ -83,13 +83,14 @@ unsigned GB::videoHeight() const {
 	return z80->videoHeight();
 }
 
-void GB::setVideoFilter(const unsigned n) {
+//ROBO: No filters
+/*void GB::setVideoFilter(const unsigned n) {
 	z80->setVideoFilter(n);
 }
 
 std::vector<const FilterInfo*> GB::filterInfo() const {
 	return z80->filterInfo();
-}
+}*/
 
 void GB::setInputStateGetter(InputStateGetter *getInput) {
 	z80->setInputStateGetter(getInput);
