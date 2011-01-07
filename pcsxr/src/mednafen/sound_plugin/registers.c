@@ -46,9 +46,7 @@
 // WRITE REGISTERS: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
-#undef CALLBACK
-#define CALLBACK
-
+//ROBO: pk prefix
 void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
 {
  const unsigned long r=reg&0xfff;
@@ -356,6 +354,7 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
 // READ REGISTER: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
+//ROBO: pk prefix
 unsigned short CALLBACK pkSPUreadRegister(unsigned long reg)
 {
  const unsigned long r=reg&0xfff;

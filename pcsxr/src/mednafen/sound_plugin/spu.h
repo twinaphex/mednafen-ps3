@@ -15,10 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#undef CALLBACK
-#define CALLBACK
+//ROBO: All spu functions are now pkSPU
 
 void SetupTimer(void);
 void RemoveTimer(void);
-void CALLBACK SPUplayADPCMchannel(xa_decode_t *xap);
-void CALLBACK SPUplayCDDAchannel(short *pcm, int bytes);
+void CALLBACK pkSPUplayADPCMchannel(xa_decode_t *xap);
+void CALLBACK pkSPUplayCDDAchannel(short *pcm, int bytes);

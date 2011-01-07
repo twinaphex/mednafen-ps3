@@ -21,13 +21,11 @@
 
 #include "externals.h"
 
-#undef CALLBACK
-#define CALLBACK
-
 ////////////////////////////////////////////////////////////////////////
 // READ DMA (one value)
 ////////////////////////////////////////////////////////////////////////
 
+//ROBO: pk prefix
 unsigned short CALLBACK pkSPUreadDMA(void)
 {
  unsigned short s=spuMem[spuAddr>>1];
@@ -43,6 +41,7 @@ unsigned short CALLBACK pkSPUreadDMA(void)
 // READ DMA (many values)
 ////////////////////////////////////////////////////////////////////////
 
+//ROBO: pk prefix
 void CALLBACK pkSPUreadDMAMem(unsigned short * pusPSXMem,int iSize)
 {
  int i;
@@ -68,7 +67,7 @@ void CALLBACK pkSPUreadDMAMem(unsigned short * pusPSXMem,int iSize)
 ////////////////////////////////////////////////////////////////////////
 // WRITE DMA (one value)
 ////////////////////////////////////////////////////////////////////////
-  
+//ROBO: pk prefix
 void CALLBACK pkSPUwriteDMA(unsigned short val)
 {
  spuMem[spuAddr>>1] = val;                             // spu addr got by writeregister
@@ -82,7 +81,7 @@ void CALLBACK pkSPUwriteDMA(unsigned short val)
 ////////////////////////////////////////////////////////////////////////
 // WRITE DMA (many values)
 ////////////////////////////////////////////////////////////////////////
-
+//ROBO: pk prefix
 void CALLBACK pkSPUwriteDMAMem(unsigned short * pusPSXMem,int iSize)
 {
  int i;

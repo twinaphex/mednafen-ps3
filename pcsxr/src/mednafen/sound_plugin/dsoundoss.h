@@ -1,5 +1,5 @@
 /***************************************************************************
-                           StdAfx.h  -  description
+                         dsoundoss.h  -  description
                              -------------------
     begin                : Wed May 15 2002
     copyright            : (C) 2002 by Pete Bernert
@@ -15,61 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
-#define _WINDOWS
+void SetupSound(void);
+void RemoveSound(void);
+unsigned long SoundGetBytesBuffered(void);
+void SoundFeedStreamData(unsigned char* pSound,long lBytes);
 
 #ifdef _WINDOWS
-
-#define WIN32_LEAN_AND_MEAN
-#define STRICT
-#include <windows.h>
-#include <windowsx.h>
-#include "mmsystem.h"
-#include <process.h>
-#include <stdlib.h>
-
-#ifndef INLINE
-#define INLINE __inline
-#endif
-
-//ROBO: Don't have
-//#include "resource.h"
-
-#pragma warning (disable:4996)
-
+#define timeGetTime_spu timeGetTime
 #else
-
-#ifndef _MACOSX
-#include "config.h"
+unsigned long timeGetTime_spu();
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#ifdef USEOSS
-#include <sys/soundcard.h>
-#endif
-#include <unistd.h>
-#include <pthread.h>
-#define RRand(range) (random()%range)  
-#include <string.h> 
-#include <sys/time.h>  
-#include <math.h>  
-
-#undef CALLBACK
-#define CALLBACK
-#define DWORD unsigned long
-#define LOWORD(l)           ((unsigned short)(l)) 
-#define HIWORD(l)           ((unsigned short)(((unsigned long)(l) >> 16) & 0xFFFF)) 
-
-#ifndef INLINE
-#define INLINE inline
-#endif
-
-#endif
-
-#include "psemuxa.h"
-
-//ROBO: No callback
-#undef CALLBACK
-#define CALLBACK

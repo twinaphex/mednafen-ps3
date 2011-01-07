@@ -152,8 +152,7 @@ INLINE void StartADSR(int ch)                          // MIX ADSR
 
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: Shutup warnings
-/*INLINE*/ int MixADSR(int ch)                             // MIX ADSR
+INLINE int MixADSR(int ch)                             // MIX ADSR
 {    
  int EnvelopeVol = s_chan[ch].ADSRX.EnvelopeVol;
  int EnvelopeVol_f = s_chan[ch].ADSRX.EnvelopeVol_f;

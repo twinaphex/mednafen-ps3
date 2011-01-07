@@ -15,9 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#undef CALLBACK
-#define CALLBACK
-
 void SoundOn(int start,int end,unsigned short val);
 void SoundOff(int start,int end,unsigned short val);
 void FModOn(int start,int end,unsigned short val);
@@ -26,5 +23,7 @@ void SetVolumeL(unsigned char ch,short vol);
 void SetVolumeR(unsigned char ch,short vol);
 void SetPitch(int ch,unsigned short val);
 void ReverbOn(int start,int end,unsigned short val);
-void CALLBACK SPUwriteRegister(unsigned long reg, unsigned short val);
+
+//ROBO: pkSPU now
+void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val);
 

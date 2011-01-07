@@ -199,6 +199,7 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	*aHeight = h;
 
 	//Grab the audio
+	printf("%d\n", SoundBufLen);
 	memcpy(aSound, SoundBuf, SoundBufLen);
 	*aSoundLen = SoundBufLen / 4;
 	SoundBufLen = 0;

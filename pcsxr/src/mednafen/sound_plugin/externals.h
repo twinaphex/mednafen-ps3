@@ -60,8 +60,6 @@
 #define NSSIZE 10
 #define APU_CYCLES_UPDATE NSSIZE
 
-#undef CALLBACK
-#define CALLBACK
 
 // update times
 #if 0
@@ -230,10 +228,14 @@ typedef struct
  int IN_COEF_R;      // (coef.)
 } REVERBInfo;
 
+#ifdef _WINDOWS
+extern HINSTANCE hInst;
+#define WM_MUTE (WM_USER+543)
+#endif
+
 ///////////////////////////////////////////////////////////
 // SPU.C globals
 ///////////////////////////////////////////////////////////
-
 
 #ifndef _IN_SPU
 
@@ -281,7 +283,37 @@ extern int      SSumL[];
 extern int      iCycle;
 extern short *  pS;
 
+#ifdef _WINDOWS
+extern HWND    hWMain;                               // window handle
+extern HWND    hWDebug;
+#endif
+
 extern void (CALLBACK *cddavCallback)(unsigned short,unsigned short);
+
+#endif
+
+///////////////////////////////////////////////////////////
+// DSOUND.C globals
+///////////////////////////////////////////////////////////
+
+#ifndef _IN_DSOUND
+
+#ifdef _WINDOWS
+extern unsigned long LastWrite;
+extern unsigned long LastPlay;
+#endif
+
+#endif
+
+///////////////////////////////////////////////////////////
+// RECORD.C globals
+///////////////////////////////////////////////////////////
+
+#ifndef _IN_RECORD
+
+#ifdef _WINDOWS
+extern int iDoRecord;
+#endif
 
 #endif
 

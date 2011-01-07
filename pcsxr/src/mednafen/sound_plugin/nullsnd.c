@@ -2,12 +2,13 @@
 #define _IN_OSS
 #include "externals.h"
 
-uint8_t SoundBuf[96000];
-uint32_t SoundBufLen = 0;
+uint8_t SoundBuf[48000 * 4 * 2];
+uint32_t SoundBufLen;
 
 // SETUP SOUND
 void SetupSound(void)
 {
+  SoundBufLen = 0;
 }
 
 // REMOVE SOUND
@@ -24,6 +25,6 @@ unsigned long SoundGetBytesBuffered(void)
 // FEED SOUND DATA
 void SoundFeedStreamData(unsigned char* pSound,long lBytes)
 {
-	memcpy(&SoundBuf[SoundBufLen], pSound, lBytes);
-	SoundBufLen += lBytes;
+  memcpy(&SoundBuf[SoundBufLen], pSound, lBytes);
+  SoundBufLen += lBytes;
 }

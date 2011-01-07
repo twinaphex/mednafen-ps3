@@ -155,22 +155,21 @@ INLINE void MixXA(void)
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef _WINDOWS
+
 unsigned long timeGetTime_spu()
 {
  struct timeval tv;
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
 }
-#else
-#define timeGetTime_spu timeGetTime
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 // FEED XA 
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: Shut up warnings
-/*INLINE*/ void FeedXA(xa_decode_t *xap)
+INLINE void FeedXA(xa_decode_t *xap)
 {
  int sinc,spos,i,iSize,iPlace,vl,vr;
 

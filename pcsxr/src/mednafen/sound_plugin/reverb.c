@@ -165,8 +165,7 @@ INLINE void s_buffer1(int iOff,int iVal)                // set_buffer (+1 sample
 
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: Shutup wanrings
-/*INLINE*/ int MixREVERBLeft(int ns)
+INLINE int MixREVERBLeft(int ns)
 {
  if(iUseReverb==0) return 0;
  else
