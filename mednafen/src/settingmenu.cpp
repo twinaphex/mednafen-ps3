@@ -5,8 +5,8 @@ namespace
 	bool							CompareItems									(ListItem* a, ListItem* b)
 	{
 		if(a->GetText().find(".enable") != std::string::npos)			return true;
-		if(b->GetText().find(".enable") != std::string::npos)			return false;		
-		if(a->GetText().find(".es.") != std::string::npos)				return true;		
+		if(b->GetText().find(".enable") != std::string::npos)			return false;
+		if(a->GetText().find(".es.") != std::string::npos)				return true;
 		if(b->GetText().find(".es.") != std::string::npos)				return false;
 
 		return a->GetText() < b->GetText();
@@ -22,19 +22,19 @@ std::string							MednafenSettingItem::GetDescription				()
 void								MednafenSettingItem::Draw						(uint32_t aX, uint32_t aY, bool aSelected)
 {
 	ListItem::Draw(aX, aY, aSelected);
-	
+
 	char buffer[256];
-	
+
 	if(Setting.desc->type == MDFNST_BOOL)
 	{
 		snprintf(buffer, 250, "%s", MDFN_GetSettingB(Setting.name) ? "ON" : "OFF");
 	}
-	else 
+	else
 	{
 		snprintf(buffer, 250, "%s", MDFN_GetSettingS(Setting.name).c_str());
 	}
 
-	FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);				
+	FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? Colors::HighLight : Colors::Normal);
 }
 
 bool								MednafenSettingItem::Input						()
@@ -105,7 +105,7 @@ bool								MednafenSettingItem::Input						()
 		std::string result;
 		Keyboard kb(Setting.name, MDFN_GetSettingS(Setting.name));
 		kb.Do();
-		
+
 		if(!kb.WasCanceled())
 		{
 			MDFNI_SetSetting(Setting.name, kb.GetText().c_str());

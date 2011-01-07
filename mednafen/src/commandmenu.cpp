@@ -5,10 +5,6 @@
 	Command = aCommand;
 }
 
-									MednafenCommandItem::~MednafenCommandItem		()
-{
-}
-
 bool								MednafenCommandItem::Input						()
 {
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
@@ -16,7 +12,7 @@ bool								MednafenCommandItem::Input						()
 		MednafenEmu::DoCommand(Command);
 		return true;
 	}
-	
+
 	return false;
 }
 
