@@ -24,20 +24,20 @@
 
 GLOBALDATA	g;
 
-long CALLBACK inPADopen(unsigned long *Disp) {
+long CALLBACK pkPADopen(unsigned long *Disp) {
 	g.KeyLeftOver = 0;
 	g.Opened = 1;
 
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-long CALLBACK inPADclose(void) {
+long CALLBACK pkPADclose(void) {
 	g.Opened = 0;
 
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-long CALLBACK inPADinit(long flags) {
+long CALLBACK pkPADinit(long flags) {
     g.cfg.PadDef[0].Type = PSE_PAD_TYPE_STANDARD;
     g.cfg.PadDef[1].Type = PSE_PAD_TYPE_STANDARD;
 	g.PadState[0].PadMode = 0;
@@ -48,12 +48,12 @@ long CALLBACK inPADinit(long flags) {
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-long CALLBACK inPADshutdown(void) {
-	inPADclose();
+long CALLBACK pkPADshutdown(void) {
+	pkPADclose();
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-long CALLBACK inPADquery(void) {
+long CALLBACK pkPADquery(void) {
 	return PSE_PAD_USE_PORT1 | PSE_PAD_USE_PORT2;
 }
 
@@ -114,14 +114,14 @@ static uint8_t stdmodel[2][8] = {
 
 static uint8_t CurPad = 0, CurByte = 0, CurCmd = 0, CmdLen = 0;
 
-unsigned char CALLBACK inPADstartPoll(int pad) {
+unsigned char CALLBACK pkPADstartPoll(int pad) {
 	CurPad = pad - 1;
 	CurByte = 0;
 
 	return 0xFF;
 }
 
-unsigned char CALLBACK inPADpoll(unsigned char value) {
+unsigned char CALLBACK pkPADpoll(unsigned char value) {
 	static uint8_t		*buf = NULL;
 	uint16_t			n;
 
@@ -258,7 +258,7 @@ unsigned char CALLBACK inPADpoll(unsigned char value) {
 	return buf[CurByte++];
 }
 
-long CALLBACK inPADreadPort(int num, PadDataS *pad) {
+long CALLBACK pkPADreadPort(int num, PadDataS *pad) {
 	pad->buttonStatus = (g.PadState[num].KeyStatus & g.PadState[num].JoyKeyStatus);
 
 	// ePSXe different from pcsx, swap bytes
@@ -282,15 +282,15 @@ long CALLBACK inPADreadPort(int num, PadDataS *pad) {
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-long CALLBACK inPADreadPort1(PadDataS *pad) {
-	return inPADreadPort(0, pad);
+long CALLBACK pkPADreadPort1(PadDataS *pad) {
+	return pkPADreadPort(0, pad);
 }
 
-long CALLBACK inPADreadPort2(PadDataS *pad) {
-	return inPADreadPort(1, pad);
+long CALLBACK pkPADreadPort2(PadDataS *pad) {
+	return pkPADreadPort(1, pad);
 }
 
-long CALLBACK inPADkeypressed(void) {
+long CALLBACK pkPADkeypressed(void) {
 	long s;
 
 	s = g.KeyLeftOver;
@@ -299,13 +299,13 @@ long CALLBACK inPADkeypressed(void) {
 	return s;
 }
 
-long CALLBACK inPADconfigure(void) {
+long CALLBACK pkPADconfigure(void) {
 	return PSE_PAD_ERR_SUCCESS;
 }
 
-void CALLBACK inPADabout(void) {
+void CALLBACK pkPADabout(void) {
 }
 
-long CALLBACK inPADtest(void) {
+long CALLBACK pkPADtest(void) {
 	return PSE_PAD_ERR_SUCCESS;
 }

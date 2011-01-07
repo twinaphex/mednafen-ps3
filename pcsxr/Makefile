@@ -6,12 +6,12 @@ endif
 TARGET		:=	libpcsxr
 TYPE		:=	a
 BUILD		:=	build
-SOURCE		:=	src/libpcsxcore src src/gxvideo src/dfinput src/dfsound
+SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin
 INCLUDE		:=	src src/libpcsxcore ../mednafen/src ../system
 DATA		:=	bin
 LIBS		:=	
 LIBDIRS		:=	
-CFLAGS		:=-O2 -DNOPSXREC -fgnu89-inline -D__BIGENDIAN__ -D__BIG_ENDIAN__
+CFLAGS		:=-O2 -DNOPSXREC -fgnu89-inline
 CXXFLAGS	:=-O2 -DNOPSXREC 
 
 #-D_WINDOWS

@@ -37,6 +37,18 @@ void								sdlApplyPerImagePreferences				();
 extern struct EmulatedSystem		emulator;
 
 
+int				VbamLoad				(const char *name, MDFNFILE *fp);
+bool			VbamTestMagic			(const char *name, MDFNFILE *fp);
+void			VbamCloseGame			(void);
+void			VbamEmulate				(EmulateSpecStruct *espec);
+void			VbamSetInput			(int port, const char *type, void *ptr);
+void			VbamDoSimpleCommand		(int cmd);
+bool			VbamToggleLayer			(int which);
+void			VbamInstallReadPatch	(uint32 address);
+void			VbamRemoveReadPatches	(void);
+uint8			VbamMemRead				(uint32 addr);
+int				VbamStateAction			(StateMem *sm, int load, int data_only);
+
 int				VbamLoad				(const char *name, MDFNFILE *fp)
 {
 	if(GameLoaded)
@@ -165,6 +177,7 @@ void			VbamInstallReadPatch	(uint32 address)							{}
 void			VbamRemoveReadPatches	(void)										{}
 uint8			VbamMemRead				(uint32 addr)								{return 0;}
 int				VbamStateAction			(StateMem *sm, int load, int data_only)		{return 0;}
+
 
 //SYSTEM DESCRIPTIONS
 static const InputDeviceInputInfoStruct IDII[] =

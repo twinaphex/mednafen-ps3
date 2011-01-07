@@ -366,6 +366,7 @@ MDFNFILE::~MDFNFILE()
  Close();
 }
 
+//ROBO: Load from memory
 bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, void* data, int size, const char *purpose, const bool suppress_notfound_pe)
 {
  f_size = size;

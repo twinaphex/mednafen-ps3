@@ -919,7 +919,7 @@ GOON: ;
 //  1 time every 'cycle' cycles... harhar
 
 long cpu_cycles;
-void CALLBACK auSPUasync(unsigned long cycle)
+void CALLBACK pkSPUasync(unsigned long cycle)
 {
 	cpu_cycles += cycle;
 
@@ -946,14 +946,14 @@ void CALLBACK auSPUasync(unsigned long cycle)
 // leave that func in the linux port, until epsxe linux is using
 // the async function as well
 
-void CALLBACK auSPUupdate(void)
+void CALLBACK pkSPUupdate(void)
 {
- auSPUasync(0);
+ pkSPUasync(0);
 }
 
 // XA AUDIO
 
-void CALLBACK auSPUplayADPCMchannel(xa_decode_t *xap)
+void CALLBACK pkSPUplayADPCMchannel(xa_decode_t *xap)
 {
  if(!xap)       return;
  if(!xap->freq) return;                                // no xa freq ? bye
@@ -962,7 +962,7 @@ void CALLBACK auSPUplayADPCMchannel(xa_decode_t *xap)
 }
 
 // CDDA AUDIO
-void CALLBACK auSPUplayCDDAchannel(short *pcm, int nbytes)
+void CALLBACK pkSPUplayCDDAchannel(short *pcm, int nbytes)
 {
  if (!pcm)      return;
  if (nbytes<=0) return;
@@ -1076,7 +1076,7 @@ void RemoveStreams(void)
 // INIT/EXIT STUFF
 
 // SPUINIT: this func will be called first by the main emu
-long CALLBACK auSPUinit(void)
+long CALLBACK pkSPUinit(void)
 {
  spuMemC = (unsigned char *)spuMem;                    // just small setup
  memset((void *)&rvb, 0, sizeof(REVERBInfo));
@@ -1101,7 +1101,7 @@ long CALLBACK auSPUinit(void)
 }
 
 // SPUOPEN: called by main emu after init
-long auSPUopen(void)
+long pkSPUopen(void)
 {
  if (bSPUIsOpen) return 0;                             // security for some stupid main emus
 
@@ -1114,7 +1114,7 @@ long auSPUopen(void)
 }
 
 // SPUCLOSE: called before shutdown
-long CALLBACK auSPUclose(void)
+long CALLBACK pkSPUclose(void)
 {
  if (!bSPUIsOpen) return 0;                            // some security
 
@@ -1126,15 +1126,15 @@ long CALLBACK auSPUclose(void)
  return 0;
 }
 
-long CALLBACK auSPUshutdown(void)
+long CALLBACK pkSPUshutdown(void)
 {
- auSPUclose();
+ pkSPUclose();
  return 0;
 }
 
-long CALLBACK auSPUtest(void){return 0;}
-long CALLBACK auSPUconfigure(void){ return 0;}
-void CALLBACK auSPUabout(void){}
-void CALLBACK auSPUregisterCallback(void (CALLBACK *callback)(void))	{irqCallback = callback;}
-void CALLBACK auSPUregisterCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned short,unsigned short)){cddavCallback = CDDAVcallback;}
+long CALLBACK pkSPUtest(void){return 0;}
+long CALLBACK pkSPUconfigure(void){ return 0;}
+void CALLBACK pkSPUabout(void){}
+void CALLBACK pkSPUregisterCallback(void (CALLBACK *callback)(void))	{irqCallback = callback;}
+void CALLBACK pkSPUregisterCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned short,unsigned short)){cddavCallback = CDDAVcallback;}
 

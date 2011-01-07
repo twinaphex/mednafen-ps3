@@ -12,12 +12,10 @@ namespace
 //Definitions for PCSX
 extern "C"
 {
-	void		SysInit					();
+	void		SysLoad					();
 	void		SysClose				();
 	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 	void		SetMCDS					(const char* aOne, const char* aTwo);
-
-
 
 	uint32_t	DoesFileExist			(const char* aPath)
 	{
@@ -25,17 +23,18 @@ extern "C"
 	}
 }
 
-int				PcsxrLoad				(const char *name, MDFNFILE *fp)
+int				PcsxrLoad				()
 {
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	std::string filename2 = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2");
 	SetMCDS(filename.c_str(), filename2.c_str());
 
-	SysInit();
+	SysLoad();
+//	SysInit();
 	return 1;
 }
 
-bool			PcsxrTestMagic			(const char *name, MDFNFILE *fp)
+bool			PcsxrTestMagic			()
 {
 	return true;
 }
@@ -108,68 +107,53 @@ void			PcsxrDoSimpleCommand	(int cmd)
 
 static const InputDeviceInputInfoStruct GamepadIDII[] =
 {
- { "select", "SELECT", 15, IDIT_BUTTON, NULL },
- { "l3", "L3", 13, IDIT_BUTTON, NULL },
- { "r3", "R3", 10, IDIT_BUTTON, NULL },
- { "start", "START", 14, IDIT_BUTTON, NULL },
- { "up", "UP", 0, IDIT_BUTTON, "down"},
- { "right", "RIGHT", 3, IDIT_BUTTON, "left" },
- { "down", "DOWN", 1, IDIT_BUTTON, "up" },
- { "left", "LEFT", 2, IDIT_BUTTON, "right" },
- { "l2", "L2", 12, IDIT_BUTTON, NULL },
- { "r2", "R2", 9, IDIT_BUTTON, NULL },
- { "l1", "L1", 11, IDIT_BUTTON, NULL },
- { "r1", "R1", 8, IDIT_BUTTON, NULL },
- { "triangle", "TRIANGLE", 4, IDIT_BUTTON, 0 },
- { "circle", "CIRCLE", 5, IDIT_BUTTON, 0 },
- { "cross", "CROSS", 6, IDIT_BUTTON, 0 },
- { "square", "SQUARE", 7, IDIT_BUTTON, 0 },
+	{"select",	"SELECT",	15,	IDIT_BUTTON, NULL},
+	{"l3",		"L3",		13,	IDIT_BUTTON, NULL},
+	{"r3",		"R3",		10,	IDIT_BUTTON, NULL},
+	{"start",	"START",	14,	IDIT_BUTTON, NULL},
+	{"up",		"UP",		0,	IDIT_BUTTON, "down"},
+	{"right",	"RIGHT",	3,	IDIT_BUTTON, "left"},
+	{"down",	"DOWN",		1,	IDIT_BUTTON, "up"},
+	{"left",	"LEFT",		2,	IDIT_BUTTON, "right"},
+	{"l2",		"L2",		12,	IDIT_BUTTON, NULL},
+	{"r2",		"R2",		9,	IDIT_BUTTON, NULL},
+	{"l1",		"L1",		11, IDIT_BUTTON, NULL},
+	{"r1",		"R1",		8,	IDIT_BUTTON, NULL},
+	{"triangle","TRIANGLE",	4,	IDIT_BUTTON, 0},
+	{"circle",	"CIRCLE",	5,	IDIT_BUTTON, 0},
+	{"cross",	"CROSS",	6,	IDIT_BUTTON, 0},
+	{"square",	"SQUARE",	7,	IDIT_BUTTON, 0},
 };
 
 static InputDeviceInfoStruct InputDeviceInfoPSXPort[] =
 {
- // None
- {
-  "none",
-  "none",
-  NULL,
-  0,
-  NULL
- },
-
- // Gamepad
- {
-  "gamepad",
-  "Gamepad",
-  NULL,
-  sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),
-  GamepadIDII,
- },
+	{"none",	"none",		NULL,	0,	NULL},
+	{"gamepad", "Gamepad",	NULL,	16,	GamepadIDII},
 };
 
 
 static const InputPortInfoStruct PortInfo[] =
 {
- { 0, "port1", "Port 1", sizeof(InputDeviceInfoPSXPort) / sizeof(InputDeviceInfoStruct), InputDeviceInfoPSXPort, "gamepad" },
+	{0, "port1", "Port 1", 2, InputDeviceInfoPSXPort, "gamepad"},
 };
 
-InputInfoStruct		PcsxrInput = 
+InputInfoStruct		PcsxrInput =
 {
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
+	1,
 	PortInfo
 };
 
 
 static FileExtensionSpecStruct	extensions[] = 
 {
-	{".tim", "iNES Format ROM Image"},
+	{".cue", "PSX Cue File"},
 	{0, 0}
 };
 
 
 static MDFNSetting PcsxrSettings[] =
 {
-  { NULL }
+	 {NULL}
 };
 
 
@@ -182,13 +166,13 @@ MDFNGI	PcsxrInfo =
 	Debugger:			0,
 	InputInfo:			&PcsxrInput,
 
-	Load:				PcsxrLoad,
-	TestMagic:			PcsxrTestMagic,
-	LoadCD:				0,
-	TestMagicCD:		0,
+	Load:				0,
+	TestMagic:			0,
+	LoadCD:				PcsxrLoad,
+	TestMagicCD:		PcsxrTestMagic,
 	CloseGame:			PcsxrCloseGame,
 	ToggleLayer:		PcsxrToggleLayer,
-	LayerNames:			"Background\0",
+	LayerNames:			"Screen\0",
 	InstallReadPatch:	PcsxrInstallReadPatch,
 	RemoveReadPatches:	PcsxrRemoveReadPatches,
 	MemRead:			PcsxrMemRead,

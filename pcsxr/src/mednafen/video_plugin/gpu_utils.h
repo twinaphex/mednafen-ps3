@@ -23,16 +23,6 @@
 
 #include <stdint.h>
 
-typedef struct {
-	uint16_t rgb16;
-} __attribute__((__packed__)) gxv_rgb16;
-
-typedef struct {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-} __attribute__((__packed__)) gxv_rgb24;
-
 /* for fast recast ^^ */
 typedef union {
 	uint8_t * u8;
@@ -41,8 +31,6 @@ typedef union {
 	int16_t * s16;
 	uint32_t * u32;
 	int32_t * s32;
-	gxv_rgb16 * rgb16;
-	gxv_rgb24 * rgb24;
 } gxv_pointer_t;
 
 typedef struct {

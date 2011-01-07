@@ -33,7 +33,6 @@ typedef struct {
 } gxv_draw_t;
 
 extern char * g_file_name;
-//extern gxv_cfg_t g_cfg;
 extern gxv_gpu_t g_gpu;
 extern gxv_draw_t g_draw;
 extern gxv_prim_t g_prim;

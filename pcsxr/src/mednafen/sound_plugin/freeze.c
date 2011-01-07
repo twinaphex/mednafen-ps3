@@ -65,7 +65,7 @@ extern int lastch;
 #undef CALLBACK
 #define CALLBACK
 
-long CALLBACK auSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
+long CALLBACK pkSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 {
  int i;SPUOSSFreeze_t * pFO;
 
@@ -129,7 +129,7 @@ long CALLBACK auSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
  memcpy(regArea,pF->cSPUPort,0x200);
 
  if(pF->xaS.nsamples<=4032)                            // start xa again
-  auSPUplayADPCMchannel(&pF->xaS);
+  pkSPUplayADPCMchannel(&pF->xaS);
 
  xapGlobal=0;
 
@@ -141,15 +141,15 @@ long CALLBACK auSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 
  // repair some globals
  for(i=0;i<=62;i+=2)
-  auSPUwriteRegister(H_Reverb+i,regArea[(H_Reverb+i-0xc00)>>1]);
- auSPUwriteRegister(H_SPUReverbAddr,regArea[(H_SPUReverbAddr-0xc00)>>1]);
- auSPUwriteRegister(H_SPUrvolL,regArea[(H_SPUrvolL-0xc00)>>1]);
- auSPUwriteRegister(H_SPUrvolR,regArea[(H_SPUrvolR-0xc00)>>1]);
+  pkSPUwriteRegister(H_Reverb+i,regArea[(H_Reverb+i-0xc00)>>1]);
+ pkSPUwriteRegister(H_SPUReverbAddr,regArea[(H_SPUReverbAddr-0xc00)>>1]);
+ pkSPUwriteRegister(H_SPUrvolL,regArea[(H_SPUrvolL-0xc00)>>1]);
+ pkSPUwriteRegister(H_SPUrvolR,regArea[(H_SPUrvolR-0xc00)>>1]);
 
- auSPUwriteRegister(H_SPUctrl,(unsigned short)(regArea[(H_SPUctrl-0xc00)>>1]|0x4000));
- auSPUwriteRegister(H_SPUstat,regArea[(H_SPUstat-0xc00)>>1]);
- auSPUwriteRegister(H_CDLeft,regArea[(H_CDLeft-0xc00)>>1]);
- auSPUwriteRegister(H_CDRight,regArea[(H_CDRight-0xc00)>>1]);
+ pkSPUwriteRegister(H_SPUctrl,(unsigned short)(regArea[(H_SPUctrl-0xc00)>>1]|0x4000));
+ pkSPUwriteRegister(H_SPUstat,regArea[(H_SPUstat-0xc00)>>1]);
+ pkSPUwriteRegister(H_CDLeft,regArea[(H_CDLeft-0xc00)>>1]);
+ pkSPUwriteRegister(H_CDRight,regArea[(H_CDRight-0xc00)>>1]);
 
  // fix to prevent new interpolations from crashing
  for(i=0;i<MAXCHAN;i++) s_chan[i].SB[28]=0;
@@ -225,7 +225,7 @@ void LoadStateUnknown(SPUFreeze_t * pF)
 
  for(i=0;i<0xc0;i++)
   {
-   auSPUwriteRegister(0x1f801c00+i*2,regArea[i]);
+   pkSPUwriteRegister(0x1f801c00+i*2,regArea[i]);
   }
 }
 

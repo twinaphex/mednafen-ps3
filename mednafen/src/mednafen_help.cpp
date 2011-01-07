@@ -11,7 +11,7 @@ namespace
 		if(aIndex == 4)	return new MaxSt_Hq3x();	
 		if(aIndex == 5)	return new Catrom2x();	
 		if(aIndex == 6)	return new Catrom3x();		
-		
+
 		return new Identity();
 	};
 
@@ -51,7 +51,7 @@ namespace
 }
 
 
-//extern MDFNGI*				GetPCSX();
+extern MDFNGI*				GetPCSX();
 void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
@@ -64,7 +64,7 @@ void						MednafenEmu::Init				()
 		Buffer = es_video->CreateTexture(1920, 1080);
 
 		std::vector<MDFNGI*> externalSystems;
-//		externalSystems.push_back(GetPCSX());
+		externalSystems.push_back(GetPCSX());
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
 #ifdef L1GHT
@@ -77,8 +77,8 @@ void						MednafenEmu::Init				()
 
 		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
 	}
-	
-	IsInitialized = true;	
+
+	IsInitialized = true;
 }
 
 void						MednafenEmu::Quit				()
@@ -86,16 +86,13 @@ void						MednafenEmu::Quit				()
 	if(IsInitialized)
 	{
 		delete Buffer;
-	
+
 		CloseGame();
 		MDFNI_Kill();
 	}
-	
+
 	IsInitialized = false;
 }
-
-void		MDFND_NetStart			();
-
 
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
@@ -103,7 +100,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 	{
 		if(strstr(aFileName.c_str(), ".cue"))
 		{
-			GameInfo = MDFNI_LoadCD(0, aFileName.c_str());	
+			GameInfo = MDFNI_LoadCD(0, aFileName.c_str());
 		}
 		else
 		{
@@ -115,12 +112,12 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			es_log->Do();
 			Exit();
 		}
-	
+
 		Surface = new MDFN_Surface(0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));	
 		Inputs = new InputHandler(GameInfo);
 		TextFile = new TextViewer(aFileName + ".txt");
-	
-	
+
+
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_LoadState(0, "mcq");

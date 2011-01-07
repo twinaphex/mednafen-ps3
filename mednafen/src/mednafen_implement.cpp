@@ -108,13 +108,14 @@ void		MDFND_DispMessage		(UTF8 *text)
 
 MDFN_Thread*MDFND_CreateThread		(int (*fn)(void *), void *data)
 {
-#ifdef L1GHT
 	MDFN_Thread* thread = (MDFN_Thread*)malloc(sizeof(MDFN_Thread));
+
+#ifdef L1GHT
 	sys_ppu_thread_create((sys_ppu_thread_t*)&thread->data, (void(*)(uint64_t))fn, (uint64_t)data, 1001, 0x10000, THREAD_JOINABLE, 0);
-	return thread;
 #else
-	return 0;
+	thread->data = (void*)SDL_CreateThread(fn, data);
 #endif
+	return thread;
 }
 
 void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
@@ -122,8 +123,12 @@ void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
 #ifdef L1GHT
 	uint64_t out;
 	sys_ppu_thread_join((sys_ppu_thread_t)thread->data, &out);
+	status = out;
+#else
+	SDL_WaitThread((SDL_Thread*)thread->data, status);
+#endif
+
 	free(thread);
-#endif	
 }
 
 void		MDFND_KillThread		(MDFN_Thread *thread)
@@ -133,33 +138,42 @@ void		MDFND_KillThread		(MDFN_Thread *thread)
 
 MDFN_Mutex*	MDFND_CreateMutex		(void)
 {
-#ifdef L1GHT
 	MDFN_Mutex* mutex = (MDFN_Mutex*)malloc(sizeof(MDFN_Mutex));
+
+#ifdef L1GHT
 	sys_lwmutex_attribute_t MutexAttrs;
 	memset(&MutexAttrs, 0, sizeof(sys_lwmutex_attribute_t));
 	MutexAttrs.attr_protocol = 0;
 	MutexAttrs.attr_recursive = LWMUTEX_ATTR_RECURSIVE;
-	
+
 	sys_lwmutex_create((sys_lwmutex_t*)&mutex->data, &MutexAttrs);
-	return mutex;
 #else
-	return 0;
+	mutex->data = (void*)SDL_CreateMutex();
 #endif
+
+	return mutex;
 }
 
 void		MDFND_DestroyMutex		(MDFN_Mutex *mutex)
 {
 #ifdef L1GHT
 	sys_lwmutex_destroy((sys_lwmutex_t*)mutex->data);
-	free(mutex);
+#else
+	SDL_DestroyMutex((SDL_mutex*)mutex->data);
 #endif
+
+	free(mutex);
+
 }
 
 int			MDFND_LockMutex			(MDFN_Mutex *mutex)
 {
 #ifdef L1GHT
 	sys_lwmutex_lock((sys_lwmutex_t*)mutex->data, 0);
+#else
+	SDL_mutexP((SDL_mutex*)mutex->data);
 #endif
+
 	return 0;
 }
 
@@ -167,6 +181,8 @@ int			MDFND_UnlockMutex		(MDFN_Mutex *mutex)
 {
 #ifdef L1GHT
 	sys_lwmutex_unlock((sys_lwmutex_t*)mutex->data);
+#else
+	SDL_mutexV((SDL_mutex*)mutex->data);
 #endif
 	return 0;
 }
