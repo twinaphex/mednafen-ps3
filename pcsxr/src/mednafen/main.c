@@ -102,23 +102,10 @@ int					SysLoad			()
     strcpy(Config.Pad2, "builtin");
     strcpy(Config.Cdr, "builtin");
     strcpy(Config.Net, "Disabled");
-	strcpy(Config.BiosDir, "C:\\Users\\Jason\\Desktop\\");
+	strcpy(Config.BiosDir, "/home/jason/");
     strcpy(Config.Bios, "SCPH1001.BIN");
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
-
-	//HACK: Get real bin file by replacing last four characters of aFileName with ".bin"
-/*	char* realname = strdup(aFileName);
-
-    if(strlen(realname) >= 4)
-	{
-        strcpy(realname + strlen(realname) - 4, ".bin");
-    }
-
-	SetIsoFile(realname);
-
-	free(realname);*/
-	//END hack
 
 	EmuInit();
 

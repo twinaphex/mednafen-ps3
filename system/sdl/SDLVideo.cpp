@@ -7,13 +7,14 @@
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
+	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 24, SDL_OPENGL | SDL_FULLSCREEN);
 	if(!Screen)
 	{
+		printf("SDL Couldn't set video mode: %s\n", SDL_GetError());
 		throw "SDL couldn't set video mode";
 	}
 	
