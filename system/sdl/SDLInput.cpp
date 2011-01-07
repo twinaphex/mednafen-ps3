@@ -43,7 +43,7 @@ bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
-	if(!IsJoystickButton(aButton))
+	if(!IsJoystickButton(aButton) && aPad == 0)
 	{
 		return KeyState[aButton & 0xFFFF];
 	}
@@ -57,7 +57,7 @@ bool				SDLInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
-	if(!IsJoystickButton(aButton))
+	if(!IsJoystickButton(aButton) && aPad == 0)
 	{
 		return HandleSingleState(KeyState[aButton & 0xFFFF], KeySingle[aButton & 0xFFFF]);
 	}

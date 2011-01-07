@@ -22,3 +22,5 @@ extern std::vector<MDFNGI *>	MDFNSystems;
 
 
 #endif
+
+

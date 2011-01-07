@@ -15,7 +15,9 @@ void						Logger::Log							(const char* aMessage, ...)
 	va_start (args, aMessage);
 	vsnprintf(array, 1024, aMessage, args);
 	va_end(args);
-	
+
 	Lines.push_back(std::string(array));
+
+	LongestLine = Lines[Lines.size() - 1].length() > LongestLine ? Lines[Lines.size() - 1].length() : LongestLine;
 }
 

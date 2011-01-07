@@ -114,10 +114,10 @@ void				ReloadEmulator			()
 			}
 
 
-			if(filename.rfind("/") != std::string::npos)
-			{
-				filename = filename.substr(filename.rfind("/") + 1);
-			}
+//			if(filename.rfind("/") != std::string::npos)
+//			{
+//				filename = filename.substr(filename.rfind("/") + 1);
+//			}
 		}
 		else
 		{

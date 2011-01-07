@@ -26,6 +26,11 @@ static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 =
 static int		slocket;
 #endif
 
+void		MDFND_MidSync			(const EmulateSpecStruct *espec)
+{
+
+}
+
 void		MDFND_NetStart			()
 {
 #if 0
@@ -105,6 +110,17 @@ void		MDFND_DispMessage		(UTF8 *text)
 		MednafenEmu::DisplayMessage((char*)text);
 	}
 }
+
+//Threading
+struct					MDFN_Thread
+{
+	void*				data;
+};
+
+struct					MDFN_Mutex
+{
+	void*				data;
+};
 
 MDFN_Thread*MDFND_CreateThread		(int (*fn)(void *), void *data)
 {

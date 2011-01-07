@@ -23,3 +23,5 @@ class												MednafenSettings : public WinterfaceMultiList
 };
 
 #endif
+
+
