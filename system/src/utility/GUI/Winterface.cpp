@@ -1,10 +1,5 @@
 #include <ps3_system.h>
 
-namespace
-{
-	uint32_t wimage = 0;
-};
-
 											Winterface::Winterface								(const std::string& aHeader, bool aKillItems, MenuHook* aHook) : Menu(aHook)
 {
 	Header = aHeader;
@@ -35,13 +30,6 @@ bool										Winterface::Input									()
 
 bool										Winterface::Draw									()
 {
-	//HACK:
-	if(wimage == 0)
-	{
-		ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
-		wimage = 1;
-	}
-
 	uint32_t screenW = es_video->GetScreenWidth();
 	uint32_t screenH = es_video->GetScreenHeight();
 

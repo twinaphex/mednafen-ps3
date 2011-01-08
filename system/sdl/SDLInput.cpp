@@ -116,6 +116,19 @@ std::string			SDLInput::GetButtonImage				(uint32_t aButton)
 	//TODO:
 	Assert(0, aButton);
 
+	if(aButton == ES_BUTTON_UP)		return "UpIMAGE";
+	if(aButton == ES_BUTTON_ACCEPT)	return "CrossIMAGE";
+	if(aButton == ES_BUTTON_CANCEL)	return "CircleIMAGE";
+	if(aButton == ES_BUTTON_TAB)	return "SquareIMAGE";
+	if(aButton == ES_BUTTON_SHIFT)	return "TriangleIMAGE";
+	if(aButton == ES_BUTTON_AUXRIGHT1)	return "R1IMAGE";
+	if(aButton == ES_BUTTON_AUXRIGHT2)	return "R2IMAGE";
+	if(aButton == ES_BUTTON_AUXRIGHT3)	return "R3IMAGE";
+	if(aButton == ES_BUTTON_AUXLEFT1)	return "L1IMAGE";
+	if(aButton == ES_BUTTON_AUXLEFT2)	return "L2IMAGE";
+	if(aButton == ES_BUTTON_AUXLEFT3)	return "L3IMAGE";
+
+
 	return "NOIMAGE";
 }
 

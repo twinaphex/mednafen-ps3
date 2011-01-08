@@ -46,6 +46,7 @@ void				InitES					(void (*aExitFunction)())
 	es_input = ESSUB_MakeInput();
 
 	FontManager::InitFonts();
+	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
 
 	es_log = new Logger();
 }
@@ -59,6 +60,8 @@ void				QuitES					()
 	delete es_input;
 	delete es_audio;
 	delete es_video;
+
+	//TODO: Kill images
 
 	ESSUB_Quit();
 	
