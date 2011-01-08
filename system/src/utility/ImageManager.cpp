@@ -73,6 +73,7 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		png_uint_32 height = png_get_image_height(png_ptr, info_ptr);		
 
 		Texture* output = es_video->CreateTexture(width, height);
+		output->SetFilter(true);
 
 		for(int i = 0; i != height; i ++)
 		{

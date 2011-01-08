@@ -4,8 +4,16 @@
 {
 	Input = aInput;
 
-	std::string inputname = es_input->GetButtonName(aInput);
+	std::string inputimage = es_input->GetButtonImage(aInput);
+	if(ImageManager::GetImage(inputimage))
+	{
+		LabelImage = inputimage;
+	}
+	else
+	{
+		std::string inputname = es_input->GetButtonName(aInput);
 
-	Text = inputname + " " + Text;
+		Text = inputname + " " + Text;
+	}
 }
 
