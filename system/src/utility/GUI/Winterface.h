@@ -13,7 +13,7 @@ class													Winterface : public Menu
 		virtual bool									DrawLeft						();
 		virtual bool									DrawRight						();
 		
-		virtual const char*								GetHeader						();
+		virtual std::string								GetHeader						();
 		
 	protected:
 		bool											KillItems;

@@ -19,6 +19,8 @@ class												MednafenSettings : public WinterfaceMultiList
 {
 	public:
 													MednafenSettings				(const std::string& aDefault);
+
+		virtual std::string							GetHeader						();
 };
 
 #endif

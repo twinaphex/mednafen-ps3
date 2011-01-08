@@ -16,7 +16,7 @@ namespace
 
 std::string							MednafenSettingItem::GetDescription				()
 {
-	return Setting.desc->description;
+	return Setting.desc->description ? Setting.desc->description : "No Info";
 }
 
 void								MednafenSettingItem::Draw						(uint32_t aX, uint32_t aY, bool aSelected)
@@ -136,7 +136,7 @@ bool								MednafenSettingItem::Input						()
 	return ListItem::Input();
 }
 
-									MednafenSettings::MednafenSettings				(const std::string& aDefault) : WinterfaceMultiList("Emulator Settings", false, true, 0)
+									MednafenSettings::MednafenSettings				(const std::string& aDefault) : WinterfaceMultiList("Settings", false, true, 0)
 {
 	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
 
@@ -184,5 +184,10 @@ bool								MednafenSettingItem::Input						()
 	SideItems.push_back(new InputListItem("Change Category", ES_BUTTON_AUXRIGHT1));
 	SideItems.push_back(new InputListItem("Set to File", ES_BUTTON_TAB));
 	SideItems.push_back(new InputListItem("Close", ES_BUTTON_CANCEL));
+}
+
+std::string						MednafenSettings::GetHeader						()
+{
+	return std::string("[") + Header + "] " + ((MednafenSettingItem*)GetSelected())->GetDescription();
 }
 

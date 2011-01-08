@@ -73,7 +73,7 @@ bool										Winterface::Draw									()
 	es_video->FillRectangle(left, Colors::BackGround);	
 
 	es_video->SetClip(top);
-	FontManager::GetBigFont()->PutString(GetHeader(), 2, 0, Colors::Normal);
+	FontManager::GetBigFont()->PutString(GetHeader().c_str(), 2, 0, Colors::Normal);
 	
 	es_video->SetClip(left);
 	if(DrawLeft())
@@ -109,9 +109,9 @@ bool										Winterface::DrawRight								()
 	return false;
 }
 
-const char*									Winterface::GetHeader								()
+std::string									Winterface::GetHeader								()
 {
-	return Header.c_str();
+	return Header;
 }
 
 
