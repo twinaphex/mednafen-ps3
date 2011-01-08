@@ -1,11 +1,35 @@
 #include <mednafen_includes.h>
 
-									MednafenInputSelect::MednafenInputSelect		(const std::vector<std::string>& aInputNames) : WinterfaceList("Select Controller Type", true, 0)
+namespace
+{
+	bool								AlphaSortC								(ListItem* a, ListItem* b)
+	{
+		if(a->GetText() == "none") return false;
+		if(b->GetText() == "none") return true;
+
+		return a->GetText() < b->GetText();
+	}
+}
+
+									MednafenInputItem::MednafenInputItem				(const std::string& aNiceName, const std::string& aRealName) : ListItem(aNiceName)
+{
+	RealName = aRealName;
+}
+
+std::string							MednafenInputItem::GetRealName					()
+{
+	return RealName;
+}
+
+
+									MednafenInputSelect::MednafenInputSelect		(const std::vector<std::string>& aInputNames, const std::vector<std::string>& aNiceNames) : WinterfaceList("Select Controller Type", true, 0)
 {
 	for(int i = 0; i != aInputNames.size(); i ++)
 	{
-		Items.push_back(new ListItem(aInputNames[i], 0));
+		Items.push_back(new MednafenInputItem(aNiceNames[i], aInputNames[i]));
 	}
+
+	std::sort(Items.begin(), Items.end(), AlphaSortC);
 }
 
 
@@ -57,7 +81,6 @@ uint32_t							MednafenSettingButton::GetButton				()
 
 	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
 	{
-		printf("%s\n", PadType.c_str());
 		MDFNI_SetInput(i, PadType.c_str(), &ControllerBits[i], 4);
 	}
 
@@ -98,21 +121,31 @@ void							InputHandler::Process					()
 void							InputHandler::Configure				()
 {
 	//Get Controller type
-	std::vector<std::string> inputtypes;
-	for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
+	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
-		inputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName);
+		std::vector<std::string> inputtypes;
+		std::vector<std::string> niceinputtypes;
+		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
+		{
+			inputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName);
+			niceinputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName);
+		}
+
+		MednafenInputSelect controlselect(inputtypes, niceinputtypes);
+
+		//TODO: Let it be canceled?
+		do
+		{
+			controlselect.Do();
+		} while(controlselect.WasCanceled());
+
+		PadType = ((MednafenInputItem*)controlselect.GetSelected())->GetRealName();
+	}
+	else
+	{
+		PadType = GameInfo->InputInfo->Types[0].DeviceInfo[0].ShortName;
 	}
 
-	MednafenInputSelect controlselect(inputtypes);
-
-	//TODO: Let it be canceled?
-	do
-	{
-		controlselect.Do();
-	} while(controlselect.WasCanceled());
-
-	PadType = controlselect.GetSelected()->GetText();
 	MDFNI_SetSetting((std::string(GameInfo->shortname) + ".esinput.port1").c_str(), PadType.c_str());
 
 	//Get Buttons
@@ -140,8 +173,6 @@ void							InputHandler::Configure				()
 void							InputHandler::ReadSettings			()
 {
 	PadType = MDFN_GetSettingS((std::string(GameInfo->shortname) + ".esinput.port1").c_str());
-
-	printf("%s\n", PadType.c_str());
 
 	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, PadType.c_str(), ButtonCount);
 

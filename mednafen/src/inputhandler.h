@@ -1,10 +1,21 @@
 #ifndef INPUT_HANDLER_H
 #define INPUT_HANDLER_H
 
+class												MednafenInputItem : public ListItem
+{
+	public:
+													MednafenInputItem				(const std::string& aNiceName, const std::string& aRealName);
+
+		std::string									GetRealName						();
+
+	protected:
+		std::string									RealName;
+};
+
 class												MednafenInputSelect : public WinterfaceList
 {
 	public:
-													MednafenInputSelect				(const std::vector<std::string>& aInputNames);
+													MednafenInputSelect				(const std::vector<std::string>& aInputNames, const std::vector<std::string>& aRealNames);
 };
 
 class												MednafenSettingButton : public Winterface
