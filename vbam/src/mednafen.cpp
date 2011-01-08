@@ -19,7 +19,7 @@
 #include "common/SoundDriver.h"
 
 //MEDNAFEN
-namespace
+namespace mdfn
 {
 	EmulateSpecStruct*					ESpec;
 
@@ -30,6 +30,7 @@ namespace
 	uint32_t							FrameCount;
 	uint32_t							SkipHack;
 }
+using namespace mdfn;
 
 //SYSTEM
 void								InitSystem								();
@@ -237,36 +238,39 @@ static MDFNSetting VbamSettings[] =
 //TODO: MasterClock and fps
 static MDFNGI	VbamInfo =
 {
-	shortname:			"vbam",
-	fullname:			"VBA-M Game Boy Advance",
-	FileExtensions:		extensions,
-	ModulePriority:		MODPRIO_EXTERNAL_HIGH,
-	Debugger:			0,
-	InputInfo:			&VbamInput,
+/*	shortname:			*/	"vbam",
+/*	fullname:			*/	"VBA-M Game Boy Advance",
+/*	FileExtensions:		*/	extensions,
+/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
+/*	Debugger:			*/	0,
+/*	InputInfo:			*/	&VbamInput,
 
-	Load:				VbamLoad,
-	TestMagic:			VbamTestMagic,
-	LoadCD:				0,
-	TestMagicCD:		0,
-	CloseGame:			VbamCloseGame,
-	ToggleLayer:		VbamToggleLayer,
-	LayerNames:			"BG0\0BG1\0BG2\0BG3\0OBJ\0WIN 0\0WIN 1\0OBJ WIN\0",
-	InstallReadPatch:	VbamInstallReadPatch,
-	RemoveReadPatches:	VbamRemoveReadPatches,
-	MemRead:			VbamMemRead,
-	StateAction:		VbamStateAction,
-	Emulate:			VbamEmulate,
-	SetInput:			VbamSetInput,
-	DoSimpleCommand:	VbamDoSimpleCommand,
-	Settings:			VbamSettings,
-	MasterClock:		0,
-	fps:				0,
-	multires:			false,
-	nominal_width:		240,
-	nominal_height:		160,
-	fb_width:			256 * 4,
-	fb_height:			160,
-	soundchan:			2
+/*	Load:				*/	VbamLoad,
+/*	TestMagic:			*/	VbamTestMagic,
+/*	LoadCD:				*/	0,
+/*	TestMagicCD:		*/	0,
+/*	CloseGame:			*/	VbamCloseGame,
+/*	ToggleLayer:		*/	VbamToggleLayer,
+/*	LayerNames:			*/	"BG0\0BG1\0BG2\0BG3\0OBJ\0WIN 0\0WIN 1\0OBJ WIN\0",
+/*	InstallReadPatch:	*/	VbamInstallReadPatch,
+/*	RemoveReadPatches:	*/	VbamRemoveReadPatches,
+/*	MemRead:			*/	VbamMemRead,
+/*	StateAction:		*/	VbamStateAction,
+/*	Emulate:			*/	VbamEmulate,
+/*	SetInput:			*/	VbamSetInput,
+/*	DoSimpleCommand:	*/	VbamDoSimpleCommand,
+/*	Settings:			*/	VbamSettings,
+/*	MasterClock:		*/	0,
+/*	fps:				*/	0,
+/*	multires:			*/	false,
+/*	lcm_width:			*/	240,
+/*	lcm_height:			*/	160,
+/*  dummy_separator:	*/	0,
+/*	nominal_width:		*/	240,
+/*	nominal_height:		*/	160,
+/*	fb_width:			*/	240,
+/*	fb_height:			*/	160,
+/*	soundchan:			*/	2
 };
 
 extern "C" MDFNGI* GetVBAM()

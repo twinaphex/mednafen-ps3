@@ -16,6 +16,7 @@ class				ESInput
 		
 		virtual uint32_t					GetAnyButton			(uint32_t aPad) = 0;
 		virtual std::string					GetButtonName			(uint32_t aButton) = 0;
+		virtual std::string					GetButtonImage			(uint32_t aButton) = 0;
 		
 	public:	//Helpers
 		static void							RefreshButton			(uint32_t aState, uint32_t& aHeld, uint32_t& aSingle)

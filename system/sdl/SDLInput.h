@@ -26,6 +26,7 @@ class				SDLInput : public ESInput
 		
 		uint32_t							GetAnyButton			(uint32_t aPad);
 		std::string							GetButtonName			(uint32_t aButton);
+		std::string							GetButtonImage			(uint32_t aButton);
 	
 	protected:
 		static const uint32_t				MAXKEYS = 512;

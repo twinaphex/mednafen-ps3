@@ -3,7 +3,7 @@
 namespace
 {
 	uint32_t		ButtonIndex[][2] = {{2,8}, {2, 1}, {3, 0x80}, {3, 0x40}, {3, 0x10}, {3, 0x20}, {2, 0x10}, {2, 0x40}, {2, 0x80}, {2, 0x20}, {3, 4}, {3, 1}, {2, 2}, {3, 8}, {3, 2}, {2, 4}};
-	std::string		ButtonNames[16] = {"START", "SELECT", "SQUARE", "CROSS", "TRIANGLE", "CIRCLE", "UP", "DOWN", "LEFT", "RIGHT", "L1", "L2", "L3", "R1", "R2", "R3"};	
+	std::string		ButtonNames[16] = {"Start", "Select", "Square", "Cross", "Triangle", "Circle", "Up", "Down", "Left", "Right", "L1", "L2", "L3", "R1", "R2", "R3"};	
 	enum{PS3_AXIS_LEFT_Y, PS3_AXIS_LEFT_X, PS3_AXIS_RIGHT_Y, PS3_AXIS_RIGHT_X, PS3_AXIS_COUNT};
 
 }
@@ -94,6 +94,13 @@ std::string			L1ghtInput::GetButtonName				(uint32_t aButton)
 	Assert(0, aButton);
 
 	return ButtonNames[aButton];
+}
+
+std::string			L1ghtInput::GetButtonImage				(uint32_t aButton)
+{
+	Assert(0, aButton);
+
+	return ButtonNames[aButton] + "IMAGE";
 }
 
 void				L1ghtInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)

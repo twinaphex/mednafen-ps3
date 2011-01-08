@@ -139,7 +139,7 @@ void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
 #ifdef L1GHT
 	uint64_t out;
 	sys_ppu_thread_join((sys_ppu_thread_t)thread->data, &out);
-	status = out;
+	*status = out;
 #else
 	SDL_WaitThread((SDL_Thread*)thread->data, status);
 #endif

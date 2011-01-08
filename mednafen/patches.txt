@@ -13,17 +13,18 @@ src/settings.cpp:
 src/state.cpp:
   Make workmem in MDFN_StateEvil static to prvent overflowing stack on PS3
 
-src/hw_cpu/z80-fuse:
-  Rename C files that shouldn't be compiled
-
-src/tremor/ivorbisfile_example.c:
-  Rename to prevent compiling
+src/tremor/misc.h:
+  Change byte ordering constants
 
 src/cdrom/audioreader.cpp:
   Cast MPC_SAMPLE_FORMAT as some compilers complain about shifing it
 
 src/cdrom/lec.cpp:
   Comment out include of config.h, we don't have this file
+
+src/cdrom/lec.h:
+  Force definition of certain types
+
 
 src/hw_*:
 src/src/vb/vb.h:
@@ -36,6 +37,10 @@ src/vb/vb.cpp:
 src/md/input/gamepad.cpp:
   Fix 6 button pads
 
+src/hw_cpu/z80-fuse:
+  Rename C files that shouldn't be compiled
+
+src/tremor/ivorbisfile_example.c:
 src/md/debug.cpp:
 src/nes/debug.cpp:
 src/pce/debug.cpp:

@@ -26,12 +26,15 @@ void				InitSystem								()
 	utilUpdateSystemColorMaps();
 }
 
-
-extern EmulateSpecStruct*		ESpec;
-extern uint8_t*					Ports[4];
-extern uint32_t					SoundFrame;
-extern uint32_t					FrameCount;
-extern uint32_t					SkipHack;
+namespace mdfn
+{
+	extern EmulateSpecStruct*		ESpec;
+	extern uint8_t*					Ports[4];
+	extern uint32_t					SoundFrame;
+	extern uint32_t					FrameCount;
+	extern uint32_t					SkipHack;
+}
+using namespace mdfn;
 
 class soundy : public SoundDriver
 {

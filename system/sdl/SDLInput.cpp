@@ -111,6 +111,14 @@ std::string			SDLInput::GetButtonName					(uint32_t aButton)
 	}
 }
 
+std::string			SDLInput::GetButtonImage				(uint32_t aButton)
+{
+	//TODO:
+	Assert(0, aButton);
+
+	return "NOIMAGE";
+}
+
 void				SDLInput::Assert						(uint32_t aPad, uint32_t aButton)
 {
 	if(aPad >= MAXPADS || (IsJoystickButton(aButton) && aButton >= BUTTONS) || (!IsJoystickButton(aButton) && (aButton & 0xFFFF) >= MAXKEYS))
