@@ -17,6 +17,7 @@ void							Exit					();
 MDFNGI*							GetNestopia				();
 MDFNGI*							GetGambatte				();
 extern "C" MDFNGI*				vbamGetVBAM				();
+MDFNGI*							GetPCSX					();
 
 extern std::vector<MDFNGI *>	MDFNSystems;
 

@@ -29,7 +29,7 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 				src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
 
 #SDL Port gets SNES, lucky
-#ifeq ($(strip $(PLATFORM)),sdl)
+ifeq ($(strip $(PLATFORM)),sdl)
 #MEDNAFENFLAGS+=-DWANT_SNES_EMU 
 
 #CXXFILES	:=	src/src/snes/interface.cpp src/src/snes/src/cartridge/cartridge.cpp src/src/snes/src/cheat/cheat.cpp \
@@ -41,7 +41,8 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 #				src/src/snes/src/chip/st018/st018.cpp src/src/snes/src/chip/superfx/superfx.cpp src/src/snes/src/chip/21fx/21fx.cpp
 				
 #CFILES		:=	src/src/snes/src/lib/libco/libco.c
-#endif
+
+endif
 
 INCLUDE		:=	src include ../system $(MEDNAFENINCLUDES) 
 
@@ -50,12 +51,9 @@ LIBDIRS		:=	../system ../nestopia ../gambatte ../vbam
 ifeq ($(strip $(PLATFORM)),l1ght)
 	LIBS		:= -lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
 else
-	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm
+	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lpcsxr
+	LIBDIRS		+= ../pcsxr
 endif
-
-#Not yet
-LIBDIRS		+= ../pcsxr
-LIBS		+= -lpcsxr
 
 CFLAGS		+= -O2 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS	+= -O2 $(MEDNAFENCFLAGS) $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
