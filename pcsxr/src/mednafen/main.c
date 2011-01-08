@@ -88,6 +88,19 @@ void				OpenMCDS		()
 	LoadMcds(MCD1, MCD2);
 }
 
+//Bios
+static char			BIOSPath[MAXPATHLEN];
+void				SetBIOS			(const char* aPath)
+{
+	if(aPath)
+	{
+		strncpy(BIOSPath, aPath, MAXPATHLEN);
+	}
+	else
+	{
+		BIOSPath[0] = '\0';
+	}
+}
 
 //Main functions for running emu
 int					SysLoad			()
@@ -102,8 +115,7 @@ int					SysLoad			()
     strcpy(Config.Pad2, "builtin");
     strcpy(Config.Cdr, "builtin");
     strcpy(Config.Net, "Disabled");
-	strcpy(Config.BiosDir, "/home/jason/");
-    strcpy(Config.Bios, "SCPH1001.BIN");
+    strcpy(Config.Bios, BIOSPath);
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 

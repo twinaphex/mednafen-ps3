@@ -117,7 +117,9 @@ void psxMemReset() {
 
 	// Load BIOS
 	if (strcmp(Config.Bios, "HLE") != 0) {
-		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
+		//ROBO: Config.Bios now holds the whole path
+//		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
+		sprintf(bios, "%s", Config.Bios);
 		f = fopen(bios, "rb");
 
 		if (f == NULL) {

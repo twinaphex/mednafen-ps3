@@ -16,6 +16,7 @@ extern "C"
 	void		SysClose				();
 	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 	void		SetMCDS					(const char* aOne, const char* aTwo);
+	void		SetBIOS					(const char* aPath);
 
 	uint32_t	DoesFileExist			(const char* aPath)
 	{
@@ -28,6 +29,9 @@ int				PcsxrLoad				()
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	std::string filename2 = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2");
 	SetMCDS(filename.c_str(), filename2.c_str());
+
+	std::string biospath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str());
+	SetBIOS(biospath.c_str());
 
 	SysLoad();
 //	SysInit();
@@ -153,7 +157,8 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting PcsxrSettings[] =
 {
-	 {NULL}
+	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to optional (but recommended) PSX BIOS ROM image.",	NULL, MDFNST_STRING, "scph1001.bin"},
+	{NULL}
 };
 
 

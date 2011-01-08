@@ -15,6 +15,30 @@ namespace
 		return new Identity();
 	};
 
+	void			MakeDirectories		()
+	{
+#ifndef L1GHT
+//TODO: Support psl1ght, throw on error
+		const char *subs[7] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware"};
+
+		if(mkdir(es_paths->Build("mednafen").c_str(), S_IRWXU) == -1 && errno != EEXIST)
+		{
+			return;
+		}
+
+		char buffer[1024];
+
+		for(int i = 0; i != 7; i ++)
+		{
+			sprintf(buffer, "mednafen"PSS"%s", subs[i]);
+			if(mkdir(es_paths->Build(buffer).c_str(), S_IRWXU) == -1 && errno != EEXIST)
+			{
+				return;
+			}
+		}
+#endif
+	}
+
 	const MDFNSetting_EnumList	FilterEnumList[] =
 	{
 		{"none", 0, "none", ""},
@@ -51,7 +75,7 @@ namespace
 }
 
 
-//extern MDFNGI*				GetPCSX();
+extern MDFNGI*				GetPCSX();
 void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
@@ -64,7 +88,7 @@ void						MednafenEmu::Init				()
 		Buffer = es_video->CreateTexture(1920, 1080);
 
 		std::vector<MDFNGI*> externalSystems;
-//		externalSystems.push_back(GetPCSX());
+		externalSystems.push_back(GetPCSX());
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
 #ifdef L1GHT
@@ -75,6 +99,7 @@ void						MednafenEmu::Init				()
 		GenerateSettings(Settings);
 		InputHandler::GenerateSettings(Settings);
 
+		MakeDirectories();
 		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
 	}
 

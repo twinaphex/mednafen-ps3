@@ -13,13 +13,9 @@ void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint
 	{
 		aHeight -= LabelFont->GetHeight();
 	
-		//TODO: Make this a Uitlity:: function (along with ListItem)
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
 		Utility::CenterAndScale(x, y, w, h, image->GetWidth(), image->GetHeight());
 		
-//		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(aHeight) / (double)image->GetHeight()));
-
-//		es_video->PlaceTexture(image, aX, aY, width, aHeight, 0xFFFFFFFF);
 		es_video->PlaceTexture(image, x, y, w, h, 0xFFFFFFFF);
 		LabelFont->PutString(GetText().c_str(), aX, aY + aHeight, TextColor);
 	}
