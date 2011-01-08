@@ -16,12 +16,12 @@ namespace
 	Row = 0;
 	Shift = 0;
 	Canceled = false;
-	
-	SideItems.push_back(new ListItem("[DPAD] Move Selection", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[ACCEPT] Input Character", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[SHIFT] Shift", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[TAB] Backspace", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[CANCEL] Finish", FontManager::GetSmallFont()));
+
+	SideItems.push_back(new InputListItem("Move Selection", ES_BUTTON_UP));
+	SideItems.push_back(new InputListItem("Input Character", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Shift", ES_BUTTON_SHIFT));
+	SideItems.push_back(new InputListItem("Backspace", ES_BUTTON_TAB));	
+	SideItems.push_back(new InputListItem("Finish", ES_BUTTON_CANCEL));
 }
 
 							Keyboard::~Keyboard								()

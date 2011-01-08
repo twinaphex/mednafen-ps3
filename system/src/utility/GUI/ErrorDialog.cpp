@@ -3,8 +3,8 @@
 					ErrorDialog::ErrorDialog				(const std::string& aMessage, const std::string& aHeader) : Winterface(aHeader, true, 0)
 {
 	Message = aMessage;
-	
-	SideItems.push_back(new ListItem("[X] Continue", FontManager::GetSmallFont()));
+
+	SideItems.push_back(new InputListItem("Continue", ES_BUTTON_ACCEPT));	
 }
 							
 bool				ErrorDialog::Input						()

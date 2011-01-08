@@ -18,12 +18,12 @@
 		
 		fex_next(Archive);
 	}
-	
-	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[X] Select Item", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[O] Previous Dir", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[R3] Settings", FontManager::GetSmallFont()));	 //HACK: Only with the mednafen hook!!!!
-	SideItems.push_back(new ListItem("[START] Show Readme", FontManager::GetSmallFont()));	 //HACK: Only with the mednafen hook!!!!	
+
+	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));	
+	SideItems.push_back(new InputListItem("Select Item", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Previous Dir", ES_BUTTON_CANCEL));
+	SideItems.push_back(new InputListItem("Settings", ES_BUTTON_AUXRIGHT3));	//HACK: Only with the mednafen hook!!!!
+	SideItems.push_back(new InputListItem("Show Readme", ES_BUTTON_AUXLEFT3));		//HACK: Only with the mednafen hook!!!!
 }
 
 											ArchiveList::~ArchiveList					()

@@ -29,7 +29,7 @@ bool								MednafenCommandItem::Input						()
 	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig", "DoInputConfig"));
 //	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
 
-	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[X] Run Command", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[O] Close", FontManager::GetSmallFont()));	
+	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
+	SideItems.push_back(new InputListItem("Run Command", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Close", ES_BUTTON_CANCEL));
 }

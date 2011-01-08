@@ -175,14 +175,14 @@ bool								MednafenSettingItem::Input						()
 	}
 	
 	SetCategory(aDefault);
-	
-	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[DPAD] Change Value", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[ACCEPT] Use Keyboard", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[SHIFT] Reset to Default", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[AUXRIGHT1] Change Category", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[AUXLEFT1] Change Category", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[TAB] Set to File", FontManager::GetSmallFont()));			
-	SideItems.push_back(new ListItem("[CANCEL] Close", FontManager::GetSmallFont()));	
+
+	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));	
+	SideItems.push_back(new InputListItem("Change Value", ES_BUTTON_LEFT));
+	SideItems.push_back(new InputListItem("Use Keyboard", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Reset to Default", ES_BUTTON_SHIFT));
+	SideItems.push_back(new InputListItem("Change Category", ES_BUTTON_AUXLEFT1));
+	SideItems.push_back(new InputListItem("Change Category", ES_BUTTON_AUXRIGHT1));
+	SideItems.push_back(new InputListItem("Set to File", ES_BUTTON_TAB));
+	SideItems.push_back(new InputListItem("Close", ES_BUTTON_CANCEL));
 }
 

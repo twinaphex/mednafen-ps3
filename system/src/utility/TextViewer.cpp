@@ -83,9 +83,9 @@ void					TextViewer::LoadStream					(std::istream& aStream)
 		LongestLine = (line.length() > LongestLine) ? line.length() : LongestLine;
 	}
 	
-	SideItems.push_back(new ListItem("[DPAD] Navigate", FontManager::GetSmallFont()));
-	SideItems.push_back(new ListItem("[X] Close", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[L1] Page Up", FontManager::GetSmallFont()));	
-	SideItems.push_back(new ListItem("[R1] Page Down", FontManager::GetSmallFont()));
+	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
+	SideItems.push_back(new InputListItem("Close", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Page Up", ES_BUTTON_AUXLEFT1));
+	SideItems.push_back(new InputListItem("Page Down", ES_BUTTON_AUXRIGHT1));
 }
 
