@@ -124,6 +124,11 @@ bool								MednafenSettingItem::Input						()
 		
 		if(result.length() != 0)
 		{
+			if(result.find("file:/") == 0)
+			{
+				result = result.substr(5);
+			}
+
 			MDFNI_SetSetting(Setting.name, result.c_str());
 		}
 	}
