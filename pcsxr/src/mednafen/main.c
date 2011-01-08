@@ -45,6 +45,7 @@ void				SysRunGui		()
 void				SysReset		()
 {
 	/* TODO */
+	EmuReset();
 }
 
 void				SysClose		()
@@ -102,12 +103,19 @@ void				SetBIOS			(const char* aPath)
 	}
 }
 
+//Recompiler
+static uint32_t		EnableRecompiler = 0;
+void				SetRecompiler	(uint32_t aEnable)
+{
+	EnableRecompiler = aEnable;
+}
+
 //Main functions for running emu
 int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
-    Config.Cpu = CPU_INTERPRETER;
+    Config.Cpu = EnableRecompiler ? CPU_DYNAREC : CPU_INTERPRETER;
     strcpy(Config.PluginsDir, "builtin");
     strcpy(Config.Gpu, "builtin");
     strcpy(Config.Spu, "builtin");
@@ -198,7 +206,6 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	*aHeight = h;
 
 	//Grab the audio
-	printf("%d\n", SoundBufLen);
 	memcpy(aSound, SoundBuf, SoundBufLen);
 	*aSoundLen = SoundBufLen / 4;
 	SoundBufLen = 0;

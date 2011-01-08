@@ -14,9 +14,11 @@ extern "C"
 {
 	void		SysLoad					();
 	void		SysClose				();
+	void		SysReset				();
 	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 	void		SetMCDS					(const char* aOne, const char* aTwo);
 	void		SetBIOS					(const char* aPath);
+	void		SetRecompiler			(uint32_t aEnable);
 
 	uint32_t	DoesFileExist			(const char* aPath)
 	{
@@ -32,6 +34,7 @@ int				PcsxrLoad				()
 
 	std::string biospath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str());
 	SetBIOS(biospath.c_str());
+	SetRecompiler(MDFN_GetSettingB("pcsxr.recompiler"));
 
 	SysLoad();
 //	SysInit();
@@ -107,6 +110,14 @@ void			PcsxrSetInput			(int port, const char *type, void *ptr)
 
 void			PcsxrDoSimpleCommand	(int cmd)
 {
+	if(cmd == MDFN_MSC_RESET)
+	{
+		SysReset();
+	}
+	else if(cmd == MDFN_MSC_POWER)
+	{
+		SysReset();
+	}
 }
 
 static const InputDeviceInputInfoStruct GamepadIDII[] =
@@ -157,7 +168,8 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting PcsxrSettings[] =
 {
-	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to optional (but recommended) PSX BIOS ROM image.",	NULL, MDFNST_STRING, "scph1001.bin"},
+	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to optional (but recommended) PSX BIOS ROM image.",				NULL, MDFNST_STRING,	"scph1001.bin"},
+	{"pcsxr.recompiler",MDFNSF_NOFLAGS,		"Enable the dynamic recompiler. (Need to restart mednafen to change).",	NULL, MDFNST_BOOL,		"0"},
 	{NULL}
 };
 
@@ -203,3 +215,4 @@ MDFNGI* GetPCSX()
 {
 	return &PcsxrInfo;
 }
+

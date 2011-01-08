@@ -484,8 +484,12 @@ static void recError() {
 	(*recFunc)();
 }
 
+//ROBO: Return if wanna_leave is true
+extern int wanna_leave;
 static void recExecute() {
-	for (;;) execute();
+//	for (;;) execute();
+	wanna_leave = 0;
+	while(!wanna_leave) execute();
 }
 
 static void recExecuteBlock() {
