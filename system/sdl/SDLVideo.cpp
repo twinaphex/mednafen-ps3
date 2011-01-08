@@ -49,6 +49,11 @@ void					SDLVideo::Flip					()
 	}
 	
 	((SDLInput*)es_input)->Refresh();
+
+	if(es_input->ButtonDown(0, 0x80000000 | SDLK_F10))
+	{
+		SetExit();
+	}
 //TODO: Done with event loop
 	
 	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());

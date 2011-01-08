@@ -10,11 +10,31 @@ class				Colors
 		static const uint32_t			HighLight				= 0xA02020FF;
 		static const uint32_t			SpecialNormal 			= 0x206020FF;
 		static const uint32_t			SpecialHighLight		= 0x20A020FF;
+		static const uint32_t			SpecialBackGround		= 0x40404040;
 };
 
 class				Utility
 {
 	public:
+		static void						CenterAndScale				(uint32_t& aX, uint32_t& aY, uint32_t& aWidth, uint32_t& aHeight, uint32_t aImageWidth, uint32_t aImageHeight)
+		{
+			float outputaspect = (float)aImageWidth / (float)aImageHeight;
+			float imageaspect = (float)aWidth / (float)aHeight;
+
+			if(outputaspect > imageaspect)
+			{
+				uint32_t oldheight = aHeight;
+				aHeight = (uint32_t)((float)aWidth / outputaspect);
+				aY += (oldheight - aHeight) / 2;
+			}
+			else
+			{
+				uint32_t oldwidth = aWidth;
+				aWidth = (uint32_t)((float)aHeight * outputaspect);
+				aX += (oldwidth - aWidth) / 2;
+			}
+		}
+
 		static std::string				GetExtension				(const std::string& aPath)
 		{
 			if(aPath.find(".") != std::string::npos)
