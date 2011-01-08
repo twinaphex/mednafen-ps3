@@ -31,9 +31,10 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 {
 	for(int i = 0; i != strlen(aString); i ++)
 	{
-		if(aString[i] >= 32)
+		if(aString[i] >= 32 || aString[i] == 9)
 		{
-			FontCharacter* chara = CacheCharacter(aString[i]);
+			//TODO: Support real tab stops
+			FontCharacter* chara = CacheCharacter(aString[i] == 9 ? 32 : aString[i]);
 			
 			if(chara && chara->CharTexture)
 			{
