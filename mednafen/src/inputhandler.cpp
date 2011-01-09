@@ -33,10 +33,11 @@ std::string							MednafenInputItem::GetRealName					()
 }
 
 
-									MednafenSettingButton::MednafenSettingButton	(std::string aInputName) : Winterface("Configuring Inputs")
+									MednafenSettingButton::MednafenSettingButton	(const std::string& aInputName, const std::string& aImage) : Winterface("Configuring Inputs")
 {
 	Button = 0;
 	InputName = aInputName;
+	Image = aImage;
 
 	SideItems.push_back(new ListItem("Press Input Button", FontManager::GetSmallFont()));
 }
@@ -61,6 +62,23 @@ bool								MednafenSettingButton::DrawLeft					()
 {
 	FontManager::GetBigFont()->PutString("Waiting for input", 40, 40, Colors::Normal);
 	FontManager::GetBigFont()->PutString(InputName.c_str(), 40, 40 + FontManager::GetBigFont()->GetHeight() * 2, Colors::Normal);
+
+	Area range = es_video->GetClip();
+
+	Texture* img = ImageManager::GetImage(Image);
+
+	if(img)
+	{
+		uint32_t x = 2;
+		uint32_t y = (range.Height / 2) + 2;
+		uint32_t w = range.Width - 4;
+		uint32_t h = (range.Height / 2) - 4;
+
+		Utility::CenterAndScale(x, y, w, h, img->GetWidth(), img->GetHeight());
+
+		es_video->PlaceTexture(img, x, y, w, h);
+	}
+
 	return false;
 }
 
@@ -162,7 +180,9 @@ void							InputHandler::Configure				()
 
 	for(int j = 0; j != buttoncount; j ++)
 	{
-		MednafenSettingButton button(info[ButtonOrder[j][0]].Name);
+		char buffer[2048];
+		snprintf(buffer, 2048, "%s%sIMAGE", GameInfo->shortname, PadType.c_str());
+		MednafenSettingButton button(info[ButtonOrder[j][0]].Name, buffer);
 		button.Do();
 
 		std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(info[ButtonOrder[j][0]].SettingName);

@@ -21,7 +21,7 @@ class												MednafenInputSelect : public WinterfaceList
 class												MednafenSettingButton : public Winterface
 {
 	public:
-													MednafenSettingButton			(std::string aAppendToHeader);
+													MednafenSettingButton			(const std::string& aInputName, const std::string& aImage);
 		virtual										~MednafenSettingButton			(){}
 		
 		virtual bool								Input							();
@@ -31,6 +31,7 @@ class												MednafenSettingButton : public Winterface
 		
 	protected:
 		std::string									InputName;
+		std::string									Image;
 		int32_t										Button;
 };
 
