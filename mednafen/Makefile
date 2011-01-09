@@ -51,7 +51,7 @@ LIBDIRS		:=	../system ../nestopia ../gambatte ../vbam
 ifeq ($(strip $(PLATFORM)),l1ght)
 	LIBS		:= -lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
 else
-	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lpcsxr
+	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lpcsxr -lSDL_net
 	LIBDIRS		+= ../pcsxr
 endif
 

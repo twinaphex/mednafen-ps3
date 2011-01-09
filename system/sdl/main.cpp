@@ -43,6 +43,11 @@ ESInput*			ESSUB_MakeInput			()
 	return new SDLInput();
 }
 
+ESNetwork*			ESSUB_MakeNetwork		()
+{
+	return new SDLNetwork();
+}
+
 bool				ESSUB_WantToDie			()
 {
 	return want_to_die;

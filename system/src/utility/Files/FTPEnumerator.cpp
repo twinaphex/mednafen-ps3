@@ -4,7 +4,7 @@ namespace
 {
 	char		Buffer[2048];
 
-	int			MakeSocket							(const char* aIP, const char* aPort, const char* aPort2 = 0)
+	ESSocket*	MakeSocket							(const char* aIP, const char* aPort, const char* aPort2 = 0)
 	{
 		int portno = atoi(aPort);
 		if(aPort2 != 0)
@@ -12,43 +12,23 @@ namespace
 			portno = portno * 256 + atoi(aPort2);
 		}
 
-		int socketFD = socket(AF_INET, SOCK_STREAM, 0);
-		if(socketFD == -1)
+		ESSocket* socket = es_network->OpenSocket(aIP, portno);
+		if(socket == 0)
 		{
 			throw FileException("FTP: Could not open socket");
 		}
-	
-		//TODO: gethostby name is appently evil?
-		struct hostent* server = gethostbyname(aIP);
-		if(server == 0)
-		{
-			close(socketFD);		
-			throw FileException("FTP: Host look up failed");
-		}
-	
-		struct sockaddr_in serv_addr;
-		memset(&serv_addr, 0, sizeof(serv_addr));
-		serv_addr.sin_port = htons(portno);	
-		serv_addr.sin_family = AF_INET;
-		memcpy((char *)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
-
-		if(-1 == connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr)))
-		{
-			throw FileException("FTP: connect() failed");
-		}
 		
-		return socketFD;
+		return socket;
 	}
 
-	uint32_t	DoCommand				(int aSocket, const std::string& aCommand, uint32_t aNeededResult = 0, bool aResult = true)
+	uint32_t	DoCommand				(ESSocket* aSocket, const std::string& aCommand, uint32_t aNeededResult = 0, bool aResult = true)
 	{
-		send(aSocket, aCommand.c_str(), aCommand.length(), 0);
+		aSocket->Write(aCommand.c_str(), aCommand.length());
 		
 		if(aResult)
 		{
 			memset(Buffer, 0, 2048);
-			recv(aSocket, Buffer, 2048, 0);
-			
+			aSocket->Read(Buffer, 2048);
 			printf("BUFF=%s\n", Buffer);
 
 			uint32_t code = 0;
@@ -67,17 +47,17 @@ namespace
 	}
 
 
-	void		MakePassiveConnection	(int& aOutSocket, int& aInSocket, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, const std::string& aPath)
+	void		MakePassiveConnection	(ESSocket*& aOutSocket, ESSocket*& aInSocket, const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword, const std::string& aPath)
 	{
-		aOutSocket = -1;
-		aInSocket = -1;
+		aOutSocket = 0;
+		aInSocket = 0;
 	
 		try
 		{
 			aOutSocket = MakeSocket(aHost.c_str(), aPort.c_str());
 		
 			memset(Buffer, 0, 2048);
-			recv(aOutSocket, Buffer, 2048, 0);
+			aOutSocket->Read(Buffer, 2048);
 		
 			sprintf(Buffer, "USER %s\n", aUserName.c_str());
 			DoCommand(aOutSocket, Buffer, 331);
@@ -103,16 +83,9 @@ namespace
 		}
 		catch(FileException ex)
 		{
-			if(aOutSocket != -1)
-			{
-				close(aOutSocket);
-			}
-			
-			if(aInSocket != -1)
-			{
-				close(aInSocket);
-			}
-			
+			delete aOutSocket;
+			delete aInSocket;
+			aOutSocket = aInSocket = 0;
 			throw;
 		}
 	}
@@ -123,8 +96,8 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 {
 	if(Enabled)
 	{
-		int OutSocket;
-		int InSocket;
+		ESSocket* OutSocket = 0;
+		ESSocket* InSocket = 0;
 		
 		std::string Path = Enumerators::CleanPath(aPath);
 		
@@ -136,7 +109,7 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 		uint32_t count;
 	
 		memset(Buffer, 0, 2048);
-		while((count = recv(InSocket, Buffer, 2046, 0)))
+		while((count = InSocket->Read(Buffer, 2046)))
 		{
 			data += Buffer;
 			memset(Buffer, 0, 2048);
@@ -166,8 +139,8 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 		}
 	
 		free(parsebuffer);
-		close(InSocket);
-		close(OutSocket);
+		delete InSocket;
+		delete OutSocket;
 	}
 	else
 	{
@@ -179,8 +152,8 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 {
 	if(Enabled)
 	{
-		int OutSocket;
-		int InSocket;
+		ESSocket* OutSocket = 0;
+		ESSocket* InSocket = 0;
 	
 		MakePassiveConnection(OutSocket, InSocket, Host, Port, UserName, Password, "/");
 	
@@ -192,15 +165,15 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 		FILE* outputFile = fopen(es_paths->Build("temp.ftp").c_str(), "wb");
 		uint32_t count;
 		
-		while((count = recv(InSocket, Buffer, 2048, 0)))
+		while((count = InSocket->Read(Buffer, 2048)))
 		{
 			fwrite(Buffer, count, 1, outputFile);
 		}
 		
 		fclose(outputFile);
-	
-		close(InSocket);
-		close(OutSocket);
+
+		delete InSocket;
+		delete OutSocket;	
 	
 		return es_paths->Build("temp.ftp");
 	}
@@ -208,6 +181,7 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 	{
 		throw FileException("FTP Access is not enabled");
 	}
+	return "";
 }
 
 void			FTPEnumerator::SetCredentials			(const std::string& aHost, const std::string& aPort, const std::string& aUserName, const std::string& aPassword)

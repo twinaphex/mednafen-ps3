@@ -24,14 +24,11 @@
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_net.h>
 
-#ifndef __WIN32__
-#include <netinet/in.h>
-#include <netdb.h>
-#else
+#ifdef __WIN32__
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winsock2.h>
 #include <shlobj.h>
 #endif
 

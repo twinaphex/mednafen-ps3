@@ -1,21 +1,27 @@
 #include <stdint.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string>
 
+#include "src/ESException.h"
 #include "src/ESVideo.h"
 #include "src/ESAudio.h"
 #include "src/ESInput.h"
+#include "src/ESNetwork.h"
 
 #ifdef L1GHT
 # include "l1ght/cell.h"
 # include "l1ght/L1ghtVideo.h"
 # include "l1ght/L1ghtAudio.h"
 # include "l1ght/L1ghtInput.h"
+# include "l1ght/L1ghtNetwork.h"
 # include "l1ght/utility.h"
 #else
 # include "sdl/cell.h"
 # include "sdl/SDLVideo.h"
 # include "sdl/SDLAudio.h"
 # include "sdl/SDLInput.h"
+# include "sdl/SDLNetwork.h"
 # include "sdl/utility.h"
 #endif
 
@@ -45,6 +51,7 @@
 extern ESVideo*			es_video;
 extern ESAudio*			es_audio;
 extern ESInput*			es_input;
+extern ESNetwork*		es_network;
 extern PathBuild*		es_paths;
 extern Logger*			es_log;
 

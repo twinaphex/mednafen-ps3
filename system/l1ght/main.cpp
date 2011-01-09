@@ -26,7 +26,6 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 void				ESSUB_Init				()
 {
 	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
-	netInitialize();
 }
 
 void				ESSUB_Quit				()
@@ -49,6 +48,11 @@ ESInput*			ESSUB_MakeInput			()
 	return new L1ghtInput();
 }
 
+ESNetwork*			ESSUB_MakeNetwork		()
+{
+	return new L1ghtNetwork();
+}
+
 bool				ESSUB_WantToDie			()
 {
 	sysCheckCallback();
@@ -65,3 +69,5 @@ std::string			ESSUB_GetBaseDirectory	()
 {
 	return "/dev_hdd0/game/MDFN90002/USRDIR/";
 }
+
+

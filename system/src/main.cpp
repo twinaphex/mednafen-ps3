@@ -4,6 +4,7 @@ Logger*				es_log = 0;
 ESVideo*			es_video = 0;
 ESAudio*			es_audio = 0;
 ESInput*			es_input = 0;
+ESNetwork*			es_network = 0;
 PathBuild*			es_paths = 0;
 
 namespace
@@ -17,6 +18,7 @@ void				ESSUB_Quit				();
 ESVideo*			ESSUB_MakeVideo			();
 ESAudio*			ESSUB_MakeAudio			();
 ESInput*			ESSUB_MakeInput			();
+ESNetwork*			ESSUB_MakeNetwork		();
 bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
 std::string			ESSUB_GetBaseDirectory	();
@@ -44,6 +46,7 @@ void				InitES					(void (*aExitFunction)())
 	es_video = ESSUB_MakeVideo();
 	es_audio = ESSUB_MakeAudio();
 	es_input = ESSUB_MakeInput();
+	es_network = ESSUB_MakeNetwork();
 
 	FontManager::InitFonts();
 	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
@@ -57,6 +60,7 @@ void				QuitES					()
 
 	FontManager::QuitFonts();
 
+	delete es_network;
 	delete es_input;
 	delete es_audio;
 	delete es_video;
