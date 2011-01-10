@@ -91,6 +91,21 @@ bool										WinterfaceList::Input								()
 	return Winterface::Input();
 }
 
+uint32_t									WinterfaceList::GetItemCount						()
+{
+	return Items.size();
+}
+
+void										WinterfaceList::SetSelection						(uint32_t aIndex)
+{
+	if(aIndex >= Items.size())
+	{
+		throw ESException("WinterfaceList: Item index out of range [Item %d, Total %d]", aIndex, Items.size());
+	}
+
+	Selected = aIndex;
+}
+
 bool										WinterfaceList::WasCanceled							()
 {
 	return Canceled;

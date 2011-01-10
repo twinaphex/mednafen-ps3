@@ -5,6 +5,7 @@ class						ErrorDialog : public Winterface
 {
 	public:
 							ErrorDialog								(const std::string& aMessage, const std::string& aHeader = "Error");
+		virtual				~ErrorDialog							(){};
 							
 		virtual bool		Input									();
 		virtual bool		DrawLeft								();

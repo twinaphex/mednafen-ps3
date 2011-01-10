@@ -5,6 +5,7 @@ class													InputListItem : public ListItem
 {
 	public:
 														InputListItem					(const std::string& aText, uint32_t aInput);
+		virtual											~InputListItem					(){};
 
 		uint32_t										GetHeight						();
 	

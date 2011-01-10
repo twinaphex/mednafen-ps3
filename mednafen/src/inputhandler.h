@@ -5,6 +5,7 @@ class												MednafenInputItem : public ListItem
 {
 	public:
 													MednafenInputItem				(const std::string& aNiceName, const std::string& aRealName);
+		virtual										~MednafenInputItem				(){};
 
 		std::string									GetRealName						();
 
@@ -16,6 +17,7 @@ class												MednafenInputSelect : public WinterfaceList
 {
 	public:
 													MednafenInputSelect				(const std::vector<std::string>& aInputNames, const std::vector<std::string>& aRealNames);
+		virtual										~MednafenInputSelect			(){};
 };
 
 class												MednafenSettingButton : public Winterface
@@ -39,7 +41,7 @@ class												InputHandler
 {
 	public:
 													InputHandler					(MDFNGI* aGameInfo);
-													~InputHandler					();
+		virtual										~InputHandler					();
 								
 		void										Process							();
 		

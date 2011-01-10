@@ -90,7 +90,6 @@ void								MednafenStateItem::SetImage						(uint8_t* aPixels, uint32_t aWidth,
 		Width = aWidth;
 		Height = aHeight;
 
-		printf("%d %d\n", Width, Height);
 		SetImageArea(0, 0, Width, Height);
 	}
 }
@@ -139,6 +138,11 @@ void								MednafenStateMenu::SetStateStatus				(StateStatusStruct* aStatus)
 	if(aStatus && aStatus->current >= 0 && aStatus->current < 9)
 	{
 		((MednafenStateItem*)Items[CurrentState])->SetImage(aStatus->gfx, aStatus->w, aStatus->h);
+
+		if(aStatus->recently_saved < GetItemCount())
+		{
+			SetSelection(aStatus->recently_saved);
+		}
 	}
 	else
 	{

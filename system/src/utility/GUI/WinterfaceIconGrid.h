@@ -7,9 +7,12 @@ class								WinterfaceIconGrid : public Winterface
 									WinterfaceIconGrid						(const std::string& aHeader, uint32_t aWidth, uint32_t aHeight, bool aKillItems);
 		virtual						~WinterfaceIconGrid						();
 
-		bool						Input									();
-		bool						DrawLeft								();
+		virtual bool				Input									();
+		virtual bool				DrawLeft								();
 	
+		uint32_t					GetItemCount							();
+		void						SetSelection							(uint32_t aIndex);
+
 		bool						WasCanceled								();
 	
 	protected:

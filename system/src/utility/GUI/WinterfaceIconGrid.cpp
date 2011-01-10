@@ -77,6 +77,23 @@ bool								WinterfaceIconGrid::DrawLeft							()
 	return false;
 }
 
+uint32_t							WinterfaceIconGrid::GetItemCount						()
+{
+	return Items.size();
+}
+
+void								WinterfaceIconGrid::SetSelection						(uint32_t aIndex)
+{
+	if(aIndex >= Items.size())
+	{
+		throw ESException("WinterfaceIconGrid: Item index out of range [Item %d, Total %d]", aIndex, Items.size());
+	}
+
+	SelectedIndex = aIndex;
+	XSelection = aIndex % Width;
+	YSelection = aIndex / Width;
+}
+
 bool								WinterfaceIconGrid::WasCanceled							()
 {
 	return Canceled;

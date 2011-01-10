@@ -10,6 +10,9 @@ class													WinterfaceList : public Winterface
 		virtual bool									Input							();
 		virtual bool									DrawLeft						();
 
+		uint32_t										GetItemCount					();
+		void											SetSelection					(uint32_t aIndex);
+
 		bool											WasCanceled						();
 		ListItem*										GetSelected						();
 		

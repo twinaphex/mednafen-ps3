@@ -7,7 +7,7 @@ class												MednafenStateItem : public GridItem
 {
 	public:
 													MednafenStateItem				(uint32_t aSlot, bool aLoad, MednafenStateMenu* aMenu);
-													~MednafenStateItem				();
+		virtual										~MednafenStateItem				();
 
 		bool										Input							();
 		void										Draw							(uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);

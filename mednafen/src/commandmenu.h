@@ -5,6 +5,8 @@ class												MednafenCommandItem : public GridItem
 {
 	public:
 													MednafenCommandItem				(const std::string& aDisplay, const std::string& aIcon, const std::string& aCommand);
+		virtual										~MednafenCommandItem			(){};
+
 		bool										Input							();
 
 	protected:
@@ -15,6 +17,7 @@ class												MednafenCommands : public WinterfaceIconGrid
 {
 	public:
 													MednafenCommands				();
+		virtual										~MednafenCommands				(){};
 };
 
 #endif
