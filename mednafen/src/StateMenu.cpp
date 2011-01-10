@@ -1,15 +1,19 @@
 #include <mednafen_includes.h>
 
-									MednafenStateItem::MednafenStateItem			(uint32_t aSlot, MednafenStateMenu* aMenu) : GridItem("", "")
+									MednafenStateItem::MednafenStateItem			(uint32_t aSlot, bool aLoad, MednafenStateMenu* aMenu) : GridItem("", "")
 {
 	if(aSlot >= 9)
 	{
 		throw ESException("StateItem slot out of range: %d", aSlot);
 	}
 
+	Slot = aSlot;
+	Load = aLoad;
 	Parent = aMenu;
 
-	Slot = aSlot;
+	Pixels = 0;
+	Width = 0;
+	Height = 0;
 
 	char buffer[32];
 	snprintf(buffer, 32, "Slot %d", aSlot + 1);
@@ -17,10 +21,6 @@
 
 	snprintf(buffer, 32, "SCRATCH%%%d", aSlot);
 	LabelImage = buffer;
-
-	Pixels = 0;
-	Width = 0;
-	Height = 0;
 }
 
 									MednafenStateItem::~MednafenStateItem			()
@@ -33,19 +33,11 @@
 
 bool								MednafenStateItem::Input						()
 {
-	if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT2))
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		Parent->SelectMednafenState(Slot);
 
-		MednafenEmu::DoCommand("DoSaveState");
-		return true;
-	}
-
-	if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT2))
-	{
-		Parent->SelectMednafenState(Slot);
-
-		MednafenEmu::DoCommand("DoLoadState");
+		MednafenEmu::DoCommand(Load ? "DoLoadState" : "DoSaveState");
 		return true;
 	}
 
@@ -104,24 +96,23 @@ void								MednafenStateItem::SetImage						(uint8_t* aPixels, uint32_t aWidth,
 }
 
 
-									MednafenStateMenu::MednafenStateMenu			() : WinterfaceIconGrid("Save States", 3, 3, true)
+									MednafenStateMenu::MednafenStateMenu			(bool aLoad) : WinterfaceIconGrid(aLoad ? "Load State" : "Save State", 3, 3, true)
 {
 	CurrentState = 0;
 
-	Items.push_back(new MednafenStateItem(0, this));
-	Items.push_back(new MednafenStateItem(1, this));
-	Items.push_back(new MednafenStateItem(2, this));
-	Items.push_back(new MednafenStateItem(3, this));
-	Items.push_back(new MednafenStateItem(4, this));
-	Items.push_back(new MednafenStateItem(5, this));
-	Items.push_back(new MednafenStateItem(6, this));
-	Items.push_back(new MednafenStateItem(7, this));
-	Items.push_back(new MednafenStateItem(8, this));
+	Items.push_back(new MednafenStateItem(0, aLoad, this));
+	Items.push_back(new MednafenStateItem(1, aLoad, this));
+	Items.push_back(new MednafenStateItem(2, aLoad, this));
+	Items.push_back(new MednafenStateItem(3, aLoad, this));
+	Items.push_back(new MednafenStateItem(4, aLoad, this));
+	Items.push_back(new MednafenStateItem(5, aLoad, this));
+	Items.push_back(new MednafenStateItem(6, aLoad, this));
+	Items.push_back(new MednafenStateItem(7, aLoad, this));
+	Items.push_back(new MednafenStateItem(8, aLoad, this));
 
 	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
-	SideItems.push_back(new InputListItem("Save State", ES_BUTTON_AUXLEFT2));
-	SideItems.push_back(new InputListItem("Load State", ES_BUTTON_AUXRIGHT2));
-	SideItems.push_back(new InputListItem("Close Menu", ES_BUTTON_CANCEL));
+	SideItems.push_back(new InputListItem(aLoad ? "Load State" : "Save State", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Cancel", ES_BUTTON_CANCEL));
 
 	MDFNDES_SetStateTarget(this);
 

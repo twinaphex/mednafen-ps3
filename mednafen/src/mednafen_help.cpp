@@ -316,7 +316,8 @@ void						MednafenEmu::DoCommand			(std::string aName)
 		if(aName == "DoScreenShot")				MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(aName == "DoSaveState")				MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(aName == "DoLoadState")				MDFNI_LoadState(0, 0);
-		if(aName == "DoStateMenu")				MednafenStateMenu().Do();
+		if(aName == "DoSaveStateMenu")			MednafenStateMenu(false).Do();
+		if(aName == "DoLoadStateMenu")			MednafenStateMenu(true).Do();
 		if(aName == "DoToggleRewind")			MDFNI_EnableStateRewind(1);
 		if(aName == "DoInputConfig")			Inputs->Configure();
 		if(aName == "DoTextFile")				TextFile->Do();
