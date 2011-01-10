@@ -60,7 +60,8 @@ namespace
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"filter", MDFNSF_NOFLAGS, "Use bilinear filter for display", NULL, MDFNST_BOOL, "0"},
 		{"fullframe", MDFNSF_NOFLAGS, "Ignore screen aspect ratio", NULL, MDFNST_BOOL, "0"},
-		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"}
+		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
+		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
 	};
 
 	MDFNSetting ESSettings[] =
@@ -180,7 +181,8 @@ void						MednafenEmu::CloseGame			()
 		TextFile = 0;
 		Scaler = 0;
 		
-		IsLoaded = false;		
+		IsLoaded = false;
+		RewindEnabled = false;
 	}
 }
 
@@ -188,6 +190,13 @@ void						MednafenEmu::Frame				()
 {
 	if(IsInitialized && IsLoaded)
 	{
+		bool rewindnow = MDFN_GetSettingB(SETTINGNAME("rewind"));
+		if(rewindnow != RewindEnabled)
+		{
+			MDFNI_EnableStateRewind(rewindnow);
+			RewindEnabled = rewindnow;
+		}
+
 		Counter.Tick();
 	
 		Inputs->Process();
@@ -318,7 +327,6 @@ void						MednafenEmu::DoCommand			(std::string aName)
 		if(aName == "DoLoadState")				MDFNI_LoadState(0, 0);
 		if(aName == "DoSaveStateMenu")			MednafenStateMenu(false).Do();
 		if(aName == "DoLoadStateMenu")			MednafenStateMenu(true).Do();
-		if(aName == "DoToggleRewind")			MDFNI_EnableStateRewind(1);
 		if(aName == "DoInputConfig")			Inputs->Configure();
 		if(aName == "DoTextFile")				TextFile->Do();
 		if(aName == "DoExit")					Exit();
@@ -360,6 +368,7 @@ Filter*						MednafenEmu::Scaler = 0;
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
+bool						MednafenEmu::RewindEnabled = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
 

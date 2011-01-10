@@ -24,10 +24,9 @@ bool								MednafenCommandItem::Input						()
 	Items.push_back(new MednafenCommandItem("Save State", "DoSaveState", "DoSaveStateMenu"));
 	Items.push_back(new MednafenCommandItem("Load State", "DoLoadState", "DoLoadStateMenu"));
 	Items.push_back(new MednafenCommandItem("Take Screen Shot", "DoScreenShot", "DoScreenShot"));
-	Items.push_back(new MednafenCommandItem("Enable Rewind", "DoToggleRewind", "DoToggleRewind"));	
 	Items.push_back(new MednafenCommandItem("Settings", "DoSettings", "DoSettings"));
 	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig", "DoInputConfig"));
-//	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
+	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
 
 	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
 	SideItems.push_back(new InputListItem("Run Command", ES_BUTTON_ACCEPT));

@@ -157,3 +157,4 @@ void								MednafenStateMenu::SelectMednafenState			(uint32_t aSlot)
 	MDFNI_SelectState(aSlot);
 }
 
+

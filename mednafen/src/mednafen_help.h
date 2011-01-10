@@ -61,7 +61,8 @@ class	MednafenEmu
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
-		static bool						PCESkipHack;	
+		static bool						PCESkipHack;
+		static bool						RewindEnabled;
 			
 		static MDFNGI*					GameInfo;
 
