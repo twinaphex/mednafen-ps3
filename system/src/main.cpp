@@ -49,6 +49,7 @@ void				InitES					(void (*aExitFunction)())
 	es_network = ESSUB_MakeNetwork();
 
 	FontManager::InitFonts();
+	ImageManager::CreateScratch();
 	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
 
 	es_log = new Logger();
@@ -65,7 +66,7 @@ void				QuitES					()
 	delete es_audio;
 	delete es_video;
 
-	//TODO: Kill images
+	ImageManager::Purge();
 
 	ESSUB_Quit();
 	

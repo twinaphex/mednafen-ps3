@@ -118,6 +118,8 @@ std::string			SDLInput::GetButtonImage				(uint32_t aButton)
 
 	//HACK: Like the ps3 for now
 	if(aButton == ES_BUTTON_UP)			return "UpIMAGE";
+	if(aButton == ES_BUTTON_DOWN)		return "DownIMAGE";
+	if(aButton == ES_BUTTON_LEFT)		return "LeftIMAGE";
 	if(aButton == ES_BUTTON_ACCEPT)		return "CrossIMAGE";
 	if(aButton == ES_BUTTON_CANCEL)		return "CircleIMAGE";
 	if(aButton == ES_BUTTON_TAB)		return "SquareIMAGE";

@@ -11,6 +11,7 @@
 #include "mednafen_help.h"
 #include "commandmenu.h"
 #include "settingmenu.h"
+#include "StateMenu.h"
 
 void							ReloadEmulator			();
 void							Exit					();
@@ -18,6 +19,9 @@ MDFNGI*							GetNestopia				();
 MDFNGI*							GetGambatte				();
 extern "C" MDFNGI*				vbamGetVBAM				();
 MDFNGI*							GetPCSX					();
+
+void							MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu);
+
 
 extern std::vector<MDFNGI *>	MDFNSystems;
 

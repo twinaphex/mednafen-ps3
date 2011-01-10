@@ -71,7 +71,7 @@ class								ESVideo
 	
 		virtual void				Flip					() = 0;
 		
-		virtual void				PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF) = 0;
+		virtual void				PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF, Area* aArea = 0) = 0;
 		virtual void				FillRectangle			(Area aArea, uint32_t aColor) = 0;
 		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan) = 0;
 

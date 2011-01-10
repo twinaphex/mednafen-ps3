@@ -5,6 +5,8 @@ class													InputListItem : public ListItem
 {
 	public:
 														InputListItem					(const std::string& aText, uint32_t aInput);
+
+		uint32_t										GetHeight						();
 	
 	protected:
 		uint32_t										Input;

@@ -304,20 +304,6 @@ void						MednafenEmu::Blit				()
 	}
 
 	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
-
-/*
-
-	uint32_t* pix = Buffer->GetPixels();
-	uint32_t pixw = Buffer->GetWidth();
-	for(int i = 0; i != EmulatorSpec.DisplayRect.h; i ++)
-	{
-		for(int j = 0; j != real_width; j ++)
-		{
-			pix[i * pixw + j] = Surface->pixels[(i + EmulatorSpec.DisplayRect.y) * Surface->pitchinpix + (j + real_x)] | 0xFF000000;
-		}
-	}
-	
-	es_video->PresentFrame(Buffer, Area(0, 0, real_width, EmulatorSpec.DisplayRect.h), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));*/
 }
 
 void						MednafenEmu::DoCommand			(std::string aName)
@@ -328,8 +314,9 @@ void						MednafenEmu::DoCommand			(std::string aName)
 		if(aName == "DoSettings")				MednafenSettings(GameInfo->shortname).Do();
 		if(aName == "DoReset")					MDFNI_Reset();
 		if(aName == "DoScreenShot")				MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(aName == "DoSaveState")				MDFNI_SaveState(0, 0, 0, 0, 0);
+		if(aName == "DoSaveState")				MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(aName == "DoLoadState")				MDFNI_LoadState(0, 0);
+		if(aName == "DoStateMenu")				MednafenStateMenu().Do();
 		if(aName == "DoToggleRewind")			MDFNI_EnableStateRewind(1);
 		if(aName == "DoInputConfig")			Inputs->Configure();
 		if(aName == "DoTextFile")				TextFile->Do();

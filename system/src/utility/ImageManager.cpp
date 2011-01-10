@@ -29,6 +29,22 @@ void										ImageManager::LoadDirectory							(const std::string& aPath)
 		printf("ImageManager::LoadDirectory: Path '%s' not found\n", aPath.c_str());
 	}
 }
+
+void										ImageManager::CreateScratch							()
+{
+	if(!Images["SCRATCH%0"])
+	{
+		char buffer[32];
+		for(int i =0; i != 10; i ++)
+		{
+			Texture* tex = es_video->CreateTexture(512, 512);
+			tex->SetFilter(1);
+
+			snprintf(buffer, 32, "SCRATCH%%%d", i);
+			Images[buffer] = tex;
+		}
+	}
+}
 	
 Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)
 {

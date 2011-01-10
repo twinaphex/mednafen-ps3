@@ -17,3 +17,7 @@
 	}
 }
 
+uint32_t									InputListItem::GetHeight							()
+{
+	return ListItem::GetHeight() + 10;
+}

@@ -1,31 +1,5 @@
 #include <mednafen_includes.h>
 
-#if 0
-static int		MakeSocket	(const char* aIP, const char* aPort, const char* aPort2 = 0)
-{
-    int portno = atoi(aPort);
-    if(aPort2 != 0)
-    {
-    	portno = portno * 256 + atoi(aPort2);
-    }
-    
-	int socketFD = socket(AF_INET, SOCK_STREAM, 0);
-
-	struct hostent* server = gethostbyname(aIP);
-
-    struct sockaddr_in serv_addr;
-	memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_port = htons(portno);	
-	serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    
-	connect(socketFD, (sockaddr*)&serv_addr, sizeof(serv_addr));
-	return socketFD;
-}
-
-static int		slocket;
-#endif
-
 void		MDFND_MidSync			(const EmulateSpecStruct *espec)
 {
 
@@ -95,8 +69,28 @@ void		MDFND_NetworkClose		()
 {
 }
 
+static MednafenStateMenu*	TargetMenu = 0;
+
+void		MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu)
+{
+	TargetMenu = aMenu;
+}
+
 void		MDFND_SetStateStatus	(StateStatusStruct *status)				
 {
+	if(TargetMenu)
+	{
+		TargetMenu->SetStateStatus(status);
+	}
+
+	if(status)
+	{
+		if(status->gfx)
+		{
+			free(status->gfx);
+		}
+		free(status);
+	}
 }
 
 void		MDFND_SetMovieStatus	(StateStatusStruct *status)				

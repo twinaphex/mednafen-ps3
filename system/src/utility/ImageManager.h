@@ -6,6 +6,7 @@ class													ImageManager
 	public:
 		static void										Purge							();
 		static void										LoadDirectory					(const std::string& aPath);
+		static void										CreateScratch					();
 
 		static Texture*									LoadImage						(const std::string& aName, const std::string& aPath);
 		static Texture*									GetImage						(const std::string& aName);

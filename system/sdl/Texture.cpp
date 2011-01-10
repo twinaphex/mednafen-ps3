@@ -31,6 +31,8 @@ void					SDLTexture::Clear					(uint32_t aColor)
 	{
 		Pixels[i] = aColor;
 	}
+
+	Valid = false;
 }	
 
 uint32_t*				SDLTexture::GetPixels				()

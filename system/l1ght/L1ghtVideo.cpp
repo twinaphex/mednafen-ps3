@@ -101,7 +101,7 @@ void					L1ghtVideo::Flip				()
 	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
-void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
+void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
 {
 	aX += esClip.X;
 	aY += esClip.Y;
@@ -112,7 +112,15 @@ void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY,
 		return;
 	}
 
-	ApplyTexture(aTexture, Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight()));
+	if(!aArea)
+	{
+		ApplyTexture(aTexture, Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight()));
+	}
+	else
+	{
+		ApplyTexture(aTexture, *aArea);
+	}
+
 	DrawQuad(Area(aX, aY, aWidth, aHeight), aColor);
 }
 

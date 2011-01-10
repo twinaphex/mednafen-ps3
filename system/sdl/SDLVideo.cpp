@@ -11,7 +11,8 @@
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
+	Screen = SDL_SetVideoMode(640, 480, 32, SDL_OPENGL);
+//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
 	if(!Screen)
 	{
 		printf("SDL Couldn't set video mode: %s\n", SDL_GetError());
@@ -69,7 +70,7 @@ void					SDLVideo::Flip					()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor)
+void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
 {
 	aX += esClip.X;
 	aY += esClip.Y;
@@ -85,19 +86,28 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
 	float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
 
+	float xl = 0, xr = 1, yl = 0, yr = 1;
+	if(aArea)
+	{
+		xl = (float)aArea->X / (float)aTexture->GetWidth();
+		xr = (float)aArea->Right() / (float)aTexture->GetWidth();
+		yl = (float)aArea->Y / (float)aTexture->GetHeight();
+		yr = (float)aArea->Bottom() / (float)aTexture->GetHeight();
+	}
+
 	((SDLTexture*)aTexture)->Apply();
 	glBegin(GL_QUADS);
 		glColor4f(r,g,b,a);
-		glTexCoord2f(0, 0);
+		glTexCoord2f(xl, yl);
 		glVertex3f(aX, aY, 0);
 		glColor4f(r,g,b,a);
-		glTexCoord2f(1, 0);
+		glTexCoord2f(xr, yl);
 		glVertex3f(aX + aWidth, aY, 0);
 		glColor4f(r,g,b,a);		
-		glTexCoord2f(1, 1);		
+		glTexCoord2f(xr, yr);		
 		glVertex3f(aX + aWidth, aY + aHeight, 0);
 		glColor4f(r,g,b,a);		
-		glTexCoord2f(0, 1);		
+		glTexCoord2f(xl, yr);		
 		glVertex3f(aX, aY + aHeight, 0);
 	glEnd();
 }
