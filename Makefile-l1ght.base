@@ -116,6 +116,13 @@ clean:
 	@echo Clean...
 	@rm -rf $(BUILD) $(OUTPUT).$(TYPE) $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
 
+signpkg: $(BUILD)
+	@echo Creating signed PKG...
+	make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
+	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
+
+
 pkg: $(BUILD)
 	@echo Creating PKG...
 	@$(FSELF) -n $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN

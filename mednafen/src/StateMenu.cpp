@@ -4,7 +4,7 @@
 {
 	if(aSlot >= 9)
 	{
-		throw ESException("StateItem slot out of range: %d", aSlot);
+		throw ESException("MednafenStateItem: Slot out of range [Slot %d]", aSlot);
 	}
 
 	Slot = aSlot;
@@ -99,15 +99,10 @@ void								MednafenStateItem::SetImage						(uint8_t* aPixels, uint32_t aWidth,
 {
 	CurrentState = 0;
 
-	Items.push_back(new MednafenStateItem(0, aLoad, this));
-	Items.push_back(new MednafenStateItem(1, aLoad, this));
-	Items.push_back(new MednafenStateItem(2, aLoad, this));
-	Items.push_back(new MednafenStateItem(3, aLoad, this));
-	Items.push_back(new MednafenStateItem(4, aLoad, this));
-	Items.push_back(new MednafenStateItem(5, aLoad, this));
-	Items.push_back(new MednafenStateItem(6, aLoad, this));
-	Items.push_back(new MednafenStateItem(7, aLoad, this));
-	Items.push_back(new MednafenStateItem(8, aLoad, this));
+	for(int i = 0; i != 9; i ++)
+	{
+		Items.push_back(new MednafenStateItem(i, aLoad, this));
+	}
 
 	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
 	SideItems.push_back(new InputListItem(aLoad ? "Load State" : "Save State", ES_BUTTON_ACCEPT));
@@ -154,7 +149,7 @@ void								MednafenStateMenu::SelectMednafenState			(uint32_t aSlot)
 {
 	if(aSlot >= 9)
 	{
-		throw ESException("SelectMednafenState: slot out of range: %d", aSlot);
+		throw ESException("SelectMednafenState: Slot out of range [Slot %d]", aSlot);
 	}
 
 	CurrentState = aSlot;

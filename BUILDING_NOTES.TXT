@@ -1,7 +1,13 @@
-Building requires a working PSL1GHT build environment
-Compiling requires you to install libz libpng and freetype2 built for PSL1GHT
-Please run make in system-l1ght, nestopia, vbam, and gambatte directories before mednafen
-If you get a message like 'udefined reference to 'vbamGetVBAM'', cd into the vbam directory and type 'make vbam-objmangle'
+Building requires a working PSL1GHT build environment with ps3libraries installed
+Please run make in system-l1ght, nestopia, vbam, and gambatte directories before mednafen or use the rebuild-l1ght.sh shell script
+If you get a message like 'undefined reference to 'vbamGetVBAM'', cd into the vbam directory and type 'make vbam-objmangle'
+
+Makeing package with signed EBOOT.BIN:
+	Need make_self_npdrm in path (I stashed it in $PS3DEV/bin)
+	Make a build of mednafen by running rebuild-l1ght.sh
+	In mednafen directory run 'rm *elf' to remove old files.
+	In mednafen directory run 'make signpkg' to build the package, install mednafen.pkg on a jailbroken PS3.
+	package_finalize support will be added later.
 
 Environment varibles for controlling build:
 	PLATFORM: Set to 'l1ght' for PS3 or 'sdl' for SDL. If not set it defaults to l1ght
