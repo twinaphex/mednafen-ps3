@@ -200,15 +200,13 @@ void						MednafenEmu::Frame				()
 		Counter.Tick();
 	
 		Inputs->Process();
-		static uint32_t srate = 48000;
-		static bool sratelo = false;
 	
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
 		EmulatorSpec.LineWidths = VideoWidths;
 		EmulatorSpec.soundmultiplier = 1;
-		EmulatorSpec.SoundRate = srate;
+		EmulatorSpec.SoundRate = 48000;
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
@@ -235,19 +233,9 @@ void						MednafenEmu::Frame				()
 				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 			}
 	
-			es_video->Flip();					
+			es_video->Flip();
 
-			//AUDIO			
-			if(!sratelo && EmulatorSpec.SoundBufSize < 799)
-			{
-				srate ++;
-			}
-			else if(!sratelo && EmulatorSpec.SoundBufSize > 801)
-			{
-				srate --;
-			}
-			else sratelo = true;
-			
+			//AUDIO
 			if(GameInfo->soundchan > 1)
 			{
 				es_audio->AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
@@ -259,7 +247,7 @@ void						MednafenEmu::Frame				()
 					SamplesUp[i * 2] = Samples[i];
 					SamplesUp[i * 2 + 1] = Samples[i];
 				}
-				es_audio->AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);			
+				es_audio->AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);
 			}
 		}
 		

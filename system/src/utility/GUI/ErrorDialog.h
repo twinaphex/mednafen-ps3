@@ -4,14 +4,14 @@
 class						ErrorDialog : public Winterface
 {
 	public:
-							ErrorDialog								(const std::string& aMessage, const std::string& aHeader = "Error");
+							ErrorDialog								(const char* aMessage, const std::string& aHeader = "Error");
 		virtual				~ErrorDialog							(){};
 							
 		virtual bool		Input									();
 		virtual bool		DrawLeft								();
 							
 	protected:
-		std::string			Message;
+		char				Message[1024];
 };
 
 #endif

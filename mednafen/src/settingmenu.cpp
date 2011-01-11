@@ -4,11 +4,16 @@ namespace
 {
 	bool							CompareItems									(ListItem* a, ListItem* b)
 	{
-		if(a->GetText().find(".enable") != std::string::npos)			return true;
-		if(b->GetText().find(".enable") != std::string::npos)			return false;
-		if(a->GetText().find(".es.") != std::string::npos)				return true;
-		if(b->GetText().find(".es.") != std::string::npos)				return false;
+		//Keep enable at the top
+		if(a->GetText().find(".enable") != std::string::npos)												return true;
+		if(b->GetText().find(".enable") != std::string::npos)												return false;
 
+		//Keep ps3 system settings above others
+		if(a->GetText().find(".es.") != std::string::npos && b->GetText().find(".es.") != std::string::npos)	return a->GetText() < b->GetText();
+		if(a->GetText().find(".es.") != std::string::npos)													return true;
+		if(b->GetText().find(".es.") != std::string::npos)													return false;
+
+		//Standard items at the bottom
 		return a->GetText() < b->GetText();
 	}
 }

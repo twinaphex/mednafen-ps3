@@ -13,12 +13,6 @@
 
 void						Menu::SetInputDelay			(uint32_t aDelay)
 {
-	if(aDelay > 10)
-	{
-		printf("Menu::SetInputDelay: Delay cannot be more than ten frames, you tried '%d.\n", aDelay);
-		aDelay = 10;
-	}
-	
 	InputDelay = aDelay;
 }
 
@@ -58,3 +52,4 @@ void						Menu::SetHook				(MenuHook* aHook)
 {
 	Hook = aHook;
 }
+

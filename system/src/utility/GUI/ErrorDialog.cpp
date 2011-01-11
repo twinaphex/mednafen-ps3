@@ -1,8 +1,8 @@
 #include <ps3_system.h>
 
-					ErrorDialog::ErrorDialog				(const std::string& aMessage, const std::string& aHeader) : Winterface(aHeader, true, 0)
+					ErrorDialog::ErrorDialog				(const char* aMessage, const std::string& aHeader) : Winterface(aHeader, true, 0)
 {
-	Message = aMessage;
+	strncpy(Message, aMessage, sizeof(Message));
 
 	SideItems.push_back(new InputListItem("Continue", ES_BUTTON_ACCEPT));	
 }
@@ -19,7 +19,7 @@ bool				ErrorDialog::Input						()
 
 bool				ErrorDialog::DrawLeft					()
 {
-	FontManager::GetBigFont()->PutString(Message.c_str(), 32, 32, Colors::Normal);
+	FontManager::GetBigFont()->PutString(Message, 32, 32, Colors::Normal);
 
 	return false;
 }
