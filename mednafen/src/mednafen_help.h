@@ -13,7 +13,7 @@ class	MednafenEmu
 		static void						Frame				();
 		static void						Blit				();
 		
-		static void						DoCommand			(std::string aName);
+		static void						DoCommand			(const char* aName);
 
 	public:		//Inlines
 		static bool						IsGameLoaded		()
@@ -37,7 +37,7 @@ class	MednafenEmu
 		
 		static void						DummyFrame			()
 		{
-			if(IsLoaded)
+			if(IsInitialized && IsLoaded)
 			{
 				Blit();
 			}
@@ -54,17 +54,17 @@ class	MednafenEmu
 	
 		static Texture*					Buffer;
 		static MDFN_Surface*			Surface;
+
+		static MDFNGI*					GameInfo;
 		static InputHandler*			Inputs;		
 		static TextViewer*				TextFile;
-		static FastCounter				Counter;
 		static Filter*					Scaler;
+		static FastCounter				Counter;
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
 		static bool						PCESkipHack;
 		static bool						RewindEnabled;
-			
-		static MDFNGI*					GameInfo;
 
 		static std::vector<MDFNSetting>	Settings;
 
@@ -75,3 +75,5 @@ class	MednafenEmu
 };
 
 #endif
+
+

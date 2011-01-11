@@ -1,8 +1,10 @@
 #include <mednafen_includes.h>
 
-									MednafenCommandItem::MednafenCommandItem		(const std::string& aDisplay, const std::string& aIcon, const std::string& aCommand) : GridItem(aDisplay, aIcon)
+									MednafenCommandItem::MednafenCommandItem		(const std::string& aDisplay, const std::string& aIcon, const char* aCommand) : GridItem(aDisplay, aIcon)
 {
-	Command = aCommand;
+	assert(aCommand != 0);
+
+	strncpy(Command, aCommand, sizeof(Command));
 }
 
 bool								MednafenCommandItem::Input						()

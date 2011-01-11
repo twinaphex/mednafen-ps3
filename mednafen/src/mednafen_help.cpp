@@ -79,29 +79,36 @@ void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
 	{
+		//Put settings for the user interface
 		for(int i = 0; i != sizeof(ESSettings) / sizeof(MDFNSetting); i++)
 		{
 			Settings.push_back(ESSettings[i]);
 		}
 
-		Buffer = es_video->CreateTexture(1920, 1080);
-
+		//Get the external emulators, nestopia and gambatte, pcsx for SDL, vbam for PS3
 		std::vector<MDFNGI*> externalSystems;
-#ifndef L1GHT
-		externalSystems.push_back(GetPCSX());
-#endif
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
 #ifdef L1GHT
 		externalSystems.push_back(vbamGetVBAM());
+#else
+		externalSystems.push_back(GetPCSX());
 #endif
 		MDFNI_InitializeModules(externalSystems);
 
+		//Make settings for each system
 		GenerateSettings(Settings);
 		InputHandler::GenerateSettings(Settings);
 
+		//Build directory trees, if these don't exist we can't save games
 		MakeDirectories();
+
+		//Initialize mednafen and go
 		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
+
+		//Create video buffer and surface. 1080p max, we should never come even close to this
+		Buffer = es_video->CreateTexture(1920, 1080);
+		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));	
 	}
 
 	IsInitialized = true;
@@ -112,6 +119,7 @@ void						MednafenEmu::Quit				()
 	if(IsInitialized)
 	{
 		delete Buffer;
+		delete Surface;
 
 		CloseGame();
 		MDFNI_Kill();
@@ -139,10 +147,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 
-		Surface = new MDFN_Surface(0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));	
 		Inputs = new InputHandler(GameInfo);
 		TextFile = new TextViewer(aFileName + ".txt");
-
 
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
@@ -150,10 +156,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		}
 	
 		PCESkipHack = strcmp(GameInfo->shortname, "pce") == 0 || strcmp(GameInfo->shortname, "pce_fast") == 0;
-		
-#if 0
-		MDFND_NetStart();
-#endif
 		
 		IsLoaded = true;
 	}
@@ -171,12 +173,10 @@ void						MednafenEmu::CloseGame			()
 		MDFNI_CloseGame();
 		
 		delete Inputs;
-		delete Surface;
 		delete TextFile;
 		delete Scaler;
 		
 		GameInfo = 0;
-		Surface = 0;
 		Inputs = 0;
 		TextFile = 0;
 		Scaler = 0;
@@ -303,21 +303,21 @@ void						MednafenEmu::Blit				()
 	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
 }
 
-void						MednafenEmu::DoCommand			(std::string aName)
+void						MednafenEmu::DoCommand			(const char* aName)
 {
-	if(IsLoaded)
+	if(IsLoaded && aName)
 	{
-		if(aName == "DoReload")					ReloadEmulator();
-		if(aName == "DoSettings")				MednafenSettings(GameInfo->shortname).Do();
-		if(aName == "DoReset")					MDFNI_Reset();
-		if(aName == "DoScreenShot")				MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(aName == "DoSaveState")				MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(aName == "DoLoadState")				MDFNI_LoadState(0, 0);
-		if(aName == "DoSaveStateMenu")			MednafenStateMenu(false).Do();
-		if(aName == "DoLoadStateMenu")			MednafenStateMenu(true).Do();
-		if(aName == "DoInputConfig")			Inputs->Configure();
-		if(aName == "DoTextFile")				TextFile->Do();
-		if(aName == "DoExit")					Exit();
+		if(0 == strcmp(aName, "DoReload"))				ReloadEmulator();
+		if(0 == strcmp(aName, "DoSettings"))			MednafenSettings(GameInfo->shortname).Do();
+		if(0 == strcmp(aName, "DoReset"))				MDFNI_Reset();
+		if(0 == strcmp(aName, "DoScreenShot"))			MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(aName, "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(aName, "DoLoadState"))			MDFNI_LoadState(0, 0);
+		if(0 == strcmp(aName, "DoSaveStateMenu"))		MednafenStateMenu(false).Do();
+		if(0 == strcmp(aName, "DoLoadStateMenu"))		MednafenStateMenu(true).Do();
+		if(0 == strcmp(aName, "DoInputConfig"))			Inputs->Configure();
+		if(0 == strcmp(aName, "DoTextFile"))			TextFile->Do();
+		if(0 == strcmp(aName, "DoExit"))				Exit();
 		
 		Inputs->ReadSettings();
 		
@@ -348,17 +348,17 @@ bool						MednafenEmu::IsLoaded = false;
 	
 Texture*					MednafenEmu::Buffer = 0;
 MDFN_Surface*				MednafenEmu::Surface = 0;
+
+MDFNGI*						MednafenEmu::GameInfo = 0;
 InputHandler*				MednafenEmu::Inputs = 0;
 TextViewer*					MednafenEmu::TextFile = 0;
-FastCounter					MednafenEmu::Counter;
 Filter*						MednafenEmu::Scaler = 0;
+FastCounter					MednafenEmu::Counter;
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
 bool						MednafenEmu::RewindEnabled = false;
-
-MDFNGI*						MednafenEmu::GameInfo = 0;
 
 std::vector<MDFNSetting>	MednafenEmu::Settings;
 
