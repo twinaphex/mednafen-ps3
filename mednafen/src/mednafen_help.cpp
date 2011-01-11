@@ -85,14 +85,12 @@ void						MednafenEmu::Init				()
 			Settings.push_back(ESSettings[i]);
 		}
 
-		//Get the external emulators, nestopia and gambatte, pcsx for SDL, vbam for PS3
+		//Get the external emulators, nestopia and gambatte, vbam for PS3 only
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
 #ifdef L1GHT
 		externalSystems.push_back(vbamGetVBAM());
-#else
-		externalSystems.push_back(GetPCSX());
 #endif
 		MDFNI_InitializeModules(externalSystems);
 
