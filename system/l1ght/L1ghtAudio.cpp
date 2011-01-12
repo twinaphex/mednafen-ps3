@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-int audioAddData(u32 portNum, float *data, u32 frames, float volume);
+extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
 						L1ghtAudio::L1ghtAudio			()
 {

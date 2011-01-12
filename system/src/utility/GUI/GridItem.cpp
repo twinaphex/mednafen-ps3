@@ -11,12 +11,17 @@ void						GridItem::Draw								(uint32_t aX, uint32_t aY, uint32_t aWidth, uint
 
 	if(image && LabelFont && aWidth != 0 && aHeight > LabelFont->GetHeight() + 1)
 	{
+		if(ImageArea.Width == 0)
+		{
+			ImageArea = Area(0, 0, image->GetWidth(), image->GetHeight());
+		}
+
 		aHeight -= LabelFont->GetHeight();
 	
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
-		Utility::CenterAndScale(x, y, w, h, image->GetWidth(), image->GetHeight());
+		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
 		
-		es_video->PlaceTexture(image, x, y, w, h, 0xFFFFFFFF, ImageArea.Width == 0 ? 0 : &ImageArea);
+		es_video->PlaceTexture(image, x, y, w, h, 0xFFFFFFFF, &ImageArea);
 		LabelFont->PutString(GetText().c_str(), aX, aY + aHeight, TextColor);
 	}
 	
