@@ -123,6 +123,24 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 
 	GameOpen = true;
 
+	if(!Cartridge::Database(Nestopia).IsLoaded())
+	{
+		std::string filename = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, "NstDatabase.xml");
+		std::ifstream database(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+
+		if(database.is_open())
+		{
+			Cartridge::Database(Nestopia).Load(database);
+			Cartridge::Database(Nestopia).Enable(true);
+			MDFND_Message("Nestopia Cartridge Database opened");
+			database.close();
+		}
+		else
+		{
+			MDFND_Message("Nestopia Cartridge Database not opened");
+		}
+	}
+
 	//Setup some nestopia callbacks
 	Video::Output::lockCallback.Set(VideoLock, 0);
 	Video::Output::unlockCallback.Set(VideoUnlock, 0);
@@ -147,6 +165,23 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 	//TODO: Support more controllers
 	Input(Nestopia).ConnectController(0, Input::PAD1);
 	Input(Nestopia).ConnectController(1, Input::PAD2);
+
+	//Set FDS Bios
+/*	if(ISFDS)
+	{
+		std::string filename = MDFN_GetSettingS("nest.fdsbios");
+		std::ifstream bios(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+
+		if(bios.is_open() && Fds(emulator).SetBIOS(bios))
+		{
+			Fds(emulator).SetBIOS(&bios);
+		}
+		else
+		{
+			MDFND_PrintError("Couldn't open and use FDS bios file");
+			return 0;
+		}
+	}*/
 
 	//Here we go
 	Machine(Nestopia).Power(true);

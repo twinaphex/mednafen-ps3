@@ -56,8 +56,8 @@ else
 	LIBDIRS		+= ../pcsxr
 endif
 
-CFLAGS		+= -O2 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-CXXFLAGS	+= -O2 $(MEDNAFENCFLAGS) $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
+CFLAGS		+= -O3 -mcpu=cell --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
+CXXFLAGS	+= -O3 -mcpu=cell $(MEDNAFENCFLAGS) $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 include $(CURDIR)/../Makefile-$(PLATFORM).base
