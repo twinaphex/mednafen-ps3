@@ -130,6 +130,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 {
 	if(!IsLoaded && IsInitialized)
 	{
+		MDFNDES_BlockExit(false);
+
 		if(strstr(aFileName.c_str(), ".cue"))
 		{
 			GameInfo = MDFNI_LoadCD(0, aFileName.c_str());
@@ -163,6 +165,8 @@ void						MednafenEmu::CloseGame			()
 {
 	if(IsLoaded && IsInitialized)
 	{
+		MDFNDES_BlockExit(true);
+
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_SaveState(0, "mcq", 0, 0, 0);

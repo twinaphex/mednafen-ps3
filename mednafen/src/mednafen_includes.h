@@ -21,7 +21,7 @@ extern "C" MDFNGI*				vbamGetVBAM				();
 MDFNGI*							GetPCSX					();
 
 void							MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu);
-
+void							MDFNDES_BlockExit		(bool aExit);
 
 extern std::vector<MDFNGI *>	MDFNSystems;
 

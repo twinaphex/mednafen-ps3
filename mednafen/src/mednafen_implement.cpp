@@ -1,7 +1,13 @@
 #include <mednafen_includes.h>
 
 //How to implement these?
-bool		MDFND_ExitBlockingLoop	()									{return true;}
+static bool	BlockExit = false;
+void		MDFNDES_BlockExit		(bool aExit)
+{
+	BlockExit = aExit;
+}
+
+bool		MDFND_ExitBlockingLoop	()									{return BlockExit;}
 void		MDFND_MidSync			(const EmulateSpecStruct *espec)	{}
 
 //Netplay, some other time
@@ -58,12 +64,23 @@ struct					MDFN_Mutex
 	void*				data;
 };
 
+#ifdef L1GHT
+void					ThreadWrap	(uint64_t aData)
+{
+	uint64_t* threaddata = (uint64_t*)aData;
+
+	uint32_t result = ((int (*)(void*))threaddata[0])((void*)threaddata[1]);
+	sys_ppu_thread_exit(result);
+}
+#endif
+
 MDFN_Thread*MDFND_CreateThread		(int (*fn)(void *), void *data)
 {
 	MDFN_Thread* thread = (MDFN_Thread*)malloc(sizeof(MDFN_Thread));
 
 #ifdef L1GHT
-	sys_ppu_thread_create((sys_ppu_thread_t*)&thread->data, (void(*)(uint64_t))fn, (uint64_t)data, 1001, 0x10000, THREAD_JOINABLE, 0);
+	uint64_t threaddata[2] = {(uint64_t)fn, (uint64_t)data};
+	sys_ppu_thread_create((sys_ppu_thread_t*)&thread->data, ThreadWrap, (uint64_t)threaddata, 1001, 0x10000, THREAD_JOINABLE, 0);
 #elif defined(MDSDL)
 	thread->data = (void*)SDL_CreateThread(fn, data);
 #endif
@@ -75,7 +92,11 @@ void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
 #ifdef L1GHT
 	uint64_t out;
 	sys_ppu_thread_join((sys_ppu_thread_t)thread->data, &out);
-	*status = out;
+
+	if(status)
+	{
+		*status = out;
+	}
 #elif defined(MDSDL)
 	SDL_WaitThread((SDL_Thread*)thread->data, status);
 #endif
