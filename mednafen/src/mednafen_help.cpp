@@ -158,6 +158,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		PCESkipHack = strcmp(GameInfo->shortname, "pce") == 0 || strcmp(GameInfo->shortname, "pce_fast") == 0;
 		
 		IsLoaded = true;
+
+		MDFND_DispMessage((UTF8*)GameInfo->fullname);
 	}
 }
 

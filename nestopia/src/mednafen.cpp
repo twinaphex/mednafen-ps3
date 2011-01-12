@@ -1,6 +1,7 @@
 #include <src/mednafen.h>
 #include <src/git.h>
 #include <src/general.h>
+#include <src/driver.h>
 
 #include <fstream>
 #include <sstream>
@@ -167,14 +168,24 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 
 		if(database.is_open())
 		{
-			Cartridge::Database(Nestopia).Load(database);
-			Cartridge::Database(Nestopia).Enable(true);
-			MDFND_Message("Nestopia Cartridge Database opened");
+			if(NES_FAILED(Cartridge::Database(Nestopia).Load(database)))
+			{
+				MDFND_Message("nest: Couldn't load cartridge database");
+			}
+			else if(NES_FAILED(Cartridge::Database(Nestopia).Enable(true)))
+			{
+				MDFND_Message("nest: Couldn't enable cartridge database");
+			}
+			else
+			{
+				MDFND_Message("nest: Nestopia Cartridge Database opened");
+			}
+
 			database.close();
 		}
 		else
 		{
-			MDFND_Message("Nestopia Cartridge Database not opened");
+			MDFND_Message("nest: Nestopia Cartridge Database not opened");
 		}
 	}
 
@@ -186,8 +197,18 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 
 		if(bios.is_open())
 		{
-			Fds(Nestopia).SetBIOS(&bios);
-			MDFND_Message("FDS BIOS opened");
+			if(NES_FAILED(Fds(Nestopia).SetBIOS(&bios)))
+			{
+				MDFND_Message("nest: Couldn't set FDS bios");
+			}
+			else
+			{
+				MDFND_Message("nest: FDS BIOS opened");
+			}
+		}
+		else
+		{
+			MDFND_Message("nest: FDS BIOS not set");
 		}
 	}
 
@@ -206,11 +227,19 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 
 	//Make stream from file in memory, and load it
 	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);
-	Machine(Nestopia).Load(file, Machine::FAVORED_NES_NTSC, Machine::DONT_ASK_PROFILE);
+	if(NES_FAILED(Machine(Nestopia).Load(file, Machine::FAVORED_NES_NTSC, Machine::DONT_ASK_PROFILE)))
+	{
+		MDFND_PrintError("nest: Failed to load game");
+		return 0;
+	}
 
 	if(Machine(Nestopia).Is(Machine::DISK))
 	{
-		Fds(Nestopia).InsertDisk(0, 0);
+		if(NES_FAILED(Fds(Nestopia).InsertDisk(0, 0)))
+		{
+			MDFND_PrintError("nest: Failed to insert FDS disk");
+			return 0;
+		}
 	}
 
 	//TODO: Support more controllers
@@ -218,7 +247,11 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 	Input(Nestopia).ConnectController(1, Input::PAD2);
 
 	//Here we go
-	Machine(Nestopia).Power(true);
+	if(NES_FAILED(Machine(Nestopia).Power(true)))
+	{
+		MDFND_PrintError("nest: Failed to power on NES");
+		return 0;
+	}
 
 	return 1;
 }
@@ -326,7 +359,11 @@ void			NestEmulate				(EmulateSpecStruct *espec)
     	renderState.filter = Video::RenderState::FILTER_NONE;
 		renderState.width = 256;
 		renderState.height = 240;
-    	Video(Nestopia).SetRenderState(renderState);
+    	if(NES_FAILED(Video(Nestopia).SetRenderState(renderState)))
+		{
+			MDFND_PrintError("nest: Failed to set render state");
+			//TODO: Abort, throw, or ignore?
+		}
 	}
 
 	//Update input
@@ -339,7 +376,14 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 	//HACK: Swap disk sides
 	if(Machine(Nestopia).Is(Machine::DISK) && Fds(Nestopia).CanChangeDiskSide() && Ports[0] && Ports[0][1] & 1)
 	{
-		Fds(Nestopia).ChangeSide();
+		if(!NES_FAILED(Fds(Nestopia).ChangeSide()))
+		{
+			MDFND_DispMessage((UTF8*)"Disk Side Changed");
+		}
+		else
+		{
+			MDFND_DispMessage((UTF8*)"Error changing disk side");
+		}
 	}
 
 	//Do frame
@@ -354,7 +398,6 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//Set video
-	//TODO: Don't get the setting every frame, it's probably slow
 	uint32_t clipsides = MDFN_GetSettingB("nest.clipsides");
 	uint32_t slstart = MDFN_GetSettingUI("nest.slstart");
 	uint32_t slend = MDFN_GetSettingUI("nest.slend");
