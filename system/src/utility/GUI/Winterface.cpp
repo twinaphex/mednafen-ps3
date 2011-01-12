@@ -117,3 +117,5 @@ std::string									Winterface::GetHeader								()
 
 
 bool										Winterface::HideRight = false;
+
+

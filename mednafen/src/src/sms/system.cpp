@@ -175,7 +175,10 @@ static void Emulate(EmulateSpecStruct *espec)
  bitmap.data = (uint8*)espec->surface->pixels;
  bitmap.width = 256;
  bitmap.height = 240;
- bitmap.pitch = 256 * sizeof(uint32);
+
+//ROBO: Fix for pitch
+// bitmap.pitch = 256 * sizeof(uint32);
+ bitmap.pitch = espec->surface->pitch32 * sizeof(uint32);
 
  system_frame(espec->skip);
 
