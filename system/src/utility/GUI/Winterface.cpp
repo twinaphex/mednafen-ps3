@@ -53,8 +53,17 @@ bool										Winterface::Draw									()
 
 	if(ImageManager::GetImage("Background"))
 	{
-		//TODO: Fix for clipping
 		es_video->PlaceTexture(ImageManager::GetImage("Background"), 0, 0, screenW - 1, screenH - 1, 0xFFFFFFFF);
+	}
+
+	if(ImageManager::GetImage("Logo"))
+	{
+		Texture* logo = ImageManager::GetImage("Logo");
+
+		uint32_t x = right.X, y = right.Bottom() - right.Width, w = right.Width, h = right.Width;
+		Utility::CenterAndScale(x, y, w, h, logo->GetWidth(), logo->GetHeight());
+		
+		es_video->PlaceTexture(logo, x, y, w, h, 0xFFFFFFFF);
 	}
 
 	es_video->FillRectangle(top, Colors::BackGround);
@@ -82,17 +91,6 @@ bool										Winterface::Draw									()
 		}
 	}
 
-	es_video->SetClip(Area(0, 0, screenW, screenH));
-	if(ImageManager::GetImage("Logo"))
-	{
-		Texture* logo = ImageManager::GetImage("Logo");
-
-		uint32_t x = right.X, y = right.Bottom() - right.Width, w = right.Width, h = right.Width;
-		Utility::CenterAndScale(x, y, w, h, logo->GetWidth(), logo->GetHeight());
-		
-		es_video->PlaceTexture(logo, x, y, w, h, 0xFFFFFFFF);
-	}
-	
 	return false;
 }
 
