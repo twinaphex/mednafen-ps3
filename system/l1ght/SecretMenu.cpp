@@ -5,6 +5,10 @@
 {
 	Items.push_back(new ListItem("Show Log"));
 	Items.push_back(new ListItem("Get New EBOOT"));
+
+	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
+	SideItems.push_back(new InputListItem("Run Command", ES_BUTTON_ACCEPT));
+	SideItems.push_back(new InputListItem("Close Menu", ES_BUTTON_CANCEL));
 }
 
 					L1ghtSecret::~L1ghtSecret				()
@@ -26,24 +30,16 @@ bool				L1ghtSecret::Input						()
 			FileSelect* selecter = new FileSelect("EBOOT.BIN", bms, "", 0);
 			std::string enumpath = selecter->GetFile();
 
-			if(enumpath.find("EBOOT.BIN"))
+			if(enumpath.find("/EBOOT.BIN"))
 			{
 				std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
-
-				FILE* ingl = fopen("/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN", "wb");
-				if(!ingl)
-				{
-					es_log->Log("Couldn't old open EBOOT.BIN");
-					es_log->Do();
-					exit(1000);
-				}
 
 				FILE* ongl = fopen(filename.c_str(), "rb");
 				if(!ongl)
 				{
 					es_log->Log("Couldn't open new EBOOT.BIN");
 					es_log->Do();
-					exit(1000);
+					exit(0);
 				}
 
 				fseek(ongl, 0, SEEK_END);
@@ -54,16 +50,26 @@ bool				L1ghtSecret::Input						()
 				fread(data, size, 1, ongl);
 				fclose(ongl);
 
+				FILE* ingl = fopen("/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN", "wb");
+				if(!ingl)
+				{
+					es_log->Log("Couldn't old open EBOOT.BIN");
+					es_log->Do();
+					exit(0);
+				}
+
 				fwrite(data, size, 1, ingl);
 				fclose(ingl);
 
 				free(data);
 
-				es_log->Log("DONE!");
+				es_log->Log("EBOOT.BIN updated, Leaving!");
 				es_log->Do();
 				exit(0);
 			}
-			
+
+			es_log->Log("Not updating EBOOT.BIN");
+			es_log->Do();
 		}
 
 		return true;
