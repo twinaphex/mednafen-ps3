@@ -38,6 +38,13 @@ Future:
 	Faster and better GBA support
 
 Use:
+	Secret Menu:
+		Press Start+Select in any menu
+		Choose 'Show Log' to display the contents of the global logger.
+		Choose 'Get New EBOOT' to choose a new EBOOT.BIN, this will be copied over '/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN'
+			Make sure the new EBOOT is valid, and preferably signed
+			If you're careful, you can change the mednafen version without jailbreak
+
 	FTP:
 		Set Up:
 			Press R3 to open the settings menu and press R1 until the ftp.ps3 options appear.

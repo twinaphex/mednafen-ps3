@@ -37,7 +37,6 @@
 #include <sysmodule/sysmodule.h>
 #include <pngdec/loadpng.h>
 
-
 extern "C"
 {
 	#include <rsx/gcm.h>
