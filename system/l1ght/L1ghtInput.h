@@ -44,7 +44,6 @@ class				L1ghtInput : public ESInput
 		PadData						CurrentState[MAXPADS];
 
 		uint32_t					HeldState[MAXPADS][BUTTONS];
-		uint32_t					HeldTime[MAXPADS][BUTTONS];		
 		uint32_t					SingleState[MAXPADS][BUTTONS];	
 };
 

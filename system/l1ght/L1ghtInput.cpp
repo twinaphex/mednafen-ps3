@@ -51,8 +51,15 @@ int32_t				L1ghtInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 {
 	Assert(aPad, 0, aAxis);
 
-	int realaxis = AXISCOUNT + (AXISCOUNT - 1 - aAxis);
-	return (int16_t)(CurrentState[aPad].button[realaxis]) - 0x80;
+	if(aPad < PadCount())
+	{
+		int realaxis = AXISCOUNT + (AXISCOUNT - 1 - aAxis);
+		return (int16_t)(CurrentState[aPad].button[realaxis]) - 0x80;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 bool				L1ghtInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
@@ -71,7 +78,7 @@ bool				L1ghtInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
-	return HandleSingleState(HeldState[aPad][aButton & 0xFFFF], SingleState[aPad][aButton & 0xFFFF]);	
+	return HandleSingleState(HeldState[aPad][aButton], SingleState[aPad][aButton]);	
 }
 
 uint32_t			L1ghtInput::GetAnyButton				(uint32_t aPad)
@@ -124,12 +131,6 @@ void				L1ghtInput::ProcessInputThread			(uint64_t aBcD)
 	{
 		Utility::Sleep(15);
 		input->Refresh();
-	}
-
-	if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
-	{
-		abort();
-		exit(10);
 	}
 
 	input->ThreadDie = false;

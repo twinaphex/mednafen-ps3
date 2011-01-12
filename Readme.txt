@@ -106,5 +106,5 @@ Bugs and Issues:
 
 Thanks to:
 	The original author of Mednafen, and all of the emulators it contains.
-	The authors of Nestopia, Gambatte, VirtualBoyAdvance (and all of it's forks)
+	The authors of Nestopia, Gambatte, VisualBoyAdvance (and all of it's forks)
 	The people who make the PS3 jailbreak possible

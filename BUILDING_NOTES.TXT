@@ -2,7 +2,7 @@ Building requires a working PSL1GHT build environment with ps3libraries installe
 Please run make in system-l1ght, nestopia, vbam, and gambatte directories before mednafen or use the rebuild-l1ght.sh shell script
 If you get a message like 'undefined reference to 'vbamGetVBAM'', cd into the vbam directory and type 'make vbam-objmangle'
 
-Makeing package with signed EBOOT.BIN:
+Making package with signed EBOOT.BIN:
 	Need make_self_npdrm in path (I stashed it in $PS3DEV/bin)
 	Make a build of mednafen by running rebuild-l1ght.sh
 	In mednafen directory run 'rm *elf' to remove old files.
@@ -16,3 +16,4 @@ Environment varibles for controlling build:
 	SDLCONFIG: Set to the path to the proper 'sdl-config' script
 	TARGETPLATFORM: Set to 'windows' when building SDL for windows
 	PREFIX: Set the prefix for gcc binaries, defaults to 'ppu-' for l1ght and none for SDL
+
