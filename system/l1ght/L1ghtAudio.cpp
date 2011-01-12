@@ -4,7 +4,6 @@
 {
 	ReadCount = 0;
 	WriteCount = 0;
-	NextBlock = 0;
 	InitialFill = false;
 
 	audioInit();
@@ -16,6 +15,13 @@
 
 	memset(RingBuffer, 0, sizeof(RingBuffer));
 
+	audioCreateNotifyEventQueue(&QueueID, &QueueKey);
+	audioSetNotifyEventQueue(QueueKey);
+	sys_event_queue_drain(QueueID);
+
+	sys_mutex_attribute_t MutexAttrs = {MUTEX_PROTOCOL_FIFO, MUTEX_NOT_RECURSIVE, 0, 0, 0, 0, 0, '\0'};
+	sys_mutex_create(&BufferMutex, &MutexAttrs);
+
 	audioPortStart(Port);
 	
 	ThreadDie = false;
@@ -25,55 +31,60 @@
 
 						L1ghtAudio::~L1ghtAudio			()
 {
+	ThreadDie = true;
+
+	for(int i = 0; i != 10 && ThreadDie; i ++)
+	{
+		Utility::Sleep(100);
+	}
+
 	audioPortStop(Port);
 	audioPortClose(Port);
 	audioQuit();
+
+	sys_mutex_destroy(BufferMutex);
 }
 
 void					L1ghtAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	if(BufferSize - GetBufferAmount() < aCount)
-	{
-		for(int i = 0; i != 10 && BufferSize - GetBufferAmount() < aCount; i ++)
-		{
-			Utility::Sleep(1);
-		}
-	}
-	
-	if(BufferSize - GetBufferAmount() < aCount)
-	{
-		printf("ESAudio::AddSamples: Dropped %d samples: POP\n", aCount);
-		return;
-	}
+	sys_mutex_lock(BufferMutex, 0);
 
-	for(int i = 0; i != aCount; i ++, WriteCount ++)
+	uint32_t total = GetBufferFree();
+	total = total > aCount ? aCount : total;
+
+	for(int i = 0; i != total; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
 	}
+
+	if(total != aCount)
+	{
+		printf("AddSamples: OVERRUN: Dropped %d samples\n", aCount - total);
+	}
+
+	sys_mutex_unlock(BufferMutex);
 }
 
-void					L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
+uint32_t				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	if(GetBufferAmount() < aCount)
+	sys_mutex_lock(BufferMutex, 0);
+
+	uint32_t total = GetBufferAmount();
+	total = total > aCount ? aCount : total;
+
+	for(int i = 0; i != total; i ++, ReadCount ++)
 	{
-		for(int i = 0; i != 10 && GetBufferAmount() < aCount; i ++)
-		{
-			Utility::Sleep(1);
-		}
+		aSamples[i] = RingBuffer[ReadCount & BufferMask];
 	}
 
-	if(GetBufferAmount() < aCount)
+	if(total != aCount)
 	{
-		//Would report, but inside menu this is hit all of the time
-		memset(aSamples, 0, aCount * 4);
+//		printf("AddSamples: UNDERRUN: Missed %d samples\n", aCount - total);
 	}
-	else
-	{
-		for(int i = 0; i != aCount; i ++, ReadCount ++)
-		{
-			aSamples[i] = RingBuffer[ReadCount & BufferMask];
-		}
-	}
+
+	sys_mutex_unlock(BufferMutex);
+
+	return total;
 }
 
 void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
@@ -86,24 +97,30 @@ void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
 	L1ghtAudio* audio = (L1ghtAudio*)es_audio;
 
 	int16_t samples[1024];
-	uint32_t onblock = (*(volatile u64*)(u64)audio->Config.readIndex) + 1;
+	float outbuffer[512];
+
+	sys_event_t event;
 
 	while(!audio->ThreadDie)
 	{
-		onblock = (onblock + 1) % L1ghtAudio::BlockCount;
-		while(onblock == *(volatile u64*)(u64)audio->Config.readIndex)
+		if(0 != sys_event_queue_receive(audio->QueueID, &event, 0))
 		{
-			Utility::Sleep(1);
+			break;
 		}
-	
-		float* buf = (float*)(audio->Config.audioDataStart + (onblock * sizeof(float) * 256 * 2));
-		
-		audio->GetSamples((uint32_t*)samples, 256);
 
-		for (uint32_t i = 0; i < 256 * 2; i ++)
+		for(int i = 0; i != 512; i ++)
 		{
-			buf[i] = ((float)samples[i]) / 32768.0f;
+			outbuffer[i] = 0.0f;
 		}
+
+		uint32_t samplecount = audio->GetSamples((uint32_t*)samples, 256);
+
+		for(uint32_t i = 0; i != samplecount * 2; i ++)
+		{
+			outbuffer[i] = ((float)samples[i]) / 32768.0f;
+		}
+
+		audioAddData(audio->Port, outbuffer, 256, 1);
 	}
 	
 	audio->ThreadDie = false;
@@ -112,16 +129,6 @@ void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
 
 volatile int32_t 		L1ghtAudio::GetBufferAmount		()
 {
-	if(InitialFill == false)
-	{
-		if((WriteCount - ReadCount) < 2400)
-		{
-			return 0;
-		}
-		
-		InitialFill = true;
-	}
-
 	return (WriteCount - ReadCount);
 }
 
@@ -129,3 +136,4 @@ volatile int32_t 		L1ghtAudio::GetBufferFree		()
 {
 	return BufferSize - (WriteCount - ReadCount);
 }
+
