@@ -160,6 +160,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		IsLoaded = true;
 
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
+
+		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 	}
 }
 
@@ -205,6 +207,7 @@ void						MednafenEmu::Frame				()
 	
 		Inputs->Process();
 	
+		Syncher.Sync();
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
@@ -215,10 +218,11 @@ void						MednafenEmu::Frame				()
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
 		EmulatorSpec.NeedRewind = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-		EmulatorSpec.skip = !Counter.DrawNow() && !PCESkipHack;
+		EmulatorSpec.skip = Syncher.NeedFrameSkip();
 		MDFNI_Emulate(&EmulatorSpec);
-		
-		if(Counter.DrawNow())
+		Syncher.AddEmuTime((EmulatorSpec.MasterCycles) / (Counter.Fast() ? 4 : 1));		
+
+		if(!EmulatorSpec.skip)
 		{
 			//VIDEO
 			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
@@ -358,6 +362,7 @@ InputHandler*				MednafenEmu::Inputs = 0;
 TextViewer*					MednafenEmu::TextFile = 0;
 Filter*						MednafenEmu::Scaler = 0;
 FastCounter					MednafenEmu::Counter;
+EmuRealSyncher				MednafenEmu::Syncher;
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;

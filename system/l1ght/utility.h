@@ -169,6 +169,7 @@ class				FastCounter
 									FastCounter					(uint32_t aSpeed = 4, uint32_t aButton = ES_BUTTON_AUXRIGHT2);
 									~FastCounter				();
 								
+		bool						Fast						();
 		void						Tick						();
 		bool						DrawNow						();
 		uint32_t					GetFPS						();

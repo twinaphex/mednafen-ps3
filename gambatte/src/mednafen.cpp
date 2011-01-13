@@ -253,6 +253,9 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 	espec->DisplayRect.y = 0;
 	espec->DisplayRect.w = 160;
 	espec->DisplayRect.h = 144;
+
+	//TODO: Real timing
+	espec->MasterCycles = 1LL * 100;
 }
 
 void			GmbtSetInput			(int port, const char *type, void *ptr)
@@ -330,7 +333,7 @@ static MDFNGI	GmbtInfo =
 /*	SetInput:*/			GmbtSetInput,
 /*	DoSimpleCommand:*/	GmbtDoSimpleCommand,
 /*	Settings:*/			GmbtSettings,
-/*	MasterClock:*/		0,
+/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:*/				0,
 /*	multires:*/			false,
 /*	lcm_width:*/		160,

@@ -1,4 +1,5 @@
 #include <src/mednafen.h>
+#include <src/mempatcher.h>
 #include <src/git.h>
 #include <src/general.h>
 #include <src/driver.h>
@@ -17,6 +18,7 @@
 #include "core/api/NstApiRewinder.hpp"
 #include "core/api/NstApiCartridge.hpp"
 #include "core/api/NstApiCheats.hpp"
+#include "core/NstMachine.hpp"
 #include "core/NstCrc32.hpp"
 #include "core/NstChecksum.hpp"
 #include "core/NstXml.hpp"
@@ -60,8 +62,6 @@ static void					LoadCartDatabase				()
 			{
 				MDFND_Message("nest: Nestopia Cartridge Database opened");
 			}
-
-			database.close();
 		}
 		else
 		{
@@ -269,12 +269,6 @@ void			NestCloseGame			(void)
 	}
 }
 
-bool			NestToggleLayer			(int which)
-{
-	//TODO: Nestopia has no external way to support this, I don't think it's important enough for patch either.
-	return false;
-}
-
 void			NestInstallReadPatch	(uint32 address)
 {
 	//TODO:
@@ -370,19 +364,6 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 		EmuPads.pad[i].buttons = Ports[i] ? Ports[i][0] : 0;
 	}
 
-	//HACK: Swap disk sides
-	if(Machine(Nestopia).Is(Machine::DISK) && Fds(Nestopia).CanChangeDiskSide() && Ports[0] && Ports[0][1] & 1)
-	{
-		if(!NES_FAILED(Fds(Nestopia).ChangeSide()))
-		{
-			MDFND_DispMessage((UTF8*)"Disk Side Changed");
-		}
-		else
-		{
-			MDFND_DispMessage((UTF8*)"Error changing disk side");
-		}
-	}
-
 	//Do frame
 	Nestopia.Execute(espec->skip ? 0 : &EmuVideo, &EmuSound, &EmuPads);
 
@@ -403,6 +384,9 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 	espec->DisplayRect.y = slstart;
 	espec->DisplayRect.w = clipsides ? 240 : 256;
 	espec->DisplayRect.h = slend - slstart;
+
+	//TODO: Real timing
+	espec->MasterCycles = 1LL * 100;
 }
 
 void			NestSetInput			(int port, const char *type, void *ptr)
@@ -433,6 +417,20 @@ void			NestDoSimpleCommand		(int cmd)
 		{
 			Fds(Nestopia).EjectDisk();
 			Fds(Nestopia).InsertDisk(0, 0);
+		}
+	}
+	else if(cmd == MDFN_MSC_SELECT_DISK)
+	{
+		if(Machine(Nestopia).Is(Machine::DISK) && Fds(Nestopia).CanChangeDiskSide())
+		{
+			if(!NES_FAILED(Fds(Nestopia).ChangeSide()))
+			{
+				MDFND_DispMessage((UTF8*)"Disk Side Changed");
+			}
+			else
+			{
+				MDFND_DispMessage((UTF8*)"Error changing disk side");
+			}
 		}
 	}
 }
@@ -507,8 +505,8 @@ MDFNGI	NestInfo =
 /*	LoadCD:				*/	0,
 /*	TestMagicCD:		*/	0,
 /*	CloseGame:			*/	NestCloseGame,
-/*	ToggleLayer:		*/	NestToggleLayer,
-/*	LayerNames:			*/	"Screen\0",
+/*	ToggleLayer:		*/	0,
+/*	LayerNames:			*/	0,
 /*	InstallReadPatch:	*/	NestInstallReadPatch,
 /*	RemoveReadPatches:	*/	NestRemoveReadPatches,
 /*	MemRead:			*/	NestMemRead,
@@ -517,7 +515,7 @@ MDFNGI	NestInfo =
 /*	SetInput:			*/	NestSetInput,
 /*	DoSimpleCommand:	*/	NestDoSimpleCommand,
 /*	Settings:			*/	NestSettings,
-/*	MasterClock:		*/	0,
+/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:				*/	60,
 /*	multires:			*/	false,
 /*	lcm_width:			*/	256,

@@ -6,6 +6,7 @@
 
 #include <ps3_system.h>
 
+#include "ers.h"
 #include "filters/filter.h"
 #include "inputhandler.h"
 #include "mednafen_help.h"

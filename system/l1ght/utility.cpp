@@ -15,6 +15,11 @@
 {
 }
 
+bool						FastCounter::Fast					()
+{
+	return es_input->ButtonPressed(0, Button);
+}
+
 void						FastCounter::Tick					()
 {
 	Counter = ((Counter + 1) == Speed) ? 0 : Counter + 1;

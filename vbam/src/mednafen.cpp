@@ -149,6 +149,9 @@ void			VbamEmulate				(EmulateSpecStruct *espec)
 	//Copy the number of samples generated on this frame
 	ESpec->SoundBufSize = SoundFrame;
 	SoundFrame = 0;
+
+	//TODO: Real timing
+	espec->MasterCycles = 1LL * 100;
 }
 
 void			VbamSetInput			(int port, const char *type, void *ptr)
@@ -260,7 +263,7 @@ static MDFNGI	VbamInfo =
 /*	SetInput:			*/	VbamSetInput,
 /*	DoSimpleCommand:	*/	VbamDoSimpleCommand,
 /*	Settings:			*/	VbamSettings,
-/*	MasterClock:		*/	0,
+/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:				*/	0,
 /*	multires:			*/	false,
 /*	lcm_width:			*/	240,

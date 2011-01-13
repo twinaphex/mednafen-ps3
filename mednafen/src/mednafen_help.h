@@ -60,6 +60,7 @@ class	MednafenEmu
 		static TextViewer*				TextFile;
 		static Filter*					Scaler;
 		static FastCounter				Counter;
+		static EmuRealSyncher			Syncher;
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
