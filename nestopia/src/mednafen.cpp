@@ -39,7 +39,63 @@ namespace
 	uint8_t*					Ports[Input::NUM_PADS] = {0};
 }
 
-bool NST_CALLBACK			VideoLock						(void* userData, Video::Output& video)
+static void					LoadCartDatabase				()
+{
+	if(!Cartridge::Database(Nestopia).IsLoaded())
+	{
+		std::string filename = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, "NstDatabase.xml");
+		std::ifstream database(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+
+		if(database.is_open())
+		{
+			if(NES_FAILED(Cartridge::Database(Nestopia).Load(database)))
+			{
+				MDFND_Message("nest: Couldn't load cartridge database");
+			}
+			else if(NES_FAILED(Cartridge::Database(Nestopia).Enable(true)))
+			{
+				MDFND_Message("nest: Couldn't enable cartridge database");
+			}
+			else
+			{
+				MDFND_Message("nest: Nestopia Cartridge Database opened");
+			}
+
+			database.close();
+		}
+		else
+		{
+			MDFND_Message("nest: Nestopia Cartridge Database not found");
+		}
+	}
+}
+
+static void					LoadFDSBios						()
+{
+	if(!Fds(Nestopia).HasBIOS())
+	{
+		std::string filename = MDFN_GetSettingS("nest.fdsbios");
+		std::ifstream bios(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+
+		if(bios.is_open())
+		{
+			if(NES_FAILED(Fds(Nestopia).SetBIOS(&bios)))
+			{
+				MDFND_Message("nest: Couldn't set FDS bios");
+			}
+			else
+			{
+				MDFND_Message("nest: FDS BIOS opened");
+			}
+		}
+		else
+		{
+			MDFND_Message("nest: FDS BIOS not found");
+		}
+	}
+}
+
+static bool NST_CALLBACK	VideoLock						(void* userData, Video::Output& video)
 {
 	//TODO: Support 16-bit and YUV
 	video.pixels = ESpec->surface->pixels;
@@ -47,18 +103,20 @@ bool NST_CALLBACK			VideoLock						(void* userData, Video::Output& video)
 	return true;
 }
 
-void NST_CALLBACK 			VideoUnlock						(void* userData, Video::Output& video)
+static void NST_CALLBACK	VideoUnlock						(void* userData, Video::Output& video)
 {
 	/*NOTHING*/
 }
 
-void NST_CALLBACK 			DoLog							(void *userData, const char *string, Nes::ulong length)
+static void NST_CALLBACK		DoLog							(void *userData, const char *string, Nes::ulong length)
 {
-	/*NOTHING*/
+	char buffer[1024];
+	snprintf(buffer, 1024, "nest: %s", string);
+	MDFND_Message(buffer);
 }
 
-//TODO: Fill this in properly
-void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
+//TODO: Fill this in properly, support compression on save games
+static void NST_CALLBACK		DoFileIO						(void *userData, User::File& file)
 {
 	switch (file.GetAction())
 	{
@@ -105,22 +163,12 @@ void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 			
 			std::ifstream batteryFile(filename.c_str(), std::ifstream::in | std::ifstream::binary);
 
-			if(!batteryFile.is_open())
+			if(batteryFile.is_open())
 			{
-				filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "ips");
-				std::ifstream batteryFile(filename.c_str(), std::ifstream::in | std::ifstream::binary);
-
-				if (!batteryFile.is_open())
-				{
-					return;
-				}
-
 				file.SetPatchContent(batteryFile);
-				return;
 			}
 
-			file.SetPatchContent(batteryFile);
-			break;
+			return;
 		}
 
 		case User::File::SAVE_FDS: // for saving modified Famicom Disk System files
@@ -134,7 +182,7 @@ void NST_CALLBACK 			DoFileIO						(void *userData, User::File& file)
 				file.GetPatchContent(User::File::PATCH_UPS, fdsFile);
 			}
 
-			break;
+			return;
 		}
 	}
 }
@@ -160,70 +208,15 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 
 	GameOpen = true;
 
-	//Load cartridge database
-	if(!Cartridge::Database(Nestopia).IsLoaded())
-	{
-		std::string filename = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, "NstDatabase.xml");
-		std::ifstream database(filename.c_str(), std::ifstream::in | std::ifstream::binary);
-
-		if(database.is_open())
-		{
-			if(NES_FAILED(Cartridge::Database(Nestopia).Load(database)))
-			{
-				MDFND_Message("nest: Couldn't load cartridge database");
-			}
-			else if(NES_FAILED(Cartridge::Database(Nestopia).Enable(true)))
-			{
-				MDFND_Message("nest: Couldn't enable cartridge database");
-			}
-			else
-			{
-				MDFND_Message("nest: Nestopia Cartridge Database opened");
-			}
-
-			database.close();
-		}
-		else
-		{
-			MDFND_Message("nest: Nestopia Cartridge Database not opened");
-		}
-	}
-
-	//Set FDS Bios
-	if(!Fds(Nestopia).HasBIOS())
-	{
-		std::string filename = MDFN_GetSettingS("nest.fdsbios");
-		std::ifstream bios(filename.c_str(), std::ifstream::in | std::ifstream::binary);
-
-		if(bios.is_open())
-		{
-			if(NES_FAILED(Fds(Nestopia).SetBIOS(&bios)))
-			{
-				MDFND_Message("nest: Couldn't set FDS bios");
-			}
-			else
-			{
-				MDFND_Message("nest: FDS BIOS opened");
-			}
-		}
-		else
-		{
-			MDFND_Message("nest: FDS BIOS not set");
-		}
-	}
-
+	//Load external files
+	LoadCartDatabase();
+	LoadFDSBios();
 
 	//Setup some nestopia callbacks
 	Video::Output::lockCallback.Set(VideoLock, 0);
 	Video::Output::unlockCallback.Set(VideoUnlock, 0);
 	User::fileIoCallback.Set(DoFileIO, 0);
 	User::logCallback.Set(DoLog, 0);
-
-	//Setup sound buffer
-	EmuSound.samples[0] = (void*)Samples;
-	EmuSound.length[0] = 48000 / 60;
-	EmuSound.samples[1] = NULL;
-	EmuSound.length[1] = 0;
 
 	//Make stream from file in memory, and load it
 	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);
@@ -256,11 +249,10 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 	return 1;
 }
 
-//TODO: Support more file formats
 bool			NestTestMagic			(const char *name, MDFNFILE *fp)
 {
-	//Test for iNES or FDS
-	if(fp->size > 16 && (!memcmp(fp->data, "NES\x1a", 4) || !memcmp(fp->data, "FDS\x1a", 4) || !memcmp(fp->data + 1, "*NINTENDO-HVC*", 14)))
+	//Test for iNES FDS or UNIF
+	if(fp->size > 16 && (!memcmp(fp->data, "NES\x1a", 4) || !memcmp(fp->data, "FDS\x1a", 4) || !memcmp(fp->data + 1, "*NINTENDO-HVC*", 14) || !memcmp(fp->data, "UNIF", 4)))
 		return true;
 
 	return false;
@@ -341,6 +333,11 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 	//Update sound
 	if(espec->SoundFormatChanged)
 	{
+		EmuSound.samples[0] = (void*)Samples;
+		EmuSound.length[0] = espec->SoundRate / 60;
+		EmuSound.samples[1] = NULL;
+		EmuSound.length[1] = 0;
+
 		Sound(Nestopia).SetSampleBits(16);
 		Sound(Nestopia).SetSampleRate(espec->SoundRate);
 		Sound(Nestopia).SetVolume(Sound::ALL_CHANNELS, 100);
@@ -476,8 +473,11 @@ InputInfoStruct		NestInput =
 
 FileExtensionSpecStruct	extensions[] =
 {
-	{".nes", "iNES Format ROM Image"},
-	{".fds", "FDS Format ROM Image"},
+	{".nes",	"iNES Format ROM Image"},
+	{".nez",	"iNES Format ROM Image"},
+	{".fds",	"Famicom Disk System Disk Image"},
+	{".unf",	"UNIF Format ROM Image"},
+	{".unif",	"UNIF Format ROM Image"},
 	{0, 0}
 };
 
