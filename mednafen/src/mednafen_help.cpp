@@ -169,6 +169,12 @@ void						MednafenEmu::CloseGame			()
 {
 	if(IsLoaded && IsInitialized)
 	{
+		if(Recording)
+		{
+			MDFNI_StopAVRecord();
+			Recording = false;
+		}
+
 		MDFNDES_BlockExit(true);
 
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
@@ -326,6 +332,28 @@ void						MednafenEmu::DoCommand			(const char* aName)
 		if(0 == strcmp(aName, "DoInputConfig"))			Inputs->Configure();
 		if(0 == strcmp(aName, "DoTextFile"))			TextFile->Do();
 		if(0 == strcmp(aName, "DoExit"))				Exit();
+
+		if(0 == strcmp(aName, "DoToggleRecordVideo"))
+		{
+			if(Recording)
+			{
+				MDFND_DispMessage((UTF8*)"Finished recording video.");
+				MDFNI_StopAVRecord();
+				Recording = false;
+			}
+			else
+			{
+				if(MDFNI_StartAVRecord(MDFN_MakeFName(MDFNMKF_VIDEO, 0, 0).c_str(), 48000))
+				{
+					MDFND_DispMessage((UTF8*)"Begin recording video.");
+					Recording = true;
+				}
+				else
+				{
+					MDFND_DispMessage((UTF8*)"Failed to begin recording video.");
+				}
+			}
+		}
 		
 		Inputs->ReadSettings();
 		
@@ -368,6 +396,7 @@ std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
 bool						MednafenEmu::RewindEnabled = false;
+bool						MednafenEmu::Recording = false;
 
 std::vector<MDFNSetting>	MednafenEmu::Settings;
 

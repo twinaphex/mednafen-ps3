@@ -20,6 +20,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+//ROBO: Need for gettimeofday
+#include <sys/time.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -350,6 +353,38 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 		       }
 		      }
                       break;
+//ROBO: Extras for me
+  case MDFNMKF_VIDEO:
+			{
+		     std::string overpath = MDFN_GetSettingS("filesys.path_video");
+		       if(IsAbsolutePath(overpath))
+		        eff_dir = overpath;
+		       else
+			eff_dir = std::string(BaseDirectory) + std::string(PSS) + overpath;
+
+
+			struct timeval tv;
+			gettimeofday(&tv, 0);
+			struct tm* ttt = localtime(&tv.tv_sec);
+                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s-%d-%d-%d-%d-%d-%d.mov", eff_dir.c_str(), FileBase.c_str(), ttt->tm_year, ttt->tm_mon, ttt->tm_mday, ttt->tm_hour, ttt->tm_min, ttt->tm_sec);
+
+			break;
+			}
+  case MDFNMKF_AUDIO:
+		     {
+		     std::string overpath = MDFN_GetSettingS("filesys.path_wave");
+		       if(IsAbsolutePath(overpath))
+		        eff_dir = overpath;
+		       else
+			eff_dir = std::string(BaseDirectory) + std::string(PSS) + overpath;
+
+
+			struct timeval tv;
+			gettimeofday(&tv, 0);
+			struct tm* ttt = localtime(&tv.tv_sec);
+                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s-%d-%d-%d-%d-%d-%d.wav", eff_dir.c_str(), FileBase.c_str(), ttt->tm_year, ttt->tm_mon, ttt->tm_mday, ttt->tm_hour, ttt->tm_min, ttt->tm_sec);
+			break;
+			 }
  }
  return(tmp_path);
 }

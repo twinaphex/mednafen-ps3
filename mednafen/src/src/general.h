@@ -26,7 +26,10 @@ typedef enum
  MDFNMKF_AUX,
  MDFNMKF_SNAP_DAT,
  MDFNMKF_CHEAT_TMP,
- MDFNMKF_FIRMWARE
+ MDFNMKF_FIRMWARE,
+//ROBO: Extras, for me, not you
+ MDFNMKF_VIDEO,
+ MDFNMKF_AUDIO
 } MakeFName_Type;
 
 std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1);

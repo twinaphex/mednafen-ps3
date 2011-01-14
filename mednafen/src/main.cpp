@@ -1,12 +1,5 @@
 #include <mednafen_includes.h>
 
-///HACK: These might not be nessicary anymore, include them anyway
-#ifdef L1GHT
-extern "C" int gettimeofday(timeval*, void*){}
-extern "C" int getrusage(){}
-extern "C" int dup(int){}
-#endif
-
 namespace
 {
 	class			MDFNInputHook : public MenuHook

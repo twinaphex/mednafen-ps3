@@ -3,6 +3,7 @@
 
 #include "src/mednafen.h"
 #include "src/driver.h"
+#include "src/general.h"
 
 #include <ps3_system.h>
 

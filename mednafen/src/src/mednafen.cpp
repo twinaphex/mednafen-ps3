@@ -97,6 +97,10 @@ static MDFNSetting MednafenSettings[] =
   { "filesys.path_cheat", MDFNSF_NOFLAGS, gettext_noop("Path to directory for cheats."), NULL, MDFNST_STRING, "cheats" },
   { "filesys.path_palette", MDFNSF_NOFLAGS, gettext_noop("Path to directory for custom palettes."), NULL, MDFNST_STRING, "palettes" },
   { "filesys.path_firmware", MDFNSF_NOFLAGS, gettext_noop("Path to directory for firmware."), NULL, MDFNST_STRING, "firmware" },
+//ROBO: Extras for me
+  { "filesys.path_video", MDFNSF_NOFLAGS, gettext_noop("Path to directory for video recordings."), NULL, MDFNST_STRING, "video" },
+  { "filesys.path_audio", MDFNSF_NOFLAGS, gettext_noop("Path to directory for wave recordings."), NULL, MDFNST_STRING, "wave" },
+
 
   { "filesys.fname_movie", MDFNSF_NOFLAGS, gettext_noop("Format string for movie filename."), fname_extra, MDFNST_STRING, "%f.%M%p.%x" },
   { "filesys.fname_state", MDFNSF_NOFLAGS, gettext_noop("Format string for state filename."), fname_extra, MDFNST_STRING, "%f.%M%X" /*"%F.%M%p.%x"*/ },

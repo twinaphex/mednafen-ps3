@@ -6,6 +6,10 @@ src/mednafen.cpp + src/mednafen-driver.h:
   Remove checking errno when opening IPS patches, causes issues on PS3
   Patch LoadGame to load from memory, add a 'data' and 'size' argument, if non-zero uses them to open the file
   Remove the RenamedSettings feature
+  Add settings for movie and wave directories
+
+src/general.cpp + src/general.h:
+  Add defines for making filenames for videos and waves
 
 src/settings.cpp:
   Prevent clearing lists of settings when saving, causes problems when loading new games
