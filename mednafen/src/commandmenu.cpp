@@ -18,7 +18,7 @@ bool								MednafenCommandItem::Input						()
 	return false;
 }
 
-									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 3, 3, true)
+									MednafenCommands::MednafenCommands				() : WinterfaceIconGrid("Emulator Commands", 4, 3, true)
 {
 	Items.push_back(new MednafenCommandItem("Change Game", "DoReload", "DoReload"));
 	Items.push_back(new MednafenCommandItem("Reset Game", "DoReset", "DoReset"));
@@ -28,6 +28,8 @@ bool								MednafenCommandItem::Input						()
 	Items.push_back(new MednafenCommandItem("Take Screen Shot", "DoScreenShot", "DoScreenShot"));
 	Items.push_back(new MednafenCommandItem("Settings", "DoSettings", "DoSettings"));
 	Items.push_back(new MednafenCommandItem("Configure Controls", "DoInputConfig", "DoInputConfig"));
+	Items.push_back(new MednafenCommandItem("Record Video", "DoRecordVideo", "DoToggleRecordVideo"));
+	Items.push_back(new MednafenCommandItem("Record Audio", "DoRecordAudio", "DoToggleRecordWave"));
 	Items.push_back(new MednafenCommandItem("Exit Mednafen", "DoExit", "DoExit"));
 
 	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));

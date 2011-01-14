@@ -372,7 +372,7 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 			}
   case MDFNMKF_AUDIO:
 		     {
-		     std::string overpath = MDFN_GetSettingS("filesys.path_wave");
+		     std::string overpath = MDFN_GetSettingS("filesys.path_audio");
 		       if(IsAbsolutePath(overpath))
 		        eff_dir = overpath;
 		       else

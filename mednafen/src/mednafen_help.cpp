@@ -19,7 +19,7 @@ namespace
 	{
 #ifndef L1GHT
 //TODO: Support psl1ght, throw on error
-		const char *subs[7] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware"};
+		const char *subs[7] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware", "video", "wave"};
 
 		if(mkdir(es_paths->Build("mednafen").c_str(), S_IRWXU) == -1 && errno != EEXIST)
 		{
@@ -28,7 +28,7 @@ namespace
 
 		char buffer[1024];
 
-		for(int i = 0; i != 7; i ++)
+		for(int i = 0; i != 9; i ++)
 		{
 			sprintf(buffer, "mednafen"PSS"%s", subs[i]);
 			if(mkdir(es_paths->Build(buffer).c_str(), S_IRWXU) == -1 && errno != EEXIST)
@@ -147,6 +147,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 
+		Buffer->Clear(0);
+
 		Inputs = new InputHandler(GameInfo);
 		TextFile = new TextViewer(aFileName + ".txt");
 
@@ -169,10 +171,16 @@ void						MednafenEmu::CloseGame			()
 {
 	if(IsLoaded && IsInitialized)
 	{
-		if(Recording)
+		if(RecordingVideo)
 		{
 			MDFNI_StopAVRecord();
-			Recording = false;
+			RecordingVideo = false;
+		}
+
+		if(RecordingWave)
+		{
+			MDFNI_StopWAVRecord();
+			RecordingWave = false;
 		}
 
 		MDFNDES_BlockExit(true);
@@ -335,25 +343,62 @@ void						MednafenEmu::DoCommand			(const char* aName)
 
 		if(0 == strcmp(aName, "DoToggleRecordVideo"))
 		{
-			if(Recording)
+			if(RecordingWave)
 			{
-				MDFND_DispMessage((UTF8*)"Finished recording video.");
-				MDFNI_StopAVRecord();
-				Recording = false;
+				MDFND_DispMessage((UTF8*)"Can't record video and audio simultaneously.");		
 			}
 			else
 			{
-				if(MDFNI_StartAVRecord(MDFN_MakeFName(MDFNMKF_VIDEO, 0, 0).c_str(), 48000))
+				if(RecordingVideo)
 				{
-					MDFND_DispMessage((UTF8*)"Begin recording video.");
-					Recording = true;
+					MDFND_DispMessage((UTF8*)"Finished recording video.");
+					MDFNI_StopAVRecord();
+					RecordingVideo = false;
 				}
 				else
 				{
-					MDFND_DispMessage((UTF8*)"Failed to begin recording video.");
+					if(MDFNI_StartAVRecord(MDFN_MakeFName(MDFNMKF_VIDEO, 0, 0).c_str(), 48000))
+					{
+						MDFND_DispMessage((UTF8*)"Begin recording video.");
+						RecordingVideo = true;
+					}
+					else
+					{
+						MDFND_DispMessage((UTF8*)"Failed to begin recording video.");
+					}
 				}
 			}
 		}
+
+		if(0 == strcmp(aName, "DoToggleRecordWave"))
+		{
+			if(RecordingVideo)
+			{
+				MDFND_DispMessage((UTF8*)"Can't record video and audio simultaneously.");
+			}
+			else
+			{
+				if(RecordingWave)
+				{
+					MDFND_DispMessage((UTF8*)"Finished recording audio.");
+					MDFNI_StopWAVRecord();
+					RecordingWave = false;
+				}
+				else
+				{
+					if(MDFNI_StartWAVRecord(MDFN_MakeFName(MDFNMKF_AUDIO, 0, 0).c_str(), 48000))
+					{
+						MDFND_DispMessage((UTF8*)"Begin recording audio.");
+						RecordingWave = true;
+					}
+					else
+					{
+						MDFND_DispMessage((UTF8*)"Failed to begin recording audio.");
+					}
+				}
+			}
+		}
+
 		
 		Inputs->ReadSettings();
 		
@@ -396,7 +441,8 @@ std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
 bool						MednafenEmu::PCESkipHack = false;
 bool						MednafenEmu::RewindEnabled = false;
-bool						MednafenEmu::Recording = false;
+bool						MednafenEmu::RecordingVideo = false;
+bool						MednafenEmu::RecordingWave = false;
 
 std::vector<MDFNSetting>	MednafenEmu::Settings;
 

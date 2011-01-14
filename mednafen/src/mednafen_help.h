@@ -66,7 +66,8 @@ class	MednafenEmu
 		static uint32_t					MessageTime;
 		static bool						PCESkipHack;
 		static bool						RewindEnabled;
-		static bool						Recording;
+		static bool						RecordingVideo;
+		static bool						RecordingWave;
 
 		static std::vector<MDFNSetting>	Settings;
 
