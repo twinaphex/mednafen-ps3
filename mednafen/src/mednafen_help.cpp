@@ -19,7 +19,7 @@ namespace
 	{
 #ifndef L1GHT
 //TODO: Support psl1ght, throw on error
-		const char *subs[7] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware", "video", "wave"};
+		const char *subs[] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware", "video", "wave"};
 
 		if(mkdir(es_paths->Build("mednafen").c_str(), S_IRWXU) == -1 && errno != EEXIST)
 		{

@@ -33,6 +33,7 @@
 #include "src/utility/GUI/ListItem.h"
 #include "src/utility/GUI/GridItem.h"
 #include "src/utility/GUI/InputListItem.h"
+#include "src/utility/GUI/Summerface.h"
 #include "src/utility/GUI/Winterface.h"
 #include "src/utility/GUI/WinterfaceList.h"
 #include "src/utility/GUI/WinterfaceMultiList.h"

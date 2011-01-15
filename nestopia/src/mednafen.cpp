@@ -41,7 +41,7 @@ namespace
 	uint8_t*					Ports[Input::NUM_PADS] = {0};
 }
 
-static void					LoadCartDatabase				()
+static void						LoadCartDatabase				()
 {
 	if(!Cartridge::Database(Nestopia).IsLoaded())
 	{
@@ -70,7 +70,7 @@ static void					LoadCartDatabase				()
 	}
 }
 
-static void					LoadFDSBios						()
+static void						LoadFDSBios						()
 {
 	if(!Fds(Nestopia).HasBIOS())
 	{
@@ -95,7 +95,7 @@ static void					LoadFDSBios						()
 	}
 }
 
-static bool NST_CALLBACK	VideoLock						(void* userData, Video::Output& video)
+static bool NST_CALLBACK		VideoLock						(void* userData, Video::Output& video)
 {
 	//TODO: Support 16-bit and YUV
 	video.pixels = ESpec->surface->pixels;
@@ -103,7 +103,7 @@ static bool NST_CALLBACK	VideoLock						(void* userData, Video::Output& video)
 	return true;
 }
 
-static void NST_CALLBACK	VideoUnlock						(void* userData, Video::Output& video)
+static void NST_CALLBACK		VideoUnlock						(void* userData, Video::Output& video)
 {
 	/*NOTHING*/
 }
@@ -447,7 +447,6 @@ static const InputDeviceInputInfoStruct GamepadIDII[] =
 	{"down",	"DOWN",		1, IDIT_BUTTON,				"up"},
 	{"left",	"LEFT",		2, IDIT_BUTTON,				"right"},
 	{"right",	"RIGHT",	3, IDIT_BUTTON,				"left"},
-	{"swap",	"Swap Disk",8, IDIT_BUTTON,				NULL}
 };
 
 static InputDeviceInfoStruct InputDeviceInfoNESPort[] =
@@ -494,7 +493,7 @@ static MDFNSetting NestSettings[] =
 MDFNGI	NestInfo =
 {
 /*	shortname:			*/	"nest",
-/*	fullname:			*/	"Nestopia NES",
+/*	fullname:			*/	"Nintendo Entartainment System (Nestopia)",
 /*	FileExtensions:		*/	extensions,
 /*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,
