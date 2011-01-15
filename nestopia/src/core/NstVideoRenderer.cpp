@@ -606,8 +606,7 @@ namespace Nes
 
 					#endif
 
-//ROBO: No NTSC filter
-/*						case RenderState::FILTER_NTSC:
+						case RenderState::FILTER_NTSC:
 
 							if (FilterNtsc::Check( renderState ))
 							{
@@ -623,7 +622,7 @@ namespace Nes
 									state.fieldMerging
 								);
 							}
-							break;*/
+							break;
 					}
 				}
 				catch (const std::bad_alloc&)

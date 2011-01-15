@@ -143,13 +143,6 @@ class				Utility
 			if(aValue > aMax)		return aMax;
 			return aValue;
 		}
-		
-		static uint32_t					Clamp						(uint32_t aValue, uint32_t aMin, uint32_t aMax)
-		{
-			if(aValue < aMin)		return aMin;
-			if(aValue > aMax)		return aMax;
-			return aValue;
-		}
 };
 
 class				PathBuild

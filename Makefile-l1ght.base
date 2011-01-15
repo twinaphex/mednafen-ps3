@@ -9,15 +9,19 @@ CC			:= $(PREFIX)gcc
 CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
-RAW2H		:= $(PSL1GHT)/bin/raw2h
 FSELF		:= $(PSL1GHT)/bin/fself.py
 SFO			:= $(PSL1GHT)/bin/sfo.py
 PS3LOADAPP	:= $(PSL1GHT)/bin/ps3load
 SFOXML		:= $(PSL1GHT)/bin/sfo.xml
-ICON0		:= $(PSL1GHT)/bin/ICON0.PNG
 PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
-VPCOMP		:= $(PSL1GHT)/bin/vpcomp
+
+#FSELF		:= $(PSL1GHT)/host/bin/fself.py
+#SFO			:= $(PSL1GHT)/host/bin/sfo.py
+#PS3LOADAPP	:= $(PSL1GHT)/host/bin/ps3load
+#SFOXML		:= $(PSL1GHT)/host/bin/sfo.xml
+#PKG			:= $(PSL1GHT)/host/bin/pkg.py
+#SPRX		:= $(PSL1GHT)/host/bin/sprxlinker
 
 
 ifeq ($(strip $(FREETYPECONFIG)),)
@@ -25,9 +29,13 @@ FREETYPECONFIG=freetype-config
 endif
 
 
+#CFLAGS		+= -DL1GHT -g --std=gnu99 -I$(PSL1GHT)/target/include -I$(PS3DEV)/host/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+#CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/target/include -I$(PS3DEV)/host/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+#LDFLAGS		+= -B$(PSL1GHT)/target/lib -B$(PS3DEV)/host/ppu/lib $(PS3DEV)/host/ppu/ppu/lib/lv2-psl1ght.o -lpsl1ght -llv2 -lpng `$(FREETYPECONFIG) --libs`
 CFLAGS		+= -DL1GHT -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
 CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
 LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs`
+
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 %.o: %.c
@@ -60,21 +68,6 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 	@$(STRIP) $<
 	@$(SPRX) $<
 	@$(FSELF) $< $@
-
-%.bin.h: %.bin
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[R2H] $(notdir $<)"
-	@$(RAW2H) $< $(BUILDDIR)/$(notdir $<).h $(BUILDDIR)/$(notdir $<).S $(notdir $(basename $<)_bin)
-	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $@.o
-
-%.vcg.h: %.vcg
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[VPCOMP] $(notdir $<)"
-	@$(VPCOMP) $< $(notdir $(BUILDDIR)/$(basename $<).rvp)
-	@$(RAW2H)  $(BUILDDIR)/$(notdir $(basename $<).rvp) $(BUILDDIR)/$(notdir $<).h $(BUILDDIR)/$(notdir $<).S $(notdir $(basename $<)_bin)
-	@$(AS) -x assembler-with-cpp $(ASFLAGS) -c $(BUILDDIR)/$(notdir $<).S -o $@.o
 
 ################
 

@@ -37,6 +37,9 @@ namespace
 	Sound::Output 				EmuSound;
 	Input::Controllers			EmuPads;
 
+	bool						NTSCOn = false;
+	uint32_t					NTSCType = 0;
+
 	uint32_t					Samples[48000];
 	uint8_t*					Ports[Input::NUM_PADS] = {0};
 }
@@ -246,6 +249,8 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 		return 0;
 	}
 
+	NTSCOn = false;
+
 	return 1;
 }
 
@@ -340,16 +345,47 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 
 	//Update colors
 	//TODO: Support 16-bit and YUV
-	if(espec->VideoFormatChanged)
+	bool NTSCNow = MDFN_GetSettingUI("nest.ntsc");
+	uint32_t NTSCTypeNow = MDFN_GetSettingUI("nest.ntscmode");
+	if(espec->VideoFormatChanged || NTSCOn != NTSCNow || NTSCType != NTSCTypeNow)
 	{
+		NTSCOn = NTSCNow;
+		NTSCType = NTSCTypeNow;
+
+		if(NTSCType == 0)
+		{
+			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_COMP);
+			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_COMP);
+			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_COMP);
+			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_COMP);
+			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_COMP);
+		}
+		else if(NTSCType == 1)
+		{
+			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_SVIDEO);
+			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_SVIDEO);
+			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_SVIDEO);
+			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_SVIDEO);
+			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_SVIDEO);
+		}
+		else
+		{
+			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_RGB);
+			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_RGB);
+			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_RGB);
+			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_RGB);
+			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_RGB);
+		}
+
 	    Video::RenderState renderState;
     	renderState.bits.count = 32;
-	    renderState.bits.mask.r = 0xFF << espec->surface->format.Rshift;
-    	renderState.bits.mask.g = 0xFF << espec->surface->format.Gshift;
-	    renderState.bits.mask.b = 0xFF << espec->surface->format.Bshift;
-    	renderState.filter = Video::RenderState::FILTER_NONE;
-		renderState.width = 256;
-		renderState.height = 240;
+	    renderState.bits.mask.r = 0xFF0000;
+    	renderState.bits.mask.g = 0xFF00;
+	    renderState.bits.mask.b = 0xFF;
+		renderState.filter = NTSCOn ? Video::RenderState::FILTER_NTSC : Video::RenderState::FILTER_NONE;
+		renderState.width = NTSCOn ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH;
+		renderState.height = Video::Output::HEIGHT;
+
     	if(NES_FAILED(Video(Nestopia).SetRenderState(renderState)))
 		{
 			MDFND_PrintError("nest: Failed to set render state");
@@ -382,7 +418,7 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 
 	espec->DisplayRect.x = clipsides ? 8 : 0;
 	espec->DisplayRect.y = slstart;
-	espec->DisplayRect.w = clipsides ? 240 : 256;
+	espec->DisplayRect.w = (NTSCOn ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH) - 8;
 	espec->DisplayRect.h = slend - slstart;
 
 	//TODO: Real timing
@@ -478,6 +514,13 @@ FileExtensionSpecStruct	extensions[] =
 	{0, 0}
 };
 
+const MDFNSetting_EnumList	NTSCTypes[] =
+{
+	{"Composite", 0, "Composite", ""},
+	{"SVIDEO", 1, "SVIDEO", ""},
+	{"RGB", 2, "RGB", ""},
+	{0, 0, 0, 0}
+};
 
 static MDFNSetting NestSettings[] =
 {
@@ -485,6 +528,8 @@ static MDFNSetting NestSettings[] =
 	{"nest.slstart",	MDFNSF_NOFLAGS,	"First displayed scanline in NTSC mode.",	NULL, MDFNST_UINT,	"8", "0", "239"},
 	{"nest.slend",		MDFNSF_NOFLAGS,	"Last displayed scanlines in NTSC mode.",	NULL, MDFNST_UINT,	"231", "0", "239"},
 	{"nest.fdsbios",	MDFNSF_NOFLAGS,	"Path to FDS BIOS.",						NULL, MDFNST_STRING,"disksys.rom"},
+	{"nest.ntsc",		MDFNSF_NOFLAGS, "Enable the NTSC filter",					NULL, MDFNST_BOOL,	"0"},
+	{"nest.ntscmode",	MDFNSF_NOFLAGS, "Type of NTSC filter",						NULL, MDFNST_ENUM,	"Composite", 0, 0, 0, 0, NTSCTypes},
 	{NULL}
 };
 
@@ -522,8 +567,8 @@ MDFNGI	NestInfo =
 /*  dummy_separator:	*/	0,
 /*	nominal_width:		*/	256,
 /*	nominal_height:		*/	240,
-/*	fb_width:			*/	256,
-/*	fb_height:			*/	256,
+/*	fb_width:			*/	1024,
+/*	fb_height:			*/	512,
 /*	soundchan:			*/	1
 };
 

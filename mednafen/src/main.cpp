@@ -133,15 +133,22 @@ int					main					(int argc, char* argv[])
 {
 	try
 	{
+		printf("BEGIN\n");
+
 		//Init the system and the emulator
 		InitES(Exit);
+		printf("ESINIT\n");
+
 		MednafenEmu::Init();
+		printf("MEDNAFENINIT\n");
 
 		//Set FTP settings
+		printf("FTPINIT\n");
 		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.es.enable"));
 		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.es.host"), MDFN_GetSettingS("ftp.es.port"), MDFN_GetSettingS("ftp.es.username"), MDFN_GetSettingS("ftp.es.password"));
 
 		//Run the menu
+		printf("RELOAD\n");
 		ReloadEmulator();
 
 		//Loop
