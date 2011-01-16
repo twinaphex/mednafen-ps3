@@ -1,3 +1,7 @@
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
+.SUFFIXES:
+
 OBJCOPY		:= $(PREFIX)objcopy
 AR			:= $(PREFIX)ar
 AS			:= $(PREFIX)gcc
@@ -7,84 +11,25 @@ LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
 
 ifeq ($(strip $(SDLCONFIG)),)
-SDLCONFIG=sdl-config
+	SDLCONFIG=sdl-config
 endif
 
 ifeq ($(strip $(FREETYPECONFIG)),)
-FREETYPECONFIG=freetype-config
+	FREETYPECONFIG=freetype-config
 endif
 
-CFLAGS		+= -DMDSDL -g --std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
-CXXFLAGS	+= -DMDSDL -g `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
-LDFLAGS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng
+CFLAGS		+= -DMDSDL -g -O3 -std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
+CXXFLAGS	+= -DMDSDL -g -O3 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
+LDFLAGS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 ifeq ($(strip $(TARGETPLATFORM)),windows)
-LDFLAGS		+= -lopengl32 -lws2_32
+LDFLAGS		+= -lopengl32
 else
 LDFLAGS		+= -lGL
 endif
 
-%.o: %.c
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-%.o: %.cpp
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CXX] $(notdir $<)"
-	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-%.o: %.S
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) -x assembler-with-cpp $(ASFLAGS) $(INCLUDES) -c $< -o $@
-
-%.a:
-	@echo "[AR]  $(notdir $@)"
-	@$(AR) -rcs $@ $^
-
-%.elf:
-	@echo "[LD]  $(notdir $@)"
-	@$(LD) $^ $(LIBPATHS) $(LIBS) $(LDFLAGS) -o $@
-
-################
-
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export VPATH	:=	../
-export BUILDDIR	:=	$(CURDIR)/$(BUILD)
-export DEPSDIR	:=	$(BUILDDIR)
-
-CFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.c))
-CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
-SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
-
-export OFILES	:=	$(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)
-export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
-
-.PHONY: $(BUILD) clean
-
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-
-clean:
-	@echo Clean...
-	@rm -rf $(BUILD) $(OUTPUT).$(TYPE) $(OUTPUT)
-
-else
-
-DEPENDS	:= $(OFILES:.o=.d)
-
-$(OUTPUT).$(TYPE): $(OFILES)
-
--include $(DEPENDS)
-
-endif
+###
+include $(TOP)/Makefile.common
+###
 

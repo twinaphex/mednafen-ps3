@@ -12,7 +12,7 @@ make clean
 make -j2
 cd ../vbam
 make clean
-make -j2 vbam-objmangle
+make -j2
 cd ../mednafen
 make clean
 make -j2

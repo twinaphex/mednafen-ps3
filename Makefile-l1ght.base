@@ -1,3 +1,5 @@
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
 ifeq ($(strip $(PREFIX)),)
 PREFIX=ppu-
 endif
@@ -16,126 +18,33 @@ SFOXML		:= $(PSL1GHT)/bin/sfo.xml
 PKG			:= $(PSL1GHT)/bin/pkg.py
 SPRX		:= $(PSL1GHT)/bin/sprxlinker
 
-#FSELF		:= $(PSL1GHT)/host/bin/fself.py
-#SFO			:= $(PSL1GHT)/host/bin/sfo.py
-#PS3LOADAPP	:= $(PSL1GHT)/host/bin/ps3load
-#SFOXML		:= $(PSL1GHT)/host/bin/sfo.xml
-#PKG			:= $(PSL1GHT)/host/bin/pkg.py
-#SPRX		:= $(PSL1GHT)/host/bin/sprxlinker
-
-
 ifeq ($(strip $(FREETYPECONFIG)),)
-FREETYPECONFIG=freetype-config
+	FREETYPECONFIG=freetype-config
 endif
 
-
-#CFLAGS		+= -DL1GHT -g --std=gnu99 -I$(PSL1GHT)/target/include -I$(PS3DEV)/host/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-#CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/target/include -I$(PS3DEV)/host/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-#LDFLAGS		+= -B$(PSL1GHT)/target/lib -B$(PS3DEV)/host/ppu/lib $(PS3DEV)/host/ppu/ppu/lib/lv2-psl1ght.o -lpsl1ght -llv2 -lpng `$(FREETYPECONFIG) --libs`
-CFLAGS		+= -DL1GHT -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-CXXFLAGS	+= -DL1GHT -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs`
-
+CFLAGS		+= -DL1GHT -O3 -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CXXFLAGS	+= -DL1GHT -O3 -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs` -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
-%.o: %.c
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-%.o: %.cpp
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CXX] $(notdir $<)"
-	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-%.o: %.S
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) -x assembler-with-cpp $(ASFLAGS) $(INCLUDES) -c $< -o $@
-
-%.a:
-	@echo "[AR]  $(notdir $@)"
-	@$(AR) -rcs $@ $^
-
-%.elf:
-	@echo "[LD]  $(notdir $@)"
-	@$(LD) $^ $(LIBPATHS) $(LIBS) $(LDFLAGS) -o $@
-
-%.self: %.elf
-	@$(STRIP) $<
-	@$(SPRX) $<
-	@$(FSELF) $< $@
-
-################
-
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export VPATH	:=	../
-export BUILDDIR	:=	$(CURDIR)/$(BUILD)
-export DEPSDIR	:=	$(BUILDDIR)
-
-CFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.c))
-CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
-SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
-BINFILES	:= $(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
-VCGFILES	:= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.vcg))
-
-
-export OFILES	:=	$(CFILES:.c=.o) \
-					$(CXXFILES:.cpp=.o) \
-					$(SFILES:.S=.o) \
-					$(BINFILES:.bin=.bin.h.o) \
-					$(VCGFILES:.vcg=.vcg.h.o)
-
-
-export BINFILES	:=	$(BINFILES:.bin=.bin.h)
-export VCGFILES	:=	$(VCGFILES:.vcg=.vcg.h)
-
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) \
-					-I$(CURDIR)/$(BUILD)
-export LIBPATHS :=      $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
-
-.PHONY: $(BUILD) clean
-
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-
-clean:
-	@echo Clean...
-	@rm -rf $(BUILD) $(OUTPUT).$(TYPE) $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+###
+include $(TOP)/Makefile.common
+###
 
 signpkg: $(BUILD)
 	@echo Creating signed PKG...
-	make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
+	@$(STRIP) $(OUTPUT).elf
+	@$(SPRX) $(OUTPUT).elf
+	@make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
 	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
 	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
 
 
 pkg: $(BUILD)
 	@echo Creating PKG...
+	@$(STRIP) $(OUTPUT).elf
+	@$(SPRX) $(OUTPUT).elf
 	@$(FSELF) -n $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN
 	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
 	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
-
-run: $(BUILD)
-	@$(PS3LOADAPP) $(OUTPUT).self
-
-else
-
-DEPENDS	:= $(OFILES:.o=.d)
-
-ifneq ($(TYPE),a)
-$(OUTPUT).self: $(OUTPUT).elf
-endif
-$(OUTPUT).$(TYPE): $(OFILES)
-$(OFILES): $(BINFILES)  $(VCGFILES)
-
--include $(DEPENDS)
-
-endif
 
