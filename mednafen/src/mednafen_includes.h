@@ -19,7 +19,7 @@ void							ReloadEmulator			();
 void							Exit					();
 MDFNGI*							GetNestopia				();
 MDFNGI*							GetGambatte				();
-extern "C" MDFNGI*				vbamGetVBAM				();
+extern "C" MDFNGI*				GetVBAM					();
 MDFNGI*							GetPCSX					();
 
 void							MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu);

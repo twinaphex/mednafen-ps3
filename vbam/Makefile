@@ -18,6 +18,3 @@ else
 include $(CURDIR)/../../Makefile-$(PLATFORM).base
 endif
 
-vbam-objmangle: $(BUILD)
-	$(OBJCOPY) --prefix-symbols vbam $(CURDIR)/libvbam.a
-	$(OBJCOPY) --redefine-syms syms.txt $(CURDIR)/libvbam.a

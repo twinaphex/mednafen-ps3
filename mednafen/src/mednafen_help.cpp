@@ -89,9 +89,7 @@ void						MednafenEmu::Init				()
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
-#ifdef L1GHT
-//		externalSystems.push_back(vbamGetVBAM());
-#endif
+//		externalSystems.push_back(GetVBAM());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system

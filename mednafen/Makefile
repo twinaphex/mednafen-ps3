@@ -12,21 +12,24 @@ APPID		:=	MDFN90002
 CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 
 ##Mednafen config
-MEDNAFENFLAGS=-DWANT_SMS_EMU -DWANT_GB_EMU -DWANT_GBA_EMU -DWANT_MD_EMU -DWANT_WSWAN_EMU -DWANT_NGP_EMU -DWANT_PCE_EMU -DWANT_PCE_FAST_EMU -DWANT_VB_EMU -DWANT_LYNX_EMU -DNEED_Z80_EMULATOR -DNETWORK
+MEDNAFENFLAGS=-DWANT_SMS_EMU -DWANT_MD_EMU -DWANT_WSWAN_EMU -DWANT_NGP_EMU -DWANT_PCE_EMU -DWANT_VB_EMU -DWANT_LYNX_EMU -DNEED_Z80_EMULATOR -DNETWORK
 MEDNAFENCONFIG=-DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.16\" -DMEDNAFEN_VERSION_NUMERIC=0x916 -DSIZEOF_DOUBLE=8
 MEDNAFENINCLUDES=. src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu src/src/sms src/src/hw_sound src/include/blip src/src/ngp src/src/ngp/TLCS-900h src/src/snes/src/lib
 
 ##Build info
-TARGET		:=	mednafen
-TYPE		:=	elf
-PACKAGE		:=	mednafen.pkg
-BUILD		:=	build
-SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src/src/gba src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \
-				src/src/hw_cpu/v810/fpu-new src/src/hw_cpu/z80-fuse src/src/hw_misc/arcade_card src/src/hw_sound/gb_apu src/src/hw_sound/pce_psg \
-				src/src/hw_sound/sms_apu src/src/hw_sound/ym2413 src/src/hw_sound/ym2612 src/src/hw_video/huc6270 src/src/lynx src/src/md \
-				src/src/md/cart src/src/md/input src/src/mpcdec  \
-				src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input src/src/pce_fast \
-				src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
+TARGET			:=	mednafen
+TYPE			:=	elf
+PACKAGE			:=	mednafen.pkg
+BUILD			:=	build
+SOURCE			:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \
+					src/src/hw_cpu/v810/fpu-new src/src/hw_cpu/z80-fuse src/src/hw_misc/arcade_card src/src/hw_sound/pce_psg \
+					src/src/hw_sound/sms_apu src/src/hw_sound/ym2413 src/src/hw_sound/ym2612 src/src/hw_video/huc6270 src/src/lynx src/src/md \
+					src/src/md/cart src/src/md/input src/src/mpcdec  \
+					src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input  \
+					src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
+
+#MEDNAFENFLAGS	+=-DWANT_GB_EMU -DWANT_NES_EMU -DWANT_GBA_EMU -DWANT_PCE_FAST_EMU 
+#SOURCE			+=	src/src/gb src/src/gba src/src/hw_sound/gb_apu src/src/pce_fast
 
 #MEDNAFENFLAGS+=-DWANT_SNES_EMU
 
@@ -46,14 +49,12 @@ SOURCE		:=	src src/src src/filters src/src/cdrom src/src/compress src/src/gb src
 #endif
 
 INCLUDE		:=	src include ../system $(MEDNAFENINCLUDES) 
-
 LIBDIRS		:=	../system ../nestopia ../gambatte ../vbam
 
 ifeq ($(strip $(PLATFORM)),l1ght)
 	LIBS		:= -lemusys -lnestopia -lgambatte -lvbam -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
 else
-	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lpcsxr -lSDL_net
-	LIBDIRS		+= ../pcsxr
+	LIBS		:= -lemusys -lnestopia -lgambatte -lz -lm -lSDL_net
 endif
 
 CFLAGS		+= -O3 --std=gnu99 $(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
