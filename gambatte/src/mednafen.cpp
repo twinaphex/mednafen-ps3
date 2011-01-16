@@ -18,37 +18,21 @@ namespace
 	class gbblitter : public VideoBlitter
 	{
 		public:
-								gbblitter				()
-			{
-				buffer.pixels = 0;
-			}
+								gbblitter				()			{buffer.pixels = 0;}
+								~gbblitter				()			{delete[] (uint32_t*)buffer.pixels;}
+			const PixelBuffer	inBuffer				()			{return buffer;}
 
-								~gbblitter				()
-			{
-				if(buffer.pixels)
-				{
-					free(buffer.pixels);
-				}
-			}
 
 			void				setBufferDimensions		(unsigned aWidth, unsigned aHeight)
 			{
-				if(buffer.pixels)
-				{
-					free(buffer.pixels);
-				}
+				delete[] (uint32_t*)buffer.pixels;
+				buffer.pixels = new uint32_t[aWidth * aHeight];
 
 				width = aWidth;
 				height = aHeight;
-
-				buffer.pixels = malloc(aWidth * aHeight * 4);
 				buffer.pitch = aWidth;
 			}
 
-			const PixelBuffer	inBuffer				()
-			{
-				return buffer;
-			}
 
 			void				blit					()
 			{
@@ -86,7 +70,7 @@ namespace
 	uint32_t					resamples[48000];
 	int32_t						sampleoverflow;
 
-	uint8_t*					Ports[4] = {0, 0, 0, 0};
+	uint8_t*					InputPort;
 }
 
 int				GmbtLoad				(const char *name, MDFNFILE *fp);
@@ -108,15 +92,9 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 		GmbtCloseGame();
 	}
 
-	GameLoaded = true;
-
 	//Create emulator
 	gambatte = new GB();
-	//TODO: Which resampler is best
 	resampler = ResamplerInfo::get(0).create(2097152, 48000, 35112);
-
-	//Internal routines patched to get filename from mednafen
-//	gambatte->set_savedir(es_paths->Build("").c_str());
 
 	//Init Sound
 	sampleoverflow = 0;
@@ -125,12 +103,20 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 
 	//Load game
 	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);	
-	gambatte->load(file, false);
+	if(gambatte->load(file, MDFN_GetSettingB("gmbt.forcedmg")))
+	{
+		delete resampler;
+		delete gambatte;
+
+		MDFND_PrintError("gambatte: Failed to load ROM");
+		return 0;
+	}
 
 	//Set Input and video
 	gambatte->setVideoBlitter(&blitter);
 	gambatte->setInputStateGetter(&input);
 
+	GameLoaded = true;
 	return 1;
 }
 
@@ -142,19 +128,13 @@ bool			GmbtTestMagic			(const char *name, MDFNFILE *fp)
 
 void			GmbtCloseGame			(void)
 {
-	if(GameLoaded)
-	{
-		delete resampler;
-		delete gambatte;
-	}
+	delete resampler;
+	delete gambatte;
+
+	resampler = 0;
+	gambatte = 0;
 
 	GameLoaded = false;
-}
-
-bool			GmbtToggleLayer			(int which)
-{
-	//TODO: I'm not going out of my way to support this
-	return false;
 }
 
 void			GmbtInstallReadPatch	(uint32 address)
@@ -204,6 +184,8 @@ int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 
 		free(buffer);
 
+		sampleoverflow = 0;
+
 		return 1;
 	}
 	return 0;
@@ -219,19 +201,19 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 		resampler->adjustRate(2097152, espec->SoundRate);
 	}
 
-	//TODO: Support color shift
+	//TODO: Support color shift, 16-bit, yuv
 
 	//Setup input
-	if(Ports[0])
+	if(InputPort)
 	{
-		input.inputs.startButton	= (Ports[0][0] & 8) ? 1 : 0;
-		input.inputs.selectButton	= (Ports[0][0] & 4) ? 1 : 0;
-		input.inputs.bButton		= (Ports[0][0] & 2) ? 1 : 0;
-		input.inputs.aButton		= (Ports[0][0] & 1) ? 1 : 0;
-		input.inputs.dpadUp			= (Ports[0][0] & 0x40) ? 1 : 0;
-		input.inputs.dpadDown		= (Ports[0][0] & 0x80) ? 1 : 0;
-		input.inputs.dpadLeft		= (Ports[0][0] & 0x20) ? 1 : 0;
-		input.inputs.dpadRight		= (Ports[0][0] & 0x10) ? 1 : 0;
+		input.inputs.startButton	= (*InputPort & 8) ? 1 : 0;
+		input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
+		input.inputs.bButton		= (*InputPort & 2) ? 1 : 0;
+		input.inputs.aButton		= (*InputPort & 1) ? 1 : 0;
+		input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
+		input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
+		input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
+		input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
 	}
 
 	//Run frame
@@ -262,17 +244,13 @@ void			GmbtSetInput			(int port, const char *type, void *ptr)
 {
 	if(port == 0)
 	{
-		Ports[port] = (uint8_t*)ptr;
+		InputPort = (uint8_t*)ptr;
 	}
 }
 
 void			GmbtDoSimpleCommand		(int cmd)
 {
-	if(cmd == MDFN_MSC_RESET)
-	{
-		gambatte->reset();
-	}
-	else if(cmd == MDFN_MSC_POWER)
+	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
 		gambatte->reset();
 	}
@@ -305,6 +283,7 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting GmbtSettings[] =
 {
+	{"gmbt.forcedmg",	MDFNSF_NOFLAGS,	"Force GB Mono Mode.",	NULL, MDFNST_BOOL,	"0"},
 	{0}
 };
 
@@ -323,8 +302,8 @@ static MDFNGI	GmbtInfo =
 /*	LoadCD:*/			0,
 /*	TestMagicCD:*/		0,
 /*	CloseGame:*/		GmbtCloseGame,
-/*	ToggleLayer:*/		GmbtToggleLayer,
-/*	LayerNames:*/		"Screen\0",
+/*	ToggleLayer:*/		0,
+/*	LayerNames:*/		0,
 /*	InstallReadPatch:*/	GmbtInstallReadPatch,
 /*	RemoveReadPatches:*/GmbtRemoveReadPatches,
 /*	MemRead:*/			GmbtMemRead,
