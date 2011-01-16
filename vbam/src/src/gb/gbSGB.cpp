@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdlib.h>
 
 //ROBO: Don't have memory.h, use string.h
@@ -907,4 +908,5 @@ void gbSgbReadGame(gzFile gzFile, int version)
   utilGzRead(gzFile, gbSgbSCPPalette, 4 * 512 * sizeof(u16));
   utilGzRead(gzFile, gbSgbATF, 20 * 18);
   utilGzRead(gzFile, gbSgbATFList, 45 * 20 * 18);
+}
 }

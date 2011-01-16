@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 // Gb_Snd_Emu 0.2.0. http://www.slack.net/~ant/
 
 #include "Gb_Apu.h"
@@ -391,4 +392,5 @@ int Gb_Apu::read_register( blip_time_t time, unsigned addr )
 	}
 
 	return data;
+}
 }

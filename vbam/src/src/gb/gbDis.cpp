@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <string.h>
 
@@ -228,4 +229,5 @@ int gbDis(char *buffer, u16 address)
   }
   *p = 0;
   return instr;
+}
 }

@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include "../System.h"
 #include "GBA.h"
 #include "Globals.h"
@@ -207,4 +208,5 @@ void rtcSaveGame(gzFile gzFile)
 void rtcReadGame(gzFile gzFile)
 {
   utilGzRead(gzFile, &rtcClockData, sizeof(rtcClockData));
+}
 }

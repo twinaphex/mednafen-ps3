@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include "GBA.h"
 #include "GBAGfx.h"
 #include "Globals.h"
@@ -368,4 +369,5 @@ void mode4RenderLineAll()
   }
   gfxBG2Changed = 0;
   gfxLastVCOUNT = VCOUNT;
+}
 }

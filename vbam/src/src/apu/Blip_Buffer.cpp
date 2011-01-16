@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 // Blip_Buffer 0.4.1. http://www.slack.net/~ant/
 
 #include "Blip_Buffer.h"
@@ -462,4 +463,5 @@ void Blip_Buffer::load_state( blip_buffer_state_t const& in )
 	offset_       = in.offset_;
 	reader_accum_ = in.reader_accum_;
 	memcpy( buffer_, in.buf, sizeof in.buf );
+}
 }

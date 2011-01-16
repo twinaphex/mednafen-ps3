@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 
 //ROBO: Don't have memory.h, use string.h
@@ -211,4 +212,5 @@ u8 gbPrinterSend(u8 b)
     break;
   }
   return gbPrinterResult;
+}
 }

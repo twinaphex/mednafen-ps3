@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 //ROBO: Don't have memory.h, use string.h
 //#include <memory.h>
 #include <string.h>
@@ -186,4 +187,5 @@ void eepromWrite(u32 /* address */, u8 value)
     }
     break;
   }
+}
 }

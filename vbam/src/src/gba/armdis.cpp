@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 /************************************************************************/
 /* Arm/Thumb command set disassembler                                   */
 /************************************************************************/
@@ -721,4 +722,5 @@ int disThumb(u32 offset, char *dest, int flags){
   }
   *dest++ = 0;
   return ret;
+}
 }

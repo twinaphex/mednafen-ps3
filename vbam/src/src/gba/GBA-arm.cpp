@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <stdlib.h>
 //ROBO: Don't have memory.h
@@ -2948,4 +2949,5 @@ int armExecute()
     } while (cpuTotalTicks<cpuNextEvent && armState && !holdState && !SWITicks);
 
     return 1;
+}
 }

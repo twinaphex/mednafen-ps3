@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 //#include "../win32/stdafx.h" // would fix LNK2005 linker errors for MSVC
 #include <stdio.h>
 #include <stdlib.h>
@@ -5466,3 +5467,4 @@ struct EmulatedSystem GBSystem = {
   1000,
 #endif
 };
+}

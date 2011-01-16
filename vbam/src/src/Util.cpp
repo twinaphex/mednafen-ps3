@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -672,4 +673,5 @@ bool utilFileExists( const char *filename )
 		fclose( f );
 		return true;
 	}
+}
 }

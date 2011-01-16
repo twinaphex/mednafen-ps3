@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 //ROBO: Don't have memory.h
 //#include <memory.h>
 #include <string.h>
@@ -2896,4 +2897,5 @@ void cheatsWriteByte(u32, u8)
   }
 #endif
 #endif
+}
 }

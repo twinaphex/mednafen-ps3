@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 // Game_Music_Emu $vers. http://www.slack.net/~ant/
 
 #include "Effects_Buffer.h"
@@ -635,4 +636,5 @@ void Effects_Buffer::mix_effects( blip_sample_t* out_, int pair_count )
 		}
 		while ( remain );
 	}
+}
 }

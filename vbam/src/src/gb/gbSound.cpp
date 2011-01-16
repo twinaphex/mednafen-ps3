@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <string.h>
 
 #include "../gba/Sound.h"
@@ -438,4 +439,5 @@ void gbSoundReadGame( int version, gzFile in )
 		gbSoundReadGameOld( version, in );
 
 	gb_apu->load_state( state.apu );
+}
 }

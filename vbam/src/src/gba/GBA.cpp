@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <stdlib.h>
 //ROBO: Don't have memory.h
@@ -4079,3 +4080,4 @@ struct EmulatedSystem GBASystem = {
   5000
 #endif
 };
+}

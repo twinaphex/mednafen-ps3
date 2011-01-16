@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <math.h>
 
 //ROBO: Don't have memory.h, use string.h
@@ -1148,4 +1149,5 @@ void BIOS_SndDriverJmpTableCopy()
     CPUWriteMemory(reg[0].I, 0x9c);
     reg[0].I += 4;
   }
+}
 }

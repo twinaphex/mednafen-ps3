@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2980,4 +2981,5 @@ void elfCleanUp()
     free(elfFileData);
     elfFileData = NULL;
   }
+}
 }

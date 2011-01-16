@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdlib.h>
 //ROBO: Don't have memory.h, use string.h
 //#include <memory.h>
@@ -311,3 +312,4 @@ void cheatSearchUpdateValues(const CheatSearchData *cs)
   }
 }
 
+}

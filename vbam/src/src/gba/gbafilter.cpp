@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include "gbafilter.h"
 
 #include <math.h>
@@ -225,3 +226,4 @@ void UpdateSystemColorMaps(int lcd)
   }
 }
 */
+}

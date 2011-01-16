@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 // Gb_Snd_Emu $vers. http://www.slack.net/~ant/
 
 #include "Gb_Apu.h"
@@ -117,3 +118,4 @@ blargg_err_t Gb_Apu::load_state( gb_apu_state_t const& in )
 	return 0;
 }
 
+}

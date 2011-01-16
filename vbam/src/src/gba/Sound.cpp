@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <string.h>
 
 #include "Sound.h"
@@ -805,4 +806,5 @@ void soundReadGame( gzFile in, int version )
 	write_SGCNT0_H( READ16LE( &ioMem [SGCNT0_H] ) & 0x770F );
 
 	apply_muting();
+}
 }

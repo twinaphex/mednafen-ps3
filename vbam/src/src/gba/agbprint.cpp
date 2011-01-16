@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 #include <string.h>
 
@@ -77,4 +78,5 @@ void agbPrintFlush()
       break;
   }
   debuggerWriteHalfWord(0x9fe20fc, get);
+}
 }

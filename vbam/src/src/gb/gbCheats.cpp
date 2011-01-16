@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -530,4 +531,5 @@ void gbCheatWrite(bool reboot)
       }
     }
   }
+}
 }

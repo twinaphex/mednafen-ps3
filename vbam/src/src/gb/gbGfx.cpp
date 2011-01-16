@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 //ROBO: Dont have memory.h, use string.h
 //#include <memory.h>
 #include <string.h>
@@ -585,4 +586,5 @@ void gbDrawSprites(bool draw)
     }
   }
   return;
+}
 }

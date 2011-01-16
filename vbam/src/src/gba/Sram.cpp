@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include "GBA.h"
 #include "Globals.h"
 #include "Flash.h"
@@ -18,4 +19,5 @@ void sramWrite(u32 address, u8 byte)
 {
   flashSaveMemory[address & 0xFFFF] = byte;
   systemSaveUpdateCounter = SYSTEM_SAVE_UPDATED;
+}
 }

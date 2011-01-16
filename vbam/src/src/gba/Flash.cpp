@@ -1,3 +1,4 @@
+namespace vbamMDFN{
 #include <stdio.h>
 //ROBO: Don't have memory.h, use string.h
 //#include <memory.h>
@@ -256,4 +257,5 @@ void flashWrite(u32 address, u8 byte)
     flashReadState = FLASH_READ_ARRAY;
     break;
   }
+}
 }

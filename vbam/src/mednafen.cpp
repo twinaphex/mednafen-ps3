@@ -3,6 +3,7 @@
 #include <src/driver.h>
 #include <src/general.h>
 
+namespace vbamMDFN{
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
@@ -276,9 +277,10 @@ static MDFNGI	VbamInfo =
 /*	soundchan:			*/	2
 };
 
-extern "C" MDFNGI* GetVBAM()
-{
-	return &VbamInfo;
 }
 
+extern "C" MDFNGI* GetVBAM()
+{
+	return &vbamMDFN::VbamInfo;
+}
 
