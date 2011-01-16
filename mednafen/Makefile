@@ -45,14 +45,9 @@ SOURCE				:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_
 INCLUDE				:=	src ../system $(MEDNAFENINCLUDES) 
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr
 
-CFLAGS				+=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-CXXFLAGS			+=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-
-ifeq ($(strip $(PLATFORM)),l1ght)
-	LIBS			:=	-lemusys -lnestopia -lgambatte
-else
-	LIBS			:=	-lemusys -lnestopia -lgambatte
-endif
+CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
+CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
+LIBS				:=	-lemusys -lnestopia -lgambatte -lvbam
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base

@@ -3,6 +3,8 @@
 #include <src/driver.h>
 #include <src/general.h>
 
+namespace vbamMDFN{
+
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
@@ -222,4 +224,4 @@ void				systemOnWriteDataToSoundBuffer			(const u16 * finalWave, int length)		{}
 void				systemOnSoundShutdown					()										{}
 bool				systemCanChangeSoundQuality				()										{return true;}
 
-
+}
