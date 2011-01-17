@@ -8,115 +8,27 @@
 #include <sstream>
 #include "core/api/NstApiEmulator.hpp"
 #include "core/api/NstApiVideo.hpp"
-#include "core/api/NstApiSound.hpp"
-#include "core/api/NstApiInput.hpp"
-#include "core/api/NstApiMachine.hpp"
 #include "core/api/NstApiUser.hpp"
-#include "core/api/NstApiNsf.hpp"
-#include "core/api/NstApiMovie.hpp"
 #include "core/api/NstApiFds.hpp"
-#include "core/api/NstApiRewinder.hpp"
 #include "core/api/NstApiCartridge.hpp"
-#include "core/api/NstApiCheats.hpp"
-#include "core/NstMachine.hpp"
-#include "core/NstCrc32.hpp"
-#include "core/NstChecksum.hpp"
-#include "core/NstXml.hpp"
 
-using namespace Nes::Api;
-using namespace Nes;
+#include "settings.h"
+#include "mednafen.h"
+#include "fileio.h"
+#include "input.h"
+#include "sound.h"
+#include "video.h"
 
-namespace
+namespace nestMDFN
 {
 	EmulateSpecStruct*			ESpec;
 
 	bool						GameOpen = false;
 
 	Nes::Api::Emulator			Nestopia;
-	Video::Output 				EmuVideo;
-	Sound::Output 				EmuSound;
-	Input::Controllers			EmuPads;
-
-	uint32_t					Samples[48000];
-	uint8_t*					Ports[Input::NUM_PADS] = {0};
-
-	struct						_tagSettings
-	{
-		bool					NeedRefresh;
-		bool					ClipSides;
-		uint32_t				ScanLineStart;
-		uint32_t				ScanLineEnd;
-		std::string				FDSBios;
-		bool					EnableNTSC;
-		uint32_t				NTSCMode;
-		bool					DisableSpriteLimit;
-	}	NestopiaSettings;
-
-	void						GetSettings						(const char* aName = 0)
-	{
-		NestopiaSettings.NeedRefresh = true;
-
-		NestopiaSettings.ClipSides = MDFN_GetSettingB("nest.clipsides");
-		NestopiaSettings.ScanLineStart = MDFN_GetSettingUI("nest.slstart");
-		NestopiaSettings.ScanLineEnd = MDFN_GetSettingUI("nest.slend");
-		NestopiaSettings.FDSBios = MDFN_GetSettingS("nest.fdsbios");
-		NestopiaSettings.EnableNTSC = MDFN_GetSettingB("nest.ntsc");
-		NestopiaSettings.NTSCMode = MDFN_GetSettingUI("nest.ntscmode");
-		NestopiaSettings.DisableSpriteLimit = MDFN_GetSettingB("nest.nospritelmt");
-	}
 }
 
-static void						LoadCartDatabase				()
-{
-	if(!Cartridge::Database(Nestopia).IsLoaded())
-	{
-		std::ifstream database(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, "NstDatabase.xml").c_str(), std::ifstream::binary);
-
-		if(database.is_open())
-		{
-			if(NES_FAILED(Cartridge::Database(Nestopia).Load(database)))
-			{
-				MDFND_Message("nest: Couldn't load cartridge database");
-			}
-			else if(NES_FAILED(Cartridge::Database(Nestopia).Enable(true)))
-			{
-				MDFND_Message("nest: Couldn't enable cartridge database");
-			}
-			else
-			{
-				MDFND_Message("nest: Nestopia Cartridge Database opened");
-			}
-		}
-		else
-		{
-			MDFND_Message("nest: Nestopia Cartridge Database not found");
-		}
-	}
-}
-
-static void						LoadFDSBios						()
-{
-	if(!Fds(Nestopia).HasBIOS())
-	{
-		std::ifstream bios(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, NestopiaSettings.FDSBios.c_str()).c_str(), std::ifstream::binary);
-
-		if(bios.is_open())
-		{
-			if(NES_FAILED(Fds(Nestopia).SetBIOS(&bios)))
-			{
-				MDFND_Message("nest: Couldn't set FDS bios");
-			}
-			else
-			{
-				MDFND_Message("nest: FDS BIOS opened");
-			}
-		}
-		else
-		{
-			MDFND_Message("nest: FDS BIOS not found");
-		}
-	}
-}
+using namespace nestMDFN;
 
 static void NST_CALLBACK		DoLog							(void *userData, const char *string, Nes::ulong length)
 {
@@ -181,17 +93,52 @@ static void NST_CALLBACK		DoFileIO						(void *userData, User::File& file)
 	}
 }
 
-int				NestLoad				(const char *name, MDFNFILE *fp);
-bool			NestTestMagic			(const char *name, MDFNFILE *fp);
-void			NestCloseGame			(void);
-bool			NestToggleLayer			(int which);
-void			NestInstallReadPatch	(uint32 address);
-void			NestRemoveReadPatches	(void);
-uint8			NestMemRead				(uint32 addr);
-int				NestStateAction			(StateMem *sm, int load, int data_only);
-void			NestEmulate				(EmulateSpecStruct *espec);
-void			NestSetInput			(int port, const char *type, void *ptr);
-void			NestDoSimpleCommand		(int cmd);
+
+
+
+
+//TODO: Masterclock and fps
+MDFNGI	NestInfo =
+{
+/*	shortname:			*/	"nest",
+/*	fullname:			*/	"Nintendo Entartainment System (Nestopia)",
+/*	FileExtensions:		*/	NestExtensions,
+/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
+/*	Debugger:			*/	0,
+/*	InputInfo:			*/	&NestInput,
+
+/*	Load:				*/	NestLoad,
+/*	TestMagic:			*/	NestTestMagic,
+/*	LoadCD:				*/	0,
+/*	TestMagicCD:		*/	0,
+/*	CloseGame:			*/	NestCloseGame,
+/*	ToggleLayer:		*/	0,
+/*	LayerNames:			*/	0,
+/*	InstallReadPatch:	*/	NestInstallReadPatch,
+/*	RemoveReadPatches:	*/	NestRemoveReadPatches,
+/*	MemRead:			*/	NestMemRead,
+/*	StateAction:		*/	NestStateAction,
+/*	Emulate:			*/	NestEmulate,
+/*	SetInput:			*/	NestSetInput,
+/*	DoSimpleCommand:	*/	NestDoSimpleCommand,
+/*	Settings:			*/	NestSettings,
+/*	MasterClock:		*/	0,
+/*	fps:				*/	0,
+/*	multires:			*/	false,
+/*	lcm_width:			*/	256,
+/*	lcm_height:			*/	240,
+/*  dummy_separator:	*/	0,
+/*	nominal_width:		*/	256,
+/*	nominal_height:		*/	240,
+/*	fb_width:			*/	1024,
+/*	fb_height:			*/	512,
+/*	soundchan:			*/	1
+};
+
+MDFNGI* GetNestopia()
+{
+	return &NestInfo;
+}
 
 int				NestLoad				(const char *name, MDFNFILE *fp)
 {
@@ -230,9 +177,11 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 		}
 	}
 
-	//TODO: Support more controllers
-	Input(Nestopia).ConnectController(0, Input::PAD1);
-	Input(Nestopia).ConnectController(1, Input::PAD2);
+	//Setup machine type
+	Machine::Mode type = GetSystemType(fp->data, fp->size, 0);
+	Machine(Nestopia).SetMode(type);
+	NestInfo.MasterClock = MDFN_MASTERCLOCK_FIXED((type == Machine::NTSC ? 6000 : 5000));
+	NestInfo.fps = (type == Machine::NTSC ? 60 : 50) << 24;
 
 	//Here we go
 	if(NES_FAILED(Machine(Nestopia).Power(true)))
@@ -315,98 +264,25 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
-	//Update sound
-	if(espec->SoundFormatChanged)
-	{
-		EmuSound.samples[0] = (void*)Samples;
-		EmuSound.length[0] = espec->SoundRate / 60;
-		EmuSound.samples[1] = NULL;
-		EmuSound.length[1] = 0;
-
-		Sound(Nestopia).SetSampleBits(16);
-		Sound(Nestopia).SetSampleRate(espec->SoundRate);
-		Sound(Nestopia).SetVolume(Sound::ALL_CHANNELS, 100);
-		Sound(Nestopia).SetSpeaker(Sound::SPEAKER_MONO);
-	}
-
-	//Update sprite limit
-	Video(Nestopia).EnableUnlimSprites(NestopiaSettings.DisableSpriteLimit);
-
-	//Update colors
-	//TODO: Support 16-bit and YUV
 	if(espec->VideoFormatChanged || NestopiaSettings.NeedRefresh)
 	{
-		NestopiaSettings.NeedRefresh = false;
-
-		if(NestopiaSettings.NTSCMode == 0)
-		{
-			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_COMP);
-			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_COMP);
-			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_COMP);
-			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_COMP);
-			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_COMP);
-		}
-		else if(NestopiaSettings.NTSCMode == 1)
-		{
-			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_SVIDEO);
-			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_SVIDEO);
-			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_SVIDEO);
-			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_SVIDEO);
-			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_SVIDEO);
-		}
-		else
-		{
-			Video(Nestopia).SetSharpness(Video::DEFAULT_SHARPNESS_RGB);
-			Video(Nestopia).SetColorResolution(Video::DEFAULT_COLOR_RESOLUTION_RGB);
-			Video(Nestopia).SetColorBleed(Video::DEFAULT_COLOR_BLEED_RGB);
-			Video(Nestopia).SetColorArtifacts(Video::DEFAULT_COLOR_ARTIFACTS_RGB);
-			Video(Nestopia).SetColorFringing(Video::DEFAULT_COLOR_FRINGING_RGB);
-		}
-
-	    Video::RenderState renderState;
-    	renderState.bits.count = 32;
-	    renderState.bits.mask.r = 0xFF << espec->surface->format.Rshift;
-    	renderState.bits.mask.g = 0xFF << espec->surface->format.Gshift;
-	    renderState.bits.mask.b = 0xFF << espec->surface->format.Bshift;
-		renderState.filter = NestopiaSettings.EnableNTSC ? Video::RenderState::FILTER_NTSC : Video::RenderState::FILTER_NONE;
-		renderState.width = NestopiaSettings.EnableNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH;
-		renderState.height = Video::Output::HEIGHT;
-
-    	if(NES_FAILED(Video(Nestopia).SetRenderState(renderState)))
-		{
-			MDFND_PrintError("nest: Failed to set render state");
-			//TODO: Abort, throw, or ignore?
-		}
+		SetupVideo(32, espec->surface->format.Rshift, espec->surface->format.Gshift, espec->surface->format.Bshift);
 	}
 
-	//Update video
-	EmuVideo.pixels = ESpec->surface->pixels;
-	EmuVideo.pitch = ESpec->surface->pitch32 * 4;
-
-	//Update input
-	//TODO: Support more controllers
-	for(int i = 0; i != Input::NUM_PADS; i ++)
+	if(espec->SoundFormatChanged || NestopiaSettings.NeedRefresh)
 	{
-		EmuPads.pad[i].buttons = Ports[i] ? Ports[i][0] : 0;
+		SetupAudio(espec->SoundRate);
 	}
 
-	//Do frame
-	Nestopia.Execute(espec->skip ? 0 : &EmuVideo, &EmuSound, &EmuPads);
+	NestopiaSettings.NeedRefresh = false;
 
-	//Copy sound
-	//TODO: This can't possibly be the correct way to calculate the number of samples, can it?
-	if(espec->SoundBuf && (espec->SoundBufMaxSize > espec->SoundRate / 60))
-	{
-		espec->SoundBufSize = espec->SoundRate / 60;
-		memcpy(espec->SoundBuf, Samples, espec->SoundBufSize * 2);
-	}
+	SetBuffer(ESpec->surface->pixels, ESpec->surface->pitch32 * 4);
+	UpdateControllers();
 
-	//Set video. No Clipping on NTSC
-	uint32_t widthhelp = NestopiaSettings.EnableNTSC ? 0 : 8;
-	espec->DisplayRect.x = NestopiaSettings.ClipSides ? widthhelp : 0;
-	espec->DisplayRect.y = NestopiaSettings.ScanLineStart;
-	espec->DisplayRect.w = (NestopiaSettings.EnableNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH) - (NestopiaSettings.ClipSides ? widthhelp : 0);
-	espec->DisplayRect.h = NestopiaSettings.ScanLineEnd - NestopiaSettings.ScanLineStart;
+	Nestopia.Execute(espec->skip ? 0 : GetVideo(), GetAudio(), GetControllers());
+
+	SetFrame(&espec->DisplayRect);
+	CopyAudio(espec->SoundBuf, espec->SoundBufMaxSize, espec->SoundBufSize);
 
 	//TODO: Real timing
 	espec->MasterCycles = 1LL * 100;
@@ -414,27 +290,14 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 
 void			NestSetInput			(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port < Input::NUM_PADS)
-	{
-		Ports[port] = (uint8_t*)ptr;
-	}
+	PluginController(port, type, (uint8_t*)ptr);
 }
 
 void			NestDoSimpleCommand		(int cmd)
 {
-	if(cmd == MDFN_MSC_RESET)
+	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
-		Machine(Nestopia).Reset(0);
-
-		if(Machine(Nestopia).Is(Machine::DISK))
-		{
-			Fds(Nestopia).EjectDisk();
-			Fds(Nestopia).InsertDisk(0, 0);
-		}
-	}
-	else if(cmd == MDFN_MSC_POWER)
-	{
-		Machine(Nestopia).Reset(1);
+		Machine(Nestopia).Reset((cmd == MDFN_MSC_RESET) ? 0 : 1);
 
 		if(Machine(Nestopia).Is(Machine::DISK))
 		{
@@ -455,113 +318,12 @@ void			NestDoSimpleCommand		(int cmd)
 				MDFND_DispMessage((UTF8*)"Error changing disk side");
 			}
 		}
+		else
+		{
+			MDFND_DispMessage((UTF8*)"Cannot change disk sides");
+		}
 	}
 }
 
 
-//TODO: Define more control types
-static const InputDeviceInputInfoStruct GamepadIDII[] =
-{
-	{"a",		"A",		7, IDIT_BUTTON_CAN_RAPID,	NULL},
-	{"b",		"B",		6, IDIT_BUTTON_CAN_RAPID,	NULL},
-	{"select",	"SELECT",	4, IDIT_BUTTON,				NULL},
-	{"start",	"START",	5, IDIT_BUTTON,				NULL},
-	{"up",		"UP",		0, IDIT_BUTTON,				"down"},
-	{"down",	"DOWN",		1, IDIT_BUTTON,				"up"},
-	{"left",	"LEFT",		2, IDIT_BUTTON,				"right"},
-	{"right",	"RIGHT",	3, IDIT_BUTTON,				"left"},
-};
-
-static InputDeviceInfoStruct InputDeviceInfoNESPort[] =
-{
-	{"none",	"none",		NULL, 0,														NULL},
-	{"gamepad",	"Gamepad",	NULL, sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct), GamepadIDII},
-};
-
-
-static const InputPortInfoStruct PortInfo[] =
-{
-	{0, "port1", "Port 1", sizeof(InputDeviceInfoNESPort) / sizeof(InputDeviceInfoStruct), InputDeviceInfoNESPort, "gamepad"},
-};
-
-InputInfoStruct		NestInput =
-{
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
-	PortInfo
-};
-
-
-FileExtensionSpecStruct	extensions[] =
-{
-	{".nes",	"iNES Format ROM Image"},
-	{".nez",	"iNES Format ROM Image"},
-	{".fds",	"Famicom Disk System Disk Image"},
-	{".unf",	"UNIF Format ROM Image"},
-	{".unif",	"UNIF Format ROM Image"},
-	{0, 0}
-};
-
-const MDFNSetting_EnumList	NTSCTypes[] =
-{
-	{"Composite", 0, "Composite", ""},
-	{"SVIDEO", 1, "SVIDEO", ""},
-	{"RGB", 2, "RGB", ""},
-	{0, 0, 0, 0}
-};
-
-static MDFNSetting NestSettings[] =
-{
-	{"nest.clipsides",	MDFNSF_NOFLAGS,	"Clip left+right 8 pixel columns.",			NULL, MDFNST_BOOL,	"0",			0,		0,		0, GetSettings},
-	{"nest.slstart",	MDFNSF_NOFLAGS,	"First displayed scanline in NTSC mode.",	NULL, MDFNST_UINT,	"8",			"0",	"239",	0, GetSettings},
-	{"nest.slend",		MDFNSF_NOFLAGS,	"Last displayed scanlines in NTSC mode.",	NULL, MDFNST_UINT,	"231",			"0",	"239",	0, GetSettings},
-	{"nest.fdsbios",	MDFNSF_NOFLAGS,	"Path to FDS BIOS.",						NULL, MDFNST_STRING,"disksys.rom",	0,		0,		0, GetSettings},
-	{"nest.ntsc",		MDFNSF_NOFLAGS, "Enable the NTSC filter",					NULL, MDFNST_BOOL,	"0",			0,		0,		0, GetSettings},
-	{"nest.ntscmode",	MDFNSF_NOFLAGS, "Type of NTSC filter",						NULL, MDFNST_ENUM,	"Composite",	0,		0,		0, GetSettings,	NTSCTypes},
-	{"nest.nospritelmt",MDFNSF_NOFLAGS, "Disable NES Sprite limit",					NULL, MDFNST_BOOL,	"0",			0,		0,		0, GetSettings},
-	{NULL}
-};
-
-
-//TODO: Masterclock and fps
-MDFNGI	NestInfo =
-{
-/*	shortname:			*/	"nest",
-/*	fullname:			*/	"Nintendo Entartainment System (Nestopia)",
-/*	FileExtensions:		*/	extensions,
-/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
-/*	Debugger:			*/	0,
-/*	InputInfo:			*/	&NestInput,
-
-/*	Load:				*/	NestLoad,
-/*	TestMagic:			*/	NestTestMagic,
-/*	LoadCD:				*/	0,
-/*	TestMagicCD:		*/	0,
-/*	CloseGame:			*/	NestCloseGame,
-/*	ToggleLayer:		*/	0,
-/*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	NestInstallReadPatch,
-/*	RemoveReadPatches:	*/	NestRemoveReadPatches,
-/*	MemRead:			*/	NestMemRead,
-/*	StateAction:		*/	NestStateAction,
-/*	Emulate:			*/	NestEmulate,
-/*	SetInput:			*/	NestSetInput,
-/*	DoSimpleCommand:	*/	NestDoSimpleCommand,
-/*	Settings:			*/	NestSettings,
-/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
-/*	fps:				*/	60,
-/*	multires:			*/	false,
-/*	lcm_width:			*/	256,
-/*	lcm_height:			*/	240,
-/*  dummy_separator:	*/	0,
-/*	nominal_width:		*/	256,
-/*	nominal_height:		*/	240,
-/*	fb_width:			*/	1024,
-/*	fb_height:			*/	512,
-/*	soundchan:			*/	1
-};
-
-MDFNGI* GetNestopia()
-{
-	return &NestInfo;
-}
 
