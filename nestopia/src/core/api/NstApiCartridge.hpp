@@ -362,6 +362,7 @@ namespace Nes
 
 					/**
 					* CPU type.
+
 					*/
 					enum Cpu
 					{

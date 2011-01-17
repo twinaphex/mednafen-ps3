@@ -93,7 +93,9 @@ namespace Nes
 			*/
 			ulong Frame() const throw();
 
-		private:
+//ROBO: I wanna use this, OK
+//		private:
+		public:
 
 			Core::Machine& machine;
 

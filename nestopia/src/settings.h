@@ -14,6 +14,9 @@ namespace nestMDFN
 		bool							EnableNTSC;
 		uint32_t						NTSCMode;
 		bool							DisableSpriteLimit;
+
+		//
+		uint32_t						FPS;
 	};
 
 	void								GetSettings						(const char* aName = 0);

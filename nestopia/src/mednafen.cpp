@@ -179,8 +179,9 @@ int				NestLoad				(const char *name, MDFNFILE *fp)
 	//Setup machine type
 	Machine::Mode type = GetSystemType(fp->data, fp->size, 0);
 	Machine(Nestopia).SetMode(type);
-	NestInfo.MasterClock = MDFN_MASTERCLOCK_FIXED((type == Machine::NTSC ? 6000 : 5000));
-	NestInfo.fps = (type == Machine::NTSC ? 60 : 50) << 24;
+	NestopiaSettings.FPS = (type == Machine::NTSC ? 60 : 50);
+	NestInfo.MasterClock = MDFN_MASTERCLOCK_FIXED(NestopiaSettings.FPS * 100);
+	NestInfo.fps = NestopiaSettings.FPS << 24;
 
 	//Here we go
 	if(NES_FAILED(Machine(Nestopia).Power(true)))

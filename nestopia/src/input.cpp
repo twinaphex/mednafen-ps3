@@ -55,16 +55,22 @@ namespace nestMDFN
 
 			if(Types[aPort] == Input::PAD1)
 			{
-				Input(Nestopia).ConnectController(aPort, (Input::Type)(Input::PAD1 + aPort));
+				if(NES_FAILED(Input(Nestopia).ConnectController(aPort, (Input::Type)(Input::PAD1 + aPort))))
+				{
+					MDFND_Message("nest: Failed to connect controller\n");
+				}
 			}
 			else
 			{
-				Input(Nestopia).ConnectController(aPort, Types[aPort]);
+				if(NES_FAILED(Input(Nestopia).ConnectController(aPort, Types[aPort])))
+				{
+					MDFND_Message("nest: Failed to connect controller\n");
+				}
 			}
 		}
 		else
 		{
-			MDFND_Message("Couldn't plugin in controller");
+			MDFND_Message("nest: Couldn't plugin in controller\n");
 		}
 	}
 

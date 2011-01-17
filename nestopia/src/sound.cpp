@@ -15,8 +15,8 @@ namespace nestMDFN
 		SampleRate = aSampleRate;
 
 		EmuAudio.samples[0] = (void*)Samples;
-		//TODO: Real fps here
-		EmuAudio.length[0] = aSampleRate / 60;
+		//This cant really be how to get the length, can it?
+		EmuAudio.length[0] = aSampleRate / NestopiaSettings.FPS;
 		EmuAudio.samples[1] = NULL;
 		EmuAudio.length[1] = 0;
 
@@ -33,10 +33,10 @@ namespace nestMDFN
 
 	void						CopyAudio							(void* aSoundBuffer, uint32_t aMaxSize, int32_t& aFrameCount)
 	{
-		//TODO: Use real fps
-		if(aSoundBuffer && (aMaxSize > SampleRate / 60))
+		//This cant really be how to get the length, can it?
+		if(aSoundBuffer && (aMaxSize > SampleRate / NestopiaSettings.FPS))
 		{
-			aFrameCount = SampleRate / 60;
+			aFrameCount = SampleRate / NestopiaSettings.FPS;
 			memcpy(aSoundBuffer, Samples, aFrameCount * 2);
 		}
 		else

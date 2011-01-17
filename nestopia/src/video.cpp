@@ -19,6 +19,7 @@ namespace nestMDFN
 		{Video::DEFAULT_COLOR_FRINGING_COMP,	Video::DEFAULT_COLOR_FRINGING_SVIDEO,	Video::DEFAULT_COLOR_FRINGING_RGB}
 	};
 
+	//Functions
 	void						SetupVideo							(uint32_t aBits, uint32_t aRedShift, uint32_t aGreenShift, uint32_t aBlueShift)
 	{
 		int ntscmode = NestopiaSettings.NTSCMode > 2 ? 0 : NestopiaSettings.NTSCMode;
