@@ -8,6 +8,7 @@ class								SDLAudio : public ESAudio
 									~SDLAudio				();
 									
 		void						AddSamples				(uint32_t* aSamples, uint32_t aCount);
+		volatile int32_t			GetBufferFree			();
 
 	protected:
 		void						GetSamples				(uint32_t* aSamples, uint32_t aCount);

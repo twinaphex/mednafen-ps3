@@ -89,7 +89,7 @@ void						MednafenEmu::Init				()
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
-		externalSystems.push_back(GetVBAM());
+//		externalSystems.push_back(GetVBAM());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system
@@ -206,6 +206,8 @@ void						MednafenEmu::CloseGame			()
 
 void						MednafenEmu::Frame				()
 {
+	static bool nextskip = false;
+
 	if(IsInitialized && IsLoaded)
 	{
 		bool rewindnow = MDFN_GetSettingB(SETTINGNAME("rewind"));
@@ -219,20 +221,18 @@ void						MednafenEmu::Frame				()
 	
 		Inputs->Process();
 	
-		Syncher.Sync();
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
 		EmulatorSpec.LineWidths = VideoWidths;
-		EmulatorSpec.soundmultiplier = 1;
+		EmulatorSpec.soundmultiplier = es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? 4 : 1;
 		EmulatorSpec.SoundRate = 48000;
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
 		EmulatorSpec.NeedRewind = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-		EmulatorSpec.skip = Syncher.NeedFrameSkip();
+		EmulatorSpec.skip = nextskip;
 		MDFNI_Emulate(&EmulatorSpec);
-		Syncher.AddEmuTime((EmulatorSpec.MasterCycles) / (Counter.Fast() ? 4 : 1));		
 
 		if(!EmulatorSpec.skip)
 		{
@@ -254,22 +254,33 @@ void						MednafenEmu::Frame				()
 			}
 	
 			es_video->Flip();
-
-			//AUDIO
-			if(GameInfo->soundchan > 1)
-			{
-				es_audio->AddSamples((uint32_t*)Samples, EmulatorSpec.SoundBufSize);
-			}
-			else
-			{
-				for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
-				{
-					SamplesUp[i * 2] = Samples[i];
-					SamplesUp[i * 2 + 1] = Samples[i];
-				}
-				es_audio->AddSamples((uint32_t*)SamplesUp, EmulatorSpec.SoundBufSize);
-			}
 		}
+
+		//AUDIO
+		uint32_t* realsamps = (uint32_t*)Samples;
+
+		if(GameInfo->soundchan == 1)
+		{
+			for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
+			{
+				SamplesUp[i * 2] = Samples[i];
+				SamplesUp[i * 2 + 1] = Samples[i];
+			}
+
+			realsamps = (uint32_t*)SamplesUp;
+		}
+
+		int32 less = es_audio->GetBufferAmount();
+		if(less < EmulatorSpec.SoundBufSize * (2 * (es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? 4 : 1)))
+		{
+			nextskip = true;
+		}
+		else
+		{
+			nextskip = false;
+		}
+
+		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 		
 		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{

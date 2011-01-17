@@ -22,15 +22,19 @@
 	SDL_CloseAudio();
 }
 
+bool ini = 0;
+
 void					SDLAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	SDL_LockAudio();
-	
-	if(BufferSize - GetBufferAmount() < aCount)
+	ini = 1;
+
+	while(GetBufferFree() < aCount)
 	{
-		return;
+		Utility::Sleep(0);
 	}
 
+	SDL_LockAudio();
+	
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
@@ -44,6 +48,7 @@ void					SDLAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 	if(GetBufferAmount() < aCount)
 	{
 		//Would report, but inside menu this is hit all of the time
+		if(ini) printf("underrun\n");
 		memset(aSamples, 0, aCount * 4);
 	}
 	else
@@ -76,3 +81,9 @@ volatile int32_t 		SDLAudio::GetBufferAmount		()
 {
 	return (WriteCount - ReadCount);
 }
+
+volatile int32_t 		SDLAudio::GetBufferFree			()
+{
+	return BufferSize - (WriteCount - ReadCount);
+}
+
