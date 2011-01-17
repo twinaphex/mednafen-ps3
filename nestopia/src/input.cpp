@@ -53,7 +53,14 @@ namespace nestMDFN
 				}
 			}
 
-			Input(Nestopia).ConnectController(aPort, Types[aPort]);
+			if(Types[aPort] == Input::PAD1)
+			{
+				Input(Nestopia).ConnectController(aPort, (Input::Type)(Input::PAD1 + aPort));
+			}
+			else
+			{
+				Input(Nestopia).ConnectController(aPort, Types[aPort]);
+			}
 		}
 		else
 		{
@@ -150,11 +157,11 @@ namespace nestMDFN
 
 	InputDeviceInfoStruct		InputDeviceInfoNESPort[] =
 	{
-		{"none",		"none",				NULL,	0,	NULL},
+		{"none",		"None",				NULL,	0,	NULL},
 		{"gamepad",		"Gamepad",			NULL,	8,	GamepadIDII},
 		{"zapper",		"Zapper",			NULL,	3,	ZapperIDII},
 		{"powerpada",	"Power Pad Side A",	NULL,	12,	PowerpadIDII},
-		{"powerpadb",	"Power Pad Side b",	NULL,	12,	PowerpadIDII},
+		{"powerpadb",	"Power Pad Side B",	NULL,	8,	PowerpadIDII},
 		{"arkanoid",	"Arkanoid Paddle",	NULL,	2,	ArkanoidIDII},
 	};
 
