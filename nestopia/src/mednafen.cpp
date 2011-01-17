@@ -22,7 +22,6 @@
 namespace nestMDFN
 {
 	EmulateSpecStruct*			ESpec;
-
 	bool						GameOpen = false;
 
 	Nes::Api::Emulator			Nestopia;
