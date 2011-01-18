@@ -89,7 +89,8 @@ void						MednafenEmu::Init				()
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(GetNestopia());
 		externalSystems.push_back(GetGambatte());
-//		externalSystems.push_back(GetVBAM());
+		externalSystems.push_back(GetVBAM());
+		externalSystems.push_back(GetPCSX());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system
@@ -155,9 +156,9 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			MDFNI_LoadState(0, "mcq");
 		}
 	
-		PCESkipHack = strcmp(GameInfo->shortname, "pce") == 0 || strcmp(GameInfo->shortname, "pce_fast") == 0;
-		
 		IsLoaded = true;
+		SkipCount = 0;
+		SkipNext = false;
 
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
 
@@ -206,8 +207,6 @@ void						MednafenEmu::CloseGame			()
 
 void						MednafenEmu::Frame				()
 {
-	static bool nextskip = false;
-
 	if(IsInitialized && IsLoaded)
 	{
 		bool rewindnow = MDFN_GetSettingB(SETTINGNAME("rewind"));
@@ -225,17 +224,19 @@ void						MednafenEmu::Frame				()
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
 		EmulatorSpec.LineWidths = VideoWidths;
-		EmulatorSpec.soundmultiplier = es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? 4 : 1;
+		EmulatorSpec.soundmultiplier = Counter.GetSpeed();
 		EmulatorSpec.SoundRate = 48000;
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
 		EmulatorSpec.NeedRewind = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-		EmulatorSpec.skip = nextskip;
+		EmulatorSpec.skip = SkipNext && ((SkipCount ++) < 4);
 		MDFNI_Emulate(&EmulatorSpec);
 
 		if(!EmulatorSpec.skip)
 		{
+			SkipCount = 0;
+
 			//VIDEO
 			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
 
@@ -270,16 +271,7 @@ void						MednafenEmu::Frame				()
 			realsamps = (uint32_t*)SamplesUp;
 		}
 
-		int32 less = es_audio->GetBufferAmount();
-		if(less < EmulatorSpec.SoundBufSize * (2 * (es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? 4 : 1)))
-		{
-			nextskip = true;
-		}
-		else
-		{
-			nextskip = false;
-		}
-
+		SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
 		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 		
 		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
@@ -409,7 +401,7 @@ void						MednafenEmu::DoCommand			(const char* aName)
 		}
 
 		
-		Inputs->ReadSettings();
+		Inputs->ReadSettings();		static uint32_t					SkipCount;
 		
 		delete Scaler;
 		Scaler = 0;
@@ -448,7 +440,6 @@ EmuRealSyncher				MednafenEmu::Syncher;
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
-bool						MednafenEmu::PCESkipHack = false;
 bool						MednafenEmu::RewindEnabled = false;
 bool						MednafenEmu::RecordingVideo = false;
 bool						MednafenEmu::RecordingWave = false;
@@ -459,4 +450,5 @@ EmulateSpecStruct			MednafenEmu::EmulatorSpec;
 MDFN_Rect					MednafenEmu::VideoWidths[512];
 int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
-
+bool						MednafenEmu::SkipNext = false;
+uint32_t					MednafenEmu::SkipCount = 0;

@@ -49,44 +49,39 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
 void					L1ghtAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	sys_mutex_lock(BufferMutex, 0);
-
-	uint32_t total = GetBufferFree();
-	total = total > aCount ? aCount : total;
-
-	for(int i = 0; i != total; i ++, WriteCount ++)
+	while(GetBufferFree() < aCount)
 	{
-		RingBuffer[WriteCount & BufferMask] = aSamples[i];
+		Utility::Sleep(0);
 	}
 
-	if(total != aCount)
+	sys_mutex_lock(BufferMutex, 0);
+
+	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
-		printf("AddSamples: OVERRUN: Dropped %d samples\n", aCount - total);
+		RingBuffer[WriteCount & BufferMask] = aSamples[i];
 	}
 
 	sys_mutex_unlock(BufferMutex);
 }
 
-uint32_t				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
+void				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
 	sys_mutex_lock(BufferMutex, 0);
 
-	uint32_t total = GetBufferAmount();
-	total = total > aCount ? aCount : total;
-
-	for(int i = 0; i != total; i ++, ReadCount ++)
+	if(GetBufferAmount() < aCount)
 	{
-		aSamples[i] = RingBuffer[ReadCount & BufferMask];
+		//Would report, but inside menu this is hit all of the time
+		memset(aSamples, 0, aCount * 4);
 	}
-
-	if(total != aCount)
+	else
 	{
-//		printf("AddSamples: UNDERRUN: Missed %d samples\n", aCount - total);
+		for(int i = 0; i != aCount; i ++, ReadCount ++)
+		{
+			aSamples[i] = RingBuffer[ReadCount & BufferMask];
+		}
 	}
 
 	sys_mutex_unlock(BufferMutex);
-
-	return total;
 }
 
 void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
@@ -115,9 +110,9 @@ void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
 			outbuffer[i] = 0.0f;
 		}
 
-		uint32_t samplecount = audio->GetSamples((uint32_t*)samples, 256);
+		audio->GetSamples((uint32_t*)samples, 256);
 
-		for(uint32_t i = 0; i != samplecount * 2; i ++)
+		for(uint32_t i = 0; i != 256 * 2; i ++)
 		{
 			outbuffer[i] = ((float)samples[i]) / 32768.0f;
 		}

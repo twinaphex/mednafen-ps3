@@ -22,12 +22,8 @@
 	SDL_CloseAudio();
 }
 
-bool ini = 0;
-
 void					SDLAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	ini = 1;
-
 	while(GetBufferFree() < aCount)
 	{
 		Utility::Sleep(0);
@@ -45,10 +41,10 @@ void					SDLAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 
 void					SDLAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
+	//TODO: Fix this
 	if(GetBufferAmount() < aCount)
 	{
 		//Would report, but inside menu this is hit all of the time
-		if(ini) printf("underrun\n");
 		memset(aSamples, 0, aCount * 4);
 	}
 	else

@@ -10,7 +10,7 @@ class								L1ghtAudio : public ESAudio
 		void						AddSamples				(uint32_t* aSamples, uint32_t aCount);
 
 	protected:
-		uint32_t					GetSamples				(uint32_t* aSamples, uint32_t aCount);
+		void						GetSamples				(uint32_t* aSamples, uint32_t aCount);
 
 		volatile int32_t			GetBufferAmount			();
 		volatile int32_t			GetBufferFree			();

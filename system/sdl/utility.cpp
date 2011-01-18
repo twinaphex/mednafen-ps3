@@ -5,7 +5,6 @@
 {
 	Button = aButton;
 	Speed = aSpeed;
-	Counter = 0;
 	LastFPS = 0;
 	LastFPSTime = 0;
 	FrameCount = 0;
@@ -20,16 +19,14 @@ bool						FastCounter::Fast					()
 	return es_input->ButtonPressed(0, Button);
 }
 
-void						FastCounter::Tick					()
+uint32_t					FastCounter::GetSpeed				()
 {
-	Counter = ((Counter + 1) == Speed) ? 0 : Counter + 1;
-	
-	FrameCount ++;
+	return Fast() ? Speed : 1;
 }
 
-bool						FastCounter::DrawNow				()
+void						FastCounter::Tick					()
 {
-	return !es_input->ButtonPressed(0, Button) || Counter == 0;
+	FrameCount ++;
 }
 
 uint32_t					FastCounter::GetFPS					()

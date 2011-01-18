@@ -151,14 +151,13 @@ class				FastCounter
 									~FastCounter				();
 								
 		bool						Fast						();
+		uint32_t					GetSpeed					();
 		void						Tick						();
-		bool						DrawNow						();
 		uint32_t					GetFPS						();
 								
 	protected:
 		uint32_t					Button;
 		uint32_t					Speed;
-		uint32_t					Counter;
 		
 		uint32_t					LastFPS;
 		uint32_t					LastFPSTime;

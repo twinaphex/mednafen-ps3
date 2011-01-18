@@ -64,7 +64,6 @@ class	MednafenEmu
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
-		static bool						PCESkipHack;
 		static bool						RewindEnabled;
 		static bool						RecordingVideo;
 		static bool						RecordingWave;
@@ -75,6 +74,8 @@ class	MednafenEmu
 		static MDFN_Rect				VideoWidths[512];
 		static int16					Samples[48000];
 		static int16_t					SamplesUp[48000];
+		static bool						SkipNext;
+		static uint32_t					SkipCount;
 };
 
 #endif
