@@ -16,6 +16,6 @@ make -j2
 cd ../mednafen
 make clean
 make -j2
-make pkg
+make signpkg
 cd ..
 mv mednafen/mednafen.pkg .
