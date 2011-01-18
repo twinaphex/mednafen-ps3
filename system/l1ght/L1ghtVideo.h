@@ -45,7 +45,7 @@ class								L1ghtVideo : public ESVideo
 		
 		void						PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF, Area* aArea = 0);
 		void						FillRectangle			(Area aArea, uint32_t aColor);
-		void						PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan);
+		void						PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan);
 		
 	protected:
 		void						PrepareBuffer			();
@@ -70,3 +70,4 @@ class								L1ghtVideo : public ESVideo
 };
 
 #endif
+

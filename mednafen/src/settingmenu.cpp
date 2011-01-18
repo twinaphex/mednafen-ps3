@@ -58,7 +58,16 @@ bool								MednafenSettingItem::Input						()
 
 		if(value != 0)
 		{
-			MDFNI_SetSettingUI(Setting.name, (Setting.desc->type == MDFNST_INT ? MDFN_GetSettingI(Setting.name) : MDFN_GetSettingUI(Setting.name)) + value);
+			if(Setting.desc->type == MDFNST_UINT)
+			{
+				MDFNI_SetSettingUI(Setting.name, MDFN_GetSettingUI(Setting.name) + value);
+			}
+			else
+			{
+				char buffer[256];
+				snprintf(buffer, 256, "%lli", (long long int)MDFN_GetSettingI(Setting.name) + value);
+				MDFNI_SetSetting(Setting.name, buffer);
+			}
 		}
 	}
 	else if(Setting.desc->type == MDFNST_ENUM)

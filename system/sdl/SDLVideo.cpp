@@ -117,7 +117,7 @@ void					SDLVideo::FillRectangle			(Area aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
 }
 
-void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan)
+void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan)
 {
 	Area output = CalculatePresentArea(aAspectOverride, aUnderscan);
 

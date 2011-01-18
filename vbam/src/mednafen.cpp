@@ -181,7 +181,33 @@ bool			VbamToggleLayer			(int which)									{return false;}
 void			VbamInstallReadPatch	(uint32 address)							{}
 void			VbamRemoveReadPatches	(void)										{}
 uint8			VbamMemRead				(uint32 addr)								{return 0;}
-int				VbamStateAction			(StateMem *sm, int load, int data_only)		{return 0;}
+
+char	 		StateData[1024*512];
+int				VbamStateAction			(StateMem *sm, int load, int data_only)
+{
+	if(!load)
+	{
+		emulator.emuWriteMemState(StateData, 512 * 1024);
+
+		smem_write32le(sm, 512 * 1024);
+		smem_write(sm, StateData, 512 * 1024);
+
+		return 1;
+	}
+	else
+	{
+		uint32_t size;
+		smem_read32le(sm, &size);
+		smem_read(sm, StateData, size);
+
+		emulator.emuReadMemState(StateData, 512 * 1024);
+
+		return 1;
+	}
+
+	return 0;
+}
+
 
 
 //SYSTEM DESCRIPTIONS

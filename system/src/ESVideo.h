@@ -7,12 +7,12 @@ class							Font;
 class							Area
 {
 	public:
-		uint32_t				X, Y, Width, Height;
+		int32_t					X, Y, Width, Height;
 		
-		uint32_t				Right					()		{return X + Width;}
-		uint32_t				Bottom					()		{return Y + Height;}
+		int32_t					Right					()		{return X + Width;}
+		int32_t					Bottom					()		{return Y + Height;}
 
-								Area					(uint32_t aX = 0, uint32_t aY = 0, uint32_t aWidth = 0, uint32_t aHeight = 0)
+								Area					(int32_t aX = 0, int32_t aY = 0, int32_t aWidth = 0, int32_t aHeight = 0)
 		{
 			X = aX;
 			Y = aY;
@@ -73,10 +73,10 @@ class								ESVideo
 		
 		virtual void				PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF, Area* aArea = 0) = 0;
 		virtual void				FillRectangle			(Area aArea, uint32_t aColor) = 0;
-		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, uint32_t aUnderscan) = 0;
+		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan) = 0;
 
 	public: //Helpers
-		Area						CalculatePresentArea	(bool aAspectOverride, uint32_t aUnderscan)
+		Area						CalculatePresentArea	(bool aAspectOverride, int32_t aUnderscan)
 		{
 			Area output(0, 0, GetScreenWidth(), GetScreenHeight());
 		

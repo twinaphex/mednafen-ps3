@@ -56,7 +56,7 @@ namespace
 	MDFNSetting SystemSettings[] = 
 	{
 		{"scaler", MDFNSF_NOFLAGS, "Special filter for screen scaling.", NULL, MDFNST_ENUM, "none", NULL, NULL, NULL, NULL, FilterEnumList },	
-		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "0", "50" },
+		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "-50", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"filter", MDFNSF_NOFLAGS, "Use bilinear filter for display", NULL, MDFNST_BOOL, "0"},
 		{"fullframe", MDFNSF_NOFLAGS, "Ignore screen aspect ratio", NULL, MDFNST_BOOL, "0"},
@@ -90,7 +90,7 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(nestGetEmulator());
 		externalSystems.push_back(gmbtGetEmulator());
 		externalSystems.push_back(vbamGetEmulator());
-		externalSystems.push_back(pcsxGetEmulator());
+//		externalSystems.push_back(pcsxGetEmulator());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system
@@ -323,7 +323,7 @@ void						MednafenEmu::Blit				()
 		memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
 	}
 
-	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingUI(SETTINGNAME("underscan")));
+	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
 }
 
 void						MednafenEmu::DoCommand			(const char* aName)
