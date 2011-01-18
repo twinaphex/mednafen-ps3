@@ -134,7 +134,7 @@ MDFNGI	NestInfo =
 /*	soundchan:			*/	1
 };
 
-MDFNGI* GetNestopia()
+extern "C" MDFNGI* GetEmulator()
 {
 	return &NestInfo;
 }

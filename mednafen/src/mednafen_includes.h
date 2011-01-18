@@ -17,10 +17,10 @@
 
 void							ReloadEmulator			();
 void							Exit					();
-MDFNGI*							GetNestopia				();
-MDFNGI*							GetGambatte				();
-extern "C" MDFNGI*				GetVBAM					();
-MDFNGI*							GetPCSX					();
+extern "C" MDFNGI*				nestGetEmulator			();
+extern "C" MDFNGI*				gmbtGetEmulator			();
+extern "C" MDFNGI*				vbamGetEmulator			();
+extern "C" MDFNGI*				pcsxGetEmulator			();
 
 void							MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu);
 void							MDFNDES_BlockExit		(bool aExit);

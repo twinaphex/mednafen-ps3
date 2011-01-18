@@ -211,7 +211,7 @@ MDFNGI	PcsxrInfo =
 /*	soundchan:			*/	2
 };
 	
-MDFNGI* GetPCSX()
+extern "C" MDFNGI* GetEmulator()
 {
 	return &PcsxrInfo;
 }

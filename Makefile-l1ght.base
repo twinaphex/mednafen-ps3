@@ -1,4 +1,4 @@
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
 
 ifeq ($(strip $(PREFIX)),)
 PREFIX=ppu-

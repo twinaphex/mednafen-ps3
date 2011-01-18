@@ -279,7 +279,7 @@ static MDFNGI	VbamInfo =
 
 }
 
-extern "C" MDFNGI* GetVBAM()
+extern "C" MDFNGI* GetEmulator()
 {
 	return &vbamMDFN::VbamInfo;
 }

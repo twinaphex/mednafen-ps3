@@ -325,7 +325,7 @@ static MDFNGI	GmbtInfo =
 /*	soundchan:*/		2
 };
 
-MDFNGI* GetGambatte()
+extern "C" MDFNGI* GetEmulator()
 {
 	return &GmbtInfo;
 }

@@ -87,10 +87,10 @@ void						MednafenEmu::Init				()
 
 		//Get the external emulators, nestopia and gambatte, vbam for PS3 only
 		std::vector<MDFNGI*> externalSystems;
-		externalSystems.push_back(GetNestopia());
-		externalSystems.push_back(GetGambatte());
-		externalSystems.push_back(GetVBAM());
-		externalSystems.push_back(GetPCSX());
+		externalSystems.push_back(nestGetEmulator());
+		externalSystems.push_back(gmbtGetEmulator());
+		externalSystems.push_back(vbamGetEmulator());
+//		externalSystems.push_back(pcsxGetEmulator());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system

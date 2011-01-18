@@ -4,6 +4,7 @@ endif
 
 TARGET		:=	libvbam
 TYPE		:=	a
+SYMPREFIX	:=	vbam
 BUILD		:=	build
 SOURCE		:=	src src/src src/src/common src/src/apu src/src/gb src/src/gba 
 INCLUDE		:=	../mednafen/src src/src src/fex

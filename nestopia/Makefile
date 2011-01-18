@@ -4,6 +4,7 @@ endif
 
 TARGET		:=	libnestopia
 TYPE		:=	a
+SYMPREFIX	:=	nest
 BUILD		:=	build
 SOURCE		:=	src src/core src/core/api src/core/board src/core/input src/core/vssystem
 INCLUDE		:=	../mednafen/src

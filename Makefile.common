@@ -20,6 +20,9 @@
 %.a:
 	@echo "[AR]  $(notdir $@)"
 	@$(AR) -rcs $@ $^
+ifneq ($(strip $(SYMPREFIX)),)
+	python $(TOP)/manhandle.py $@ $(SYMPREFIX) $(OBJCOPY)
+endif
 
 %.elf:
 	@echo "[LD]  $(notdir $@)"
