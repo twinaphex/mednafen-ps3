@@ -26,8 +26,15 @@ extern "C"
 	}
 }
 
+#include "Fir_Resampler.h"
+static Fir_Resampler<8> resampler;
+
 int				PcsxrLoad				()
 {
+	resampler.buffer_size(588 * 2 * 2 + 100);
+	resampler.time_ratio((double)44100 / 48000.0, 0.9965);
+
+
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	std::string filename2 = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2");
 	SetMCDS(filename.c_str(), filename2.c_str());
@@ -78,6 +85,7 @@ int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
 	return 0;
 }
 
+uint16_t bingbang[48000];
 void			PcsxrEmulate			(EmulateSpecStruct *espec)
 {
     ESpec = espec;
@@ -88,8 +96,20 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
 
 	uint32_t width, height;
 	uint32_t sndsize;
-	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)espec->SoundBuf, &sndsize);
-	espec->SoundBufSize = sndsize;
+	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)bingbang, &sndsize);
+
+	if(sndsize < 1500)
+	{
+	for(int i = 0; i != sndsize * 2; i ++)
+	{
+		resampler.buffer()[i] = /*(rand() & 0x7FFF) - 0x4000;*/ bingbang[i];
+	}
+
+	resampler.write(sndsize * 2);
+	espec->SoundBufSize = resampler.read(espec->SoundBuf, resampler.avail()) >> 1;
+
+	printf("%d\n", espec->SoundBufSize);
+	}
 
     //TODO: Support color shift
     //TODO: Support multiplayer
