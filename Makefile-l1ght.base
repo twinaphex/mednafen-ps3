@@ -1,0 +1,50 @@
+export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
+ifeq ($(strip $(PREFIX)),)
+PREFIX=ppu-
+endif
+
+OBJCOPY		:= $(PREFIX)objcopy
+AR			:= $(PREFIX)ar
+AS			:= $(PREFIX)gcc
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+LD			:= $(CXX)
+STRIP		:= $(PREFIX)strip
+FSELF		:= $(PSL1GHT)/bin/fself.py
+SFO			:= $(PSL1GHT)/bin/sfo.py
+PS3LOADAPP	:= $(PSL1GHT)/bin/ps3load
+SFOXML		:= $(PSL1GHT)/bin/sfo.xml
+PKG			:= $(PSL1GHT)/bin/pkg.py
+SPRX		:= $(PSL1GHT)/bin/sprxlinker
+
+ifeq ($(strip $(FREETYPECONFIG)),)
+	FREETYPECONFIG=freetype-config
+endif
+
+CFLAGS		+= -DL1GHT -O3 -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CXXFLAGS	+= -DL1GHT -O3 -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs` -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
+DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
+
+###
+include $(TOP)/Makefile.common
+###
+
+signpkg: $(BUILD)
+	@echo Creating signed PKG...
+	@$(STRIP) $(OUTPUT).elf
+	@$(SPRX) $(OUTPUT).elf
+	@make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
+	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
+
+
+pkg: $(BUILD)
+	@echo Creating PKG...
+	@$(STRIP) $(OUTPUT).elf
+	@$(SPRX) $(OUTPUT).elf
+	@$(FSELF) -n $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN
+	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
+
