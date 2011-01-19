@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-							Logger::Logger						(const std::string& aHeader) : TextViewer("", aHeader)
+							Logger::Logger						(const Area& aRegion) : TextViewer(aRegion, "", false)
 {
 }
 

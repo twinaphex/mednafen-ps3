@@ -143,14 +143,15 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		if(GameInfo == 0)
 		{
-			es_log->Do();
+			Summerface("Log", es_log).Do();
 			Exit();
 		}
 
 		Buffer->Clear(0);
 
 		Inputs = new InputHandler(GameInfo);
-		TextFile = new TextViewer(aFileName + ".txt");
+		TextFile = new TextViewer(Area(10, 10, 80, 80), aFileName + ".txt");
+		TextFile->SetNoDelete();
 
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
@@ -387,7 +388,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		DoStates(false);
 		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		DoStates(true);
 		if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
-		if(0 == strcmp(command.c_str(), "DoTextFile"))			TextFile->Do();
+		if(0 == strcmp(command.c_str(), "DoTextFile"))			Summerface("Text", TextFile).Do();
 		if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
 
 		if(0 == strcmp(command.c_str(), "DoToggleRecordVideo"))

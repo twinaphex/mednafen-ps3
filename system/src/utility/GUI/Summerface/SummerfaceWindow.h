@@ -25,11 +25,16 @@ class													SummerfaceWindow
 		virtual void									SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);
 		virtual SummerfaceInputConduit*					GetInputConduit					();
 
+		virtual void									SetNoDelete						();
+		virtual bool									GetNoDelete						();
+
 	private:
 		static const uint32_t							BorderWidth = 4;
 
 		SummerfaceInputConduit*							InputHandler;
 		bool											DeleteHandler;
+
+		bool											NoDelete;
 
 		Summerface*										Interface;
 		std::string										Name;

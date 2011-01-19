@@ -52,7 +52,8 @@ void				InitES					(void (*aExitFunction)())
 	ImageManager::CreateScratch();
 	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
 
-	es_log = new Logger();
+	es_log = new Logger(Area(10, 10, 80, 80));
+	es_log->SetNoDelete();
 }
 
 void				QuitES					()

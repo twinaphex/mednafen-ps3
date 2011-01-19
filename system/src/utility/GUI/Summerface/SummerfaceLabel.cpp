@@ -27,3 +27,8 @@ void										SummerfaceLabel::SetMessage							(const std::string& aMessage)
 	Message = aMessage;
 }
 
+void										SummerfaceLabel::AppendMessage						(const std::string& aMessage)
+{
+	SetMessage(GetMessage() + aMessage);
+}
+
