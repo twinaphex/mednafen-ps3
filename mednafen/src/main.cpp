@@ -131,6 +131,9 @@ void				ReloadEmulator			()
 	}
 }
 
+//TODO: Move this elsewhere
+void ESSUB_Error(const char*);
+
 int					main					(int argc, char* argv[])
 {
 	try
