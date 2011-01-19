@@ -9,7 +9,7 @@ namespace
 			{
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 				{
-					MednafenSettings("general").Do();
+					MednafenSettings::Do();
 				}
 
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
@@ -130,9 +130,6 @@ void				ReloadEmulator			()
 		}
 	}
 }
-
-//TODO: Move this elsewhere
-void ESSUB_Error(const char*);
 
 int					main					(int argc, char* argv[])
 {

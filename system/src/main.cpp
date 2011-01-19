@@ -23,11 +23,13 @@ bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
 std::string			ESSUB_GetBaseDirectory	();
 
+#ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage)
 {
 	SummerfaceLabel* text = new SummerfaceLabel(Area(10, 10, 80, 20), aMessage);
 	Summerface("Error", text).Do();
 }
+#endif
 
 void				Abort					(const char* aMessage)
 {

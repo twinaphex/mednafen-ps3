@@ -1,6 +1,12 @@
 #ifndef MDFN_SETTING_MENU_H
 #define MDFN_SETTING_MENU_H
 
+namespace											MednafenSettings
+{
+	void											Do								();
+}
+
+#if 0
 class												MednafenSettingItem : public ListItem
 {
 	public:
@@ -24,6 +30,7 @@ class												MednafenSettings : public WinterfaceMultiList
 
 		virtual std::string							GetHeader						();
 };
+#endif
 
 #endif
 
