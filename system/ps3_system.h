@@ -31,11 +31,7 @@
 #include "src/utility/ImageManager.h"
 #include "src/utility/GUI/Menu.h"
 #include "src/utility/GUI/ListItem.h"
-#include "src/utility/GUI/InputListItem.h"
 #include "src/utility/GUI/Summerface.h"
-#include "src/utility/GUI/Winterface.h"
-#include "src/utility/GUI/WinterfaceList.h"
-#include "src/utility/GUI/WinterfaceMultiList.h"
 #include "src/utility/Files/FileException.h"
 #include "src/utility/Files/FileListItem.h"
 #include "src/utility/Files/FileEnumerator.h"
@@ -58,6 +54,6 @@ void				QuitES					();
 volatile bool		WantToDie				();
 volatile bool		WantToSleep				();
 void				Abort					(const char* aMessage);
-
+void				ESSUB_Error				(const char* aMessage);
 
 

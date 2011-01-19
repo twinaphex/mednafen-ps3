@@ -1,5 +1,48 @@
 #include <mednafen_includes.h>
 
+namespace								MednafenSettings
+{
+	std::map<std::string,std::vector<std::string> >	Settings;
+
+	void								Do												()
+	{
+		const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
+
+		for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
+		{
+			std::string header = "general";
+		
+			//HACK: Don't use filesys.*samedir
+			if(strstr(iter->second.name, "filesys.") != 0 && strstr(iter->second.name, "samedir") != 0)
+			{
+				MDFNI_SetSettingB(iter->second.name, false);
+				continue;
+			}
+		
+			if(std::string(iter->second.name).find(".esinput.") != std::string::npos || std::string(iter->second.name).find(".bookmarks") != std::string::npos)
+			{
+				continue;
+			}
+		
+			if(std::string(iter->second.name).find(".") != std::string::npos)
+			{
+				header = std::string(iter->second.name).substr(0, std::string(iter->second.name).find_first_of("."));
+			}
+
+			Settings[header].push_back(iter->second.name);
+		}
+
+		SummerfaceLineList*	list = new SummerfaceLineList(Area(10, 10, 80, 80));
+		for(std::map<std::string,std::vector<std::string> >::iterator i = Settings.begin(); i != Settings.end(); i ++)
+		{
+			list->AddItem(new SummerfaceItem(i->first, ""));
+		}
+
+		Summerface("Settings", list).Do();
+	}
+}
+
+#if 0
 namespace
 {
 	bool							CompareItems									(ListItem* a, ListItem* b)
@@ -189,19 +232,10 @@ bool								MednafenSettingItem::Input						()
 	}
 	
 	SetCategory(aDefault);
-
-	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));	
-	SideItems.push_back(new InputListItem("Change Value", ES_BUTTON_LEFT));
-	SideItems.push_back(new InputListItem("Use Keyboard", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Reset to Default", ES_BUTTON_SHIFT));
-	SideItems.push_back(new InputListItem("Change Category", ES_BUTTON_AUXLEFT1));
-	SideItems.push_back(new InputListItem("Change Category", ES_BUTTON_AUXRIGHT1));
-	SideItems.push_back(new InputListItem("Set to File", ES_BUTTON_TAB));
-	SideItems.push_back(new InputListItem("Close", ES_BUTTON_CANCEL));
 }
 
 std::string						MednafenSettings::GetHeader						()
 {
 	return std::string("[") + Header + "] " + ((MednafenSettingItem*)GetSelected())->GetDescription();
 }
-
+#endif
