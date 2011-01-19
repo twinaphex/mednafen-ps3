@@ -2,22 +2,22 @@
 
 namespace
 {
-	bool								AlphaSortC								(ListItem* a, ListItem* b)
+	bool								AlphaSortC								(SummerfaceItem* a, SummerfaceItem* b)
 	{
-		if(((FileListItem*)a)->IsDirectory() && !((FileListItem*)b)->IsDirectory())			return true;
-		if(((FileListItem*)b)->IsDirectory() && !((FileListItem*)a)->IsDirectory())			return false;
+		if(a->Properties["DIRECTORY"] == "1" && b->Properties["DIRECTORY"] == "0")			return true;
+		if(b->Properties["DIRECTORY"] == "1" && a->Properties["DIRECTORY"] == "0")			return false;
 	
 		return a->GetText() < b->GetText();
 	}
 }
 
-										FileList::FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks, MenuHook* aInputHook) : WinterfaceList(std::string("[") + aHeader + "]" + aPath, true, true, aInputHook), BookMarks(aBookmarks)
+										FileList::FileList						(const Area& aRegion, const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks) : SummerfaceLineList(aRegion), BookMarks(aBookmarks)
 {
 	FileEnumerator& enumer = Enumerators::GetEnumerator(aPath);
 
 	Path = aPath;
 
-	if(aPath.empty())
+/*	if(aPath.empty())
 	{
 		for(int i = 0; i != BookMarks.size(); i ++)
 		{
@@ -43,21 +43,20 @@ namespace
 				directory = true;
 			}
 			
+
 			Items.push_back(new FileListItem(nicename, BookMarks[i], directory, true));
 		}
-	}
+	}*/
 
 	std::vector<std::string> filters;
-	enumer.ListPath(aPath, filters, Items);
+	std::vector<SummerfaceItem*> items;
+	enumer.ListPath(aPath, filters, items);
+	for(int i = 0; i != items.size(); i ++)
+	{
+		AddItem(items[i]);
+	}
 	
-	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));	
-	SideItems.push_back(new InputListItem("Select Item", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Previous Dir", ES_BUTTON_CANCEL));
-	SideItems.push_back(new InputListItem("Toggle Bookmark", ES_BUTTON_AUXRIGHT2));
-	SideItems.push_back(new InputListItem("Settings", ES_BUTTON_AUXRIGHT3));	//HACK: Only with the mednafen hook!!!!
-	SideItems.push_back(new InputListItem("Show Readme", ES_BUTTON_AUXLEFT3));	//HACK: Only with the mednafen hook!!!!
-
-	std::sort(Items.begin(), Items.end(), AlphaSortC);
+//	std::sort(Items.begin(), Items.end(), AlphaSortC);
 }
 
 bool									FileList::Input							()
@@ -79,7 +78,7 @@ bool									FileList::Input							()
 		}
 	}
 
-	return 	WinterfaceList::Input();
+	return 	SummerfaceLineList::Input();
 }
 
 std::string								FileList::GetFile						()

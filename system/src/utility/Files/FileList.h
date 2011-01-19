@@ -1,10 +1,11 @@
 #ifndef SYSTEM__FILELIST_H
 #define SYSTEM__FILELIST_H
 
-class												FileList : public WinterfaceList
+class												FileList : public SummerfaceLineList
 {
 	public:
-													FileList						(const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks, MenuHook* aInputHook = 0);
+													FileList						(const Area& aRegion, const std::string& aHeader, const std::string& aPath, std::vector<std::string>& aBookmarks);
+		virtual										~FileList						(){};
 													
 		bool										Input							();
 

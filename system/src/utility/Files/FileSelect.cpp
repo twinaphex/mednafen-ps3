@@ -7,8 +7,9 @@
 
 	try
 	{
-		FileList* list = new FileList(Header, aPath, BookMarks, InputHook);
-		Lists.push(list);
+		FileList* list = new FileList(Area(10, 10, 80, 80), Header, aPath, aBookMarks);
+		Summerface* sface = new Summerface("FileList", list);
+		Lists.push(sface);
 		Valid = true;
 	}
 	catch(FileException ex)
@@ -36,8 +37,9 @@ std::string								FileSelect::GetFile					()
 		while(!WantToDie())
 		{
 			Lists.top()->Do();
-			
-			if(Lists.top()->WasCanceled())
+			FileList* list = (FileList*)Lists.top()->GetWindow("FileList");			
+
+			if(list->WasCanceled())
 			{
 				if(Lists.size() == 1)
 				{
@@ -50,12 +52,13 @@ std::string								FileSelect::GetFile					()
 				continue;
 			}
 			
-			if(Lists.top()->IsDirectory())
+			if(list->GetSelected()->Properties["DIRECTORY"] == "1")
 			{
 				try
 				{
-					FileList* list = new FileList(Header, Lists.top()->GetFile(), BookMarks, InputHook);
-					Lists.push(list);
+					FileList* nlist = new FileList(Area(10, 10, 80, 80), Header, list->GetSelected()->Properties["PATH"], BookMarks);
+					Summerface* sface = new Summerface("FileList", nlist);
+					Lists.push(sface);
 				}
 				catch(FileException ex)
 				{
@@ -64,7 +67,7 @@ std::string								FileSelect::GetFile					()
 			}
 			else
 			{
-				return Lists.top()->GetFile();
+				return list->GetSelected()->Properties["PATH"];
 				break;
 			}
 		}
