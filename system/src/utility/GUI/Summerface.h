@@ -1,7 +1,33 @@
+#include "Summerface/Summerface.h"
+#include "Summerface/SummerfaceWindow.h"
+#include "Summerface/SummerfaceInputConduit.h"
+#include "Summerface/SummerfaceItem.h"
+#include "Summerface/SummerfaceLabel.h"
+#include "Summerface/SummerfaceList.h"
+
+#if 0
 #ifndef SYSTEM__SUMMERFACE_H
 #define SYSTEM__SUMMERFACE_H
 
 class	Summerface;
+
+class													SummerfaceInputConduit
+{
+	public:
+		virtual bool									HandleInput						(const std::string& aWindow) = 0;
+};
+
+class													SummerfaceStaticConduit	: public SummerfaceInputConduit
+{
+	public:
+														SummerfaceStaticConduit			(bool (*aCallback)(void*, const std::string&), void* aUserData);
+
+		virtual bool									HandleInput						(const std::string& aWindow);
+
+	protected:
+		bool											(*Callback)						(void*, const std::string&);
+		void*											UserData;
+};
 
 class													SummerfaceWindow
 {
@@ -12,19 +38,37 @@ class													SummerfaceWindow
 		bool											PrepareDraw						();
 
 		virtual bool									Draw							() = 0;
-		virtual bool									Input							() = 0;
+		bool											Input							();
 
 		Summerface*										GetInterface					();
 		std::string										GetName							();
 		void											SetInterface					(Summerface* aInterface, const std::string& aName);
 
+		void											SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);
+		SummerfaceInputConduit*							GetInputConduit					();
+
 	protected:
 		static const uint32_t							BorderWidth = 4;
+
+		SummerfaceInputConduit*							InputHandler;
+		bool											DeleteHandler;
 
 		Summerface*										Interface;
 		std::string										Name;
 		Area											Region;
 		Area											Client;
+};
+
+class													SummerfaceLabel : public SummerfaceWindow
+{
+	public:
+														SummerfaceLabel					(const Area& aRegion, const std::string& aMessage);
+		virtual											~SummerfaceLabel				();
+
+		virtual bool									Draw							();
+
+	protected:
+		std::string										Message;
 };
 
 class													SummerfaceItem
@@ -47,24 +91,6 @@ class													SummerfaceItem
 		std::string										Image;
 };
 
-class													SummerfaceInputConduit
-{
-	public:
-		virtual bool									HandleInput						(const std::string& aWindow, SummerfaceItem* aItem) = 0;
-};
-
-class													SummerfaceStaticConduit	: public SummerfaceInputConduit
-{
-	public:
-														SummerfaceStaticConduit			(bool (*aCallback)(void*, const std::string&, SummerfaceItem*), void* aUserData);
-
-		virtual bool									HandleInput						(const std::string& aWindow, SummerfaceItem* aItem);
-
-	protected:
-		bool											(*Callback)						(void*, const std::string&, SummerfaceItem*);
-		void*											UserData;
-};
-
 class													SummerfaceList : public SummerfaceWindow
 {
 	public:
@@ -79,9 +105,6 @@ class													SummerfaceList : public SummerfaceWindow
 		void											SetSelection					(uint32_t aIndex);
 
 		bool											WasCanceled						();
-
-		void											SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);
-		SummerfaceInputConduit*							GetInputConduit					();
 
 		void											SetFont							(Font* aFont);
 
@@ -153,4 +176,4 @@ class													Summerface : public Menu
 
 
 #endif
-
+#endif

@@ -12,8 +12,9 @@ class	MednafenEmu
 		
 		static void						Frame				();
 		static void						Blit				();
-		
-		static void						DoCommand			(const char* aName);
+
+		static void						DoCommands			();
+		static bool						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow);
 
 	public:		//Inlines
 		static bool						IsGameLoaded		()

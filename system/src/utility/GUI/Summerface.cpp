@@ -1,3 +1,4 @@
+#if 0
 #include <ps3_system.h>
 
 uint32_t ptpp(uint32_t aIn, bool aX)
@@ -6,9 +7,26 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 	return s * ((double)aIn / 100.0);
 }
 
+											SummerfaceStaticConduit::SummerfaceStaticConduit	(bool (*aCallback)(void*, const std::string&), void* aUserData)
+{
+	Callback = aCallback;
+	UserData = aUserData;
+}
+
+bool										SummerfaceStaticConduit::HandleInput				(const std::string& aWindow)
+{
+	if(Callback)
+	{
+		Callback(UserData, aWindow);
+	}
+}
+
+
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion)
 {
 	Interface = 0;
+	InputHandler = 0;
+	DeleteHandler = false;
 
 	Area outregion(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));
 
@@ -18,7 +36,10 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 
 											SummerfaceWindow::~SummerfaceWindow					()
 {
-
+	if(InputHandler && DeleteHandler)
+	{
+		delete InputHandler;
+	}
 }
 
 Summerface*									SummerfaceWindow::GetInterface						()
@@ -44,12 +65,28 @@ void										SummerfaceWindow::SetInterface						(Summerface* aInterface, const
 	}
 }
 
+void										SummerfaceWindow::SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete)
+{
+	if(InputHandler && DeleteHandler)
+	{
+		delete InputHandler;
+	}
+
+	InputHandler = aInputConduit;
+	DeleteHandler = aDelete;
+}
+
+SummerfaceInputConduit*						SummerfaceWindow::GetInputConduit					()
+{
+	return InputHandler;
+}
 
 //Draw the border and background, leave clip set to the windows client area
 bool										SummerfaceWindow::PrepareDraw						()
 {
 	es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
 
+//TODO: Make border color
 	es_video->FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
 	es_video->FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
 
@@ -62,6 +99,34 @@ bool										SummerfaceWindow::PrepareDraw						()
 	return Draw();
 }
 
+
+bool										SummerfaceWindow::Input								()
+{
+	if(InputHandler)
+	{
+		return InputHandler->HandleInput(GetName());
+	}
+
+	return false;
+}
+
+											SummerfaceLabel::SummerfaceLabel					(const Area& aRegion, const std::string& aMessage) : SummerfaceWindow(aRegion)
+{
+	Message = aMessage;
+}
+
+											SummerfaceLabel::~SummerfaceLabel					()
+{
+
+}
+
+bool										SummerfaceLabel::Draw								()
+{
+	FontManager::GetBigFont()->PutString(Message.c_str(), 2, 2, Colors::Normal);	
+	return false;
+}
+
+
 											SummerfaceItem::SummerfaceItem						(const std::string& aText, const std::string& aImage)
 {
 	SetText(aText);
@@ -73,29 +138,13 @@ bool										SummerfaceWindow::PrepareDraw						()
 
 }
 
-											SummerfaceStaticConduit::SummerfaceStaticConduit	(bool (*aCallback)(void*, const std::string&, SummerfaceItem*), void* aUserData)
-{
-	Callback = aCallback;
-	UserData = aUserData;
-}
-
-bool										SummerfaceStaticConduit::HandleInput				(const std::string& aWindow, SummerfaceItem* aItem)
-{
-	if(Callback)
-	{
-		Callback(UserData, aWindow, aItem);
-	}
-}
-
 											SummerfaceList::SummerfaceList						(const Area& aRegion) : SummerfaceWindow(aRegion)
 {
-	InputHandler = 0;
 	SelectedIndex = 0;
-	DeleteInputHandler = false;
 
 	Canceled = false;
 
-	LabelFont = FontManager::GetFixedFont();
+	LabelFont = FontManager::GetBigFont();
 }
 
 											SummerfaceList::~SummerfaceList						()
@@ -103,11 +152,6 @@ bool										SummerfaceStaticConduit::HandleInput				(const std::string& aWindo
 	for(std::vector<SummerfaceItem*>::iterator iter = Items.begin(); iter != Items.end(); iter ++)
 	{
 		delete (*iter);
-	}
-
-	if(InputHandler && DeleteInputHandler)
-	{
-		delete InputHandler;
 	}
 }
 
@@ -147,22 +191,6 @@ void										SummerfaceList::SetSelection						(uint32_t aIndex)
 bool										SummerfaceList::WasCanceled							()
 {
 	return Canceled;
-}
-
-void										SummerfaceList::SetInputConduit						(SummerfaceInputConduit* aInputConduit, bool aDelete)
-{
-	if(InputHandler && DeleteInputHandler)
-	{
-		delete InputHandler;
-	}
-
-	InputHandler = aInputConduit;
-	DeleteInputHandler = aDelete;
-}
-
-SummerfaceInputConduit*						SummerfaceList::GetInputConduit						()
-{
-	return InputHandler;
 }
 
 void										SummerfaceList::SetFont								(Font* aFont)
@@ -211,7 +239,7 @@ bool										SummerfaceGrid::Input								()
 
 	if(InputHandler && SelectedIndex < Items.size())
 	{
-		return InputHandler->HandleInput(GetName(), Items[SelectedIndex]); 
+		return InputHandler->HandleInput(GetName()); 
 	}
 
 	return false;
@@ -220,7 +248,6 @@ bool										SummerfaceGrid::Input								()
 bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
-	uint32_t TextColor = 0xFFFFFFFF;
 	Area ImageArea(0, 0, 0, 0);
 
 	if(image && aWidth && aHeight)
@@ -242,7 +269,7 @@ bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX
 
 		if(DrawLabels)
 		{
-			LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, 0xFFFFFFFF);
+			LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, Colors::Normal);
 		}
 	}
 	
@@ -267,7 +294,7 @@ bool										SummerfaceGrid::Draw								()
 		iconHeight = (es_video->GetClip().Height - LabelFont->GetHeight()) / Height - 4;
 		if(SelectedIndex < Items.size())
 		{
-			LabelFont->PutString(Items[SelectedIndex]->GetText().c_str(), 0, 0, 0xFFFFFFFF);
+			LabelFont->PutString(Items[SelectedIndex]->GetText().c_str(), 0, 0, Colors::Normal);
 		}
 	}
 
@@ -314,7 +341,7 @@ bool										SummerfaceLineList::DrawItem						(SummerfaceItem* aItem, uint32_t
 		aX += width;
 	}
 
-	LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? 0xC08080FF : 0x808080FF);
+	LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? Colors::HighLight : Colors::Normal);
 
 	return false;
 }
@@ -374,7 +401,7 @@ bool										SummerfaceLineList::Input							()
 
 	if(InputHandler)
 	{
-		return InputHandler->HandleInput(GetName(), Items[SelectedIndex]); 
+		return InputHandler->HandleInput(GetName()); 
 	}
 	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
@@ -449,7 +476,7 @@ bool										Summerface::Draw									()
 	uint32_t screenH = es_video->GetScreenHeight();
 
 	es_video->SetClip(Area(0, 0, 0, 0));
-	es_video->FillRectangle(Area(0, 0, screenW, screenH), 0x40404080);
+	es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::BackGround);
 
 	for(std::map<std::string, SummerfaceWindow*>::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
@@ -484,4 +511,4 @@ void										Summerface::SetActiveWindow							(const std::string& aName)
 {
 	ActiveWindow = aName;
 }
-
+#endif

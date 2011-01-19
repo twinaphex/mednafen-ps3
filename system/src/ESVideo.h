@@ -54,7 +54,7 @@ class								ESVideo
 	
 		virtual void				SetClip					(Area aClip)
 		{
-			if(aClip.Right() > GetScreenWidth() || aClip.Bottom() > GetScreenHeight())
+			if(aClip.Right() > GetScreenWidth() || aClip.Bottom() > GetScreenHeight() || aClip.Width == 0 || aClip.Height == 0)
 			{
 				esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 			}

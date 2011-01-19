@@ -37,7 +37,7 @@ bool								MednafenStateItem::Input						()
 	{
 		Parent->SelectMednafenState(Slot);
 
-		MednafenEmu::DoCommand(Load ? "DoLoadState" : "DoSaveState");
+		MednafenEmu::DoCommand(0, 0, Load ? "DoLoadState" : "DoSaveState");
 		return true;
 	}
 

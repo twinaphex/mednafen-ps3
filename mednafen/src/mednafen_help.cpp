@@ -279,7 +279,7 @@ void						MednafenEmu::Frame				()
 		
 		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{
-			MednafenCommands().Do();
+			DoCommands();
 		}
 	}
 }
@@ -329,23 +329,68 @@ void						MednafenEmu::Blit				()
 	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
 }
 
-void						MednafenEmu::DoCommand			(const char* aName)
+void						MednafenEmu::DoCommands			()
 {
-	if(IsLoaded && aName)
+	const char*	commands[] =
 	{
-		if(0 == strcmp(aName, "DoReload"))				ReloadEmulator();
-		if(0 == strcmp(aName, "DoSettings"))			MednafenSettings(GameInfo->shortname).Do();
-		if(0 == strcmp(aName, "DoReset"))				MDFNI_Reset();
-		if(0 == strcmp(aName, "DoScreenShot"))			MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(0 == strcmp(aName, "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(0 == strcmp(aName, "DoLoadState"))			MDFNI_LoadState(0, 0);
-		if(0 == strcmp(aName, "DoSaveStateMenu"))		MednafenStateMenu(false).Do();
-		if(0 == strcmp(aName, "DoLoadStateMenu"))		MednafenStateMenu(true).Do();
-		if(0 == strcmp(aName, "DoInputConfig"))			Inputs->Configure();
-		if(0 == strcmp(aName, "DoTextFile"))			TextFile->Do();
-		if(0 == strcmp(aName, "DoExit"))				Exit();
+		//Display name,			Image name,			Command name
+		"Change Game",			"DoReload",			"DoReload",
+		"Reset Game",			"DoReset",			"DoReset",
+		"Show Text File",		"DoTextFile",		"DoTextFile",
+		"Save State",			"DoSaveState",		"DoSaveStateMenu",
+		"Load State",			"DoLoadState",		"DoLoadStateMenu",
+		"Take Screen Shot",		"DoScreenShot",		"DoScreenShot",
+		"Settings",				"DoSettings",		"DoSettings",
+		"Configure Controls",	"DoInputConfig",	"DoInputConfig",
+		"Record Video",			"DoRecordVideo",	"DoToggleRecordVideo",
+		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
+		"Exit Mednafen",		"DoExit",			"DoExit",
+	};
 
-		if(0 == strcmp(aName, "DoToggleRecordVideo"))
+	SummerfaceGrid* grid = new SummerfaceGrid(Area(25, 25, 50, 50), 4, 3, true, false);
+	grid->SetInputConduit(new SummerfaceStaticConduit(DoCommand, 0), true);
+	for(int i = 0; i != 11; i ++)
+	{
+		SummerfaceItem* item = new SummerfaceItem(commands[i * 3], commands[i * 3 + 1]);
+		item->Properties["COMMAND"] = commands[i * 3 + 2];
+		grid->AddItem(item);
+	}
+
+	Summerface sface("Grid", grid); sface.Do();
+}
+
+bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow)
+{
+	std::string command;
+
+	if(aInterface && aInterface->GetWindow(aWindow) && es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	{
+		command = ((SummerfaceLineList*)aInterface->GetWindow(aWindow))->GetSelected()->Properties["COMMAND"];
+	}
+	else if(!aInterface)
+	{
+		command = aWindow;
+	}
+	else
+	{
+		return false;
+	}
+
+	if(IsLoaded)
+	{
+		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
+		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings(GameInfo->shortname).Do();
+		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
+		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
+		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		MednafenStateMenu(false).Do();
+		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		MednafenStateMenu(true).Do();
+		if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
+		if(0 == strcmp(command.c_str(), "DoTextFile"))			TextFile->Do();
+		if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
+
+		if(0 == strcmp(command.c_str(), "DoToggleRecordVideo"))
 		{
 			if(RecordingWave)
 			{
@@ -374,7 +419,7 @@ void						MednafenEmu::DoCommand			(const char* aName)
 			}
 		}
 
-		if(0 == strcmp(aName, "DoToggleRecordWave"))
+		if(0 == strcmp(command.c_str(), "DoToggleRecordWave"))
 		{
 			if(RecordingVideo)
 			{
@@ -404,11 +449,15 @@ void						MednafenEmu::DoCommand			(const char* aName)
 		}
 
 		
-		Inputs->ReadSettings();		static uint32_t					SkipCount;
+		Inputs->ReadSettings();
 		
 		delete Scaler;
 		Scaler = 0;
+
+		return true;
 	}
+
+	return false;
 }
 
 void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)

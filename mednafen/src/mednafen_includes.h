@@ -11,7 +11,6 @@
 #include "filters/filter.h"
 #include "inputhandler.h"
 #include "mednafen_help.h"
-#include "commandmenu.h"
 #include "settingmenu.h"
 #include "StateMenu.h"
 

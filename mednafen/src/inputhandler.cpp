@@ -12,91 +12,15 @@ namespace
 
 	bool								InputSortC								(InputHandler::InputInfo a, InputHandler::InputInfo b)
 	{
-		if(a.ConfigOrder != b.ConfigOrder)
+		if(a.Data->ConfigOrder != b.Data->ConfigOrder)
 		{
-			return a.ConfigOrder < b.ConfigOrder;
+			return a.Data->ConfigOrder < b.Data->ConfigOrder;
 		}
 		else
 		{
 			return a.Index < b.Index;
 		}
 	}
-}
-
-									MednafenInputItem::MednafenInputItem				(const std::string& aNiceName, const std::string& aRealName) : ListItem(aNiceName)
-{
-	RealName = aRealName;
-}
-
-std::string							MednafenInputItem::GetRealName					()
-{
-	return RealName;
-}
-
-
-									MednafenInputSelect::MednafenInputSelect		(const std::vector<std::string>& aInputNames, const std::vector<std::string>& aNiceNames) : WinterfaceList("Select Controller Type", true, 0)
-{
-	for(int i = 0; i != aInputNames.size(); i ++)
-	{
-		Items.push_back(new MednafenInputItem(aNiceNames[i], aInputNames[i]));
-	}
-
-	std::sort(Items.begin(), Items.end(), AlphaSortC);
-}
-
-
-									MednafenSettingButton::MednafenSettingButton	(const std::string& aInputName, const std::string& aImage) : Winterface("Configuring Inputs")
-{
-	Button = 0;
-	InputName = aInputName;
-	Image = aImage;
-
-	SideItems.push_back(new ListItem("Press Input Button", FontManager::GetSmallFont()));
-}
-
-bool								MednafenSettingButton::Input					()
-{
-	static bool gotbutton = true;
-
-	if(gotbutton && es_input->GetAnyButton(0) != 0xFFFFFFFF)
-	{
-		return false;
-	}
-
-	gotbutton = false;
-
-	Button = es_input->GetAnyButton(0);
-	gotbutton = (Button != 0xFFFFFFFF) ? true : false;
-	return gotbutton;
-}
-
-bool								MednafenSettingButton::DrawLeft					()
-{
-	FontManager::GetBigFont()->PutString("Waiting for input", 40, 40, Colors::Normal);
-	FontManager::GetBigFont()->PutString(InputName.c_str(), 40, 40 + FontManager::GetBigFont()->GetHeight() * 2, Colors::Normal);
-
-	Area range = es_video->GetClip();
-
-	Texture* img = ImageManager::GetImage(Image);
-
-	if(img)
-	{
-		uint32_t x = 2;
-		uint32_t y = (range.Height / 2) + 2;
-		uint32_t w = range.Width - 4;
-		uint32_t h = (range.Height / 2) - 4;
-
-		Utility::CenterAndScale(x, y, w, h, img->GetWidth(), img->GetHeight());
-
-		es_video->PlaceTexture(img, x, y, w, h);
-	}
-
-	return false;
-}
-
-uint32_t							MednafenSettingButton::GetButton				()
-{
-	return Button;
 }
 
 								InputHandler::InputHandler				(MDFNGI* aGameInfo)
@@ -141,7 +65,7 @@ void							InputHandler::Process					()
 
 		for(int i = 0; i != Inputs.size(); i ++)
 		{
-			if((Inputs[i].Type == IDIT_BUTTON || Inputs[i].Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].Button)))
+			if((Inputs[i].Data->Type == IDIT_BUTTON || Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].Button)))
 			{
 				int byte = Inputs[i].BitOffset / 8;
 				int bit = Inputs[i].BitOffset & 7;
@@ -156,23 +80,18 @@ void							InputHandler::Configure				()
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
-		std::vector<std::string> inputtypes;
-		std::vector<std::string> niceinputtypes;
+		SummerfaceLineList*	linelist = new SummerfaceLineList(Area(10, 10, 80, 20));
+
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
-			inputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName);
-			niceinputtypes.push_back(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName);
+			SummerfaceItem* item = new SummerfaceItem(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
+			item->Properties["REALNAME"] = GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName;
+			linelist->AddItem(item);
 		}
 
-		MednafenInputSelect controlselect(inputtypes, niceinputtypes);
+		Summerface sface("InputTypeSelect", linelist); sface.Do();
 
-		//TODO: Let it be canceled?
-		do
-		{
-			controlselect.Do();
-		} while(controlselect.WasCanceled());
-
-		PadType = ((MednafenInputItem*)controlselect.GetSelected())->GetRealName();
+		PadType = linelist->GetSelected()->Properties["REALNAME"];
 	}
 	else
 	{
@@ -182,27 +101,20 @@ void							InputHandler::Configure				()
 	MDFNI_SetSetting((std::string(GameInfo->shortname) + ".esinput.port1").c_str(), PadType.c_str());
 
 	//Get Buttons
-	uint32_t buttoncount;
-	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, PadType.c_str(), buttoncount);
-
-	if(info == 0)
-	{
-		return;
-	}
-
 	std::vector<InputInfo> inputs;
-	BuildShifts(info, buttoncount, inputs);
+	GetGamepad(GameInfo->InputInfo, PadType.c_str(), inputs);
+
 	for(int j = 0; j != inputs.size(); j ++)
 	{
-		if(info[j].SettingName)
+		if(inputs[j].Data->SettingName)
 		{
-			char buffer[2048];
-			snprintf(buffer, 2048, "%s%sIMAGE", GameInfo->shortname, PadType.c_str());
-			MednafenSettingButton button(info[inputs[j].Index].Name, buffer);
-			button.Do();
+			uint32_t buttonID;
+			SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), inputs[j].Data->Name);
+			button->SetInputConduit(new SummerfaceStaticConduit(GetButton, &buttonID), true);
+			Summerface sface("InputWindow", button); sface.Do();
 
-			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(info[inputs[j].Index].SettingName);
-			MDFNI_SetSettingUI(settingname.c_str(), button.GetButton());
+			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
+			MDFNI_SetSettingUI(settingname.c_str(), buttonID);
 		}
 	}
 }
@@ -211,21 +123,13 @@ void							InputHandler::ReadSettings			()
 {
 	PadType = MDFN_GetSettingS((std::string(GameInfo->shortname) + ".esinput.port1").c_str());
 
-	uint32_t ButtonCount;
-	const InputDeviceInputInfoStruct* info = GetGamepad(GameInfo->InputInfo, PadType.c_str(), ButtonCount);
+	GetGamepad(GameInfo->InputInfo, PadType.c_str(), Inputs);
 
-	if(info == 0)
-	{
-		Inputs.clear();
-		return;
-	}
-
-	BuildShifts(info, ButtonCount, Inputs);
 	for(int j = 0; j != Inputs.size(); j ++)
 	{
-		if(info[Inputs[j].Index].SettingName)
+		if(Inputs[j].Data->SettingName)
 		{
-			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(info[Inputs[j].Index].SettingName);
+			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(Inputs[j].Data->SettingName);
 			Inputs[j].Button = MDFN_GetSettingUI(settingname.c_str());
 		}
 	}
@@ -250,20 +154,17 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 				continue;
 			}
 
-			uint32_t buttoncount;
-			const InputDeviceInputInfoStruct* info = GetGamepad(MDFNSystems[i]->InputInfo, MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName, buttoncount);
+			std::vector<InputInfo> inputs;
+			GetGamepad(MDFNSystems[i]->InputInfo, MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName, inputs);
 
-			if(info)
+			for(int j = 0; j != inputs.size(); j ++)
 			{
-				for(int j = 0; j != buttoncount; j ++)
+				if(inputs[j].Data->SettingName)
 				{
-					if(info[j].SettingName)
-					{
-						std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName + "." + std::string(info[j].SettingName);
-						//TODO: These strdups will never be freed, poor captive strdups
-						MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
-						aSettings.push_back(thisinput);
-					}
+					std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName + "." + std::string(inputs[j].Data->SettingName);
+					//TODO: These strdups will never be freed, poor captive strdups
+					MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
+					aSettings.push_back(thisinput);
 				}
 			}
 		}
@@ -271,52 +172,67 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 }
 
 
-const InputDeviceInputInfoStruct*	InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char* aName, uint32_t& aInputCount)
+void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char* aName, std::vector<InputInfo>& aInputs)
 {
+	const InputDeviceInputInfoStruct* inputinfo = 0;
+	uint32_t buttoncount = 0;
+
 	for(int i = 0; i != aInfo->Types[0].NumTypes; i ++)
 	{
 		if(strcmp(aInfo->Types[0].DeviceInfo[i].ShortName, aName) == 0)
 		{
-			aInputCount = aInfo->Types[0].DeviceInfo[i].NumInputs;
-			return aInfo->Types[0].DeviceInfo[i].IDII;
+			buttoncount = aInfo->Types[0].DeviceInfo[i].NumInputs;
+			inputinfo = aInfo->Types[0].DeviceInfo[i].IDII;
 		}
 	}
-
-	aInputCount = 0;
-	return 0;
-}
-
-void							InputHandler::BuildShifts				(const InputDeviceInputInfoStruct* aInfo, uint32_t aButtonCount, std::vector<InputInfo>& aInputs)
-{
-	//TODO: Support more input button types
-	int byte = 0;
-	int bit = 0;
-	int found = 0;
 
 	aInputs.clear();
 
-	for(int j = 0; j != aButtonCount; j ++)
+	if(inputinfo)
 	{
-		InputInfo ii;
+		int byte = 0;
+		int bit = 0;
+		int found = 0;
 
-		if(aInfo[j].Type == IDIT_BUTTON || aInfo[j].Type == IDIT_BUTTON_CAN_RAPID)
+		for(int j = 0; j != buttoncount; j ++)
 		{
-			ii.BitOffset = byte * 8 + bit;
-			if(++bit == 8)
+			InputInfo ii;
+			memset(&ii, 0, sizeof(ii));
+
+			if(inputinfo[j].Type == IDIT_BUTTON || inputinfo[j].Type == IDIT_BUTTON_CAN_RAPID)
 			{
-				bit = 0;
-				byte ++;
+				ii.BitOffset = byte * 8 + bit;
+				if(++bit == 8)
+				{
+					bit = 0;
+					byte ++;
+				}
 			}
+
+			ii.Index = j;
+			ii.Data = &inputinfo[j];
+			aInputs.push_back(ii);
 		}
 
-		ii.Button = 0;
-		ii.Type = aInfo[j].Type;
-		ii.Index = j;
-		ii.ConfigOrder = aInfo[j].ConfigOrder;
-		aInputs.push_back(ii);
+		std::sort(aInputs.begin(), aInputs.end(), InputSortC);
+	}
+}
+
+bool							InputHandler::GetButton					(void* aUserData, Summerface* aInterface, const std::string& aWindow)
+{
+	static bool gotbutton = true;
+
+	if(gotbutton && es_input->GetAnyButton(0) != 0xFFFFFFFF)
+	{
+		return false;
 	}
 
-	std::sort(aInputs.begin(), aInputs.end(), InputSortC);
+	gotbutton = false;
+
+	uint32_t* button = (uint32_t*)aUserData;
+	button[0] = es_input->GetAnyButton(0);
+	gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
+	return gotbutton;
 }
 
 
