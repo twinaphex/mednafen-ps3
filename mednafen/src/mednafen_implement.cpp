@@ -42,28 +42,25 @@ void		MDFND_Message			(const char *s)						{es_log->Log(" INFO: %s", s);}
 void		MDFND_DispMessage		(UTF8 *text)						{if(text){MednafenEmu::DisplayMessage((char*)text);}}
 
 //Save states
-static MednafenStateMenu*	TargetMenu = 0;
-
-void		MDFNDES_SetStateTarget	(MednafenStateMenu* aMenu)
-{
-	TargetMenu = aMenu;
-}
-
+//TODO: Put this somewhere
+StateStatusStruct*	States[10];
 void		MDFND_SetStateStatus	(StateStatusStruct *status)				
 {
-	if(TargetMenu)
+	if(!status)
 	{
-		TargetMenu->SetStateStatus(status);
+		return;
 	}
 
-	if(status)
+	if(States[status->current])
 	{
-		if(status->gfx)
+		if(States[status->current]->gfx)
 		{
-			free(status->gfx);
+			free(States[status->current]->gfx);
 		}
-		free(status);
+		free(States[status->current]);
 	}
+
+	States[status->current] = status;
 }
 
 void		MDFND_SetMovieStatus	(StateStatusStruct *status)				
