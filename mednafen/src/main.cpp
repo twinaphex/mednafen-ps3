@@ -69,20 +69,21 @@ void				ReloadEmulator			()
 	{
 		//Get the real filename of the local file (already downloaded to a normal location) and open it in fex
 		std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
-		ArchiveList archive(std::string("[Select ROM] ") + enumpath, filename);
+		ArchiveList* archive = new ArchiveList(Area(10, 10, 80, 80), std::string("[Select ROM] ") + enumpath, filename);
+		Summerface sface("Archive", archive);
 
 		//If there are no items we are lost
-		if(archive.ItemCount() == 0)
+		if(archive->GetItemCount() == 0)
 		{
 			throw ESException("Loader: Could not read file [File: %s]", enumpath.c_str());
 		}
 
 		//If there is more than one file, run a list to get the specific file
-		if(archive.ItemCount() > 1)
+		if(archive->GetItemCount() > 1)
 		{
-			archive.Do();
+			sface.Do();
 
-			if(archive.WasCanceled())
+			if(archive->WasCanceled())
 			{
 				//HACK: If we do this too much we will get a stack overflow, but oh well. Beats a goto anyway
 				ReloadEmulator();
@@ -94,23 +95,23 @@ void				ReloadEmulator			()
 		uint32_t size;
 		void* data = 0;
 
-		size = archive.GetSelectedSize();
+		size = archive->GetSelectedSize();
 
 		//We can only load files up to 64 megabytes, for CD's you should load cue files not BIN files
 		if(size < 64 * 1024 * 1024)
 		{
 			data = malloc(size);
-			archive.GetSelectedData(size, data);
+			archive->GetSelectedData(size, data);
 
 			//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
 			if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
 			{
 				filename = filename.substr(0, filename.rfind('/') + 1);
-				filename += archive.GetSelectedFileName();
+				filename += archive->GetSelectedFileName();
 			}
 			else
 			{
-				filename = archive.GetSelectedFileName();
+				filename = archive->GetSelectedFileName();
 			}
 		}
 		else

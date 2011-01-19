@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-											ArchiveList::ArchiveList					(const std::string& aHeader, const std::string& aFileName, MenuHook* aInputHook) : WinterfaceList(aHeader, true, true, aInputHook)
+											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aHeader, const std::string& aFileName) : SummerfaceLineList(aRegion)
 {
 	FileName = aFileName;
 
@@ -13,27 +13,16 @@
 	{
 		if(fex_name(Archive) != 0)
 		{
-			Items.push_back(new ListItem(fex_name(Archive)));
+			Items.push_back(new SummerfaceItem(fex_name(Archive), ""));
 		}
 		
 		fex_next(Archive);
 	}
-
-	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));	
-	SideItems.push_back(new InputListItem("Select Item", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Previous Dir", ES_BUTTON_CANCEL));
-	SideItems.push_back(new InputListItem("Settings", ES_BUTTON_AUXRIGHT3));	//HACK: Only with the mednafen hook!!!!
-	SideItems.push_back(new InputListItem("Show Readme", ES_BUTTON_AUXLEFT3));		//HACK: Only with the mednafen hook!!!!
 }
 
 											ArchiveList::~ArchiveList					()
 {
 	fex_close(Archive);					
-}
-
-uint32_t									ArchiveList::ItemCount						()
-{
-	return Items.size();
 }
 
 uint32_t									ArchiveList::GetSelectedSize				()
