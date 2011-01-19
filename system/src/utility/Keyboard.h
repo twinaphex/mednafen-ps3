@@ -1,13 +1,13 @@
 #ifndef SYSTEM__KEYBOARD_H
 #define SYSTEM__KEYBOARD_H
 
-class										Keyboard : public Winterface
+class										Keyboard : public SummerfaceWindow
 {
 	public:
-											Keyboard				(const std::string& aHeader, const std::string& aText);
+											Keyboard				(const Area& aRegion, const std::string& aHeader, const std::string& aText);
 		virtual								~Keyboard				();
 
-		bool								DrawLeft				();
+		bool								Draw					();
 		bool								Input					();
 				
 		std::string							GetText					()								{return Text;};
@@ -20,6 +20,7 @@ class										Keyboard : public Winterface
 		
 	protected:
 		std::string							Text;
+		std::string							Header;
 		
 		int32_t								Column;
 		int32_t								Row;
