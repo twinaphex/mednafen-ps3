@@ -13,6 +13,8 @@ class													SummerfaceLabel : public SummerfaceWindow
 
 		virtual std::string								GetMessage						();
 		virtual void									SetMessage						(const std::string& aMessage);
+
+		virtual void									AppendMessage					(const std::string& aMessage);
 		
 
 	private:

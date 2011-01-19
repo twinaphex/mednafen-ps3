@@ -59,7 +59,8 @@ bool										SummerfaceWindow::Input								()
 
 void										SummerfaceWindow::SetInterface						(Summerface* aInterface, const std::string& aName)
 {
-	if(!Interface)
+	//TODO: Leap of logic here!
+	if(!Interface || NoDelete)
 	{
 		Interface = aInterface;
 		Name = aName;
@@ -102,4 +103,13 @@ SummerfaceInputConduit*						SummerfaceWindow::GetInputConduit					()
 	return InputHandler;
 }
 
+void										SummerfaceWindow::SetNoDelete						()
+{
+	NoDelete = true;
+}
+
+bool										SummerfaceWindow::GetNoDelete						()
+{
+	return NoDelete;
+}
 

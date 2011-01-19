@@ -1,19 +1,17 @@
 #ifndef SYSTEM__TEXTVIEWER_H
 #define SYSTEM__TEXTVIEWER_H
 
-class							TextViewer : public Winterface
+class							TextViewer : public SummerfaceWindow
 {
 	public:
-								TextViewer					(const std::string& aFileName);
-								TextViewer					(const std::string& aText, const std::string& aHeader);
-								
+								TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile = true);
 		virtual					~TextViewer					();
 		
-		bool					DrawLeft					();
-		bool					Input						();
+		virtual bool			Draw						();
+		virtual bool			Input						();
 		
 	protected:
-		void					LoadStream					(std::istream& aStream);
+		void					LoadStream					(std::istream* aStream);
 	
 		std::vector<std::string>Lines;
 	
@@ -24,3 +22,4 @@ class							TextViewer : public Winterface
 };
 
 #endif
+

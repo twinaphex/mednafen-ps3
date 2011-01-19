@@ -1,10 +1,19 @@
 #include <ps3_system.h>
 
-						TextViewer::TextViewer					(const std::string& aFileName) : Winterface(aFileName)
+						TextViewer::TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile) : SummerfaceWindow(aRegion)
 {
-	std::ifstream file(aFileName.c_str());
-	
-	if(file.fail())
+	std::istream* stream;
+
+	if(aFile)
+	{
+		stream = new std::ifstream(aFileName.c_str());
+	}
+	else
+	{
+		stream = new std::stringstream(aFileName);
+	}
+
+	if(stream->fail())
 	{
 		Lines.push_back("Couldn't open file");
 		LongestLine = Lines[0].length();
@@ -12,23 +21,18 @@
 		return;
 	}
 
-	LoadStream(file);	
+	LoadStream(stream);	
 	
-	file.close();
+	delete stream;
 }
 						
-						TextViewer::TextViewer					(const std::string& aText, const std::string& aHeader) : Winterface(aHeader)
-{
-	std::stringstream text(aText);
-	LoadStream(text);
-}
 								
 						TextViewer::~TextViewer					()
 {
 						
 }
 		
-bool					TextViewer::DrawLeft					()
+bool					TextViewer::Draw						()
 {
 	uint32_t lineheight = FontManager::GetFixedFont()->GetHeight();
 	LinesDrawn = es_video->GetClip().Height / lineheight;
@@ -64,28 +68,21 @@ bool					TextViewer::Input						()
 	return es_input->ButtonDown(0, ES_BUTTON_ACCEPT);
 }
 		
-void					TextViewer::LoadStream					(std::istream& aStream)
+void					TextViewer::LoadStream					(std::istream* aStream)
 {
 	std::string line;
-
-	SetInputDelay(2);
 
 	Top = 0;
 	Left = 0;
 	LongestLine = 0;
 	LinesDrawn = 0;
 		
-	while(!aStream.eof())
+	while(!aStream->eof())
 	{
-		std::getline(aStream, line);
+		std::getline(*aStream, line);
 		Lines.push_back(line);
 		
 		LongestLine = (line.length() > LongestLine) ? line.length() : LongestLine;
 	}
-	
-	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
-	SideItems.push_back(new InputListItem("Close", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Page Up", ES_BUTTON_AUXLEFT1));
-	SideItems.push_back(new InputListItem("Page Down", ES_BUTTON_AUXRIGHT1));
 }
 

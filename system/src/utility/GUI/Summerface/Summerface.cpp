@@ -16,7 +16,10 @@
 	//Delete all windows
 	for(std::map<std::string, SummerfaceWindow*>::iterator iter = Windows.begin(); iter != Windows.end(); iter ++)
 	{
-		delete iter->second;
+		if(iter->second && !iter->second->GetNoDelete())
+		{
+			delete iter->second;
+		}
 	}
 }
 

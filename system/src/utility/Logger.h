@@ -4,7 +4,7 @@
 class				Logger : public TextViewer
 {
 	public:
-									Logger						(const std::string& aHeader = "Message Log");
+									Logger						(const Area& aRegion);
 									~Logger						();
 									
 		void						Log							(const char* aString, ...);
