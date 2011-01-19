@@ -384,8 +384,8 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
-		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		MednafenStateMenu(false).Do();
-		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		MednafenStateMenu(true).Do();
+		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		DoStates(false);
+		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		DoStates(true);
 		if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
 		if(0 == strcmp(command.c_str(), "DoTextFile"))			TextFile->Do();
 		if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
@@ -454,6 +454,72 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		delete Scaler;
 		Scaler = 0;
 
+		return true;
+	}
+
+	return false;
+}
+
+//TODO: Put this somewhere
+extern StateStatusStruct*	States[10];
+void						MednafenEmu::DoStates			(bool aLoad)
+{
+	SummerfaceGrid* grid = new SummerfaceGrid(Area(25, 25, 50, 50), 3, 3, true, false);
+	grid->SetInputConduit(new SummerfaceStaticConduit(DoState, &aLoad), true);
+
+	//Refresh all of the images
+	for(int i = 0; i != 9; i ++)
+	{
+		MDFNI_SelectState(i);
+	}
+
+	for(int i = 0; i != 9; i ++)
+	{
+		char buffer[32];
+		snprintf(buffer, 32, "Slot %d", i + 1);
+
+		char ibuffer[32];
+		snprintf(ibuffer, 32, "SCRATCH%%%d", i);
+
+		if(States[i] && States[i]->gfx && States[i]->w && States[i]->w < 512 && States[i]->h < 512 && ImageManager::GetImage(ibuffer))
+		{
+			Texture* tex = ImageManager::GetImage(ibuffer);
+			uint32_t* texpix = tex->GetPixels();
+			uint8_t* statepix = (uint8_t*)States[i]->gfx;
+
+			for(int k = 0; k != States[i]->h; k ++)
+			{
+				for(int j = 0; j != States[i]->w; j ++)
+				{
+					uint32_t r = statepix[0];
+					uint32_t g = statepix[1];
+					uint32_t b = statepix[2];
+					texpix[k * tex->GetWidth() + j] = (r << 16) | (g << 8) | (b) | 0xFF000000;
+					statepix += 3;
+				}
+			}
+		}
+
+
+		SummerfaceItem* item = new SummerfaceItem(buffer, ibuffer);
+		snprintf(buffer, 32, "%d", i);
+		item->Properties["SLOT"] = buffer;
+		grid->AddItem(item);
+	}
+
+	Summerface sface("Grid", grid); sface.Do();
+}
+
+bool						MednafenEmu::DoState			(void* aUserData, Summerface* aInterface, const std::string& aWindow)
+{
+	if(aUserData && es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	{
+		SummerfaceItem* item = ((SummerfaceLineList*)aInterface->GetWindow(aWindow))->GetSelected();
+		uint32_t slot = atoi(item->Properties["SLOT"].c_str());
+		bool load = *(bool*)aUserData;
+
+		MDFNI_SelectState(slot);
+		MednafenEmu::DoCommand(0, 0, load ? "DoLoadState" : "DoSaveState");
 		return true;
 	}
 

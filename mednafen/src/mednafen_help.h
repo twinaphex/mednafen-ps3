@@ -16,6 +16,9 @@ class	MednafenEmu
 		static void						DoCommands			();
 		static bool						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow);
 
+		static void						DoStates			(bool aLoad);
+		static bool						DoState				(void* aUserData, Summerface* aInterface, const std::string& aWindow);
+
 	public:		//Inlines
 		static bool						IsGameLoaded		()
 		{
