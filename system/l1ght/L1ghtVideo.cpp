@@ -107,7 +107,7 @@ void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY,
 	aY += esClip.Y;
 
 	//TODO: Better clipping
-	if(aX + aWidth >= esClip.Right() || aY + aHeight >= (esClip.Bottom() + 10))
+	if(aX + aWidth > esClip.Right() || aY + aHeight > (esClip.Bottom() + 10))
 	{
 		return;
 	}
