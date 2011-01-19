@@ -5,7 +5,7 @@ namespace
 	const char*		Chars[2][5] = {{"`1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "}, {"!@#$%^&*()_+", "QWERTYUIOP{}|", "ASDFGHJKL:\"", "ZXCVBNM<>?", " "}};
 }
 
-							Keyboard::Keyboard								(const std::string& aHeader, const std::string& aText) : Winterface(aHeader)
+							Keyboard::Keyboard								(const Area& aRegion, const std::string& aHeader, const std::string& aText) : SummerfaceWindow(aRegion)
 {
 	Text.reserve(256);
 
@@ -16,12 +16,6 @@ namespace
 	Row = 0;
 	Shift = 0;
 	Canceled = false;
-
-	SideItems.push_back(new InputListItem("Move Selection", ES_BUTTON_UP));
-	SideItems.push_back(new InputListItem("Input Character", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Shift", ES_BUTTON_SHIFT));
-	SideItems.push_back(new InputListItem("Backspace", ES_BUTTON_TAB));	
-	SideItems.push_back(new InputListItem("Finish", ES_BUTTON_CANCEL));
 }
 
 							Keyboard::~Keyboard								()
@@ -31,7 +25,7 @@ namespace
 
 							
 //TODO: This code can be dangerous
-bool						Keyboard::DrawLeft								()
+bool						Keyboard::Draw									()
 {
 	FontManager::GetBigFont()->PutString(Header.c_str(), 16, 0, Colors::Normal);
 	FontManager::GetBigFont()->PutString(Text.c_str(), 16, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
