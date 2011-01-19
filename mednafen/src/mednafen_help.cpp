@@ -125,6 +125,7 @@ void						MednafenEmu::Quit				()
 	IsInitialized = false;
 }
 
+void		MDFND_NetStart			();
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
 	if(!IsLoaded && IsInitialized)
@@ -163,6 +164,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
 
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
+
+//		MDFND_NetStart();
 	}
 }
 

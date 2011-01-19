@@ -11,9 +11,26 @@ bool		MDFND_ExitBlockingLoop	()									{return BlockExit;}
 void		MDFND_MidSync			(const EmulateSpecStruct *espec)	{}
 
 //Netplay, some other time
-void		MDFND_NetStart			()									{}
-int			MDFND_SendData			(const void *data, uint32_t len)	{return 0;}
-int			MDFND_RecvData			(void *data, uint32_t len)			{return 0;}
+ESSocket*	slocket;
+void		MDFND_NetStart			()
+{
+	slocket = es_network->OpenSocket("192.168.0.250", 4046);
+	MDFNI_NetplayStart(1, 1, "BillyBob", "doing", "sexybeef");
+}
+
+
+int			MDFND_SendData			(const void *data, uint32_t len)
+{
+	slocket->Write(data, len);
+	return 1;
+}
+
+int			MDFND_RecvData			(void *data, uint32_t len)
+{
+	slocket->Read(data, len);
+	return 1;
+}
+
 void		MDFND_NetplayText		(const uint8_t* text, bool NetEcho)	{}
 void		MDFND_NetworkClose		()									{}
 

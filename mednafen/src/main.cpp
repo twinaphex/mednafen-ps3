@@ -162,12 +162,12 @@ int					main					(int argc, char* argv[])
 		printf("%s\n", s);
 		Exit();
 	}
-	catch(ESException s)
+	catch(ESException& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 	}
-	catch(std::exception s)
+	catch(std::exception& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();

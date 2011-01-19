@@ -49,17 +49,25 @@ class												InputHandler
 		void										ReadSettings					();
 		static void									GenerateSettings				(std::vector<MDFNSetting>& aSettings);
 		
+		struct										InputInfo
+		{
+			uint32_t								BitOffset;
+			uint32_t								Type;
+			uint32_t								Button;
+			uint32_t								Index;
+			uint32_t								ConfigOrder;
+		};
+
 	protected:
+
 		static const InputDeviceInputInfoStruct*	GetGamepad						(const InputInfoStruct* aInfo, const char* aName, uint32_t& aInputCount);
-		static void									BuildShifts						(const InputDeviceInputInfoStruct* aInfo, uint32_t aButtonCount, uint32_t aOrder[32][2]);
-		static bool									IsInputSupported				(const InputDeviceInputInfoStruct* aInfo, uint32_t aButtonCount);
+		static void									BuildShifts						(const InputDeviceInputInfoStruct* aInfo, uint32_t aButtonCount, std::vector<InputInfo>& aInputs);
 	
 		MDFNGI*										GameInfo;
 
 		std::string									PadType;
-		uint32_t									ButtonCount;
-		uint32_t									ControllerBits[16];
-		uint32_t									Button[32][2];
+		uint8_t										ControllerBits[16][256];
+		std::vector<InputInfo>						Inputs;
 };
 
 #endif
