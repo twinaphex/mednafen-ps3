@@ -53,8 +53,10 @@ bool										SummerfaceWindow::Input								()
 	{
 		return InputHandler->HandleInput(GetInterface(), GetName());
 	}
-
-	return false;
+	else
+	{
+		return es_input->ButtonDown(0, ES_BUTTON_CANCEL);
+	}
 }
 
 void										SummerfaceWindow::SetInterface						(Summerface* aInterface, const std::string& aName)

@@ -1,5 +1,8 @@
 #include <ps3_system.h>
 
+//TODO: Move this
+void ESSUB_Error(const char* aMessage);
+
 										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) : BookMarks(aBookMarks)
 {
 	Header = aHeader;
@@ -14,7 +17,7 @@
 	}
 	catch(FileException ex)
 	{
-		ErrorDialog(ex.what()).Do();
+		ESSUB_Error(ex.what());
 		Valid = false;
 	}
 }
@@ -62,7 +65,7 @@ std::string								FileSelect::GetFile					()
 				}
 				catch(FileException ex)
 				{
-					ErrorDialog(ex.what()).Do();
+					ESSUB_Error(ex.what());
 				}
 			}
 			else
