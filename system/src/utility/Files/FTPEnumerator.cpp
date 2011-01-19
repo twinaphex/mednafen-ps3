@@ -92,7 +92,7 @@ namespace
 
 };
 
-void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aItems)
+void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aItems)
 {
 	if(Enabled)
 	{
@@ -127,7 +127,11 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 				struct ftpparse pdata;
 				if(ftpparse(&pdata, parbuffer, length))
 				{
-					aItems.push_back(new FileListItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, false));
+					SummerfaceItem* item = new SummerfaceItem(std::string(pdata.name, pdata.namelen - 1), pdata.flagtrycwd ? "FolderICON" : "FileICON");
+					item->Properties["DIRECTORY"] = pdata.flagtrycwd ? "1" : "0";
+					item->Properties["FILE"] = !pdata.flagtrycwd ? "0" : "1";
+					item->Properties["PATH"] = aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : "");
+					aItems.push_back(item);
 				}
 				
 				parbuffer = parend + 1;

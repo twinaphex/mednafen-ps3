@@ -4,28 +4,28 @@
 class							FileEnumerator
 {
 	public:
-		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput) = 0;
+		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aOutput) = 0;
 		virtual std::string		ObtainFile				(const std::string& aPath) = 0;
 };
 
 class							EnumeratorEnumerator : public FileEnumerator
 {
 	public:
-		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput);
+		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aOutput);
 		virtual std::string		ObtainFile				(const std::string& aPath);
 };
 
 class							LocalEnumerator	: public FileEnumerator
 {
 	public:
-		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput);
+		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aOutput);
 		virtual std::string		ObtainFile				(const std::string& aPath);
 };
 
 class							FTPEnumerator : public FileEnumerator
 {
 	public:
-		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aOutput);
+		virtual void			ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aOutput);
 		virtual std::string		ObtainFile				(const std::string& aPath);
 		
 	public:
@@ -88,3 +88,4 @@ class							Enumerators
 };
 
 #endif
+

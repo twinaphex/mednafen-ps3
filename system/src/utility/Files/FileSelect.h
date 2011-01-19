@@ -11,7 +11,7 @@ class												FileSelect
 		bool										IsValid							();
 
 	protected:
-		std::stack<FileList*>						Lists;
+		std::stack<Summerface*>						Lists;
 		bool										Valid;
 
 

@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-void							LocalEnumerator::ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<ListItem*>& aItems)
+void							LocalEnumerator::ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aItems)
 {
 	std::string Path = Enumerators::CleanPath(aPath);
 
@@ -24,7 +24,11 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 		
 		if(filterfound)
 		{
-			aItems.push_back(new FileListItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', false));
+			SummerfaceItem* item = new SummerfaceItem(items[i], (items[i][items[i].length() - 1] == '/') ? "FolderICON" : "FileICON");
+			item->Properties["DIRECTORY"] = (items[i][items[i].length() - 1] == '/') ? "1" : "0";
+			item->Properties["FILE"] = (items[i][items[i].length() - 1] == '/') ? "0" : "1";
+			item->Properties["PATH"] = aPath + items[i];
+			aItems.push_back(item);
 		}
 	}
 
