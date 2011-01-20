@@ -6,6 +6,8 @@
 {
 	SetText(aText);
 	SetImage(aImage);
+
+	SetColors(Colors::Normal, Colors::HighLight);
 }
 
 											SummerfaceItem::~SummerfaceItem						()
@@ -31,5 +33,21 @@ std::string									SummerfaceItem::GetText								()
 std::string									SummerfaceItem::GetImage							()
 {
 	return Image;
+}
+
+void										SummerfaceItem::SetColors							(uint32_t aNormalColor, uint32_t aSpecialColor)
+{
+	NormalColor = aNormalColor;
+	SpecialColor = aSpecialColor;
+}
+
+uint32_t									SummerfaceItem::GetNormalColor						()
+{
+	return NormalColor;
+}
+
+uint32_t									SummerfaceItem::GetHighLightColor					()
+{
+	return SpecialColor;
 }
 

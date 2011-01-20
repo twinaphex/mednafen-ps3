@@ -13,6 +13,10 @@ class													SummerfaceItem
 		virtual std::string								GetText							();
 		virtual std::string								GetImage						();
 
+		virtual void									SetColors						(uint32_t aNormalColor, uint32_t aSpecialColor);
+		virtual uint32_t								GetNormalColor					();
+		virtual uint32_t								GetHighLightColor				();
+
 	public:
 		std::map<std::string, std::string>				Properties;
 		std::map<std::string, uint64_t>					IntProperties;
@@ -20,6 +24,9 @@ class													SummerfaceItem
 	private:
 		std::string										Text;
 		std::string										Image;
+
+		uint32_t										NormalColor;
+		uint32_t										SpecialColor;
 };
 
 

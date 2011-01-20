@@ -146,7 +146,7 @@ bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX
 
 		if(DrawLabels)
 		{
-			LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, Colors::Normal);
+			LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor());
 		}
 	}
 	
@@ -218,7 +218,7 @@ bool										SummerfaceLineList::DrawItem						(SummerfaceItem* aItem, uint32_t
 		aX += width;
 	}
 
-	LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? Colors::HighLight : Colors::Normal);
+	LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
 
 	return false;
 }
