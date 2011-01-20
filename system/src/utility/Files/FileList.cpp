@@ -108,7 +108,9 @@ bool									FileList::IsDirectory					()
 
 SummerfaceItem*							FileList::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark)
 {
-	SummerfaceItem* item = new SummerfaceItem(aName, aDirectory ? "FolderICON" : "FileICON");
+	std::string extension = Utility::GetExtension(aPath);
+
+	SummerfaceItem* item = new SummerfaceItem(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
 	item->IntProperties["DIRECTORY"] = aDirectory;
 	item->IntProperties["FILE"] = aFile;
 	item->IntProperties["BOOKMARK"] = aBookMark;
