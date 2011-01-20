@@ -1,5 +1,10 @@
 #include <ps3_system.h>
 
+extern "C"
+{
+	#include "ftpparse.h"
+}
+
 namespace
 {
 	char		Buffer[2048];
@@ -127,11 +132,7 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 				struct ftpparse pdata;
 				if(ftpparse(&pdata, parbuffer, length))
 				{
-					SummerfaceItem* item = new SummerfaceItem(std::string(pdata.name, pdata.namelen - 1), pdata.flagtrycwd ? "FolderICON" : "FileICON");
-					item->Properties["DIRECTORY"] = pdata.flagtrycwd ? "1" : "0";
-					item->Properties["FILE"] = !pdata.flagtrycwd ? "0" : "1";
-					item->Properties["PATH"] = aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : "");
-					aItems.push_back(item);
+					aItems.push_back(FileList::MakeItem(std::string(pdata.name, pdata.namelen - 1), aPath + std::string(pdata.name, pdata.namelen - 1) + (pdata.flagtrycwd ? "/" : ""), pdata.flagtrycwd, !pdata.flagtrycwd, false));
 				}
 				
 				parbuffer = parend + 1;

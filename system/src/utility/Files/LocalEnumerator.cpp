@@ -24,11 +24,7 @@ void							LocalEnumerator::ListPath				(const std::string& aPath, const std::ve
 		
 		if(filterfound)
 		{
-			SummerfaceItem* item = new SummerfaceItem(items[i], (items[i][items[i].length() - 1] == '/') ? "FolderICON" : "FileICON");
-			item->Properties["DIRECTORY"] = (items[i][items[i].length() - 1] == '/') ? "1" : "0";
-			item->Properties["FILE"] = (items[i][items[i].length() - 1] == '/') ? "0" : "1";
-			item->Properties["PATH"] = aPath + items[i];
-			aItems.push_back(item);
+			aItems.push_back(FileList::MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/', false));
 		}
 	}
 

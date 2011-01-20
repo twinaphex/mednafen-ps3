@@ -70,6 +70,23 @@ void										Summerface::AddWindow								(const std::string& aName, Summerface
 	}
 }
 
+void										Summerface::RemoveWindow							(const std::string& aName, bool aDelete)
+{
+	if(Windows[aName])
+	{
+		if(aDelete)
+		{
+			delete Windows[aName];
+		}
+
+		Windows[aName] = 0;
+	}
+	else
+	{
+		throw ESException("Window with name is not present. [Name: %s]", aName.c_str());
+	}
+}
+
 SummerfaceWindow*							Summerface::GetWindow								(const std::string& aName)
 {
 	if(Windows[aName])

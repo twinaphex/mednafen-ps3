@@ -1,6 +1,15 @@
 #include <ps3_system.h>
 #include "SummerfaceList.h"
 
+namespace
+{
+	bool									AlphaSort											(SummerfaceItem* a, SummerfaceItem* b)
+	{
+		return a->GetText() < b->GetText();
+	}
+}
+
+
 											SummerfaceList::SummerfaceList						(const Area& aRegion) : SummerfaceWindow(aRegion)
 {
 	SelectedIndex = 0;
@@ -59,6 +68,11 @@ bool										SummerfaceList::WasCanceled							()
 void										SummerfaceList::SetFont								(Font* aFont)
 {
 	LabelFont = aFont;
+}
+
+void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*))
+{
+	std::sort(Items.begin(), Items.end(), aCallback ? aCallback : AlphaSort);
 }
 
 

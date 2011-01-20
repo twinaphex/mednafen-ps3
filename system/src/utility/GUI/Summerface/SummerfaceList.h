@@ -18,6 +18,8 @@ class													SummerfaceList : public SummerfaceWindow
 
 		void											SetFont							(Font* aFont);
 
+		void											Sort							(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*) = 0);
+
 	protected:
 		std::vector<SummerfaceItem*>					Items;
 		uint32_t										SelectedIndex;
