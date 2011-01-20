@@ -32,7 +32,6 @@
 #include "src/utility/GUI/Menu.h"
 #include "src/utility/GUI/ListItem.h"
 #include "src/utility/GUI/Summerface.h"
-#include "src/utility/Files/FileException.h"
 #include "src/utility/Files/FileEnumerator.h"
 #include "src/utility/Files/FileList.h"
 #include "src/utility/Files/FileSelect.h"

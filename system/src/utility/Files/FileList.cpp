@@ -90,7 +90,7 @@ std::string								FileList::GetFile						()
 {
 	if(WasCanceled())
 	{
-		throw FileException("FileList::GetFile: Can't get a file if the list was canceled");
+		throw ESException("FileList::GetFile: Can't get a file if the list was canceled");
 	}
 
 	return GetSelected()->Properties["PATH"];
@@ -100,7 +100,7 @@ bool									FileList::IsDirectory					()
 {
 	if(WasCanceled())
 	{
-		throw FileException("FileList::IsDirectory: Can't get a file if the list was canceled");
+		throw ESException("FileList::IsDirectory: Can't get a file if the list was canceled");
 	}
 	
 	return GetSelected()->IntProperties["DIRECTORY"];
