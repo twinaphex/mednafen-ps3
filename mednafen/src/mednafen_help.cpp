@@ -289,22 +289,24 @@ bool						MednafenEmu::Frame				()
 	return false;
 }
 
-void						MednafenEmu::Blit				()
+void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
 {
-	uint32_t aX = VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x;
-	uint32_t aY = EmulatorSpec.DisplayRect.y;
-	uint32_t aWidth = VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w;
-	uint32_t aHeight = EmulatorSpec.DisplayRect.h;
+	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+
+	if(aPixels)
+	{
+		output = Area(0, 0, aWidth, aHeight);
+	}
 
 	if(!Scaler)
 	{
 		Scaler = BuildFilter(MDFN_GetSettingUI(SETTINGNAME("scaler")));
-		Scaler->init(aWidth, aHeight);
+		Scaler->init(output.Width, output.Height);
 	}
 	
-	if(aWidth != Scaler->getWidth() || aHeight != Scaler->getHeight())
+	if(output.Width != Scaler->getWidth() || output.Height != Scaler->getHeight())
 	{
-		Scaler->init(aWidth, aHeight);
+		Scaler->init(output.Width, output.Height);
 	}
 
 	uint32_t* scaleIn = Scaler->inBuffer();
@@ -316,12 +318,15 @@ void						MednafenEmu::Blit				()
 	uint32_t* bufferPix = Buffer->GetPixels();
 	uint32_t bufferP = Buffer->GetWidth();
 
-	uint32_t finalWidth = aWidth * Scaler->info().outWidth;
-	uint32_t finalHeight = aHeight * Scaler->info().outHeight;
+	uint32_t finalWidth = output.Width * Scaler->info().outWidth;
+	uint32_t finalHeight = output.Height * Scaler->info().outHeight;
 
-	for(int i = 0; i != aHeight; i ++)
+	uint32_t* pixels = aPixels ? aPixels : Surface->pixels;
+	uint32_t pitch = aPixels ? aPitch : Surface->pitchinpix;
+
+	for(int i = 0; i != output.Height; i ++)
 	{
-		memcpy(&scaleIn[i * scaleInP], &Surface->pixels[(aY + i) * Surface->pitchinpix + aX], aWidth * 4);
+		memcpy(&scaleIn[i * scaleInP], &pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
 	}
 
 	Scaler->filter();

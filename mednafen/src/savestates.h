@@ -18,6 +18,7 @@ class					StateMenu : public SummerfaceWindow
 		Summerface*		UI;
 		bool			Load;
 		uint32_t		Slot;
+		uint32_t*		Image;
 };
 
 #endif
