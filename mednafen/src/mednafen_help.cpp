@@ -280,6 +280,7 @@ bool						MednafenEmu::Frame				()
 		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{
 			DoCommands();
+			return false;
 		}
 
 		return !EmulatorSpec.skip;
