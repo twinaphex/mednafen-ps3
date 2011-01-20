@@ -71,13 +71,13 @@ bool									FileList::Input							()
 		{
 			BookMarks.erase(bookmark);
 			item->IntProperties["BOOKMARK"] = 0;
-			//TODO: Change colors
+			item->SetColors(Colors::Normal, Colors::HighLight);
 		}
 		else
 		{
 			BookMarks.push_back(item->Properties["PATH"]);
 			item->IntProperties["BOOKMARK"] = 1;
-			//TODO: Change colors
+			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
 		}
 
 		return false;
@@ -113,6 +113,12 @@ SummerfaceItem*							FileList::MakeItem						(const std::string& aName, const s
 	item->IntProperties["FILE"] = aFile;
 	item->IntProperties["BOOKMARK"] = aBookMark;
 	item->Properties["PATH"] = aPath;
+
+	if(aBookMark)
+	{
+		item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+	}
+
 	return item;
 }
 
