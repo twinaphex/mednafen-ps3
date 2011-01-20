@@ -11,7 +11,7 @@ class	MednafenEmu
 		static void						CloseGame			();
 		
 		static bool						Frame				();
-		static void						Blit				();
+		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0);
 
 		static void						DoCommands			();
 		static bool						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow);

@@ -9,25 +9,25 @@ extern StateStatusStruct*	States[10];
 	Load = aLoad;
 	Slot = 0;
 
+	Image = new uint32_t[1024 * 1024];
+
 	//Refresh the images
-	for(int i = 0; i != 9; i ++)
-	{
-		MDFNI_SelectState(i);
-		FillScratch(i);
-	}
+	MDFNI_SelectState(0);
+	FillScratch(0);
 
 	//We delete ourselves, segfault if this isn't here
 	SetNoDelete();
 
 	//Create the UI
 	UI = new Summerface("StateImage", this);
-	UI->AddWindow("StateLabel", new SummerfaceLabel(Area(10, 85, 25, 6), ""));
+	UI->AddWindow("StateLabel", new SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1"));
 	UI->SetActiveWindow("StateImage");
 }
 
 							StateMenu::~StateMenu					()
 {
 	delete UI;
+	delete[] Image;
 }
 
 void						StateMenu::Do							()
@@ -37,13 +37,20 @@ void						StateMenu::Do							()
 
 bool						StateMenu::Input						()
 {
+	uint32_t oldSlot = Slot;
 	Slot += es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
 	Slot -= es_input->ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
 	Slot = Utility::Clamp(Slot, 0, 8);
 
-	char buffer[32];
-	snprintf(buffer, 32, "Slot %d\n", Slot);
-	((SummerfaceLabel*)GetInterface()->GetWindow("StateLabel"))->SetMessage(buffer);
+	if(Slot != oldSlot)
+	{
+		MDFNI_SelectState(Slot);
+		FillScratch(Slot);
+
+		char buffer[32];
+		snprintf(buffer, 32, "Slot %d\n", Slot + 1);
+		((SummerfaceLabel*)GetInterface()->GetWindow("StateLabel"))->SetMessage(buffer);
+	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
@@ -52,7 +59,6 @@ bool						StateMenu::Input						()
 
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		MDFNI_SelectState(Slot);
 		MednafenEmu::DoCommand(0, 0, Load ? "DoLoadState" : "DoSaveState");
 		return true;
 	}
@@ -62,14 +68,9 @@ bool						StateMenu::Input						()
 
 bool						StateMenu::Draw							()
 {
-	char buffer[32];
-	snprintf(buffer, 32, "SCRATCH%%%d", Slot);
-
-	Texture* t = ImageManager::GetImage(buffer);
-
-	if(t)
+	if(States[Slot] && States[Slot]->gfx && States[Slot]->w && States[Slot]->h)
 	{
-		es_video->PresentFrame(t, Area(0, 0, States[Slot]->w, States[Slot]->h), 0, 0);
+		MednafenEmu::Blit(Image, States[Slot]->w, States[Slot]->h, 1024);
 	}
 
 	return false;
@@ -77,13 +78,8 @@ bool						StateMenu::Draw							()
 
 void						StateMenu::FillScratch					(uint32_t aSlot)
 {
-	char ibuffer[32];
-	snprintf(ibuffer, 32, "SCRATCH%%%d", aSlot);
-
-	if(States[aSlot] && States[aSlot]->gfx && States[aSlot]->w && States[aSlot]->w < 512 && States[aSlot]->h < 512 && ImageManager::GetImage(ibuffer))
+	if(States[aSlot] && States[aSlot]->gfx && States[aSlot]->w && States[aSlot]->w < 1024 && States[aSlot]->h < 1024)
 	{
-		Texture* tex = ImageManager::GetImage(ibuffer);
-		uint32_t* texpix = tex->GetPixels();
 		uint8_t* statepix = (uint8_t*)States[aSlot]->gfx;
 
 		for(int k = 0; k != States[aSlot]->h; k ++)
@@ -93,7 +89,7 @@ void						StateMenu::FillScratch					(uint32_t aSlot)
 				uint32_t r = statepix[0];
 				uint32_t g = statepix[1];
 				uint32_t b = statepix[2];
-				texpix[k * tex->GetWidth() + j] = (r << 16) | (g << 8) | (b) | 0xFF000000;
+				Image[k * 1024 + j] = (r << 16) | (g << 8) | (b) | 0xFF000000;
 				statepix += 3;
 			}
 		}
