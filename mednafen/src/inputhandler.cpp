@@ -77,6 +77,8 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
+	Summerface* sface = 0;
+
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
@@ -89,7 +91,8 @@ void							InputHandler::Configure				()
 			linelist->AddItem(item);
 		}
 
-		Summerface sface("InputTypeSelect", linelist); sface.Do();
+		sface = new Summerface("InputTypeSelect", linelist);
+		sface->Do();
 
 		PadType = linelist->GetSelected()->Properties["REALNAME"];
 	}
@@ -111,11 +114,27 @@ void							InputHandler::Configure				()
 			uint32_t buttonID;
 			SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), inputs[j].Data->Name);
 			button->SetInputConduit(new SummerfaceStaticConduit(GetButton, &buttonID), true);
-			Summerface sface("InputWindow", button); sface.Do();
+
+			if(sface)
+			{
+				sface->AddWindow("InputWindow", button);
+			}
+			else
+			{
+				sface = new Summerface("InputWindow", button);
+			}
+			sface->Do();
 
 			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
 			MDFNI_SetSettingUI(settingname.c_str(), buttonID);
+
+			sface->RemoveWindow("InputWindow", true);
 		}
+	}
+
+	if(sface)
+	{
+		delete sface;
 	}
 }
 
