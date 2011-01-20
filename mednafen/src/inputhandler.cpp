@@ -2,14 +2,6 @@
 
 namespace
 {
-	bool								AlphaSortC								(ListItem* a, ListItem* b)
-	{
-		if(a->GetText() == "none") return false;
-		if(b->GetText() == "none") return true;
-
-		return a->GetText() < b->GetText();
-	}
-
 	bool								InputSortC								(InputHandler::InputInfo a, InputHandler::InputInfo b)
 	{
 		if(a.Data->ConfigOrder != b.Data->ConfigOrder)
@@ -26,7 +18,6 @@ namespace
 								InputHandler::InputHandler				(MDFNGI* aGameInfo)
 {
 	GameInfo = aGameInfo;
-
 	memset(ControllerBits, 0, sizeof(ControllerBits));
 
 	ReadSettings();
