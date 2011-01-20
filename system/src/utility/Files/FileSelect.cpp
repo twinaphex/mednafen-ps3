@@ -12,7 +12,7 @@
 		Lists.push(sface);
 		Valid = true;
 	}
-	catch(FileException ex)
+	catch(ESException ex)
 	{
 		ESSUB_Error(ex.what());
 		Valid = false;
@@ -60,7 +60,7 @@ std::string								FileSelect::GetFile					()
 					Summerface* sface = new Summerface("FileList", nlist);
 					Lists.push(sface);
 				}
-				catch(FileException ex)
+				catch(ESException ex)
 				{
 					ESSUB_Error(ex.what());
 				}
@@ -76,7 +76,7 @@ std::string								FileSelect::GetFile					()
 	}
 	else
 	{
-		throw FileException("FileSelect::GetFile: FileSelect object is invalid.");
+		throw ESException("FileSelect::GetFile: FileSelect object is invalid.");
 	}
 }
 

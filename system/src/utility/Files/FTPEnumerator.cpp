@@ -20,7 +20,7 @@ namespace
 		ESSocket* socket = es_network->OpenSocket(aIP, portno);
 		if(socket == 0)
 		{
-			throw FileException("FTP: Could not open socket");
+			throw ESException("FTP: Could not open socket");
 		}
 		
 		return socket;
@@ -42,7 +42,7 @@ namespace
 			if(aNeededResult && code != aNeededResult)
 			{
 				printf("%d - %d\n", aNeededResult, code);
-				throw FileException("FTP: Communication error");
+				throw ESException("FTP: Communication error");
 			}
 			
 			return code;
@@ -86,7 +86,7 @@ namespace
 		
 			aInSocket = MakeSocket(newtarget, newport);
 		}
-		catch(FileException ex)
+		catch(ESException& ex)
 		{
 			delete aOutSocket;
 			delete aInSocket;
@@ -149,7 +149,7 @@ void			FTPEnumerator::ListPath					(const std::string& aPath, const std::vector<
 	}
 	else
 	{
-		throw FileException("FTP Access is not enabled");
+		throw ESException("FTP Access is not enabled");
 	}
 }
 
@@ -184,7 +184,7 @@ std::string		FTPEnumerator::ObtainFile				(const std::string& aPath)
 	}
 	else
 	{
-		throw FileException("FTP Access is not enabled");
+		throw ESException("FTP Access is not enabled");
 	}
 	return "";
 }

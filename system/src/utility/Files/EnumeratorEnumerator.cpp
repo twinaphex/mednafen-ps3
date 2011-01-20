@@ -17,6 +17,6 @@ void							EnumeratorEnumerator::ListPath				(const std::string& aPath, const st
 
 std::string						EnumeratorEnumerator::ObtainFile			(const std::string& aPath)
 {
-	throw FileException("EnumeratorEnumerator::ObtainFile: EnumeratorEnumerator can't be used to get files.");
+	throw ESException("EnumeratorEnumerator::ObtainFile: EnumeratorEnumerator can't be used to get files.");
 }
 
