@@ -143,6 +143,9 @@ int					main					(int argc, char* argv[])
 		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.es.enable"));
 		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.es.host"), MDFN_GetSettingS("ftp.es.port"), MDFN_GetSettingS("ftp.es.username"), MDFN_GetSettingS("ftp.es.password"));
 
+		//Set the Summerface background
+		Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
+
 		//Run the menu
 		ReloadEmulator();
 
@@ -152,9 +155,13 @@ int					main					(int argc, char* argv[])
 			while(WantToSleep() && !WantToDie())
 			{
 				MednafenEmu::DummyFrame();
+				es_video->Flip();
 			}
 
-			MednafenEmu::Frame();
+			if(MednafenEmu::Frame())
+			{
+				es_video->Flip();
+			}
 		}
 	
 		Exit();

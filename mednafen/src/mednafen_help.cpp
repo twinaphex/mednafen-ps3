@@ -209,7 +209,7 @@ void						MednafenEmu::CloseGame			()
 	}
 }
 
-void						MednafenEmu::Frame				()
+bool						MednafenEmu::Frame				()
 {
 	if(IsInitialized && IsLoaded)
 	{
@@ -257,8 +257,6 @@ void						MednafenEmu::Frame				()
 			{
 				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 			}
-	
-			es_video->Flip();
 		}
 
 		//AUDIO
@@ -282,7 +280,11 @@ void						MednafenEmu::Frame				()
 		{
 			DoCommands();
 		}
+
+		return !EmulatorSpec.skip;
 	}
+
+	return false;
 }
 
 void						MednafenEmu::Blit				()

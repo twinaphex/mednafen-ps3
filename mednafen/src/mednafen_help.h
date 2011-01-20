@@ -10,7 +10,7 @@ class	MednafenEmu
 		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
 		static void						CloseGame			();
 		
-		static void						Frame				();
+		static bool						Frame				();
 		static void						Blit				();
 
 		static void						DoCommands			();
@@ -45,8 +45,6 @@ class	MednafenEmu
 			{
 				Blit();
 			}
-			
-			es_video->Flip();					
 		}
 
 	protected:	//Internals

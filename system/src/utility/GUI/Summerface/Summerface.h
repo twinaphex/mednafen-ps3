@@ -19,10 +19,14 @@ class													Summerface : public Menu
 		SummerfaceWindow*								GetWindow						(const std::string& aName);
 
 		void											SetActiveWindow					(const std::string& aName);
+
+		static void										SetDrawBackground				(void (*aCallback)());
 		
-	protected:
+	private:
 		std::map<std::string, SummerfaceWindow*>		Windows;
 		std::string										ActiveWindow;
+
+		static void										(*BackgroundCallback)			();
 };
 
 

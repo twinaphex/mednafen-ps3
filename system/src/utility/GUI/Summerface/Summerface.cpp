@@ -29,7 +29,15 @@ bool										Summerface::Draw									()
 	uint32_t screenH = es_video->GetScreenHeight();
 
 	es_video->SetClip(Area(0, 0, screenW, screenH));
-	es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);
+
+	if(BackgroundCallback)
+	{
+		BackgroundCallback();
+	}
+	else
+	{
+		es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);
+	}
 
 	for(std::map<std::string, SummerfaceWindow*>::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
@@ -110,4 +118,11 @@ void										Summerface::SetActiveWindow							(const std::string& aName)
 		throw ESException("Window with name is not present. [Name: %s]", aName.c_str());
 	}
 }
+
+void										Summerface::SetDrawBackground						(void (*aCallback)())
+{
+	BackgroundCallback = aCallback;
+}
+
+void										(*Summerface::BackgroundCallback)					() = 0;
 
