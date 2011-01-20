@@ -15,6 +15,7 @@ class													Summerface : public Menu
 		virtual bool									Input							();
 
 		void											AddWindow						(const std::string& aName, SummerfaceWindow* aWindow);
+		void											RemoveWindow					(const std::string& aName, bool aDelete);
 		SummerfaceWindow*								GetWindow						(const std::string& aName);
 
 		void											SetActiveWindow					(const std::string& aName);

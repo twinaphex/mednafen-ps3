@@ -4,7 +4,7 @@
 class												ArchiveList : public SummerfaceLineList
 {
 	public:
-													ArchiveList						(const Area& aRegion, const std::string& aHeader, const std::string& aFileName);
+													ArchiveList						(const Area& aRegion, const std::string& aFileName);
 		virtual										~ArchiveList					();
 
 		uint32_t									GetSelectedSize					();
@@ -14,8 +14,11 @@ class												ArchiveList : public SummerfaceLineList
 		static bool									IsArchive						(const std::string& aFileName);
 		
 	protected:
+		void										FindFexFile						(const std::string& aFileName);
+
 		fex_t*										Archive;
 		std::string									FileName;
 };
 
 #endif
+

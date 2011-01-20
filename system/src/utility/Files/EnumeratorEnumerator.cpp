@@ -7,19 +7,11 @@ FTPEnumerator					Enumerators::FTP;
 
 void							EnumeratorEnumerator::ListPath				(const std::string& aPath, const std::vector<std::string>& aFilters, std::vector<SummerfaceItem*>& aItems)
 {
-	SummerfaceItem* item = new SummerfaceItem("Local Storage", "FolderICON");
-	item->Properties["DIRECTORY"] = "1";
-	item->Properties["FILE"] = "0";
-	item->Properties["PATH"] = "file:/";
-	aItems.push_back(item);
+	aItems.push_back(FileList::MakeItem("Local Storage", "file:/", true, false, false));
 
 	if(FTPEnumerator::GetEnabled())
 	{
-		SummerfaceItem* item = new SummerfaceItem("FTP Storage", "FolderICON");
-		item->Properties["DIRECTORY"] = "1";
-		item->Properties["FILE"] = "0";
-		item->Properties["PATH"] = "ftp:/";
-		aItems.push_back(item);
+		aItems.push_back(FileList::MakeItem("FTP Storage", "ftp:/", true, false, false));
 	}
 }
 

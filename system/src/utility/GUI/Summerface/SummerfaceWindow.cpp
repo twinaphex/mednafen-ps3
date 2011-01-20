@@ -62,14 +62,14 @@ bool										SummerfaceWindow::Input								()
 void										SummerfaceWindow::SetInterface						(Summerface* aInterface, const std::string& aName)
 {
 	//TODO: Leap of logic here!
-	if(!Interface || NoDelete)
+//	if(!Interface || NoDelete)
 	{
 		Interface = aInterface;
 		Name = aName;
 	}
-	else
+//	else
 	{
-		throw ESException("SummerfaceWindow::SetInterface may only be called once per window. Once it's assigned it belongs to its parent forever.");
+//		throw ESException("SummerfaceWindow::SetInterface may only be called once per window. Once it's assigned it belongs to its parent forever.");
 	}
 }
 

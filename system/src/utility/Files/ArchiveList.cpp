@@ -1,12 +1,12 @@
 #include <ps3_system.h>
 
-											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aHeader, const std::string& aFileName) : SummerfaceLineList(aRegion)
+											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : SummerfaceLineList(aRegion)
 {
 	FileName = aFileName;
 
 	if(0 != fex_open(&Archive, aFileName.c_str()))
 	{
-		throw "ArchiveList::ArchiveList: Fex could not open archive";
+		throw ESException("ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
 	}
 
 	while(!fex_done(Archive))
@@ -18,6 +18,8 @@
 		
 		fex_next(Archive);
 	}
+
+	Sort();
 }
 
 											ArchiveList::~ArchiveList					()
@@ -27,43 +29,40 @@
 
 uint32_t									ArchiveList::GetSelectedSize				()
 {
-	fex_rewind(Archive);
-	
-	while(!fex_done(Archive))
-	{
-		if(GetSelected()->GetText() == fex_name(Archive))
-		{
-			fex_stat(Archive);
-			return fex_size(Archive);
-		}
-		
-		fex_next(Archive);
-	}
-	
-	throw "ArchiveList::GetSelectedSize: Fex could not find file in archive";
+	FindFexFile(GetSelected()->GetText());
+
+	fex_stat(Archive);
+	return fex_size(Archive);
 }
 
 void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
 {
-	fex_rewind(Archive);
+	FindFexFile(GetSelected()->GetText());
 
-	while(!fex_done(Archive))
-	{
-		if(GetSelected()->GetText() == fex_name(Archive))
-		{
-			fex_read(Archive, aData, aSize);
-			return;
-		}
-		
-		fex_next(Archive);
-	}
-	
-	throw "ArchiveList::GetSelectedData: Fex could not find file in archive";	
+	//TODO: Throw on error
+	fex_read(Archive, aData, aSize);
 }
 
 std::string									ArchiveList::GetSelectedFileName			()
 {
 	return GetSelected()->GetText();
+}
+
+void										ArchiveList::FindFexFile					(const std::string& aFileName)
+{
+	fex_rewind(Archive);
+
+	while(!fex_done(Archive))
+	{
+		if(aFileName == fex_name(Archive))
+		{
+			return;
+		}
+		
+		fex_next(Archive);
+	}
+
+	throw ESException("ArchiveList: Fex could not find file in archive [File: %s]", aFileName.c_str());
 }
 
 bool										ArchiveList::IsArchive						(const std::string& aFileName)

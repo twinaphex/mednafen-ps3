@@ -571,3 +571,4 @@ int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
+

@@ -69,7 +69,7 @@ void				ReloadEmulator			()
 	{
 		//Get the real filename of the local file (already downloaded to a normal location) and open it in fex
 		std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
-		ArchiveList* archive = new ArchiveList(Area(10, 10, 80, 80), std::string("[Select ROM] ") + enumpath, filename);
+		ArchiveList* archive = new ArchiveList(Area(10, 10, 80, 80), filename);
 		Summerface sface("Archive", archive);
 
 		//If there are no items we are lost

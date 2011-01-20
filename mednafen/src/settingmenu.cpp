@@ -2,9 +2,9 @@
 
 namespace								MednafenSettings
 {
-	std::map<std::string,std::vector<std::string> >	Settings;
+	typedef std::map<std::string, std::vector<std::string> >	SettingCollection;
 
-	void								Do												()
+	static void							GetCategories									(SettingCollection& aSettings)
 	{
 		const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
 
@@ -29,16 +29,42 @@ namespace								MednafenSettings
 				header = std::string(iter->second.name).substr(0, std::string(iter->second.name).find_first_of("."));
 			}
 
-			Settings[header].push_back(iter->second.name);
+			aSettings[header].push_back(iter->second.name);
 		}
+	}
 
-		SummerfaceLineList*	list = new SummerfaceLineList(Area(10, 10, 80, 80));
-		for(std::map<std::string,std::vector<std::string> >::iterator i = Settings.begin(); i != Settings.end(); i ++)
+	void								Do												()
+	{
+		SettingCollection settings;
+		GetCategories(settings);
+
+		SummerfaceLineList*	cats = new SummerfaceLineList(Area(10, 10, 80, 80));
+		for(SettingCollection::iterator i = settings.begin(); i != settings.end(); i ++)
 		{
-			list->AddItem(new SummerfaceItem(i->first, ""));
+			cats->AddItem(new SummerfaceItem(i->first, ""));
 		}
 
-		Summerface("Settings", list).Do();
+		Summerface settingsface("Categories", cats);
+		while(!WantToDie())
+		{
+			settingsface.Do();
+
+			if(!cats->WasCanceled())
+			{
+				SummerfaceLineList* setts = new SummerfaceLineList(Area(10, 10, 80, 80));
+				setts->AddItem(new SummerfaceItem("HI", ""));
+				settingsface.AddWindow("Settings", setts);
+
+				settingsface.Do();
+
+				settingsface.RemoveWindow("Settings", true);
+				settingsface.SetActiveWindow("Categories");
+			}
+			else
+			{
+				return;
+			}
+		}
 	}
 }
 

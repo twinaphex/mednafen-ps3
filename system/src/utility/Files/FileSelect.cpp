@@ -7,7 +7,7 @@
 
 	try
 	{
-		FileList* list = new FileList(Area(10, 10, 80, 80), Header, aPath, aBookMarks);
+		FileList* list = new FileList(Area(10, 10, 80, 80), aPath, aBookMarks);
 		Summerface* sface = new Summerface("FileList", list);
 		Lists.push(sface);
 		Valid = true;
@@ -52,11 +52,11 @@ std::string								FileSelect::GetFile					()
 				continue;
 			}
 			
-			if(list->GetSelected()->Properties["DIRECTORY"] == "1")
+			if(list->GetSelected()->IntProperties["DIRECTORY"])
 			{
 				try
 				{
-					FileList* nlist = new FileList(Area(10, 10, 80, 80), Header, list->GetSelected()->Properties["PATH"], BookMarks);
+					FileList* nlist = new FileList(Area(10, 10, 80, 80), list->GetSelected()->Properties["PATH"], BookMarks);
 					Summerface* sface = new Summerface("FileList", nlist);
 					Lists.push(sface);
 				}

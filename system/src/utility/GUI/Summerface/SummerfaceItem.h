@@ -15,6 +15,7 @@ class													SummerfaceItem
 
 	public:
 		std::map<std::string, std::string>				Properties;
+		std::map<std::string, uint64_t>					IntProperties;
 
 	private:
 		std::string										Text;
