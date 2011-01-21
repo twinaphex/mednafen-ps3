@@ -31,6 +31,7 @@
 #include <sysutil/video.h>
 #include <sysutil/events.h>
 #include <io/pad.h>
+#include <io/msg.h>
 #include <audio/audio.h>
 #include <sys/thread.h>
 #include <lv2/process.h>
@@ -49,6 +50,8 @@ extern "C"
 	#include FT_BITMAP_H
 	#include FT_GLYPH_H
 }
+
+#define	HAVE_ESSUB_ERROR
 
 #endif
 
