@@ -3,8 +3,11 @@
 
 namespace
 {
+	uint32_t		CurrentFilter = 0;
 	Filter*			BuildFilter			(uint32_t aIndex)
 	{
+		CurrentFilter = aIndex;
+
 		if(aIndex == 0)	return new Identity();
 		if(aIndex == 1)	return new Identity2x();
 		if(aIndex == 2) return new Kreed_2xSaI();
@@ -245,8 +248,6 @@ bool						MednafenEmu::Frame				()
 			SkipCount = 0;
 
 			//VIDEO
-			Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
-
 			Blit();			
 	
 			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
@@ -301,6 +302,14 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		{
 			output = Area(0, 0, aWidth, aHeight);
 		}
+
+		if(Scaler && CurrentFilter != MDFN_GetSettingUI(SETTINGNAME("scaler")))
+		{
+			delete Scaler;
+			Scaler = 0;
+		}
+
+		Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
 
 		if(!Scaler)
 		{
