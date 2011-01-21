@@ -41,7 +41,7 @@ class	MednafenEmu
 		
 		static void						DummyFrame			()
 		{
-			if(IsInitialized && IsLoaded)
+			if(IsInitialized && IsLoaded && !SuspendDraw)
 			{
 				Blit();
 			}
@@ -56,6 +56,7 @@ class	MednafenEmu
 	
 		static Texture*					Buffer;
 		static MDFN_Surface*			Surface;
+		static bool						SuspendDraw;
 
 		static MDFNGI*					GameInfo;
 		static InputHandler*			Inputs;		
