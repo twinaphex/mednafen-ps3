@@ -2,7 +2,166 @@
 
 namespace								MednafenSettings
 {
-	typedef std::map<std::string, std::vector<std::string> >	SettingCollection;
+	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;
+
+	class								SettingLineList : public SummerfaceLineList
+	{
+		public:
+										SettingLineList									(const Area& aRegion) : SummerfaceLineList(aRegion){}
+			virtual						~SettingLineList								(){}
+
+			virtual bool				DrawItem										(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
+			{
+				SummerfaceLineList::DrawItem(aItem, aX, aY, aSelected);
+
+				const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
+
+				if(setting)
+				{
+					char buffer[256];
+
+					if(setting->desc->type == MDFNST_BOOL)
+					{
+						    snprintf(buffer, 250, "%s", MDFN_GetSettingB(setting->name) ? "ON" : "OFF");
+					}
+					else
+					{
+						    snprintf(buffer, 250, "%s", MDFN_GetSettingS(setting->name).c_str());
+					}
+
+				    LabelFont->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+				}
+				return false;
+			}
+
+			virtual bool				Input											()
+			{
+				const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+
+				{
+					if(Setting.desc->type == MDFNST_BOOL)
+					{
+						if(es_input->ButtonDown(0, ES_BUTTON_LEFT) || es_input->ButtonDown(0, ES_BUTTON_RIGHT))
+						{
+							MDFNI_SetSettingB(Setting.name, MDFN_GetSettingB(Setting.name) == 0);
+							return false;
+						}
+					}
+					else if(Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT)
+					{
+						int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+						value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+
+						if(value != 0)
+						{
+						    if(Setting.desc->type == MDFNST_UINT)
+						    {
+						    	MDFNI_SetSettingUI(Setting.name, MDFN_GetSettingUI(Setting.name) + value);
+							}
+							else
+							{
+								char buffer[256];
+								snprintf(buffer, 256, "%lli", (long long int)MDFN_GetSettingI(Setting.name) + value);
+								MDFNI_SetSetting(Setting.name, buffer);
+							}
+
+							return false;
+						}
+					}
+					else if(Setting.desc->type == MDFNST_ENUM)
+					{
+						int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+						value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+
+						if(value != 0)
+						{
+							std::string oldvalue = MDFN_GetSettingS(Setting.name);
+							uint32_t oldvaluei = 0;
+						            
+							while(1)
+							{
+								if(Setting.desc->enum_list[oldvaluei].string == 0)
+								{
+									return false;
+								}
+
+								if(strcasecmp(Setting.desc->enum_list[oldvaluei].string, oldvalue.c_str()) == 0)
+								{
+									break;
+								}
+						                    
+								oldvaluei ++;
+							}
+						    
+							int32_t newvalue = oldvaluei + value;
+						            
+							if(newvalue < 0)
+							{
+								return false;
+							}
+						            
+							for(int i = 0; i != newvalue + 1; i ++)
+							{
+								if(Setting.desc->enum_list[i].string == 0)
+								{
+									return false;
+								}
+							}
+						            
+							MDFNI_SetSetting(Setting.name, Setting.desc->enum_list[newvalue].string);
+							return false;
+						}
+					}
+
+					if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+					{
+/*						std::string result;
+						Keyboard kb(Setting.name, MDFN_GetSettingS(Setting.name));
+						kb.Do();
+
+						if(!kb.WasCanceled())
+						{
+							MDFNI_SetSetting(Setting.name, kb.GetText().c_str());
+						}*/
+						return false;
+					}
+					else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))
+					{
+						MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
+						return false;
+					}
+					else if(es_input->ButtonDown(0, ES_BUTTON_TAB))
+					{
+						std::vector<std::string> nomarks;
+						FileSelect browse("Select File", nomarks, "file:/");
+						    
+						std::string result = browse.GetFile();
+						    
+						if(result.length() != 0)
+						{
+							if(result.find("file:/") == 0)
+							{
+								result = result.substr(5);
+							}
+
+							MDFNI_SetSetting(Setting.name, result.c_str());
+						}
+
+						return false;
+					}
+
+					if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
+					{
+						return SummerfaceLineList::Input();
+					}
+					else
+					{
+						return false;
+					}
+				}
+			}
+
+	};
 
 	static void							GetCategories									(SettingCollection& aSettings)
 	{
@@ -29,8 +188,22 @@ namespace								MednafenSettings
 				header = std::string(iter->second.name).substr(0, std::string(iter->second.name).find_first_of("."));
 			}
 
-			aSettings[header].push_back(iter->second.name);
+			aSettings[header].push_back(&iter->second);
 		}
+	}
+
+	static void							DoCategory										(std::vector<const MDFNCS*>& aSettings)
+	{
+		SettingLineList* settingList = new SettingLineList(Area(10, 10, 80, 80));
+
+		for(int i = 0; i != aSettings.size(); i ++)
+		{
+			SummerfaceItem* item = new SummerfaceItem(aSettings[i]->name, "");
+			item->IntProperties["MDFNCS"] = (uint64_t)aSettings[i];
+			settingList->AddItem(item);
+		}
+
+		Summerface("SettingList", settingList).Do();
 	}
 
 	void								Do												()
@@ -51,14 +224,7 @@ namespace								MednafenSettings
 
 			if(!cats->WasCanceled())
 			{
-				SummerfaceLineList* setts = new SummerfaceLineList(Area(10, 10, 80, 80));
-				setts->AddItem(new SummerfaceItem("HI", ""));
-				settingsface.AddWindow("Settings", setts);
-
-				settingsface.Do();
-
-				settingsface.RemoveWindow("Settings", true);
-				settingsface.SetActiveWindow("Categories");
+				DoCategory(settings[cats->GetSelected()->GetText()]);
 			}
 			else
 			{
