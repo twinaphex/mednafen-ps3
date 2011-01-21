@@ -1,19 +1,18 @@
 #include <ps3_system.h>
 #include "SecretMenu.h"
 
-					L1ghtSecret::L1ghtSecret				() : WinterfaceList("Shh, it's a secret", true, true, 0)
+					L1ghtSecret::L1ghtSecret				() : SummerfaceLineList(Area(10, 10, 80, 80))
 {
-	Items.push_back(new ListItem("Show Log"));
-	Items.push_back(new ListItem("Get New EBOOT"));
+	AddItem(new SummerfaceItem("Show Log", ""));
+	AddItem(new SummerfaceItem("Get New EBOOT", ""));
 
-	SideItems.push_back(new InputListItem("Navigate", ES_BUTTON_UP));
-	SideItems.push_back(new InputListItem("Run Command", ES_BUTTON_ACCEPT));
-	SideItems.push_back(new InputListItem("Close Menu", ES_BUTTON_CANCEL));
+	SetNoDelete();
+	UI = new Summerface("list", this);
 }
 
 					L1ghtSecret::~L1ghtSecret				()
 {
-
+	delete UI;
 }
 
 bool				L1ghtSecret::Input						()
@@ -22,7 +21,7 @@ bool				L1ghtSecret::Input						()
 	{
 		if(GetSelected()->GetText() == "Show Log")
 		{
-			es_log->Do();
+			Summerface("Log", es_log).Do();
 		}
 		else if(GetSelected()->GetText() == "Get New EBOOT")
 		{
@@ -37,8 +36,7 @@ bool				L1ghtSecret::Input						()
 				FILE* ongl = fopen(filename.c_str(), "rb");
 				if(!ongl)
 				{
-					es_log->Log("Couldn't open new EBOOT.BIN");
-					es_log->Do();
+					ESSUB_Error("Couldn't open new EBOOT.BIN");
 					exit(0);
 				}
 
@@ -53,8 +51,7 @@ bool				L1ghtSecret::Input						()
 				FILE* ingl = fopen("/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN", "wb");
 				if(!ingl)
 				{
-					es_log->Log("Couldn't old open EBOOT.BIN");
-					es_log->Do();
+					ESSUB_Error("Couldn't old open EBOOT.BIN");
 					exit(0);
 				}
 
@@ -63,18 +60,21 @@ bool				L1ghtSecret::Input						()
 
 				free(data);
 
-				es_log->Log("EBOOT.BIN updated, Leaving!");
-				es_log->Do();
+				ESSUB_Error("EBOOT.BIN updated, Leaving!");
 				exit(0);
 			}
 
-			es_log->Log("Not updating EBOOT.BIN");
-			es_log->Do();
+			ESSUB_Error("Not updating EBOOT.BIN");
 		}
 
 		return true;
 	}
 
-	return WinterfaceList::Input();
+	return SummerfaceLineList::Input();
+}
+
+void				L1ghtSecret::Do							()
+{
+	UI->Do();		
 }
 

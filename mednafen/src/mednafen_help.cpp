@@ -167,6 +167,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
+		SuspendDraw = false;
+
 //		MDFND_NetStart();
 	}
 }
@@ -291,52 +293,55 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
 {
-	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-
-	if(aPixels)
+	if(IsInitialized && (aPixels || IsLoaded))
 	{
-		output = Area(0, 0, aWidth, aHeight);
-	}
+		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
 
-	if(!Scaler)
-	{
-		Scaler = BuildFilter(MDFN_GetSettingUI(SETTINGNAME("scaler")));
-		Scaler->init(output.Width, output.Height);
-	}
+		if(aPixels)
+		{
+			output = Area(0, 0, aWidth, aHeight);
+		}
+
+		if(!Scaler)
+		{
+			Scaler = BuildFilter(MDFN_GetSettingUI(SETTINGNAME("scaler")));
+			Scaler->init(output.Width, output.Height);
+		}
+
+		if(output.Width != Scaler->getWidth() || output.Height != Scaler->getHeight())
+		{
+			Scaler->init(output.Width, output.Height);
+		}
+
+		uint32_t* scaleIn = Scaler->inBuffer();
+		uint32_t scaleInP = Scaler->inPitch();
+
+		uint32_t* scaleOut = Scaler->outBuffer();
+		uint32_t scaleOutP = Scaler->outPitch();
+
+		uint32_t* bufferPix = Buffer->GetPixels();
+		uint32_t bufferP = Buffer->GetWidth();
+
+		uint32_t finalWidth = output.Width * Scaler->info().outWidth;
+		uint32_t finalHeight = output.Height * Scaler->info().outHeight;
+
+		uint32_t* pixels = aPixels ? aPixels : Surface->pixels;
+		uint32_t pitch = aPixels ? aPitch : Surface->pitchinpix;
+
+		for(int i = 0; i != output.Height; i ++)
+		{
+			memcpy(&scaleIn[i * scaleInP], &pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
+		}
+
+		Scaler->filter();
 	
-	if(output.Width != Scaler->getWidth() || output.Height != Scaler->getHeight())
-	{
-		Scaler->init(output.Width, output.Height);
+		for(int i = 0; i != finalHeight; i ++)
+		{
+			memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
+		}
+
+		es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
 	}
-
-	uint32_t* scaleIn = Scaler->inBuffer();
-	uint32_t scaleInP = Scaler->inPitch();
-	
-	uint32_t* scaleOut = Scaler->outBuffer();
-	uint32_t scaleOutP = Scaler->outPitch();
-	
-	uint32_t* bufferPix = Buffer->GetPixels();
-	uint32_t bufferP = Buffer->GetWidth();
-
-	uint32_t finalWidth = output.Width * Scaler->info().outWidth;
-	uint32_t finalHeight = output.Height * Scaler->info().outHeight;
-
-	uint32_t* pixels = aPixels ? aPixels : Surface->pixels;
-	uint32_t pitch = aPixels ? aPitch : Surface->pitchinpix;
-
-	for(int i = 0; i != output.Height; i ++)
-	{
-		memcpy(&scaleIn[i * scaleInP], &pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
-	}
-
-	Scaler->filter();
-		
-	for(int i = 0; i != finalHeight; i ++)
-	{
-		memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
-	}
-
-	es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
 }
 
 void						MednafenEmu::DoCommands			()
@@ -394,8 +399,8 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
-		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		StateMenu(false).Do();
-		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		StateMenu(true).Do();
+		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu(false).Do(); SuspendDraw = false;}
+		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu(true).Do(); SuspendDraw = false;}
 		if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
 		if(0 == strcmp(command.c_str(), "DoTextFile"))			Summerface("Text", TextFile).Do();
 		if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
@@ -492,6 +497,7 @@ bool						MednafenEmu::IsLoaded = false;
 	
 Texture*					MednafenEmu::Buffer = 0;
 MDFN_Surface*				MednafenEmu::Surface = 0;
+bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
 InputHandler*				MednafenEmu::Inputs = 0;
