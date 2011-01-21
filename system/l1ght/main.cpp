@@ -70,4 +70,29 @@ std::string			ESSUB_GetBaseDirectory	()
 	return "/dev_hdd0/game/MDFN90002/USRDIR/";
 }
 
+static bool			KillError = false;
+static void			DialogCallback			(msgButton button, void *userdata)
+{
+	if(button != MSGDIALOG_BUTTON_NONE)
+	{
+		KillError = true;
+	}
+	return;
+}
+
+void				ESSUB_Error				(const char* aMessage)
+{
+	KillError = false;
+	msgDialogOpen(MSGDIALOG_ERROR, aMessage, DialogCallback, 0, 0);
+
+	while(!KillError)
+	{
+		es_video->Flip();
+		sysCheckCallback();
+	}
+
+	msgDialogClose();
+
+	exit(100000);
+}
 
