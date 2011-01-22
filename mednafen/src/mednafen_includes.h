@@ -21,6 +21,7 @@ extern "C" MDFNGI*				vbamGetEmulator			();
 extern "C" MDFNGI*				pcsxGetEmulator			();
 
 void							MDFNDES_BlockExit		(bool aExit);
+void							MDFND_NetStart			();
 
 extern std::vector<MDFNGI *>	MDFNSystems;
 

@@ -41,7 +41,7 @@ int			MDFND_RecvData			(void *data, uint32_t len)
 	return 1;
 }
 
-void		MDFND_NetplayText		(const uint8_t* text, bool NetEcho)	{}
+void		MDFND_NetplayText		(const uint8_t* text, bool NetEcho)	{if(text){MednafenEmu::DisplayMessage((char*)text);}}
 void		MDFND_NetworkClose		()									{}
 
 //Timing and messages

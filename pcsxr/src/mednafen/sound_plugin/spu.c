@@ -22,51 +22,11 @@
 #define _IN_SPU
 
 #include "externals.h"
-#include "cfg.h"
 #include "dsoundoss.h"
 #include "regs.h"
 
-#ifdef _WINDOWS
-//ROBO: Don't want these
-//#include "debug.h"
-//#include "record.h"
-#endif
-
-#ifdef ENABLE_NLS
-#include <libintl.h>
-#include <locale.h>
-#define _(x)  gettext(x)
-#define N_(x) (x)
-#else
-#define _(x)  (x)
-#define N_(x) (x)
-#endif
-
-//ROBO: Don't need these
-#if 0
-#if defined (_WINDOWS)
-static char * libraryName     = N_("DirectSound Driver");
-#elif defined (USEMACOSX)
-static char * libraryName     = N_("Mac OS X Sound");
-#elif defined (USEALSA)
-static char * libraryName     = N_("ALSA Sound");
-#elif defined (USEOSS)
-static char * libraryName     = N_("OSS Sound");
-#elif defined (USESDL)
-static char * libraryName     = N_("SDL Sound");
-#elif defined (USEPULSEAUDIO)
-static char * libraryName     = N_("PulseAudio Sound");
-#else
-static char * libraryName     = N_("NULL Sound");
-#endif
-
-static char * libraryInfo     = N_("P.E.Op.S. Sound Driver V1.7\nCoded by Pete Bernert and the P.E.Op.S. team\n");
-#endif
-
 // globals
-
 // psx buffer / addresses
-
 unsigned short  regArea[10000];
 unsigned short  spuMem[256*1024];
 unsigned char * spuMemC;
@@ -75,17 +35,13 @@ unsigned char * pSpuBuffer;
 unsigned char * pMixIrq=0;
 
 // user settings
-
-int             iVolume=3;
 int             iXAPitch=1;
 int             iUseTimer=2;
 int             iSPUIRQWait=1;
-int             iDebugMode=0;
-int             iRecordMode=0;
 int             iUseReverb=2;
 int             iUseInterpolation=2;
 int             iDisStereo=0;
-int							iFreqResponse=0;
+int				iFreqResponse=0;
 
 // MAIN infos struct for each channel
 
@@ -101,19 +57,8 @@ unsigned short  spuCtrl=0;                             // some vars to store psx
 unsigned short  spuStat=0;
 unsigned short  spuIrq=0;
 unsigned long   spuAddr=0xffffffff;                    // address into spu mem
-int             bEndThread=0;                          // thread handlers
-int             bThreadEnded=0;
 int             bSpuInit=0;
 int             bSPUIsOpen=0;
-
-#ifdef _WINDOWS
-HWND    hWMain=0;                                      // window handle
-HWND    hWDebug=0;
-HWND    hWRecord=0;
-static HANDLE   hMainThread;                           
-#else
-static pthread_t thread = (pthread_t)-1;               // thread id (linux)
-#endif
 
 unsigned long dwNewChannel=0;                          // flags for faster testing, if new channel starts
 
@@ -526,26 +471,15 @@ INLINE int iGetInterpolationVal(int ch)
 
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef _WINDOWS
-static VOID CALLBACK MAINProc(UINT nTimerId, UINT msg, DWORD dwUser, DWORD dwParam1, DWORD dwParam2)
-#else
 static void *MAINThread(void *arg)
-#endif
 {
  int s_1,s_2,fa,ns;
-#ifndef _MACOSX
- int voldiv = iVolume;
-#else
- int voldiv = 2;
-#endif
  unsigned char * start;unsigned int nSample;
  int ch,predict_nr,shift_factor,flags,d,s;
  int bIRQReturn=0;
 
  // mute output
- if( voldiv == 5 ) voldiv = 0x7fffffff;
- 
- while(!bEndThread)                                    // until we are shutting down
+ while(1)                                    // until we are shutting down
   {
    // ok, at the beginning we are looking if there is
    // enuff free place in the dsound/oss buffer to
@@ -561,24 +495,12 @@ static void *MAINThread(void *arg)
     }
    else iSecureStart=0;                                // 0: no new channel should start
 
-   while(!iSecureStart && !bEndThread &&               // no new start? no thread end?
+   while(!iSecureStart &&                // no new start? no thread end?
          (SoundGetBytesBuffered()>TESTSIZE))           // and still enuff data in sound buffer?
     {
      iSecureStart=0;                                   // reset secure
 
-#ifdef _WINDOWS
-     if(iUseTimer)                                     // no-thread mode?
-      {
-       if(iUseTimer==1)                                // -> ok, timer mode 1: setup a oneshot timer of x ms to wait
-        timeSetEvent(PAUSE_W,1,MAINProc,0,TIME_ONESHOT);
-       return;                                         // -> and done this time (timer mode 1 or 2)
-      }
-                                                       // win thread mode:
-     Sleep(PAUSE_W);                                   // sleep for x ms (win)
-#else
-     if(iUseTimer) return 0;                           // linux no-thread mode? bye
-     usleep(PAUSE_L);                                  // else sleep for x ms (linux)
-#endif
+     return 0;
 
      if(dwNewChannel) iSecureStart=1;                  // if a new channel kicks in (or, of course, sound buffer runs low), we will leave the loop
     }
@@ -742,24 +664,15 @@ static void *MAINThread(void *arg)
                 { 
                  DWORD dwWatchTime=timeGetTime_spu()+2500;
 
-                 while(iSpuAsyncWait && !bEndThread && 
-                       timeGetTime_spu()<dwWatchTime)
-#ifdef _WINDOWS
-                     Sleep(1);
-#else
-                     usleep(1000L);
-#endif
+                 while(iSpuAsyncWait && MDFNDC_GetTime() < dwWatchTime)
+					MDFNDC_Sleep(1);
                 }
                else
                 {
                  lastch=ch; 
                  lastns=ns;
 
-#ifdef _WINDOWS
-                 return;
-#else
                  return 0;
-#endif
                 }
               }
 
@@ -828,12 +741,12 @@ GOON: ;
      {
       SSumL[ns] += MixREVERBLeft(ns);
 
-      dl = SSumL[ns] / voldiv; SSumL[ns] = 0;
+      dl = SSumL[ns]; SSumL[ns] = 0;
       if (dl < -32767) dl = -32767; if (dl > 32767) dl = 32767;
 
       SSumR[ns] += MixREVERBRight();
 
-      dr = SSumR[ns] / voldiv; SSumR[ns] = 0;
+      dr = SSumR[ns]; SSumR[ns] = 0;
       if (dr < -32767) dr = -32767; if (dr > 32767) dr = 32767;
       *pS++ = (dl + dr) / 2;
      }
@@ -880,18 +793,18 @@ GOON: ;
 			sr = (int)tmp;
 
 
-			*pS++=sl/voldiv;
-			*pS++=sr/voldiv;
+			*pS++=sl;
+			*pS++=sr;
 		} else {
 			SSumL[ns]+=MixREVERBLeft(ns);
                                               
-			d=SSumL[ns]/voldiv;SSumL[ns]=0;
+			d=SSumL[ns];SSumL[ns]=0;
 			if(d<-32767) d=-32767;if(d>32767) d=32767;
 			*pS++=d;
         
 			SSumR[ns]+=MixREVERBRight();
 
-			d=SSumR[ns]/voldiv;SSumR[ns]=0;
+			d=SSumR[ns];SSumR[ns]=0;
 			if(d<-32767) d=-32767;if(d>32767) d=32767;
 			*pS++=d;
 		}
@@ -954,26 +867,12 @@ GOON: ;
 
  // end of big main loop...
 
- bThreadEnded = 1;
-
-#ifndef _WINDOWS
  return 0;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////
 // WINDOWS THREAD... simply calls the timer func and stays forever :)
 ////////////////////////////////////////////////////////////////////////
-
-#ifdef _WINDOWS
-
-DWORD WINAPI MAINThreadEx(LPVOID lpParameter)
-{
- MAINProc(0,0,0,0,0);
- return 0;
-}
-
-#endif
 
 // SPU ASYNC... even newer epsxe func
 //  1 time every 'cycle' cycles... harhar
@@ -983,62 +882,27 @@ void CALLBACK pkSPUasync(unsigned long cycle)
 {
 	cpu_cycles += cycle;
 
- if(iSpuAsyncWait)
-  {
-   iSpuAsyncWait++;
-   if(iSpuAsyncWait<=64) return;
-   iSpuAsyncWait=0;
+	if(iSpuAsyncWait)
+	{
+		iSpuAsyncWait++;
+		if(iSpuAsyncWait<=64) return;
+		iSpuAsyncWait=0;
 
-	 cpu_cycles = cycle;
-  }
+		cpu_cycles = cycle;
+	}
 
-#ifdef _WINDOWS
- if(iDebugMode==2)
-  {
-   if(IsWindow(hWDebug)) DestroyWindow(hWDebug);
-   hWDebug=0;iDebugMode=0;
-  }
- if(iRecordMode==2)
-  {
-   if(IsWindow(hWRecord)) DestroyWindow(hWRecord);
-   hWRecord=0;iRecordMode=0;
-  }
-#endif
-
- if(iUseTimer==2)                                      // special mode, only used in Linux by this spu (or if you enable the experimental Windows mode)
-  {
-   if(!bSpuInit) return;                               // -> no init, no call
-
-	 // 1 ms updates
-	 while( cpu_cycles >= CPU_CLOCK / INTERVAL_TIME )
-	 {
-	#ifdef _WINDOWS
-		 MAINProc(0,0,0,0,0);                                // -> experimental win mode... not really tested... don't like the drawbacks
-	#else
-		 MAINThread(0);                                      // -> linux high-compat mode
-	#endif
-
-		 cpu_cycles -= CPU_CLOCK / INTERVAL_TIME;
-	 }
-  }
-}
-
-// SPU UPDATE... new epsxe func
-//  1 time every 32 hsync lines
-//  (312/32)x50 in pal
-//  (262/32)x60 in ntsc
-
-// since epsxe 1.5.2 (linux) uses SPUupdate, not SPUasync, I will
-// leave that func in the linux port, until epsxe linux is using
-// the async function as well
-
-void CALLBACK pkSPUupdate(void)
-{
- pkSPUasync(0);
+	if(iUseTimer==2)                                      // special mode, only used in Linux by this spu (or if you enable the experimental Windows mode)
+	{
+		if(!bSpuInit) return;                               // -> no init, no call
+		while( cpu_cycles >= CPU_CLOCK / INTERVAL_TIME )
+		{
+			MAINThread(0);                                      // -> linux high-compat mode
+			cpu_cycles -= CPU_CLOCK / INTERVAL_TIME;
+		}
+	}
 }
 
 // XA AUDIO
-
 void CALLBACK pkSPUplayADPCMchannel(xa_decode_t *xap)
 {
  if(!xap)       return;
@@ -1064,64 +928,13 @@ void SetupTimer(void)
  memset(iFMod,0,NSSIZE*sizeof(int));
  pS=(short *)pSpuBuffer;                               // setup soundbuffer pointer
 
- bEndThread=0;                                         // init thread vars
- bThreadEnded=0; 
  bSpuInit=1;                                           // flag: we are inited
-
-#ifdef _WINDOWS
-
- if(iUseTimer==1)                                      // windows: use timer
-  {
-   timeBeginPeriod(1);
-   timeSetEvent(1,1,MAINProc,0,TIME_ONESHOT);
-  }
- else 
- if(iUseTimer==0)                                      // windows: use thread
-  {
-   //_beginthread(MAINThread,0,NULL);
-   DWORD dw;
-   hMainThread=CreateThread(NULL,0,MAINThreadEx,0,0,&dw);
-   SetThreadPriority(hMainThread,
-                     //THREAD_PRIORITY_TIME_CRITICAL);
-                     THREAD_PRIORITY_HIGHEST);
-  }
-
-#else
-
- if(!iUseTimer)                                        // linux: use thread
-  {
-   pthread_create(&thread, NULL, MAINThread, NULL);
-  }
-
-#endif
 }
 
 // REMOVETIMER: kill threads/timers
 void RemoveTimer(void)
 {
- bEndThread=1;                                         // raise flag to end thread
-
-#ifdef _WINDOWS
-
- if(iUseTimer!=2)                                      // windows thread?
-  {
-   while(!bThreadEnded) {Sleep(5L);}                   // -> wait till thread has ended
-   Sleep(5L);
-  }
- if(iUseTimer==1) timeEndPeriod(1);                    // windows timer? stop it
-
-#else
- if(!iUseTimer)                                        // linux tread?
-  {
-   int i=0;
-   while(!bThreadEnded && i<2000) {usleep(1000L);i++;} // -> wait until thread has ended
-   if(thread!=(pthread_t)-1) {pthread_cancel(thread);thread=(pthread_t)-1;}  // -> cancel thread anyway
-  }
-
-#endif
-
- bThreadEnded=0;                                       // no more spu is running
- bSpuInit=0;
+	bSpuInit=0;
 }
 
 // SETUPSTREAMS: init most of the spu buffers
@@ -1170,14 +983,14 @@ void SetupStreams(void)
 // REMOVESTREAMS: free most buffer
 void RemoveStreams(void)
 { 
- free(pSpuBuffer);                                     // free mixing buffer
- pSpuBuffer = NULL;
- free(sRVBStart);                                      // free reverb buffer
- sRVBStart = NULL;
- free(XAStart);                                        // free XA buffer
- XAStart = NULL;
- free(CDDAStart);                                      // free CDDA buffer
- CDDAStart = NULL;
+	free(pSpuBuffer);                                     // free mixing buffer
+	pSpuBuffer = NULL;
+	free(sRVBStart);                                      // free reverb buffer
+	sRVBStart = NULL;
+	free(XAStart);                                        // free XA buffer
+	XAStart = NULL;
+	free(CDDAStart);                                      // free CDDA buffer
+	CDDAStart = NULL;
 }
 
 // INIT/EXIT STUFF
@@ -1185,143 +998,76 @@ void RemoveStreams(void)
 // SPUINIT: this func will be called first by the main emu
 long CALLBACK pkSPUinit(void)
 {
- spuMemC = (unsigned char *)spuMem;                    // just small setup
- memset((void *)&rvb, 0, sizeof(REVERBInfo));
- InitADSR();
+	spuMemC = (unsigned char *)spuMem;                    // just small setup
+	memset((void *)&rvb, 0, sizeof(REVERBInfo));
+	InitADSR();
 
- iVolume = 3;
- iReverbOff = -1;
- spuIrq = 0;
- spuAddr = 0xffffffff;
- bEndThread = 0;
- bThreadEnded = 0;
- spuMemC = (unsigned char *)spuMem;
- pMixIrq = 0;
- memset((void *)s_chan, 0, (MAXCHAN + 1) * sizeof(SPUCHAN));
- pSpuIrq = 0;
- iSPUIRQWait = 1;
- lastch = -1;
+	iReverbOff = -1;
+	spuIrq = 0;
+	spuAddr = 0xffffffff;
+	pMixIrq = 0;
+	memset((void *)s_chan, 0, (MAXCHAN + 1) * sizeof(SPUCHAN));
+	pSpuIrq = 0;
+	iSPUIRQWait = 1;
+	lastch = -1;
 
- ReadConfig();                                         // read user stuff
- SetupStreams();                                       // prepare streaming
+	SetupStreams();                                       // prepare streaming
 
- return 0;
+	return 0;
 }
 
 // SPUOPEN: called by main emu after init
-#ifdef _WINDOWS
-long CALLBACK pkSPUopen(HWND hW)                          
-#else
 long pkSPUopen(void)
-#endif
 {
- if (bSPUIsOpen) return 0;                             // security for some stupid main emus
+	if(!bSPUIsOpen)
+	{
+		SetupSound();                                         // setup sound (before init!)
+		SetupTimer();                                         // timer for feeding data
 
-//ROBO: Breaks stuff
-#if 0
-#ifdef _WINDOWS
- LastWrite=0xffffffff;LastPlay=0;                      // init some play vars
- if(!IsWindow(hW)) hW=GetActiveWindow();
- hWMain = hW;                                          // store hwnd
-#endif
-#endif
+		bSPUIsOpen = 1;
+	}
 
- SetupSound();                                         // setup sound (before init!)
- SetupTimer();                                         // timer for feeding data
-
- bSPUIsOpen = 1;
-
-//ROBO: Don't want these
-//#ifdef _WINDOWS
-#if 0
- if(iDebugMode)                                        // windows debug dialog
-  {
-   hWDebug=CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),
-                        NULL,(DLGPROC)DebugDlgProc);
-   SetWindowPos(hWDebug,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW|SWP_NOACTIVATE);
-   UpdateWindow(hWDebug);
-   SetFocus(hWMain);
-  }
-
- if(iRecordMode)                                       // windows recording dialog
-  {
-   hWRecord=CreateDialog(hInst,MAKEINTRESOURCE(IDD_RECORD),
-                        NULL,(DLGPROC)RecordDlgProc);
-   SetWindowPos(hWRecord,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW|SWP_NOACTIVATE);
-   UpdateWindow(hWRecord);
-   SetFocus(hWMain);
-  }
-#endif
-
- return PSE_SPU_ERR_SUCCESS;
+	return PSE_SPU_ERR_SUCCESS;
 }
 
 // SPUCLOSE: called before shutdown
 long CALLBACK pkSPUclose(void)
 {
- if (!bSPUIsOpen) return 0;                            // some security
+	if(bSPUIsOpen)
+	{
+		bSPUIsOpen = 0;                                       // no more open
 
- bSPUIsOpen = 0;                                       // no more open
+		RemoveTimer();                                        // no more feeding
+		RemoveSound();                                        // no more sound handling
+	}
 
-#ifdef _WINDOWS
- if(IsWindow(hWDebug)) DestroyWindow(hWDebug);
- hWDebug=0;
- if(IsWindow(hWRecord)) DestroyWindow(hWRecord);
- hWRecord=0;
-#endif
-
- RemoveTimer();                                        // no more feeding
- RemoveSound();                                        // no more sound handling
-
- return 0;
+	return 0;
 }
 
 // SPUSHUTDOWN: called by main emu on final exit
 long CALLBACK pkSPUshutdown(void)
 {
- pkSPUclose();
- RemoveStreams();                                      // no more streaming
+	pkSPUclose();
+	RemoveStreams();                                      // no more streaming
 
- return 0;
+	return 0;
 }
 
 // SPUTEST: we don't test, we are always fine ;)
 long CALLBACK pkSPUtest(void)
 {
- return 0;
+	return 0;
 }
 
 // SPUCONFIGURE: call config dialog
 long CALLBACK pkSPUconfigure(void)
 {
-//ROBO: Don't want this
-#if 0
-#if defined (_WINDOWS)
- DialogBox(hInst,MAKEINTRESOURCE(IDD_CFGDLG),
-           GetActiveWindow(),(DLGPROC)DSoundDlgProc);
-#elif defined (_MACOSX)
- DoConfiguration();
-#else
- StartCfgTool("CFG");
-#endif
-#endif
- return 0;
+	return 0;
 }
 
 // SPUABOUT: show about window
 void CALLBACK pkSPUabout(void)
 {
-//ROBO: Don't want this
-#if 0
-#if defined (_WINDOWS)
- DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),
-           GetActiveWindow(),(DLGPROC)AboutDlgProc);
-#elif defined (_MACOSX)
- DoAbout();
-#else
- StartCfgTool("ABOUT");
-#endif
-#endif
 }
 
 // SETUP CALLBACKS
@@ -1337,26 +1083,4 @@ void CALLBACK pkSPUregisterCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned sh
  cddavCallback = CDDAVcallback;
 }
 
-// COMMON PLUGIN INFO FUNCS
-//ROBO: Don't need these
-#if 0
-char * CALLBACK PSEgetLibName(void)
-{
- return _(libraryName);
-}
 
-unsigned long CALLBACK PSEgetLibType(void)
-{
- return  PSE_LT_SPU;
-}
-
-unsigned long CALLBACK PSEgetLibVersion(void)
-{
- return (1 << 16) | (1 << 8);
-}
-
-char * pkSPUgetLibInfos(void)
-{
- return _(libraryInfo);
-}
-#endif

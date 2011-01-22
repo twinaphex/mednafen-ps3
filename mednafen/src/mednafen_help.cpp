@@ -136,8 +136,6 @@ void						MednafenEmu::Quit				()
 	IsInitialized = false;
 }
 
-//TODO: Define elsewhere
-void		MDFND_NetStart			();
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
 	if(!IsLoaded && IsInitialized)

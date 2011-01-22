@@ -249,16 +249,13 @@ extern unsigned char * pSpuBuffer;
 
 // user settings
 
-extern int        iVolume;
 extern int        iXAPitch;
 extern int        iUseTimer;
 extern int        iSPUIRQWait;
-extern int        iDebugMode;
-extern int        iRecordMode;
 extern int        iUseReverb;
 extern int        iUseInterpolation;
 extern int        iDisStereo;
-extern int				iFreqResponse;
+extern int        iFreqResponse;
 // MISC
 
 extern int iSpuAsyncWait;
@@ -273,8 +270,6 @@ extern unsigned short spuCtrl;
 extern unsigned short spuStat;
 extern unsigned short spuIrq;
 extern unsigned long  spuAddr;
-extern int      bEndThread;
-extern int      bThreadEnded;
 extern int      bSpuInit;
 extern unsigned long dwNewChannel;
 
@@ -283,37 +278,7 @@ extern int      SSumL[];
 extern int      iCycle;
 extern short *  pS;
 
-#ifdef _WINDOWS
-extern HWND    hWMain;                               // window handle
-extern HWND    hWDebug;
-#endif
-
 extern void (CALLBACK *cddavCallback)(unsigned short,unsigned short);
-
-#endif
-
-///////////////////////////////////////////////////////////
-// DSOUND.C globals
-///////////////////////////////////////////////////////////
-
-#ifndef _IN_DSOUND
-
-#ifdef _WINDOWS
-extern unsigned long LastWrite;
-extern unsigned long LastPlay;
-#endif
-
-#endif
-
-///////////////////////////////////////////////////////////
-// RECORD.C globals
-///////////////////////////////////////////////////////////
-
-#ifndef _IN_RECORD
-
-#ifdef _WINDOWS
-extern int iDoRecord;
-#endif
 
 #endif
 
