@@ -130,14 +130,8 @@ namespace								MednafenSettings
 
 					if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 					{
-						std::string result;
-						Keyboard* kb = new Keyboard(Area(10, 10, 80, 80), Setting.name, MDFN_GetSettingS(Setting.name));
-						Summerface sf("Keyboard", kb); sf.Do();
-
-						if(!kb->WasCanceled())
-						{
-							MDFNI_SetSetting(Setting.name, kb->GetText().c_str());
-						}
+						std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
+						MDFNI_SetSetting(Setting.name, result.c_str());
 						return false;
 					}
 					else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))

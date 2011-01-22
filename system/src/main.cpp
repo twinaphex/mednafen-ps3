@@ -31,6 +31,15 @@ void				ESSUB_Error				(const char* aMessage)
 }
 #endif
 
+#ifndef HAVE_ESSUB_GETSTRING
+std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
+{
+	Keyboard* kb = new Keyboard(Area(10, 10, 80, 80), aHeader, aMessage);
+	Summerface sface("Keyboard", kb); sface.Do();
+	return kb->GetText();
+}
+#endif
+
 void				Abort					(const char* aMessage)
 {
 	printf("ABORT: %s\n", aMessage);

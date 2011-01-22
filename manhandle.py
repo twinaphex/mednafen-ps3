@@ -18,7 +18,7 @@ donethings = []
 tf, tfn = tempfile.mkstemp()
 
 for i in things:
-	if not i in donethings and i != "_ZNSt15basic_stringbufIcSt11char_traitsIcESaIcEED1Ev" and i != "_ZNSt6vectorIhSaIhEED1Ev":
+	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i:
 		donethings.append(i)
 		os.write(tf, i + " " + sys.argv[2] + i)
 		os.write(tf, "\n")
