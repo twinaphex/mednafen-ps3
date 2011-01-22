@@ -1,4 +1,5 @@
 #include <src/mednafen.h>
+#include <src/mednafen-driver.h>
 #include <src/git.h>
 #include <ps3_system.h>
 #include <src/general.h>
@@ -8,6 +9,9 @@ namespace
 	EmulateSpecStruct*			ESpec;
 	uint8_t*					Ports[8];
 }
+
+extern "C" void MDFNDC_Sleep(uint32_t aMS){MDFND_Sleep(aMS);}
+extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
 
 //Definitions for PCSX
 extern "C"
@@ -100,15 +104,13 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
 
 	if(sndsize < 1500)
 	{
-	for(int i = 0; i != sndsize * 2; i ++)
-	{
-		resampler.buffer()[i] = /*(rand() & 0x7FFF) - 0x4000;*/ bingbang[i];
-	}
+		for(int i = 0; i != sndsize * 2; i ++)
+		{
+			resampler.buffer()[i] = /*(rand() & 0x7FFF) - 0x4000;*/ bingbang[i];
+		}
 
-	resampler.write(sndsize * 2);
-	espec->SoundBufSize = resampler.read(espec->SoundBuf, resampler.avail()) >> 1;
-
-	printf("%d\n", espec->SoundBufSize);
+		resampler.write(sndsize * 2);
+		espec->SoundBufSize = resampler.read(espec->SoundBuf, resampler.avail()) >> 1;
 	}
 
     //TODO: Support color shift

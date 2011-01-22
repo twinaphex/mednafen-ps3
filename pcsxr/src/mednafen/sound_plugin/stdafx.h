@@ -15,44 +15,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef __WIN32__
-#define _WINDOWS
-#endif
-
-#ifdef _WINDOWS
-
-#define WIN32_LEAN_AND_MEAN
-#define STRICT
-#include <windows.h>
-#include <windowsx.h>
-#include "mmsystem.h"
-#include <process.h>
-#include <stdlib.h>
-
-#ifndef INLINE
-#define INLINE __inline
-#endif
-
-//ROBO: Don't have
-//#include "resource.h"
-
-#pragma warning (disable:4996)
-
-#else
-
-#ifndef _MACOSX
-#include "config.h"
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifdef USEOSS
-#include <sys/soundcard.h>
-#endif
 #include <unistd.h>
-#include <pthread.h>
 #define RRand(range) (random()%range)  
 #include <string.h> 
 #include <sys/time.h>  
@@ -68,10 +36,5 @@
 #define INLINE inline
 #endif
 
-#endif
-
 #include "psemuxa.h"
 
-//ROBO: No callback
-#undef CALLBACK
-#define CALLBACK
