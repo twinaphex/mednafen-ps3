@@ -50,6 +50,7 @@ src/nes/debug.cpp:
 src/pce/debug.cpp:
 src/vb/debug.cpp:
 src/wswan/debug.cpp:
+src/pcfx/debug.cpp:
 src/nes/ntsc/demo.c:
 src/nes/ntsc/benchmark.c:
 src/hw_cpu/v810/fpu-new/timesoftfloat.c:

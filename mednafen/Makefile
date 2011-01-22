@@ -10,7 +10,7 @@ APPID				:=	MDFN90002
 CONTENTID			:=	UP0001-$(APPID)_00-0000000000000000
 
 ##Mednafen config
-MEDNAFENFLAGS		:=	-DWANT_SMS_EMU -DWANT_MD_EMU -DWANT_WSWAN_EMU -DWANT_NGP_EMU -DWANT_PCE_EMU -DWANT_VB_EMU -DWANT_LYNX_EMU -DNEED_Z80_EMULATOR -DNETWORK
+MEDNAFENFLAGS		:=	-DWANT_SMS_EMU -DWANT_MD_EMU -DWANT_WSWAN_EMU -DWANT_NGP_EMU -DWANT_PCE_EMU -DWANT_VB_EMU -DWANT_LYNX_EMU -DNEED_Z80_EMULATOR -DWANT_PCFX_EMU -DNETWORK
 MEDNAFENCONFIG		:=	-DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.16\" -DMEDNAFEN_VERSION_NUMERIC=0x916 -DSIZEOF_DOUBLE=8
 MEDNAFENINCLUDES	:=	. src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu src/src/sms src/src/hw_sound src/include/blip src/src/ngp src/src/ngp/TLCS-900h src/src/snes/src/lib
 
@@ -23,7 +23,7 @@ SOURCE				:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_
 						src/src/hw_cpu/v810/fpu-new src/src/hw_cpu/z80-fuse src/src/hw_misc/arcade_card src/src/hw_sound/pce_psg \
 						src/src/hw_sound/sms_apu src/src/hw_sound/ym2413 src/src/hw_sound/ym2612 src/src/hw_video/huc6270 src/src/lynx src/src/md \
 						src/src/md/cart src/src/md/input src/src/mpcdec  \
-						src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input  \
+						src/src/ngp src/src/ngp/TLCS-900h src/src/pce src/src/pce/input src/src/pcfx src/src/pcfx/input \
 						src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
 
 ##Maybe remove these later, they aren't used often
