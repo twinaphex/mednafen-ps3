@@ -11,21 +11,16 @@ bool		MDFND_ExitBlockingLoop	()									{return BlockExit;}
 void		MDFND_MidSync			(const EmulateSpecStruct *espec)	{}
 
 //Netplay, some other time
-ESSocket*	slocket;
+bool		NetplayOn = false;
+ESSocket*	slocket = 0;
 void		MDFND_NetStart			()
 {
-	if(!slocket)
-	{
-		slocket = es_network->OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
-		MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
-	}
-	else
-	{
-		delete slocket;
-		slocket = 0;
+	MDFND_NetworkClose();
 
-		MDFNI_NetplayStop();
-	}
+	slocket = es_network->OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
+	MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
+
+	NetplayOn = true;
 }
 
 
@@ -41,8 +36,21 @@ int			MDFND_RecvData			(void *data, uint32_t len)
 	return 1;
 }
 
+void		MDFND_NetworkClose		()
+{
+	if(NetplayOn)
+	{
+		MDFND_DispMessage((UTF8*)"Network disconnected");
+
+		NetplayOn = false;
+		MDFNI_NetplayStop();
+	}
+
+	delete slocket;
+	slocket = 0;
+}
+
 void		MDFND_NetplayText		(const uint8_t* text, bool NetEcho)	{if(text){MednafenEmu::DisplayMessage((char*)text);}}
-void		MDFND_NetworkClose		()									{}
 
 //Timing and messages
 uint32_t	MDFND_GetTime			()									{return (uint32_t)Utility::GetTicks();}
