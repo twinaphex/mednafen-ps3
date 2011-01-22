@@ -75,7 +75,14 @@ namespace
 		{"ftp.es.host", MDFNSF_NOFLAGS, "Hostname for FTP Server.", NULL, MDFNST_STRING, "192.168.0.250" },
 		{"ftp.es.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" },
 		{"ftp.es.username", MDFNSF_NOFLAGS, "User name for FTP Server.", NULL, MDFNST_STRING, "anonymous" },
-		{"ftp.es.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" }
+		{"ftp.es.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" },
+		{"net.es.username", MDFNSF_NOFLAGS, "User name for netplay.", NULL, MDFNST_STRING, "Me" },		
+		{"net.es.password", MDFNSF_NOFLAGS, "Password for the netplay Server.", NULL, MDFNST_STRING, "sexybeef" },
+		{"net.es.host", MDFNSF_NOFLAGS, "Hostname for netplay Server.", NULL, MDFNST_STRING, "192.168.0.115" },
+		{"net.es.port", MDFNSF_NOFLAGS, "Port for netplay Server.", NULL, MDFNST_UINT, "4046" },
+		{"net.es.gameid", MDFNSF_NOFLAGS, "Game ID for netplay Server.", NULL, MDFNST_STRING, "doing" },
+
+
 	};
 }
 
@@ -129,6 +136,7 @@ void						MednafenEmu::Quit				()
 	IsInitialized = false;
 }
 
+//TODO: Define elsewhere
 void		MDFND_NetStart			();
 void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
@@ -171,8 +179,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
 		SuspendDraw = false;
-
-//		MDFND_NetStart();
 	}
 }
 
@@ -361,6 +367,7 @@ void						MednafenEmu::DoCommands			()
 		"Change Game",			"DoReload",			"DoReload",
 		"Reset Game",			"DoReset",			"DoReset",
 		"Show Text File",		"DoTextFile",		"DoTextFile",
+		"Connect Netplay",		"DoNetplay",		"DoNetplay",
 		"Save State",			"DoSaveState",		"DoSaveStateMenu",
 		"Load State",			"DoLoadState",		"DoLoadStateMenu",
 		"Take Screen Shot",		"DoScreenShot",		"DoScreenShot",
@@ -405,6 +412,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
 		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings::Do();
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
+		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
