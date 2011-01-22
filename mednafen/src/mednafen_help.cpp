@@ -86,6 +86,9 @@ namespace
 	};
 }
 
+//TODO: Find this a new home
+extern bool					NetplayOn;
+
 void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
@@ -116,7 +119,7 @@ void						MednafenEmu::Init				()
 
 		//Create video buffer and surface. 1080p max, we should never come even close to this
 		Buffer = es_video->CreateTexture(1920, 1080);
-		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));	
+		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
 	}
 
 	IsInitialized = true;
@@ -156,6 +159,10 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Summerface("Log", es_log).Do();
 			Exit();
 		}
+
+		MDFND_NetworkClose();
+		MDFNI_EnableStateRewind(false);
+		RewindEnabled = false;
 
 		Buffer->Clear(0);
 
@@ -215,7 +222,6 @@ void						MednafenEmu::CloseGame			()
 		Scaler = 0;
 		
 		IsLoaded = false;
-		RewindEnabled = false;
 	}
 }
 
@@ -238,12 +244,12 @@ bool						MednafenEmu::Frame				()
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
 		EmulatorSpec.LineWidths = VideoWidths;
-		EmulatorSpec.soundmultiplier = Counter.GetSpeed();
+		EmulatorSpec.soundmultiplier = NetplayOn ? 1 : Counter.GetSpeed();
 		EmulatorSpec.SoundRate = 48000;
 		EmulatorSpec.SoundBuf = Samples;
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
-		EmulatorSpec.NeedRewind = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
+		EmulatorSpec.NeedRewind = !NetplayOn && es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
 		EmulatorSpec.skip = SkipNext && ((SkipCount ++) < 4);
 		MDFNI_Emulate(&EmulatorSpec);
 
@@ -284,7 +290,11 @@ bool						MednafenEmu::Frame				()
 		SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
 		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 		
-		if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+		if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
+		{
+			MDFND_NetworkClose();
+		}
+		else if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 		{
 			DoCommands();
 			return false;
