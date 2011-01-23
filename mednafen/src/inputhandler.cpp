@@ -82,7 +82,7 @@ void							InputHandler::Configure				()
 			linelist->AddItem(item);
 		}
 
-		sface = new Summerface("InputTypeSelect", linelist);
+		sface = new Summerface("Categories", linelist);
 		sface->Do();
 
 		PadType = linelist->GetSelected()->Properties["REALNAME"];
@@ -114,12 +114,25 @@ void							InputHandler::Configure				()
 			{
 				sface = new Summerface("InputWindow", button);
 			}
+
+			std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
+			if(ImageManager::GetImage(imagename))
+			{
+				sface->AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
+			}
+
+			sface->SetActiveWindow("InputWindow");
 			sface->Do();
 
 			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
 			MDFNI_SetSettingUI(settingname.c_str(), buttonID);
 
 			sface->RemoveWindow("InputWindow", true);
+
+			if(ImageManager::GetImage(imagename))
+			{
+				sface->RemoveWindow("InputImage", true);
+			}
 		}
 	}
 
