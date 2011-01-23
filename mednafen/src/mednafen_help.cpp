@@ -240,7 +240,11 @@ bool						MednafenEmu::Frame				()
 	
 		Inputs->Process();
 	
-		Syncher.Sync();
+		if(NetplayOn)
+		{
+			Syncher.Sync();
+		}
+
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
@@ -289,8 +293,7 @@ bool						MednafenEmu::Frame				()
 			realsamps = (uint32_t*)SamplesUp;
 		}
 
-//		SkipNext = NetplayOn ? Syncher.NeedFrameSkip() : (es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed()));
-		SkipNext = false;
+		SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
 		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 
 
@@ -392,7 +395,7 @@ void						MednafenEmu::DoCommands			()
 
 	SummerfaceGrid* grid = new SummerfaceGrid(Area(25, 25, 50, 50), 4, 3, true, false);
 	grid->SetInputConduit(new SummerfaceStaticConduit(DoCommand, 0), true);
-	for(int i = 0; i != 11; i ++)
+	for(int i = 0; i != 12; i ++)
 	{
 		SummerfaceItem* item = new SummerfaceItem(commands[i * 3], commands[i * 3 + 1]);
 		item->Properties["COMMAND"] = commands[i * 3 + 2];
