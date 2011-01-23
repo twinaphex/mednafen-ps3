@@ -240,6 +240,7 @@ bool						MednafenEmu::Frame				()
 	
 		Inputs->Process();
 	
+		Syncher.Sync();
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 		EmulatorSpec.surface = Surface;
@@ -250,8 +251,9 @@ bool						MednafenEmu::Frame				()
 		EmulatorSpec.SoundBufMaxSize = 24000;
 		EmulatorSpec.SoundVolume = 1;
 		EmulatorSpec.NeedRewind = !NetplayOn && es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-		EmulatorSpec.skip = SkipNext && ((SkipCount ++) < 4);
+		EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
 		MDFNI_Emulate(&EmulatorSpec);
+		Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
 
 		if(!EmulatorSpec.skip)
 		{
@@ -287,9 +289,11 @@ bool						MednafenEmu::Frame				()
 			realsamps = (uint32_t*)SamplesUp;
 		}
 
-		SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
+//		SkipNext = NetplayOn ? Syncher.NeedFrameSkip() : (es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed()));
+		SkipNext = false;
 		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
-		
+
+
 		if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 		{
 			MDFND_NetworkClose();

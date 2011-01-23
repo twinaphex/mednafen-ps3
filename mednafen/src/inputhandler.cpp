@@ -26,7 +26,7 @@ namespace
 	//TODO: Separate pad type for each port
 	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
 	{
-		MDFNI_SetInput(i, "gamepad", &ControllerBits[i], 1);
+		MDFNI_SetInput(i, "gamepad", &ControllerBits[i], 2);
 	}
 
 	//Run configure if all input values are zero
