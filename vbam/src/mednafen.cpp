@@ -269,7 +269,7 @@ static MDFNSetting VbamSettings[] =
 static MDFNGI	VbamInfo =
 {
 /*	shortname:			*/	"vbam",
-/*	fullname:			*/	"VBA-M Game Boy Advance",
+/*	fullname:			*/	"Game Boy Advance (VBA-M)",
 /*	FileExtensions:		*/	extensions,
 /*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,

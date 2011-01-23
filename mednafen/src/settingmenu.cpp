@@ -172,6 +172,37 @@ namespace								MednafenSettings
 
 	};
 
+	static std::string					TranslateCategory								(const char* aCategoryName)
+	{
+		for(int i = 0; i != MDFNSystems.size(); i ++)
+		{
+			if(strcmp(aCategoryName, MDFNSystems[i]->shortname) == 0)
+			{
+				return MDFNSystems[i]->fullname;
+			}
+		}
+
+		const char* settingscats[] = 
+		{
+			"qtrecord", " Video Recording",
+			"net", " Netplay",
+			"general", " General Settings",
+			"ftp", " FTP Client",
+			"filesys", " File System",
+			"cdrom", " CDROM Settings"
+		};
+
+		for(int i = 0; i != 6; i ++)
+		{
+			if(strcmp(settingscats[i * 2], aCategoryName) == 0)
+			{
+				return settingscats[i * 2 + 1];
+			}
+		}
+
+		return aCategoryName;
+	}
+
 	static void							GetCategories									(SettingCollection& aSettings)
 	{
 		const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
@@ -225,7 +256,9 @@ namespace								MednafenSettings
 		SummerfaceLineList*	cats = new SummerfaceLineList(Area(10, 10, 80, 80));
 		for(SettingCollection::iterator i = settings.begin(); i != settings.end(); i ++)
 		{
-			cats->AddItem(new SummerfaceItem(i->first, ""));
+			SummerfaceItem* item = new SummerfaceItem(TranslateCategory(i->first.c_str()), "");
+			item->Properties["CATEGORY"] = i->first;
+			cats->AddItem(item);
 		}
 		cats->Sort();
 
@@ -236,7 +269,7 @@ namespace								MednafenSettings
 
 			if(!cats->WasCanceled())
 			{
-				DoCategory(settings[cats->GetSelected()->GetText()]);
+				DoCategory(settings[cats->GetSelected()->Properties["CATEGORY"]]);
 			}
 			else
 			{

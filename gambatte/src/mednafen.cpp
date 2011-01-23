@@ -291,7 +291,7 @@ static MDFNSetting GmbtSettings[] =
 static MDFNGI	GmbtInfo = 
 {
 /*	shortname:*/		"gmbt",
-/*	fullname:*/			"Gambatte Game Boy Color",
+/*	fullname:*/			"Game Boy Color (Gambatte)",
 /*	FileExtensions:*/	extensions,
 /*	ModulePriority:*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:*/			0,
