@@ -22,7 +22,6 @@
 */
 
 #include "plugins.h"
-#include "cdriso.h"
 
 static char IsoFile[MAXPATHLEN] = "";
 static s64 cdOpenCaseTime = 0;
@@ -296,11 +295,6 @@ long CALLBACK CDR__setfilename(char*filename) { return 0; }
 
 static int LoadCDRplugin(const char *CDRdll) {
 	void *drv;
-
-	if (CDRdll == NULL) {
-		cdrIsoInit();
-		return 0;
-	}
 
 	hCDRDriver = SysLoadLibrary(CDRdll);
 	if (hCDRDriver == NULL) {
@@ -778,7 +772,7 @@ void ReleasePlugins() {
 	}
 	NetOpened = FALSE;
 
-	if (hCDRDriver != NULL || cdrIsoActive()) CDR_shutdown();
+	if (hCDRDriver != NULL) CDR_shutdown();
 	if (hGPUDriver != NULL) GPU_shutdown();
 	if (hSPUDriver != NULL) SPU_shutdown();
 	if (hPAD1Driver != NULL) PAD1_shutdown();
