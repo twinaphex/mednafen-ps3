@@ -18,4 +18,5 @@ make clean
 make -j2
 make signpkg
 cd ..
-mv mednafen/mednafen.pkg .
+mv mednafen/mednafen*.pkg .
+

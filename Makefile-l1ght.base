@@ -38,6 +38,9 @@ signpkg: $(BUILD)
 	@make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
 	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
 	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
+	@cp $(OUTPUT).pkg $(OUTPUT)-dongle.pkg
+	@package_finalize $(OUTPUT).pkg
+	@mv $(OUTPUT).pkg $(OUTPUT)-cfw.pkg
 
 
 pkg: $(BUILD)
