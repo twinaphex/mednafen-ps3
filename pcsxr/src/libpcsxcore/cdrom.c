@@ -123,8 +123,17 @@ static struct CdrStat stat;
 static struct SubQ *subq;
 
 
-extern unsigned int msf2sec(char *msf);
-extern void sec2msf(unsigned int s, char *msf);
+unsigned int msf2sec(char *msf) {
+	return ((msf[0] * 60 + msf[1]) * 75) + msf[2];
+}
+
+void sec2msf(unsigned int s, char *msf) {
+	msf[0] = s / 75 / 60;
+	s = s - msf[0] * 75 * 60;
+	msf[1] = s / 75;
+	s = s - msf[1] * 75;
+	msf[2] = s;
+}
 
 //ROBO: No __stdcall
 #ifdef CALLBACK
@@ -135,7 +144,6 @@ extern void sec2msf(unsigned int s, char *msf);
 
 extern u16 *iso_play_cdbuf;
 extern u16 iso_play_bufptr;
-extern long CALLBACK ISOinit(void);
 extern void CALLBACK SPUirq(void);
 extern SPUregisterCallback SPU_registerCallback;
 
@@ -211,6 +219,8 @@ extern SPUregisterCallback SPU_registerCallback;
 
 void cdrDecodedBufferInterrupt()
 {
+//TODO: What does this do?
+#if 0
 	u16 buf_ptr[0x400], lcv;
 
 	// ISO reader only
@@ -269,6 +279,7 @@ void cdrDecodedBufferInterrupt()
 	// time for next full buffer
 	//CDRDBUF_INT( PSXCLK / 44100 * 0x200 );
 	CDRDBUF_INT( PSXCLK / 44100 * 0x100 );
+#endif
 }
 
 
@@ -485,10 +496,61 @@ static void ReadTrack( u8 *time ) {
 	cdr.RErr = CDR_readTrack(cdr.Prev);
 }
 
+u8 sbitime[256][3];
+u8 sbicount;
 
-extern int opensbifile(const char *isoname);
-extern int cdrIsoActive(void);
-extern int checkSBI(u8 *time);
+int opensbifile(const char *isoname) {
+	FILE *sbihandle;
+	char		sbiname[MAXPATHLEN];
+
+
+	// init
+	sbicount = 0;
+
+
+	// copy name of the iso and change extension from .img to .sbi
+	strncpy(sbiname, isoname, sizeof(sbiname));
+	sbiname[MAXPATHLEN - 1] = '\0';
+	if (strlen(sbiname) >= 4) {
+		strcpy(sbiname + strlen(sbiname) - 4, ".sbi");
+	}
+	else {
+		return -1;
+	}
+
+	sbihandle = fopen(sbiname, "rb");
+	if (sbihandle == NULL) {
+		return -1;
+	}
+
+
+	// 4-byte SBI header
+	fread( sbiname, 1, 4, sbihandle );
+	while( !feof(sbihandle) ) {
+		u8 subq[11];
+		fread( sbitime[ sbicount++ ], 1, 3, sbihandle );
+		fread( subq, 1, 11, sbihandle );
+	}
+
+
+	return 0;
+}
+
+
+int checkSBI(u8 *time) {
+	int lcv;
+
+	// both BCD format
+	for( lcv=0; lcv<sbicount; lcv++ ) {
+		if( time[0] == sbitime[lcv][0] && 
+				time[1] == sbitime[lcv][1] && 
+				time[2] == sbitime[lcv][2] )
+			return 1;
+	}
+
+	return 0;
+}
+
 
 
 void AddIrqQueue(unsigned char irq, unsigned long ecycle) {
@@ -2286,9 +2348,7 @@ void cdrReset() {
 	cdr.File = 1;
 	cdr.Channel = 1;
 
-	if( !cdrIsoActive() ) {
-		opensbifile( "redump.sbi" );
-	}
+	opensbifile( "redump.sbi" );
 }
 
 int cdrFreeze(gzFile f, int Mode) {

@@ -104,7 +104,7 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(nestGetEmulator());
 		externalSystems.push_back(gmbtGetEmulator());
 		externalSystems.push_back(vbamGetEmulator());
-//		externalSystems.push_back(pcsxGetEmulator());
+		externalSystems.push_back(pcsxGetEmulator());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system

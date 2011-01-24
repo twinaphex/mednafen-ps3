@@ -23,10 +23,6 @@
 extern "C" {
 #endif
 
-#ifndef _MACOSX
-#include "config.h"
-#endif
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -34,13 +30,6 @@ extern "C" {
 #include <unistd.h>
 
 #include "psemu_plugin_defs.h"
-
-#ifndef _
-#define _(x)  (x)
-#endif
-#ifndef N_
-#define N_(x) (x)
-#endif
 
 enum {
 	DKEY_SELECT = 0,
