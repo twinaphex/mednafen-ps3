@@ -42,7 +42,7 @@ uint32_t			L1ghtInput::PadCount					()
 
 void				L1ghtInput::Reset						()
 {
-	memset(HeldState, 0, sizeof(HeldState));
+	memset(HeldState, 0xFF, sizeof(HeldState));
 	memset(SingleState, 0xFF, sizeof(SingleState));
 }
 
@@ -71,7 +71,7 @@ bool				L1ghtInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
 	if(aButton == ES_BUTTON_LEFT && GetAxis(aPad, PS3_AXIS_LEFT_X) < -0x40)return true;
 	if(aButton == ES_BUTTON_RIGHT && GetAxis(aPad, PS3_AXIS_LEFT_X) > 0x40)return true;
 
-	return HeldState[aPad][aButton];
+	return HeldState[aPad][aButton] == 1;
 }
 
 bool				L1ghtInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
@@ -87,7 +87,7 @@ uint32_t			L1ghtInput::GetAnyButton				(uint32_t aPad)
 	
 	for(int i = 0; i != BUTTONS; i ++)
 	{
-		if(HeldState[aPad][i])
+		if(HeldState[aPad][i] == 1)
 		{
 			return i;
 		}

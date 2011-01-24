@@ -25,10 +25,10 @@ uint32_t			SDLInput::PadCount						()
 
 void				SDLInput::Reset							()
 {
-	memset(HeldState, 0, sizeof(HeldState));
+	memset(HeldState, 0xFF, sizeof(HeldState));
 	memset(SingleState, 0xFF, sizeof(SingleState));
 	
-	memset(KeyState, 0, sizeof(KeyState));
+	memset(KeyState, 0xFF, sizeof(KeyState));
 	memset(KeySingle, 0xFF, sizeof(KeySingle));
 }
 
@@ -45,11 +45,11 @@ bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 
 	if(!IsJoystickButton(aButton) && aPad == 0)
 	{
-		return KeyState[aButton & 0xFFFF];
+		return KeyState[aButton & 0xFFFF] == 1;
 	}
 	else
 	{
-		return HeldState[aPad][aButton & 0xFFFF];
+		return HeldState[aPad][aButton & 0xFFFF] == 1;
 	}
 }
 
@@ -75,7 +75,7 @@ uint32_t			SDLInput::GetAnyButton					(uint32_t aPad)
 	{
 		for(int i = 0; i != MAXKEYS; i ++)
 		{
-			if(KeyState[i])
+			if(KeyState[i] == 1)
 			{
 				return (1 << 16) | i;
 			}
@@ -86,7 +86,7 @@ uint32_t			SDLInput::GetAnyButton					(uint32_t aPad)
 	{
 		for(int i = 0; i != (SDL_JoystickNumAxes(Joysticks[aPad]) * 2 + SDL_JoystickNumHats(Joysticks[aPad]) * 4 + SDL_JoystickNumButtons(Joysticks[aPad])); i ++)
 		{
-			if(HeldState[aPad][i])
+			if(HeldState[aPad][i] == 1)
 			{
 				return i;
 			}
@@ -115,21 +115,6 @@ std::string			SDLInput::GetButtonImage				(uint32_t aButton)
 {
 	//TODO:
 	Assert(0, aButton);
-
-	//HACK: Like the ps3 for now
-	if(aButton == ES_BUTTON_UP)			return "UpIMAGE";
-	if(aButton == ES_BUTTON_DOWN)		return "DownIMAGE";
-	if(aButton == ES_BUTTON_LEFT)		return "LeftIMAGE";
-	if(aButton == ES_BUTTON_ACCEPT)		return "CrossIMAGE";
-	if(aButton == ES_BUTTON_CANCEL)		return "CircleIMAGE";
-	if(aButton == ES_BUTTON_TAB)		return "SquareIMAGE";
-	if(aButton == ES_BUTTON_SHIFT)		return "TriangleIMAGE";
-	if(aButton == ES_BUTTON_AUXRIGHT1)	return "R1IMAGE";
-	if(aButton == ES_BUTTON_AUXRIGHT2)	return "R2IMAGE";
-	if(aButton == ES_BUTTON_AUXRIGHT3)	return "R3IMAGE";
-	if(aButton == ES_BUTTON_AUXLEFT1)	return "L1IMAGE";
-	if(aButton == ES_BUTTON_AUXLEFT2)	return "L2IMAGE";
-	if(aButton == ES_BUTTON_AUXLEFT3)	return "L3IMAGE";
 
 	return "NOIMAGE";
 }
