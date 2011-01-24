@@ -21,7 +21,12 @@ class				ESInput
 	public:	//Helpers
 		static void							RefreshButton			(uint32_t aState, uint32_t& aHeld, uint32_t& aSingle)
 		{
-			aHeld = aState;
+			if(aState && aHeld == 0xFFFFFFFF)
+			{
+				return;
+			}
+
+			aHeld = aState ? 1 : 0;
 		
 			if(!aState)
 			{
@@ -35,7 +40,11 @@ class				ESInput
 
 		static bool							HandleSingleState		(uint32_t aHeld, uint32_t& aSingle)
 		{
-			if(aSingle == 1)
+			if(aHeld == 0xFFFFFFFF)
+			{
+				return false;
+			}
+			else if(aSingle == 1)
 			{
 				aSingle = 2;
 				return aHeld;
