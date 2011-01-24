@@ -9,6 +9,7 @@
 	{
 		FileList* list = new FileList(Area(10, 10, 80, 80), aPath, aBookMarks);
 		Summerface* sface = new Summerface("FileList", list);
+		sface->SetHook(InputHook);
 		Lists.push(sface);
 		Valid = true;
 	}
@@ -58,6 +59,7 @@ std::string								FileSelect::GetFile					()
 				{
 					FileList* nlist = new FileList(Area(10, 10, 80, 80), list->GetSelected()->Properties["PATH"], BookMarks);
 					Summerface* sface = new Summerface("FileList", nlist);
+					sface->SetHook(InputHook);
 					Lists.push(sface);
 				}
 				catch(ESException ex)
