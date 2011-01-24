@@ -59,6 +59,19 @@ void										SummerfaceList::SetSelection						(uint32_t aIndex)
 	SelectedIndex = aIndex;
 }
 
+void										SummerfaceList::SetSelection						(const std::string& aText)
+{
+	for(int i = 0; i != Items.size(); i ++)
+	{
+		if(Items[i]->GetText() == aText)
+		{
+			SelectedIndex = i;
+			return;
+		}
+	}
+
+	SelectedIndex = 0;
+}
 
 bool										SummerfaceList::WasCanceled							()
 {

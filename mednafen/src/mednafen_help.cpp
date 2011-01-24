@@ -425,7 +425,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	if(IsLoaded)
 	{
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
-		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings::Do();
+		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings::Do(GameInfo->shortname);
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);

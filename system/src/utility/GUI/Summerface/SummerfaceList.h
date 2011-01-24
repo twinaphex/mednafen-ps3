@@ -13,6 +13,7 @@ class													SummerfaceList : public SummerfaceWindow
 
 		uint32_t										GetItemCount					();
 		void											SetSelection					(uint32_t aIndex);
+		void											SetSelection					(const std::string& aText);
 
 		bool											WasCanceled						();
 
