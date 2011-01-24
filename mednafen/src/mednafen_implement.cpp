@@ -61,7 +61,7 @@ void		MDFND_DispMessage		(UTF8 *text)						{if(text){MednafenEmu::DisplayMessage
 
 //Save states
 //TODO: Put this somewhere
-StateStatusStruct*	States[10];
+StateStatusStruct*	StateStatusInfo;
 void		MDFND_SetStateStatus	(StateStatusStruct *status)				
 {
 	if(!status)
@@ -69,16 +69,16 @@ void		MDFND_SetStateStatus	(StateStatusStruct *status)
 		return;
 	}
 
-	if(States[status->current])
+	if(StateStatusInfo)
 	{
-		if(States[status->current]->gfx)
+		if(StateStatusInfo->gfx)
 		{
-			free(States[status->current]->gfx);
+			free(StateStatusInfo->gfx);
 		}
-		free(States[status->current]);
+		free(StateStatusInfo);
 	}
 
-	States[status->current] = status;
+	StateStatusInfo = status;
 }
 
 void		MDFND_SetMovieStatus	(StateStatusStruct *status)				

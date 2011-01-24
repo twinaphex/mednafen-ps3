@@ -7,11 +7,13 @@ class													SummerfaceLabel : public SummerfaceWindow
 {
 	public:
 														SummerfaceLabel					(const Area& aRegion, const std::string& aMessage);
+														SummerfaceLabel					(const Area& aRegion, const char* aFormat, ...);
 		virtual											~SummerfaceLabel				();
 
 		virtual bool									Draw							();
 
 		virtual std::string								GetMessage						();
+		virtual void									SetMessage						(const char* aFormat, ...);
 		virtual void									SetMessage						(const std::string& aMessage);
 
 		virtual void									AppendMessage					(const std::string& aMessage);
