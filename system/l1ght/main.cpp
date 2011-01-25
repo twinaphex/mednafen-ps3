@@ -92,7 +92,5 @@ void				ESSUB_Error				(const char* aMessage)
 	}
 
 	msgDialogClose();
-
-	exit(100000);
 }
 
