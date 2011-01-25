@@ -92,15 +92,17 @@ void				ReloadEmulator			()
 		}
 
 		//Get the size of the selected file
-		uint32_t size;
-		void* data = 0;
-
-		size = archive->GetSelectedSize();
+		uint32_t size = archive->GetSelectedSize();
 
 		//We can only load files up to 64 megabytes, for CD's you should load cue files not BIN files
 		if(size < 64 * 1024 * 1024)
 		{
-			data = malloc(size);
+			void* data = malloc(size);
+			if(!data)
+			{
+				throw ESException("Loader: Failed to allocate memory for file [File: %s, Size: %d]", filename.c_str(), size);
+			}
+
 			archive->GetSelectedData(size, data);
 
 			//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
@@ -113,20 +115,17 @@ void				ReloadEmulator			()
 			{
 				filename = archive->GetSelectedFileName();
 			}
+
+			//Load the game into mednafen
+			MednafenEmu::CloseGame();
+			MednafenEmu::LoadGame(filename, data, size);
+
+			//Clean up and leave
+			free(data);
 		}
 		else
 		{
 			throw ESException("Loader: File is larger than 64MB, can't open [File: %s, Size: %d]", enumpath.c_str(), size);
-		}
-
-		//Load the game into mednafen
-		MednafenEmu::CloseGame();
-		MednafenEmu::LoadGame(filename, data, size);
-
-		//Clean up and leave
-		if(data)
-		{
-			free(data);
 		}
 	}
 }

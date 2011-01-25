@@ -17,10 +17,19 @@ void		MDFND_NetStart			()
 {
 	MDFND_NetworkClose();
 
-	slocket = es_network->OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
-	MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
-
-	NetplayOn = true;
+	try
+	{
+		slocket = es_network->OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
+		MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
+		NetplayOn = true;
+	}
+	catch(ESException& except)
+	{
+		char buffer[2048];
+		snprintf(buffer, 2048, "Failed to start netplay: %s", except.what());
+		ESSUB_Error(buffer);
+		return;
+	}
 }
 
 
