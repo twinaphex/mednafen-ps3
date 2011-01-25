@@ -14,8 +14,7 @@ namespace
 
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
-					TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt"));
-					Summerface("Text", tv).Do();
+					Summerface("Text", new TextViewer(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt"))).Do();
 				}
 
 				return false;

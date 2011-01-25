@@ -1,4 +1,10 @@
-#include "ps3_system.h"
+#include <ps3_system.h>
+
+//TODO: This isn't thread safe
+extern "C"
+{
+	#include "utf8_decode.h"
+}
 
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
@@ -29,12 +35,14 @@
 
 void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor)
 {
-	for(int i = 0; i != strlen(aString); i ++)
+	utf8_decode_init(aString, strlen(aString));
+
+	for(int thischar = utf8_decode_next(); thischar != UTF8_END; thischar = utf8_decode_next())
 	{
-		if(aString[i] >= 32 || aString[i] == 9)
+		if(thischar >= 32 || thischar == 9)
 		{
 			//TODO: Support real tab stops
-			FontCharacter* chara = CacheCharacter(aString[i] == 9 ? 32 : aString[i]);
+			FontCharacter* chara = CacheCharacter(thischar == 9 ? 32 : thischar);
 			
 			if(chara && chara->CharTexture)
 			{

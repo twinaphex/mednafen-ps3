@@ -22,13 +22,6 @@ namespace
 
 	ReadSettings();
 
-	//Set the inputs
-	//TODO: Separate pad type for each port
-	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
-	{
-		MDFNI_SetInput(i, "gamepad", &ControllerBits[i], 2);
-	}
-
 	//Run configure if all input values are zero
 	for(int i = 0; i != Inputs.size(); i ++)
 	{
@@ -147,6 +140,14 @@ void							InputHandler::ReadSettings			()
 	PadType = MDFN_GetSettingS((std::string(GameInfo->shortname) + ".esinput.port1").c_str());
 
 	GetGamepad(GameInfo->InputInfo, PadType.c_str(), Inputs);
+
+	//Set the inputs
+	//TODO: Separate pad type for each port
+	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
+	{
+		MDFNI_SetInput(i, PadType.c_str(), &ControllerBits[i], 2);
+	}
+
 
 	for(int j = 0; j != Inputs.size(); j ++)
 	{
