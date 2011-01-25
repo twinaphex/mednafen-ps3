@@ -131,6 +131,14 @@ void				ReloadEmulator			()
 	}
 }
 
+static void			SummerfaceBackground	()
+{
+	if(MednafenEmu::DummyFrame())
+	{
+		es_video->FillRectangle(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), 0x00000080);
+	}
+}
+
 int					main					(int argc, char* argv[])
 {
 	try
@@ -144,7 +152,7 @@ int					main					(int argc, char* argv[])
 		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.es.host"), MDFN_GetSettingS("ftp.es.port"), MDFN_GetSettingS("ftp.es.username"), MDFN_GetSettingS("ftp.es.password"));
 
 		//Set the Summerface background
-		Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
+		Summerface::SetDrawBackground(SummerfaceBackground);
 
 		//Run the menu
 		ReloadEmulator();

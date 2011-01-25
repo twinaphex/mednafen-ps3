@@ -39,12 +39,15 @@ class	MednafenEmu
 			}
 		}
 		
-		static void						DummyFrame			()
+		static bool						DummyFrame			()
 		{
 			if(IsInitialized && IsLoaded && !SuspendDraw)
 			{
 				Blit();
+				return true;
 			}
+
+			return false;
 		}
 
 	protected:	//Internals
