@@ -17,6 +17,7 @@ class												InputHandler
 		{
 			uint32_t								BitOffset;
 			uint32_t								Button;
+			uint32_t								RapidButton;
 			uint32_t								Index;
 			const InputDeviceInputInfoStruct*		Data;
 		};
@@ -30,6 +31,7 @@ class												InputHandler
 		std::string									PadType;
 		uint8_t										ControllerBits[16][256];
 		std::vector<InputInfo>						Inputs;
+		bool										RapidOn;
 };
 
 #endif

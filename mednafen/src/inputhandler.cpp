@@ -49,14 +49,22 @@ void							InputHandler::Process					()
 
 		for(int i = 0; i != Inputs.size(); i ++)
 		{
+			int byte = Inputs[i].BitOffset / 8;
+			int bit = Inputs[i].BitOffset & 7;
+
 			if((Inputs[i].Data->Type == IDIT_BUTTON || Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].Button)))
 			{
-				int byte = Inputs[i].BitOffset / 8;
-				int bit = Inputs[i].BitOffset & 7;
+				ControllerBits[p][byte] |= 1 << bit;
+			}
+
+			if((Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].RapidButton) && RapidOn))
+			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
 		}
 	}
+
+	RapidOn = !RapidOn;
 }
 
 void							InputHandler::Configure				()
@@ -91,40 +99,44 @@ void							InputHandler::Configure				()
 	std::vector<InputInfo> inputs;
 	GetGamepad(GameInfo->InputInfo, PadType.c_str(), inputs);
 
+	uint32_t buttonID;
+	SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
+	button->SetInputConduit(new SummerfaceStaticConduit(GetButton, &buttonID), true);
+
+	if(sface)
+	{
+		sface->AddWindow("InputWindow", button);
+	}
+	else
+	{
+		sface = new Summerface("InputWindow", button);
+	}
+
+	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
+	if(ImageManager::GetImage(imagename))
+	{
+		sface->AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
+	}
+
+	sface->SetActiveWindow("InputWindow");
+
 	for(int j = 0; j != inputs.size(); j ++)
 	{
 		if(inputs[j].Data->SettingName)
 		{
-			uint32_t buttonID;
-			SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), inputs[j].Data->Name);
-			button->SetInputConduit(new SummerfaceStaticConduit(GetButton, &buttonID), true);
-
-			if(sface)
-			{
-				sface->AddWindow("InputWindow", button);
-			}
-			else
-			{
-				sface = new Summerface("InputWindow", button);
-			}
-
-			std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
-			if(ImageManager::GetImage(imagename))
-			{
-				sface->AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
-			}
-
-			sface->SetActiveWindow("InputWindow");
+			button->SetMessage("Press button for [%s]", inputs[j].Data->Name);
 			sface->Do();
 
 			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
 			MDFNI_SetSettingUI(settingname.c_str(), buttonID);
 
-			sface->RemoveWindow("InputWindow", true);
-
-			if(ImageManager::GetImage(imagename))
+			if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
 			{
-				sface->RemoveWindow("InputImage", true);
+				button->SetMessage("Press button for [Rapid %s]", inputs[j].Data->Name);
+				sface->Do();
+
+				settingname += "_rapid";
+				MDFNI_SetSettingUI(settingname.c_str(), buttonID);
 			}
 		}
 	}
@@ -155,6 +167,12 @@ void							InputHandler::ReadSettings			()
 		{
 			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(Inputs[j].Data->SettingName);
 			Inputs[j].Button = MDFN_GetSettingUI(settingname.c_str());
+
+			if(Inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
+			{
+				settingname += "_rapid";
+				Inputs[j].RapidButton = MDFN_GetSettingUI(settingname.c_str());
+			}
 		}
 	}
 }
@@ -189,6 +207,14 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 					//TODO: These strdups will never be freed, poor captive strdups
 					MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
 					aSettings.push_back(thisinput);
+
+					if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
+					{
+						settingname += "_rapid";
+						//TODO: These strdups will never be freed, poor captive strdups
+						MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
+						aSettings.push_back(thisinput);
+					}
 				}
 			}
 		}
