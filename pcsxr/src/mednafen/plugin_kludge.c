@@ -163,7 +163,6 @@ void*			SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "CDRreadCDDA") == 0) return pkCDRreadCDDA;
     if(strcmp(sym, "CDRgetTE") == 0) return pkCDRgetTE;
 
-	printf("Not Loaded Sym, returning stub: %s\n", sym);
 	return PluginStub;
 }
 

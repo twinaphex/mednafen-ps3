@@ -3,23 +3,6 @@
 #include "video_plugin/globals.h"
 #include "input_plugin/pad.h"
 
-//Logging functions
-void				SysPrintf		(const char *fmt, ...)
-{
-    va_list args;
-    va_start (args, fmt);
-    vprintf (fmt, args);
-    va_end (args);
-}
-
-void				SysMessage		(const char *fmt, ...)
-{
-	va_list args;
-	va_start (args, fmt);
-	vprintf (fmt, args);
-	va_end (args);
-}
-
 //Plugins functions, from plugin_kludge.c
 int					OpenPlugins		();
 void				ClosePlugins	();
@@ -111,11 +94,12 @@ void				SetRecompiler	(uint32_t aEnable)
 }
 
 //Main functions for running emu
+extern void tats(char* a);
 int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
-    Config.Cpu = EnableRecompiler ? CPU_DYNAREC : CPU_INTERPRETER;
+    Config.Cpu = CPU_DYNAREC;
     strcpy(Config.PluginsDir, "builtin");
     strcpy(Config.Gpu, "builtin");
     strcpy(Config.Spu, "builtin");
@@ -124,36 +108,31 @@ int					SysLoad			()
     strcpy(Config.Cdr, "builtin");
     strcpy(Config.Net, "Disabled");
     strcpy(Config.Bios, BIOSPath);
+	Config.SlowBoot = 0;
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
 	EmuInit();
 
 	OpenPlugins();
+
 	OpenMCDS();
 
 	CheckCdrom();
 	EmuReset();
+	LoadCdrom();
 }
 
-//Execute a frame and grab the frame from the Video plugin.
-//This won't work without a patch to the psx cpu to return on vblanks
+//external sound varibles, move em later
 extern uint8_t SoundBuf[48000];
 extern uint32_t SoundBufLen;
-//#ifdef __LITTLE_ENDIAN__
+
 #define RED(x) (x & 0xff)
 #define BLUE(x) ((x>>16) & 0xff)
 #define GREEN(x) ((x>>8) & 0xff)
 #define COLOR(x) (x & 0xffffff)
-//#elif defined __BIG_ENDIAN__
-//#define RED(x) ((x>>24) & 0xff)
-//#define BLUE(x) ((x>>8) & 0xff)
-//#define GREEN(x) ((x>>16) & 0xff)
-//#define COLOR(x) SWAP32(x & 0xffffff)
-//#endif
 
-
-void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
+void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
 {
 	//Send input
 	g.PadState[0].JoyKeyStatus = ~aKeys;
@@ -165,7 +144,7 @@ void		SysFrame			(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* 
 	//Grab the frame
 	int x = 0, y = 0, w = 320, h = 240;
 
-	if (g_gpu.dsp.mode.x)
+	if(!aSkip && g_gpu.dsp.mode.x)
 	{
 		x = g_gpu.dsp.position.x;
 	    y = g_gpu.dsp.position.y;

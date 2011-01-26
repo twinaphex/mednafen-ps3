@@ -17,7 +17,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
+//ROBO: Don't have
+//#include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <unistd.h>

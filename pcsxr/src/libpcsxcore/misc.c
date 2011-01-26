@@ -29,11 +29,6 @@
 char CdromId[10] = "";
 char CdromLabel[33] = "";
 
-//ROBO: strnicmp fix
-#ifndef __WIN32__
-#define strnicmp strncasecmp
-#endif
-
 // PSX Executable types
 #define PSX_EXE     1
 #define CPE_EXE     2
@@ -123,8 +118,9 @@ int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
 		}
 		i += dir->length[0];
 
+//ROBO: Change strnicmp to strncasecmp
 		if (dir->flags[0] & 0x2) { // it's a dir
-			if (!strnicmp((char *)&dir->name[0], filename, dir->name_len[0])) {
+			if (!strncasecmp((char *)&dir->name[0], filename, dir->name_len[0])) {
 				if (filename[dir->name_len[0]] != '\\') continue;
 
 				filename += dir->name_len[0] + 1;
@@ -135,7 +131,7 @@ int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
 				mdir = ddir;
 			}
 		} else {
-			if (!strnicmp((char *)&dir->name[0], filename, strlen(filename))) {
+			if (!strncasecmp((char *)&dir->name[0], filename, strlen(filename))) {
 				mmssdd(dir->extent, (char *)time);
 				break;
 			}
@@ -152,7 +148,7 @@ int LoadCdrom() {
 	s8 exename[256];
 
 	if (!Config.HLE) {
-		psxRegs.pc = psxRegs.GPR.n.ra;
+		if (!Config.SlowBoot) psxRegs.pc = psxRegs.GPR.n.ra;
 		return 0;
 	}
 
@@ -351,6 +347,7 @@ int CheckCdrom() {
 	SysPrintf(_("CD-ROM ID: %.9s\n"), CdromId);
 
 	BuildPPFCache();
+	LoadSBI();
 
 	return 0;
 }

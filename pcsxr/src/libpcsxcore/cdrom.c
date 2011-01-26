@@ -122,7 +122,10 @@ unsigned char Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
 static struct CdrStat stat;
 static struct SubQ *subq;
 
-
+//ROBO: Copy from cdriso.c
+//extern unsigned int msf2sec(char *msf);
+//extern void sec2msf(unsigned int s, char *msf);
+// get a sector from a msf-array
 unsigned int msf2sec(char *msf) {
 	return ((msf[0] * 60 + msf[1]) * 75) + msf[2];
 }
@@ -135,15 +138,12 @@ void sec2msf(unsigned int s, char *msf) {
 	msf[2] = s;
 }
 
-//ROBO: No __stdcall
-#ifdef CALLBACK
-#undef CALLBACK
-#endif
-#define CALLBACK
 
 
-extern u16 *iso_play_cdbuf;
-extern u16 iso_play_bufptr;
+//ROBO: Not using cdrios
+//extern u16 *iso_play_cdbuf;
+//extern u16 iso_play_bufptr;
+//extern long CALLBACK ISOinit(void);
 extern void CALLBACK SPUirq(void);
 extern SPUregisterCallback SPU_registerCallback;
 
@@ -219,13 +219,13 @@ extern SPUregisterCallback SPU_registerCallback;
 
 void cdrDecodedBufferInterrupt()
 {
-//TODO: What does this do?
+
+//ROBO: Not using cdriso
 #if 0
 	u16 buf_ptr[0x400], lcv;
 
 	// ISO reader only
-	if( CDR_init != ISOinit ) return;
-
+//	if( CDR_init != ISOinit ) return;
 
 	// check dbuf IRQ still active
 	if( cdr.Play == 0 ) return;
@@ -496,61 +496,29 @@ static void ReadTrack( u8 *time ) {
 	cdr.RErr = CDR_readTrack(cdr.Prev);
 }
 
-u8 sbitime[256][3];
-u8 sbicount;
 
-int opensbifile(const char *isoname) {
-	FILE *sbihandle;
-	char		sbiname[MAXPATHLEN];
+void CDXA_Attenuation( s16 *buf, int size )
+{
+	s16 *spsound;
+	s32 lc,rc;
+	int i;
 
+	spsound = buf;
 
-	// init
-	sbicount = 0;
+	for( i = 0; i < size / 2; i += 2 )
+	{
+		lc = (spsound[i+0] * cdr.AttenuatorLeft[0]  + spsound[i+1] * cdr.AttenuatorRight[1]) / 128;
+		rc = (spsound[i+1] * cdr.AttenuatorRight[0] + spsound[i+0] * cdr.AttenuatorLeft[1]) / 128;
 
+		if( lc < -32768 ) lc = -32768;
+		if( rc < -32768 ) rc = -32768;
+		if( lc > 32767 ) lc = 32767;
+		if( rc > 32767 ) rc = 32767;
 
-	// copy name of the iso and change extension from .img to .sbi
-	strncpy(sbiname, isoname, sizeof(sbiname));
-	sbiname[MAXPATHLEN - 1] = '\0';
-	if (strlen(sbiname) >= 4) {
-		strcpy(sbiname + strlen(sbiname) - 4, ".sbi");
+		spsound[i + 0] = lc;
+		spsound[i + 1] = rc;
 	}
-	else {
-		return -1;
-	}
-
-	sbihandle = fopen(sbiname, "rb");
-	if (sbihandle == NULL) {
-		return -1;
-	}
-
-
-	// 4-byte SBI header
-	fread( sbiname, 1, 4, sbihandle );
-	while( !feof(sbihandle) ) {
-		u8 subq[11];
-		fread( sbitime[ sbicount++ ], 1, 3, sbihandle );
-		fread( subq, 1, 11, sbihandle );
-	}
-
-
-	return 0;
 }
-
-
-int checkSBI(u8 *time) {
-	int lcv;
-
-	// both BCD format
-	for( lcv=0; lcv<sbicount; lcv++ ) {
-		if( time[0] == sbitime[lcv][0] && 
-				time[1] == sbitime[lcv][1] && 
-				time[2] == sbitime[lcv][2] )
-			return 1;
-	}
-
-	return 0;
-}
-
 
 
 void AddIrqQueue(unsigned char irq, unsigned long ecycle) {
@@ -595,6 +563,90 @@ void Set_Track()
 }
 
 
+static u8 fake_subq_local[3], fake_subq_real[3], fake_subq_index, fake_subq_change;
+void Create_Fake_Subq()
+{
+	u8 temp_cur[3], temp_next[3], temp_start[3], pregap;
+	int diff;
+
+	if (CDR_getTN(cdr.ResultTN) == -1) return;
+	if( cdr.CurTrack+1 <= cdr.ResultTN[1] ) {
+		pregap = 150;
+		if( CDR_getTD(cdr.CurTrack+1, cdr.ResultTD) == -1 ) return;
+	} else {
+		// last track - cd size
+		pregap = 0;
+		if( CDR_getTD(0, cdr.ResultTD) == -1 ) return;
+	}
+
+	if( cdr.Play == TRUE ) {
+		temp_cur[0] = cdr.SetSectorPlay[0];
+		temp_cur[1] = cdr.SetSectorPlay[1];
+		temp_cur[2] = cdr.SetSectorPlay[2];
+	} else {
+		temp_cur[0] = btoi( cdr.Prev[0] );
+		temp_cur[1] = btoi( cdr.Prev[1] );
+		temp_cur[2] = btoi( cdr.Prev[2] );
+	}
+
+	fake_subq_real[0] = temp_cur[0];
+	fake_subq_real[1] = temp_cur[1];
+	fake_subq_real[2] = temp_cur[2];
+
+	temp_next[0] = cdr.ResultTD[2];
+	temp_next[1] = cdr.ResultTD[1];
+	temp_next[2] = cdr.ResultTD[0];
+
+
+	// flag- next track
+	if( msf2sec(temp_cur) >= msf2sec( temp_next )-pregap ) {
+		fake_subq_change = 1;
+
+		cdr.CurTrack++;
+
+		// end cd
+		if( pregap == 0 ) StopCdda();
+	}
+
+	//////////////////////////////////////////////////
+	//////////////////////////////////////////////////
+
+	// repair
+	if( cdr.CurTrack <= cdr.ResultTN[1] ) {
+		if( CDR_getTD(cdr.CurTrack, cdr.ResultTD) == -1 ) return;
+	} else {
+		// last track - cd size
+		if( CDR_getTD(0, cdr.ResultTD) == -1 ) return;
+	}
+	
+	temp_start[0] = cdr.ResultTD[2];
+	temp_start[1] = cdr.ResultTD[1];
+	temp_start[2] = cdr.ResultTD[0];
+
+
+#ifdef CDR_LOG
+	CDR_LOG( "CDDA FAKE SUB - %d:%d:%d / %d:%d:%d / %d:%d:%d\n",
+		temp_cur[0], temp_cur[1], temp_cur[2],
+		temp_start[0], temp_start[1], temp_start[2],
+		temp_next[0], temp_next[1], temp_next[2]);
+#endif
+
+
+
+	// local time - pregap / real
+	diff = msf2sec(temp_cur) - msf2sec( temp_start );
+	if( diff < 0 ) {
+		fake_subq_index = 0;
+
+		sec2msf( -diff, fake_subq_local );
+	} else {
+		fake_subq_index = 1;
+
+		sec2msf( diff, fake_subq_local );
+	}
+}
+
+
 void cdrPlayInterrupt_Autopause()
 {
 	if ((cdr.Mode & (MODE_AUTOPAUSE|MODE_CDDA)) != (MODE_AUTOPAUSE|MODE_CDDA)) return;
@@ -610,7 +662,7 @@ void cdrPlayInterrupt_Autopause()
 	}
 	
 
-	if( CDR_getStatus(&stat) != -1) return;
+	if( CDR_getStatus(&stat) == -1) return;
 
 	subq = (struct SubQ *)CDR_getBufferSub();
 
@@ -645,32 +697,17 @@ void cdrPlayInterrupt_Autopause()
 			StopCdda();
 		}
 	} else {
-		u8 temp_cur[3], temp_next[3];
-
-		if (CDR_getTN(cdr.ResultTN) == -1) return;
-		if( cdr.CurTrack+1 > cdr.ResultTN[1] ) return;
-		if( CDR_getTD(cdr.CurTrack+1, cdr.ResultTD) == -1 ) return;
-
-		temp_cur[0] = cdr.SetSectorPlay[0];
-		temp_cur[1] = cdr.SetSectorPlay[1];
-		temp_cur[2] = cdr.SetSectorPlay[2];
-
-		temp_next[0] = cdr.ResultTD[2];
-		temp_next[1] = cdr.ResultTD[1];
-		temp_next[2] = cdr.ResultTD[0];
-
-
-#ifdef CDR_LOG
+#ifdef CDR_LOG___0
 		CDR_LOG( "CDDA FAKE SUB - %d:%d:%d\n", 
 			temp_cur[0], temp_cur[1], temp_cur[2] );
 #endif
-
 									
-		if( msf2sec(temp_cur) >= msf2sec( temp_next ) ) {
+		//if( msf2sec(temp_cur) >= msf2sec( temp_next ) ) {
+		if( fake_subq_change ) {
 #ifdef CDR_LOG
 			CDR_LOG( "CDDA STOP\n" );
 #endif
-
+			
 			// Magic the Gathering
 			// - looping territory cdda
 
@@ -683,7 +720,7 @@ void cdrPlayInterrupt_Autopause()
 
 			StopCdda();
 									
-			cdr.CurTrack++;
+			fake_subq_change = 0;
 		}
 	}
 }
@@ -754,7 +791,7 @@ void cdrPlayInterrupt_Repplay()
 			cdr.Result[3] = subq->AbsoluteAddress[0];
 			cdr.Result[4] = subq->AbsoluteAddress[1];
 			cdr.Result[5] = subq->AbsoluteAddress[2];
-									
+
 			report_time = 1;
 		}	else {
 			cdr.Result[3] = subq->TrackRelativeAddress[0];
@@ -766,30 +803,14 @@ void cdrPlayInterrupt_Repplay()
 			report_time = 0;
 		}
 	} else {
-		u8 temp_cur[3], temp_next[3];
-
-		if (CDR_getTN(cdr.ResultTN) == -1) return;
-		if( cdr.CurTrack+1 > cdr.ResultTN[1] ) return;
-		if( CDR_getTD(cdr.CurTrack+1, cdr.ResultTD) == -1 ) return;
-
-
-		temp_cur[0] = cdr.SetSectorPlay[0];
-		temp_cur[1] = cdr.SetSectorPlay[1];
-		temp_cur[2] = cdr.SetSectorPlay[2];
-
-		temp_next[0] = cdr.ResultTD[2];
-		temp_next[1] = cdr.ResultTD[1];
-		temp_next[2] = cdr.ResultTD[0];
-
-
-#ifdef CDR_LOG
+#ifdef CDR_LOG___0
 		CDR_LOG( "REPPLAY FAKE - %d:%d:%d\n", 
 			temp_cur[0], temp_cur[1], temp_cur[2] );
 #endif
 
-
 		// Rayman: check track change
-		if( msf2sec(temp_cur) >= msf2sec( temp_next ) ) {
+		//if( msf2sec(temp_cur) >= msf2sec( temp_next ) ) {
+		if( fake_subq_change ) {
 #ifdef CDR_LOG___0
 			CDR_LOG( "TRACK CHANGE %d - %d %d %d ==> %d %d %d\n",
 				cdr.CurTrack,
@@ -799,44 +820,26 @@ void cdrPlayInterrupt_Repplay()
 
 			cdr.Result[0] |= 0x10;
 									
-			cdr.CurTrack++;
+			fake_subq_change = 0;
 		}
 
 
-		// track # / index # (assume no pregaps)
+		// track # / index #
 		cdr.Result[1] = itob(cdr.CurTrack);
-		cdr.Result[2] = 1;
+		cdr.Result[2] = itob(fake_subq_index);
 
 		if( report_time == 0 ) {
 			// absolute
-			cdr.Result[3] = temp_cur[0];
-			cdr.Result[4] = temp_cur[1];
-			cdr.Result[5] = itob(temp_cur[2]);
-
-			// m:s adjustment
-			if ((s8)cdr.Result[4] < 0) {
-				cdr.Result[4] += 60;
-				cdr.Result[3] -= 1;
-			}
-
-			cdr.Result[3] = itob(cdr.Result[3]);
-			cdr.Result[4] = itob(cdr.Result[4]);
+			cdr.Result[3] = itob( fake_subq_real[0] );
+			cdr.Result[4] = itob( fake_subq_real[1] );
+			cdr.Result[5] = itob( fake_subq_real[2] );
 
 			report_time = 1;
 		} else {
 			// local
-			cdr.Result[3] = temp_cur[0];
-			cdr.Result[4] = temp_cur[1] - 2;
-			cdr.Result[5] = itob( temp_cur[2] );
-
-			// m:s adjustment
-			if ((s8)cdr.Result[4] < 0) {
-				cdr.Result[4] += 60;
-				cdr.Result[3] -= 1;
-			}
-
-			cdr.Result[3] = itob(cdr.Result[3]);
-			cdr.Result[4] = itob(cdr.Result[4]);
+			cdr.Result[3] = itob( fake_subq_local[0] );
+			cdr.Result[4] = itob( fake_subq_local[1] );
+			cdr.Result[5] = itob( fake_subq_local[2] );
 
 			cdr.Result[4] |= 0x80;
 
@@ -881,8 +884,37 @@ void cdrPlayInterrupt()
 		CDR_readTrack( temp );
 	}
 
-	if( CDR_readCDDA )
+	if( CDR_readCDDA ) {
 		CDR_readCDDA( cdr.SetSectorPlay[0], cdr.SetSectorPlay[1], cdr.SetSectorPlay[2], cdr.Transfer );
+		
+		CDXA_Attenuation( (short *) cdr.Transfer, 2352/2 );
+	}
+
+
+
+	// TODO: mute data track cdplay
+
+	// mute
+	if (Config.Cdda) memset( cdr.Transfer, 0, CD_FRAMESIZE_RAW );
+
+
+	if( cdr.Play && SPU_playCDDAchannel)
+		SPU_playCDDAchannel((short *)cdr.Transfer, CD_FRAMESIZE_RAW);
+
+	CDRPLAY_INT( cdReadTime );
+
+	//////////////////////////////////////////
+	//////////////////////////////////////////
+
+	subq = (struct SubQ *)CDR_getBufferSub();
+	if (subq == NULL )
+		Create_Fake_Subq();
+
+	cdrPlayInterrupt_Autopause();
+	cdrPlayInterrupt_Repplay();
+
+	//////////////////////////////////////////
+	//////////////////////////////////////////
 
 	cdr.SetSectorPlay[2]++;
 	if (cdr.SetSectorPlay[2] == 75) {
@@ -894,22 +926,6 @@ void cdrPlayInterrupt()
 		}
 	}
 
-
-	// TODO: mute data track cdplay
-
-	// mute
-	if (Config.Cdda) memset( cdr.Transfer, 0, CD_FRAMESIZE_RAW );
-
-
-	SPU_playCDDAchannel((short *)cdr.Transfer, CD_FRAMESIZE_RAW);
-
-	CDRPLAY_INT( cdReadTime );
-
-	//////////////////////////////////////////
-	//////////////////////////////////////////
-
-	cdrPlayInterrupt_Autopause();
-	cdrPlayInterrupt_Repplay();
 
 	Check_Shell(0);
 }
@@ -953,6 +969,13 @@ void cdrInterrupt() {
 			break;
 
 		case CdlPlay:
+			fake_subq_change = 0;
+
+			if( cdr.Seeked == FALSE ) {
+				memcpy( cdr.SetSectorPlay, cdr.SetSector, 4 );
+				cdr.Seeked = TRUE;
+			}
+
 			/*
 			Rayman: detect track changes
 			- fixes logo freeze
@@ -1028,6 +1051,11 @@ void cdrInterrupt() {
 								cdr.SetSectorPlay[0] = cdr.ResultTD[2];
 								cdr.SetSectorPlay[1] = cdr.ResultTD[1];
 								cdr.SetSectorPlay[2] = cdr.ResultTD[0];
+
+								// reset data
+								Set_Track();
+								Find_CurTrack();
+								ReadTrack( cdr.SetSectorPlay );
 
 								//CDR_play(cdr.SetSectorPlay);
 							}
@@ -1207,75 +1235,26 @@ void cdrInterrupt() {
 					}
 				}
 			} else {
-				// check track change
-				if (CDR_getTN(cdr.ResultTN) != -1) {
-					if( cdr.CurTrack+1 <= cdr.ResultTN[1] ) {
-						if( CDR_getTD(cdr.CurTrack+1, cdr.ResultTD) != -1 ) {
-							u8 temp_cur[3], temp_next[3];
-
-							temp_cur[0] = btoi( stat.Time[0] );
-							temp_cur[1] = btoi( stat.Time[1] );
-							temp_cur[2] = btoi( stat.Time[2] );
-
-							temp_next[0] = cdr.ResultTD[2];
-							temp_next[1] = cdr.ResultTD[1];
-							temp_next[2] = cdr.ResultTD[0];
-
-							if( msf2sec(temp_cur) >= msf2sec( temp_next ) ) {
-								cdr.CurTrack++;
-							}
-						}
-					}
-				}
+				if( cdr.Play == FALSE ) Create_Fake_Subq();
 
 
-				// assume no pregaps
-				cdr.Result[0] = itob( cdr.CurTrack );
-				cdr.Result[1] = 1;
+				// track # / index #
+				cdr.Result[0] = itob(cdr.CurTrack);
+				cdr.Result[1] = itob(fake_subq_index);
 
+				// local
+				cdr.Result[2] = itob( fake_subq_local[0] );
+				cdr.Result[3] = itob( fake_subq_local[1] );
+				cdr.Result[4] = itob( fake_subq_local[2] );
 
-				if( cdr.Play ) {
-					cdr.Result[2] = stat.Time[0];
-					cdr.Result[3] = stat.Time[1]- 2;
-					cdr.Result[4] = itob( stat.Time[2] );
-
-					// m:s adjustment
-					if ((s8)cdr.Result[3] < 0) {
-						cdr.Result[3] += 60;
-						cdr.Result[2] -= 1;
-					}
-
-					cdr.Result[2] = itob(cdr.Result[2]);
-					cdr.Result[3] = itob(cdr.Result[3]);
-
-
-
-					// absolute time
-					cdr.Result[5] = itob( stat.Time[0] );
-					cdr.Result[6] = itob( stat.Time[1] );
-					cdr.Result[7] = itob( stat.Time[2] );
-				}
-				else {
-					cdr.Result[2] = btoi(cdr.Prev[0]);
-					cdr.Result[3] = btoi(cdr.Prev[1]) - 2;
-					cdr.Result[4] = cdr.Prev[2];
-
-					// m:s adjustment
-					if ((s8)cdr.Result[3] < 0) {
-						cdr.Result[3] += 60;
-						cdr.Result[2] -= 1;
-					}
-
-					cdr.Result[2] = itob(cdr.Result[2]);
-					cdr.Result[3] = itob(cdr.Result[3]);
-
-
-					memcpy(cdr.Result + 5, cdr.Prev, 3);
-				}
+				// absolute
+				cdr.Result[5] = itob( fake_subq_real[0] );
+				cdr.Result[6] = itob( fake_subq_real[1] );
+				cdr.Result[7] = itob( fake_subq_real[2] );
 			}
 
 			// redump.org - wipe time
-			if( !cdr.Play && checkSBI(cdr.Result+5) ) {
+			if( !cdr.Play && CheckSBI(cdr.Result+5) ) {
 				memset( cdr.Result+2, 0, 6 );
 			}
 
@@ -1349,6 +1328,10 @@ void cdrInterrupt() {
         	cdr.Result[0] = cdr.StatP;
 			cdr.Seeked = TRUE;
         	cdr.Stat = Complete;
+
+			
+			// Mega Man Legends 2: must update read cursor for getlocp
+			ReadTrack( cdr.SetSector );
 			break;
 
     	case CdlSeekP:
@@ -1368,7 +1351,11 @@ void cdrInterrupt() {
 			cdr.Stat = Complete;
 			cdr.Seeked = TRUE;
 
+			// GameShark Music Player
+			memcpy( cdr.SetSectorPlay, cdr.SetSector, 4 );
+
 			// Tomb Raider 2: must update read cursor for getlocp
+			Find_CurTrack();
 			ReadTrack( cdr.SetSectorPlay );
 			break;
 
@@ -1403,7 +1390,7 @@ void cdrInterrupt() {
 
 			if (CDR_getStatus(&stat) == -1) {
 				cdr.Result[0] = 0x00; // 0x08 and cdr.Result[1]|0x10 : audio cd, enters cd player
-				cdr.Result[1] = 0x00; // 0x80 leads to the menu in the bios, else loads CD
+				cdr.Result[1] = 0x80; // 0x80 leads to the menu in the bios, else loads CD
 			}
 			else {
 				if (stat.Type == 2) {
@@ -1415,12 +1402,17 @@ void cdrInterrupt() {
 				}
 				else {
 					// Data CD
-					cdr.Result[0] = 0x08;
-					cdr.Result[1] = 0x00;
+					if (CdromId[0] == '\0') {
+						cdr.Result[0] = 0x00;
+						cdr.Result[1] = 0x80;
+					}
+					else {
+						cdr.Result[0] = 0x08;
+						cdr.Result[1] = 0x00;
+					}
 				}
 			}
 
-			if (CdromId[0] == '\0') cdr.Result[1] |= 0x80;
 			cdr.Result[2] = 0x00;
 			cdr.Result[3] = 0x00;
 			strncpy((char *)&cdr.Result[4], "PCSX", 4);
@@ -1709,10 +1701,13 @@ void cdrWrite0(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	else if( rt == 2 ) {
-		cdr.LeftVol = 0;
+		//cdr.AttenuatorLeft[0] = 0;
+		//cdr.AttenuatorLeft[1] = 0;
 	}
 	else if( rt == 3 ) {
-		cdr.RightVol = 0;
+		// Tekken 3 - character menu (don't do this!)
+		//cdr.AttenuatorRight[0] = 0;
+		//cdr.AttenuatorRight[1] = 0;
 	}
 }
 
@@ -1742,7 +1737,7 @@ void cdrWrite1(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	if( (cdr.Ctrl & 3) == 3 ) {
-		cdr.RightVol |= (rt << 8);
+		cdr.AttenuatorRight[0] = rt;
 	}
 
 
@@ -1802,10 +1797,6 @@ void cdrWrite1(unsigned char rt) {
 				cdr.Param[1] &= 0x7f;
 				cdr.Param[2] &= 0x7f;
 #endif
-
-				// GameShark Music Player
-				memcpy( cdr.SetSectorPlay, cdr.SetSector, 4 );
-
 
 				/*
 				if ((cdr.SetSector[0] | cdr.SetSector[1] | cdr.SetSector[2]) == 0) {
@@ -2112,10 +2103,10 @@ void cdrWrite2(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	if( (cdr.Ctrl & 3) == 2 ) {
-		cdr.LeftVol |= (rt << 8);
+		cdr.AttenuatorLeft[0] = rt;
 	}
 	else if( (cdr.Ctrl & 3) == 3 ) {
-		cdr.RightVol |= (rt << 0);
+		cdr.AttenuatorRight[1] = rt;
 	}
 
 
@@ -2161,48 +2152,14 @@ void cdrWrite3(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	if( (cdr.Ctrl & 3) == 2 ) {
-		cdr.LeftVol |= (rt << 0);
+		cdr.AttenuatorLeft[1] = rt;
 	}
 	else if( (cdr.Ctrl & 3) == 3 && rt == 0x20 ) {
-		u16 cdleft, cdright;
-		u8 l1,l2,r1,r2,tmp;
-
 #ifdef CDR_LOG
-		CDR_LOG( "CD-XA Volume: %X %X\n", cdr.LeftVol, cdr.RightVol );
+		CDR_LOG( "CD-XA Volume: %X %X | %X %X\n",
+			cdr.AttenuatorLeft[0], cdr.AttenuatorLeft[1],
+			cdr.AttenuatorRight[0], cdr.AttenuatorRight[1] );
 #endif
-
-		// TODO: Use real attenuation (left - right mixer)
-
-		/*
-		Eternal SPU: scale volume from [0-ffff] -> [0,8000]
-		- Destruction Derby Raw - movies (ff00 ff00)
-		- Smurf Racer - movies (00ff 00ff)
-		- V-Rally 2 - movies (FC00 FC00)
-		*/
-
-		// Fake attenuation volume hack for Eternal
-		l1 = (cdr.LeftVol >> 8) & 0xff;
-		l2 = (cdr.LeftVol >> 0) & 0xff;
-		r1 = (cdr.RightVol >> 8) & 0xff;
-		r2 = (cdr.RightVol >> 0) & 0xff;
-
-		if( l1 > 0x80 ) l1 = 0x80;
-		if( l2 > 0x80 ) l2 = 0x80;
-		if( r1 > 0x80 ) r1 = 0x80;
-		if( r2 > 0x80 ) r2 = 0x80;
-
-		// spu compatibility volume hack
-		if( l1 < l2 ) { tmp = l1; l1 = l2; l2 = tmp; }
-		if( r1 < r2 ) { tmp = r1; r1 = r2; r2 = tmp; }
-		if( l1 == 0x80 ) { l2 = 0; }
-		if( r1 == 0x80 ) { r2 = 0; }
-
-		cdleft = (l1 << 8) | l2;
-		cdright = (r1 << 8) | r2;
-
-		// write CD-XA volumes
-		SPU_writeRegister( H_CDLeft, cdleft );
-		SPU_writeRegister( H_CDRight, cdright );
 	}
 
 
@@ -2347,8 +2304,6 @@ void cdrReset() {
 	cdr.CurTrack = 1;
 	cdr.File = 1;
 	cdr.Channel = 1;
-
-	opensbifile( "redump.sbi" );
 }
 
 int cdrFreeze(gzFile f, int Mode) {

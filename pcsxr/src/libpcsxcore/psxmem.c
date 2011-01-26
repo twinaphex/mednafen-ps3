@@ -24,7 +24,7 @@
 #include "psxmem.h"
 #include "r3000a.h"
 #include "psxhw.h"
-//ROBO: No mmap
+//ROBO: We don't have this
 //#include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
@@ -66,10 +66,10 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-//ROBO: No memmap
-	psxM = malloc(0x220000);
+//ROBO: No mman
 //	psxM = mmap(0, 0x00220000,
 //		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	psxM = malloc(0x00220000);
 
 	psxP = &psxM[0x200000];
 	psxH = &psxM[0x210000];
@@ -117,9 +117,7 @@ void psxMemReset() {
 
 	// Load BIOS
 	if (strcmp(Config.Bios, "HLE") != 0) {
-		//ROBO: Config.Bios now holds the whole path
-//		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
-		sprintf(bios, "%s", Config.Bios);
+		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
 		f = fopen(bios, "rb");
 
 		if (f == NULL) {
@@ -163,8 +161,9 @@ u8 psxMemRead8(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, R1);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R1);
 			return *(u8 *)(p + (mem & 0xffff));
 		} else {
 #ifdef PSXMEM_LOG
@@ -192,8 +191,9 @@ u16 psxMemRead16(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, R2);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R2);
 			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
@@ -221,8 +221,9 @@ u32 psxMemRead32(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, R4);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R4);
 			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
@@ -250,8 +251,9 @@ void psxMemWrite8(u32 mem, u8 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
 			*(u8 *)(p + (mem & 0xffff)) = value;
 #ifdef PSXREC
 			psxCpu->Clear((mem & (~3)), 1);
@@ -281,8 +283,9 @@ void psxMemWrite16(u32 mem, u16 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
 			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
 #ifdef PSXREC
 			psxCpu->Clear((mem & (~3)), 1);
@@ -313,8 +316,9 @@ void psxMemWrite32(u32 mem, u32 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-			if (Config.Debug)
-				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
+//ROBO: No Debug
+//			if (Config.Debug)
+//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
 			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
 #ifdef PSXREC
 			psxCpu->Clear(mem, 1);

@@ -22,8 +22,8 @@ ifeq ($(strip $(FREETYPECONFIG)),)
 	FREETYPECONFIG=freetype-config
 endif
 
-CFLAGS		+= -DL1GHT -O3 -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
-CXXFLAGS	+= -DL1GHT -O3 -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__
+CFLAGS		+= -DL1GHT -O3 -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
+CXXFLAGS	+= -DL1GHT -O3 -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
 LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs` -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 

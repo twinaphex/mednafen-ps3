@@ -39,12 +39,6 @@ extern "C" {
 #define H_SPUoff1        0x0d8c
 #define H_SPUoff2        0x0d8e
 
-//ROBO: No __stdcall
-#ifdef CALLBACK
-#undef CALLBACK
-#endif
-#define CALLBACK
-
 void CALLBACK SPUirq(void);
 
 #ifdef __cplusplus
