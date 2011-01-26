@@ -1,6 +1,8 @@
 #include <src/mednafen.h>
+#include "src/cdrom/cdromif.h"
 #include <src/mednafen-driver.h>
 #include <src/git.h>
+//TODO: We really shouldn't use this here!
 #include <ps3_system.h>
 #include <src/general.h>
 
@@ -19,10 +21,32 @@ extern "C"
 	void		SysLoad					();
 	void		SysClose				();
 	void		SysReset				();
-	void		SysFrame				(uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
+	void		SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 	void		SetMCDS					(const char* aOne, const char* aTwo);
 	void		SetBIOS					(const char* aPath);
 	void		SetRecompiler			(uint32_t aEnable);
+
+	void				SysPrintf		(const char *fmt, ...)
+	{
+		char buffer[2048];
+		va_list args;
+		va_start (args, fmt);
+		vsnprintf(buffer, 2048, fmt, args);
+		va_end (args);
+
+		MDFND_Message(buffer);
+	}
+
+	void				SysMessage		(const char *fmt, ...)
+	{
+		char buffer[2048];
+		va_list args;
+		va_start (args, fmt);
+		vsnprintf(buffer, 2048, fmt, args);
+		va_end (args);
+
+		MDFND_Message(buffer);
+	}
 
 	uint32_t	DoesFileExist			(const char* aPath)
 	{
@@ -38,13 +62,13 @@ int				PcsxrLoad				()
 	resampler.buffer_size(588 * 2 * 2 + 100);
 	resampler.time_ratio((double)44100 / 48000.0, 0.9965);
 
-
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	std::string filename2 = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2");
 	SetMCDS(filename.c_str(), filename2.c_str());
 
 	std::string biospath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str());
 	SetBIOS(biospath.c_str());
+
 	SetRecompiler(MDFN_GetSettingB("pcsxr.recompiler"));
 
 	SysLoad();
@@ -54,18 +78,15 @@ int				PcsxrLoad				()
 
 bool			PcsxrTestMagic			()
 {
-	return true;
+	//TODO: Does this work in all cases?
+	uint8_t Buffer[4000];
+	CDIF_ReadRawSector(Buffer, 4);
+	return Buffer[56] == 'S' && Buffer[57] == 'o' && Buffer[58] == 'n' && Buffer[59] == 'y';
 }
 
 void			PcsxrCloseGame			(void)
 {
 	SysClose();
-}
-
-bool			PcsxrToggleLayer		(int which)
-{
-	//TODO:
-	return false;
 }
 
 void			PcsxrInstallReadPatch	(uint32 address)
@@ -100,7 +121,7 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
 
 	uint32_t width, height;
 	uint32_t sndsize;
-	SysFrame(espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)bingbang, &sndsize);
+	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)bingbang, &sndsize);
 
 	if(sndsize < 1500)
 	{
@@ -210,8 +231,8 @@ MDFNGI	PcsxrInfo =
 /*	LoadCD:				*/	PcsxrLoad,
 /*	TestMagicCD:		*/	PcsxrTestMagic,
 /*	CloseGame:			*/	PcsxrCloseGame,
-/*	ToggleLayer:		*/	PcsxrToggleLayer,
-/*	LayerNames:			*/	"Screen\0",
+/*	ToggleLayer:		*/	0,
+/*	LayerNames:			*/	0,
 /*	InstallReadPatch:	*/	PcsxrInstallReadPatch,
 /*	RemoveReadPatches:	*/	PcsxrRemoveReadPatches,
 /*	MemRead:			*/	PcsxrMemRead,

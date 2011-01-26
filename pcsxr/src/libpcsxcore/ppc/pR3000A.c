@@ -26,7 +26,8 @@
 #include <string.h>
 #include <time.h>
 #include <sys/types.h>
-#include <sys/mman.h>
+//ROBO: Don't need
+//#include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
@@ -77,7 +78,9 @@ u32 *psxRecLUT;
 
 #define RECMEM_SIZE		(12*1024*1024)
 
-static char *recMem;	/* the recompiled blocks will be here */
+//ROBO: Put this in bss
+//static char *recMem;	/* the recompiled blocks will be here */
+static char recMem[RECMEM_SIZE];	/* the recompiled blocks will be here */
 static char *recRAM;	/* and the ptr to the blocks here */
 static char *recROM;	/* and here */
 
@@ -1059,10 +1062,11 @@ static void rec##f() { \
 
 static void freeMem(int all)
 {
-    if (recMem) free(recMem);
+//ROBO: Make it static
+//    if (recMem) free(recMem);
     if (recRAM) free(recRAM);
     if (recROM) free(recROM);
-    recMem = recRAM = recROM = 0;
+/*    recMem = */recRAM = recROM = 0;
     
     if (all && psxRecLUT) {
         free(psxRecLUT); psxRecLUT = NULL;
@@ -1077,7 +1081,8 @@ static int allocMem() {
 	if (psxRecLUT==NULL)
 		psxRecLUT = (u32*) malloc(0x010000 * 4);
 
-	recMem = (char*) malloc(RECMEM_SIZE);
+//ROBO: Make this global, in the BSS section for some 'fun'
+//	recMem = (char*) malloc(RECMEM_SIZE);
         //recMem = mmap(NULL, RECMEM_SIZE, PROT_EXEC|PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1,  0);
 	recRAM = (char*) malloc(0x200000);
 	recROM = (char*) malloc(0x080000);
@@ -1138,8 +1143,11 @@ __inline static void execute() {
 	recRun(*recFunc, (u32)&psxRegs, (u32)&psxM);
 }
 
+//ROBO: Leave on command
+extern int wanna_leave;
 static void recExecute() {
-	for (;;) execute();
+	wanna_leave = 0;
+	while (!wanna_leave) execute();
 }
 
 static void recExecuteBlock() {

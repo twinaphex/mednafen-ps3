@@ -145,18 +145,18 @@ u64 GetCPUTick( void )
 #endif
 }
 
-//ROBO: Maybe we need this
-//#if defined(__LINUX__) || defined(__APPLE__)
-#ifndef __WIN32__
+#if defined(__LINUX__) || defined(__APPLE__)
 
 #include <sys/time.h>
 #include <errno.h>
+//*
 unsigned long timeGetTime2()
 {
  struct timeval tv;
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return (unsigned long)tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
 }
+//*/
 #endif
 
 s64 CPUSpeedHz( unsigned int time )

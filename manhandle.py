@@ -18,7 +18,7 @@ donethings = []
 tf, tfn = tempfile.mkstemp()
 
 for i in things:
-	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i:
+	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i and not "stat" in i:
 		donethings.append(i)
 		os.write(tf, i + " " + sys.argv[2] + i)
 		os.write(tf, "\n")
