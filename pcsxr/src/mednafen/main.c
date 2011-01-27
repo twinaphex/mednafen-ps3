@@ -3,33 +3,16 @@
 #include "video_plugin/globals.h"
 #include "input_plugin/pad.h"
 
-//Plugins functions, from plugin_kludge.c
+//Plugins functions, from plugins.c
 int					OpenPlugins		();
 void				ClosePlugins	();
 
 //System functions, needed by libpcsxcore
 //Setting wanna_leave to 1 causes the cpu emu to return, but this is a patch by me
 extern int			wanna_leave;
-void				SysUpdate		()
-{
-	wanna_leave = 1;
-}
-
-int					SysInit			()
-{
-	return 1;
-}
-
-void				SysRunGui		()
-{
-	/* Nothing */
-}
-
-void				SysReset		()
-{
-	/* TODO */
-	EmuReset();
-}
+void				SysUpdate		()		{wanna_leave = 1;}
+void				SysRunGui		()		{/* Nothing */}
+void				SysReset		()		{EmuReset();}
 
 void				SysClose		()
 {
@@ -94,7 +77,6 @@ void				SetRecompiler	(uint32_t aEnable)
 }
 
 //Main functions for running emu
-extern void tats(char* a);
 int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
@@ -108,7 +90,6 @@ int					SysLoad			()
     strcpy(Config.Cdr, "builtin");
     strcpy(Config.Net, "Disabled");
     strcpy(Config.Bios, BIOSPath);
-	Config.SlowBoot = 0;
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
@@ -160,7 +141,7 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 				uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
 				for(int j = 0; j != w; j++)
 				{
-					uint32_t lu = *((uint32_t *)pD);
+					uint32_t lu = SWAP32(*((uint32_t *)pD));
 					destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
 					pD += 3;
 				}
@@ -172,9 +153,9 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 			{
 				int startxy = (1024 * (i + y)) + x;
 				uint32_t* destpix = &aPixels[aPitch * i];
-				for(int j = 0; j != w; j++)
+				for(int j = 0; j != w; j++, startxy ++)
 				{
-					int s = g_gpu.psx_vram.u16[startxy++];
+					int s = SWAP16(g_gpu.psx_vram.u16[startxy]);
 					destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
 				}
 			}
