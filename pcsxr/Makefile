@@ -3,7 +3,12 @@ ifeq ($(strip $(PLATFORM)),)
 endif
 
 TARGET		:=	libpcsxr
+ifeq ($(strip $(PLATFORM)),dll)
+TYPE		:=	so
+else
 TYPE		:=	a
+endif
+SONAME		:=	libpcsxr
 SYMPREFIX	:=	pcsx
 BUILD		:=	build
 SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin

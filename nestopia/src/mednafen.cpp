@@ -134,10 +134,27 @@ MDFNGI	NestInfo =
 /*	soundchan:			*/	1
 };
 
-extern "C" MDFNGI* GetEmulator()
+#ifdef MLDLL
+#ifdef __WIN32__
+#define DLL_PUBLIC __attribute__((dllexport))
+#else
+#define DLL_PUBLIC __attribute__ ((visibility("default")))
+#endif
+#else
+#define	DLL_PUBLIC
+#endif
+
+extern "C" DLL_PUBLIC	uint32_t		GetVersion()
+{
+	return 0x916;
+//	return MEDNAFEN_VERSION_NUMERIC;
+}
+
+extern "C" DLL_PUBLIC	MDFNGI*			GetEmulator()
 {
 	return &NestInfo;
 }
+
 
 int				NestLoad				(const char *name, MDFNFILE *fp)
 {
