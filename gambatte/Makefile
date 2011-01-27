@@ -3,7 +3,12 @@ ifeq ($(strip $(PLATFORM)),)
 endif
 
 TARGET		:=	libgambatte
+ifeq ($(strip $(PLATFORM)),dll)
+TYPE		:=	so
+else
 TYPE		:=	a
+endif
+SONAME		:=	libgambatte
 SYMPREFIX	:=	gmbt
 BUILD		:=	build
 SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample

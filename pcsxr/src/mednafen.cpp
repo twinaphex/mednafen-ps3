@@ -5,9 +5,10 @@
 #include <src/git.h>
 #include <include/Fir_Resampler.h>
 #include <src/general.h>
+#include <stdarg.h>
 
 //HACK: We really shouldn't use this here!
-#include <ps3_system.h>
+//#include <ps3_system.h>
 
 namespace
 {
@@ -53,7 +54,8 @@ extern "C"
 
 	uint32_t	DoesFileExist			(const char* aPath)
 	{
-		return Utility::FileExists(aPath) ? 1 : 0;
+//		return Utility::FileExists(aPath) ? 1 : 0;
+		return 0;
 	}
 }
 
@@ -143,6 +145,8 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
     espec->DisplayRect.y = 0;
     espec->DisplayRect.w = width;
     espec->DisplayRect.h = height;
+
+	espec->MasterCycles = 1LL * 100;
 }
 
 void			PcsxrSetInput			(int port, const char *type, void *ptr)
@@ -243,7 +247,7 @@ MDFNGI	PcsxrInfo =
 /*	SetInput:			*/	PcsxrSetInput,
 /*	DoSimpleCommand:	*/	PcsxrDoSimpleCommand,
 /*	Settings:			*/	PcsxrSettings,
-/*	MasterClock:		*/	0,
+/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:				*/	0,
 /*	multires:			*/	true,
 /*	lcm_width:			*/	1024,
@@ -255,8 +259,24 @@ MDFNGI	PcsxrInfo =
 /*	fb_height:			*/	512,
 /*	soundchan:			*/	2
 };
+
+#ifdef MLDLL
+#ifdef __WIN32__
+#define DLL_PUBLIC __attribute__((dllexport))
+#else
+#define DLL_PUBLIC __attribute__ ((visibility("default")))
+#endif
+#else
+#define	DLL_PUBLIC
+#endif
+
+extern "C" DLL_PUBLIC	uint32_t		GetVersion()
+{
+	return 0x916;
+//	return MEDNAFEN_VERSION_NUMERIC;
+}
 	
-extern "C" MDFNGI* GetEmulator()
+extern "C" DLL_PUBLIC	MDFNGI*			GetEmulator()
 {
 	return &PcsxrInfo;
 }

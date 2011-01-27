@@ -17,12 +17,17 @@
 	@echo "[CC]  $(notdir $<)"
 	@$(CC) $(DEPSOPTIONS) -x assembler-with-cpp $(ASFLAGS) $(INCLUDES) -c $< -o $@
 
+%.so:
+	@echo "[LD]  $(notdir $@)"
+	@$(LD) -shared -Wl,-soname,$(SONAME).so.1 -o $@ $^
+
 %.a:
 	@echo "[AR]  $(notdir $@)"
 	@$(AR) -rcs $@ $^
 ifneq ($(strip $(SYMPREFIX)),)
 	python $(TOP)/manhandle.py $@ $(SYMPREFIX) $(OBJCOPY)
 endif
+
 
 %.elf:
 	@echo "[LD]  $(notdir $@)"

@@ -3,7 +3,12 @@ ifeq ($(strip $(PLATFORM)),)
 endif
 
 TARGET		:=	libnestopia
+ifeq ($(strip $(PLATFORM)),dll)
+TYPE		:=	so
+else
 TYPE		:=	a
+endif
+SONAME		:=	libnestopia
 SYMPREFIX	:=	nest
 BUILD		:=	build
 SOURCE		:=	src src/core src/core/api src/core/board src/core/input src/core/vssystem

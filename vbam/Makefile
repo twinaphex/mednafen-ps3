@@ -3,7 +3,12 @@ ifeq ($(strip $(PLATFORM)),)
 endif
 
 TARGET		:=	libvbam
+ifeq ($(strip $(PLATFORM)),dll)
+TYPE		:=	so
+else
 TYPE		:=	a
+endif
+SONAME		:=	libvbam
 SYMPREFIX	:=	vbam
 BUILD		:=	build
 SOURCE		:=	src src/src src/src/common src/src/apu src/src/gb src/src/gba 
