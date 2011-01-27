@@ -1,6 +1,30 @@
 #include "psxcommon.h"
 #include "plugins.h"
 
+int				PluginStub				()
+{
+	/*Nothing*/
+	return 0;
+}
+
+void*			SysLoadLibrary		(const char *lib)
+{
+	/*Nothing*/
+	return (void*)1;
+}
+
+const char*		SysLibError			()
+{
+	/*Nothing*/
+	return 0;
+}
+
+void			SysCloseLibrary		(void *lib)
+{
+	/*Nothing*/
+}
+
+//TODO: So ugly, theres more code after this too!
 void			pkGPUinit				();
 long			pkGPUopen				(unsigned long * disp, char * CapText, char * CfgFile);
 long			pkGPUclose				();
@@ -76,16 +100,6 @@ char*           pkCDRgetDriveLetter     (void);
 long            pkCDRreadCDDA           (unsigned char aMinutes, unsigned char aSeconds, unsigned char aFrames, unsigned char* aBuffer);
 long            pkCDRgetTE              (unsigned char, unsigned char *, unsigned char *, unsigned char *);
 
-
-int				PluginStub				()
-{
-	return 0;
-}
-
-//Stubs
-void*			SysLoadLibrary		(const char *lib)		{return (void*)1;}
-const char*		SysLibError			()						{return 0;}
-void			SysCloseLibrary		(void *lib)				{/*Nothing*/}
 
 void*			SysLoadSym			(void *lib, const char *sym)
 {
@@ -165,12 +179,14 @@ void*			SysLoadSym			(void *lib, const char *sym)
 
 	return PluginStub;
 }
+//TODO: Now that THATS over, here's the rest of the useful code!
 
-//Plugin functions
 int					OpenPlugins		()
 {
+	//Tell libpcsxcore to load the plugins (Thats that mess up there)
 	LoadPlugins();
 
+	//Open all of the plugins and register any callbacks
 	CDR_open();
 
 	pkGPUopen(0, 0, 0);
@@ -187,17 +203,14 @@ int					OpenPlugins		()
 
 void                ClosePlugins    ()
 {
+	//Close all of the plugins
 	CDR_close();
 	SPU_close();
 	PAD1_close();
 	PAD2_close();
 	GPU_close();
 
-#if 0
-	if(Config.UseNet)
-	{
-		NET_pause();
-	}
-#endif
+	//Tell libpcsxcore to unload the plugins
+	ReleasePlugins();
 }
 
