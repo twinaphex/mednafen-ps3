@@ -28,8 +28,6 @@ namespace mdfn
 
 	uint8_t*							Ports[4];
 	uint32_t							SoundFrame;
-	uint32_t							FrameCount;
-	uint32_t							SkipHack;
 }
 using namespace mdfn;
 
@@ -45,7 +43,6 @@ void			VbamCloseGame			(void);
 void			VbamEmulate				(EmulateSpecStruct *espec);
 void			VbamSetInput			(int port, const char *type, void *ptr);
 void			VbamDoSimpleCommand		(int cmd);
-bool			VbamToggleLayer			(int which);
 void			VbamInstallReadPatch	(uint32 address);
 void			VbamRemoveReadPatches	(void);
 uint8			VbamMemRead				(uint32 addr);
@@ -57,9 +54,6 @@ int				VbamLoad				(const char *name, MDFNFILE *fp)
 	{
 		VbamCloseGame();
 	}
-
-	//Reset the skiphack counter
-	FrameCount = 0;
 
 	//Setup sound
 	//TODO: Support more sample rates
@@ -129,14 +123,7 @@ void			VbamEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//TODO: Support color shift
-
-	//Skip hack
-	if((FrameCount % 60) == 0)
-	{
-		SkipHack = MDFN_GetSettingB("vbam.skiphack");
-	}
-
-	systemFrameSkip = ESpec->skip || (SkipHack && ((FrameCount ++) % 3 != 0));
+	systemFrameSkip = ESpec->skip;
 
 	//Set the display size
 	espec->DisplayRect.x = 0;
@@ -177,7 +164,6 @@ void			VbamDoSimpleCommand		(int cmd)
 
 
 //STUBS
-bool			VbamToggleLayer			(int which)									{return false;}
 void			VbamInstallReadPatch	(uint32 address)							{}
 void			VbamRemoveReadPatches	(void)										{}
 uint8			VbamMemRead				(uint32 addr)								{return 0;}
@@ -227,13 +213,7 @@ static const InputDeviceInputInfoStruct IDII[] =
 
 static InputDeviceInfoStruct InputDeviceInfo[] =
 {
-	{
-		"gamepad",
-		"Gamepad",
-		NULL,
-		sizeof(IDII) / sizeof(InputDeviceInputInfoStruct),
-		IDII,
-	}
+	{"gamepad",	"Gamepad",	NULL,	sizeof(IDII) / sizeof(InputDeviceInputInfoStruct),	IDII}
 };
 
 static const InputPortInfoStruct PortInfo[] =
@@ -243,8 +223,7 @@ static const InputPortInfoStruct PortInfo[] =
 
 static InputInfoStruct VbamInput =
 {
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct),
-	PortInfo
+	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
 };
 
 static FileExtensionSpecStruct	extensions[] =
@@ -257,7 +236,6 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting VbamSettings[] =
 {
-	{"vbam.skiphack",	MDFNSF_NOFLAGS,		"Skip 1 of every three frames",			NULL, MDFNST_BOOL,	"1"},
 	{"vbam.usebios",	MDFNSF_NOFLAGS,		"Enable GBA Bios Use",					NULL, MDFNST_BOOL,	"0"},
 	{"vbam.bios",		MDFNSF_EMU_STATE,	"Path to optional GBA BIOS ROM image.",	NULL, MDFNST_STRING, "gbabios.bin"},
 	{"vbam.vbaover",	MDFNSF_NOFLAGS,		"Path to vba-over.ini",					NULL, MDFNST_STRING, "vba-over.ini"},
@@ -280,8 +258,8 @@ static MDFNGI	VbamInfo =
 /*	LoadCD:				*/	0,
 /*	TestMagicCD:		*/	0,
 /*	CloseGame:			*/	VbamCloseGame,
-/*	ToggleLayer:		*/	VbamToggleLayer,
-/*	LayerNames:			*/	"BG0\0BG1\0BG2\0BG3\0OBJ\0WIN 0\0WIN 1\0OBJ WIN\0",
+/*	ToggleLayer:		*/	0,
+/*	LayerNames:			*/	0,
 /*	InstallReadPatch:	*/	VbamInstallReadPatch,
 /*	RemoveReadPatches:	*/	VbamRemoveReadPatches,
 /*	MemRead:			*/	VbamMemRead,
