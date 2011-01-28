@@ -73,29 +73,28 @@ class								ESVideo
 		
 		virtual void				PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF, Area* aArea = 0) = 0;
 		virtual void				FillRectangle			(Area aArea, uint32_t aColor) = 0;
-		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan) = 0;
+		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0;
 
 	public: //Helpers
-		Area						CalculatePresentArea	(bool aAspectOverride, int32_t aUnderscan)
+		Area						CalculatePresentArea	(bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 		{
-			Area output(0, 0, GetScreenWidth(), GetScreenHeight());
-		
-			double underPercent = (double)aUnderscan / 100.0;
-								
-			double widthP = (aAspectOverride ? GetScreenWidth() : GetScreenWidth() - ((double)GetScreenWidth() * .125)) * (underPercent / 2);
-			double heightP = GetScreenHeight() * (underPercent / 2);
-				
-			if(aAspectOverride || !IsWideScreen())
+			int32_t xLeft = 0, xRight = GetScreenWidth(), yTop = 0, yBottom = GetScreenHeight();
+			float fwidth = (float)GetScreenWidth();
+			float fheight = (float)GetScreenHeight();
+
+
+			if(IsWideScreen() || !aAspectOverride)
 			{
-				output = Area(widthP, heightP, GetScreenWidth() - widthP * 2, GetScreenHeight() - heightP * 2);
+				xLeft += fwidth * .125f;
+				xRight -= fwidth * .125f;
 			}
-			else
-			{
-				uint32_t barSize = ((double)GetScreenWidth()) * .125;
-				output = Area(barSize + widthP, heightP, GetScreenWidth() - barSize * 2 - widthP * 2, GetScreenHeight() - heightP * 2);
-			}
-			
-			return output;
+
+			xLeft += fwidth * ((float)(aUnderscan + aUnderscanFine.X) / 200.0f);
+			xRight -= fwidth * ((float)(aUnderscan + aUnderscanFine.Width) / 200.0f);
+			yTop += fwidth * ((float)(aUnderscan + aUnderscanFine.Y) / 200.0f);
+			yBottom -= fwidth * ((float)(aUnderscan + aUnderscanFine.Height) / 200.0f);
+
+			return Area(xLeft, yTop, xRight - xLeft, yBottom - yTop);
 		}
 
 	protected:
