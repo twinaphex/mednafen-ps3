@@ -129,11 +129,11 @@ void					L1ghtVideo::FillRectangle		(Area aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
 }
 
-void					L1ghtVideo::PresentFrame		(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan)
+void					L1ghtVideo::PresentFrame		(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	ApplyTexture(aTexture, Area(aViewPort.X, aViewPort.Y, aViewPort.Width, aViewPort.Height));
 
-	Area output = CalculatePresentArea(aAspectOverride, aUnderscan);
+	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 	
 	realityBlendEnable(GCMContext, 0);	
 	DrawQuad(output, 0xFFFFFFFF);

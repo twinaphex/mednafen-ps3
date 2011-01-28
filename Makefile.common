@@ -58,7 +58,7 @@ $(BUILD):
 
 clean:
 	@echo Clean...
-	@rm -rf $(BUILD) $(OUTPUT).$(TYPE) $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+	@rm -rf $(BUILD) $(OUTPUT).a $(OUTPUT).so $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
 
 
 else

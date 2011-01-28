@@ -11,7 +11,7 @@
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	Screen = SDL_SetVideoMode(640, 480, 32, SDL_OPENGL);
+	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
 //	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
 	if(!Screen)
 	{
@@ -117,9 +117,9 @@ void					SDLVideo::FillRectangle			(Area aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
 }
 
-void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan)
+void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
-	Area output = CalculatePresentArea(aAspectOverride, aUnderscan);
+	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
