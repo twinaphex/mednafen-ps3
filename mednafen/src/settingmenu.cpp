@@ -64,8 +64,8 @@ namespace								MednafenSettings
 					}
 					else if(Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT)
 					{
-						int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
-						value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+						int32_t value = es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? -1 : 0;
+						value = es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : value;
 
 						if(value != 0)
 						{
