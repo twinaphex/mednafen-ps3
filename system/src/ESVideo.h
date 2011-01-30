@@ -76,6 +76,48 @@ class								ESVideo
 		virtual void				PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0;
 
 	public: //Helpers
+		bool						CalculateClip			(Texture* aTexture, Area& aTextureArea, Area& aOutputArea)
+		{
+			Area clip = GetClip();
+			float fwidth = (float)GetScreenWidth();
+			float fheight = (float)GetScreenHeight();
+
+			//Are we going to draw anything?
+			if(aOutputArea.X > clip.Right() || aOutputArea.Right() < clip.X || aOutputArea.Y > clip.Bottom() || aOutputArea.Bottom() < clip.Y)
+			{
+				return false;
+			}
+			//Are we changing nothing?
+			else if(aOutputArea.X > clip.X && aOutputArea.Right() < clip.Right() && aOutputArea.Y > clip.Y && aOutputArea.Bottom() < clip.Bottom())
+			{
+				return true;
+			}
+			else
+			{
+				Area clipPixels;
+				clipPixels.X = (aOutputArea.X >= clip.X) ? 0 : aOutputArea.X - clip.X;
+				clipPixels.Y = (aOutputArea.Y >= clip.Y) ? 0 : aOutputArea.Y - clip.Y;
+				clipPixels.Width = (aOutputArea.Right() <= clip.Right()) ? 0 : clip.Right() - aOutputArea.Right();
+				clipPixels.Height = (aOutputArea.Bottom() <= clip.Bottom()) ? 0 : clip.Bottom() - aOutputArea.Bottom();
+
+				float xlP = (float)clipPixels.X / (float)aOutputArea.Width;
+				float xrP = (float)clipPixels.Width / (float)aOutputArea.Width;
+				float ytP = (float)clipPixels.Y / (float)aOutputArea.Height;
+				float ybP = (float)clipPixels.Height / (float)aOutputArea.Height;
+
+				float xlT = (float)aTexture->GetWidth() * xlP;
+				float xrT = (float)aTexture->GetWidth() * xrP;
+				float ytT = (float)aTexture->GetHeight() * ytP;
+				float ybT = (float)aTexture->GetHeight() * ybP;
+
+				aTextureArea = Area(aTextureArea.X + xlT , aTextureArea.Y + ytT, aTextureArea.Width + xrT, aTextureArea.Height + ybT);
+				aOutputArea = Area(aOutputArea.X + clipPixels.X, aOutputArea.Y + clipPixels.Y, aOutputArea.Width + clipPixels.Width, aOutputArea.Height + clipPixels.Height);
+
+				return true;
+			}
+
+		}
+
 		Area						CalculatePresentArea	(bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 		{
 			int32_t xLeft = 0, xRight = GetScreenWidth(), yTop = 0, yBottom = GetScreenHeight();

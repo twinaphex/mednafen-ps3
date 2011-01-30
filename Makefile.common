@@ -35,11 +35,11 @@ endif
 
 ################
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export VPATH	:=	../
-export BUILDDIR	:=	$(CURDIR)/$(BUILD)
+export BUILDDIR	:=	$(CURDIR)/$(BUILD)-$(PLATFORM)
 export DEPSDIR	:=	$(BUILDDIR)
 
 CFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.c))
@@ -47,18 +47,18 @@ CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
 SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
 
 export OFILES	:=	$(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)
+export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM)
 export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD)-$(PLATFORM) clean
 
-$(BUILD):
+$(BUILD)-$(PLATFORM):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD)-$(PLATFORM) -f $(CURDIR)/Makefile
 
 clean:
 	@echo Clean...
-	@rm -rf $(BUILD) $(OUTPUT).a $(OUTPUT).so $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+	@rm -rf $(BUILD)-$(PLATFORM) $(OUTPUT).a $(OUTPUT).so $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
 
 
 else

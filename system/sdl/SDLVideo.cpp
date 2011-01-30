@@ -75,41 +75,46 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	aX += esClip.X;
 	aY += esClip.Y;
 
-	//TODO: Better clipping
-	if(aX + aWidth > esClip.Right() || aY + aHeight > (esClip.Bottom() + 10))
-	{
-		return;
-	}
-	
-	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
-	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
-	float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
-	float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
+	Area texArea, outArea(aX, aY, aWidth, aHeight);
 
-	float xl = 0, xr = 1, yl = 0, yr = 1;
 	if(aArea)
 	{
-		xl = (float)aArea->X / (float)aTexture->GetWidth();
-		xr = (float)aArea->Right() / (float)aTexture->GetWidth();
-		yl = (float)aArea->Y / (float)aTexture->GetHeight();
-		yr = (float)aArea->Bottom() / (float)aTexture->GetHeight();
+		texArea = *aArea;
+	}
+	else
+	{
+		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
 	}
 
-	((SDLTexture*)aTexture)->Apply();
-	glBegin(GL_QUADS);
-		glColor4f(r,g,b,a);
-		glTexCoord2f(xl, yl);
-		glVertex3f(aX, aY, 0);
-		glColor4f(r,g,b,a);
-		glTexCoord2f(xr, yl);
-		glVertex3f(aX + aWidth, aY, 0);
-		glColor4f(r,g,b,a);		
-		glTexCoord2f(xr, yr);		
-		glVertex3f(aX + aWidth, aY + aHeight, 0);
-		glColor4f(r,g,b,a);		
-		glTexCoord2f(xl, yr);		
-		glVertex3f(aX, aY + aHeight, 0);
-	glEnd();
+	if(CalculateClip(aTexture, texArea, outArea))
+	{
+		float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
+		float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
+		float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
+		float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
+
+		float xl = 0, xr = 1, yl = 0, yr = 1;
+		xl = (float)texArea.X / (float)aTexture->GetWidth();
+		xr = (float)texArea.Right() / (float)aTexture->GetWidth();
+		yl = (float)texArea.Y / (float)aTexture->GetHeight();
+		yr = (float)texArea.Bottom() / (float)aTexture->GetHeight();
+
+		((SDLTexture*)aTexture)->Apply();
+		glBegin(GL_QUADS);
+			glColor4f(r,g,b,a);
+			glTexCoord2f(xl, yl);
+			glVertex3f(outArea.X, outArea.Y, 0);
+			glColor4f(r,g,b,a);
+			glTexCoord2f(xr, yl);
+			glVertex3f(outArea.Right(), outArea.Y, 0);
+			glColor4f(r,g,b,a);		
+			glTexCoord2f(xr, yr);		
+			glVertex3f(outArea.Right(), outArea.Bottom(), 0);
+			glColor4f(r,g,b,a);		
+			glTexCoord2f(xl, yr);		
+			glVertex3f(outArea.X, outArea.Bottom(), 0);
+		glEnd();
+	}
 }
 
 void					SDLVideo::FillRectangle			(Area aArea, uint32_t aColor)

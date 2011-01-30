@@ -49,7 +49,7 @@ CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 LIBS				:=	-lemusys -lnestopia -lgambatte -lvbam -lpcsxr
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
 	include $(CURDIR)/../../Makefile-$(PLATFORM).base

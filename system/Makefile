@@ -8,7 +8,7 @@ BUILD		:=	build
 SOURCE		:=	$(PLATFORM) src src/utility src/utility/Files src/utility/GUI src/fex/fex src/fex/7z_C src/utility/GUI/Summerface
 INCLUDE		:=	. src/fex
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
 	include $(CURDIR)/../../Makefile-$(PLATFORM).base

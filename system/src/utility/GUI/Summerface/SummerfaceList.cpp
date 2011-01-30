@@ -251,7 +251,7 @@ bool										SummerfaceLineList::Draw							()
 		
 		uint32_t online = 0;
 	
-		for(int i = SelectedIndex - LinesDrawn / 2; i != SelectedIndex + LinesDrawn / 2; i ++)
+		for(int i = SelectedIndex - LinesDrawn / 2; i != SelectedIndex + LinesDrawn / 2 + 2; i ++)
 		{
 			if(i < 0)
 			{

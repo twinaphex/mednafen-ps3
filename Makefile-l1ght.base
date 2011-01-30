@@ -31,7 +31,7 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 include $(TOP)/Makefile.common
 ###
 
-signpkg: $(BUILD)
+signpkg: $(BUILD)-l1ght
 	@echo Creating signed PKG...
 	@$(STRIP) $(OUTPUT).elf
 	@$(SPRX) $(OUTPUT).elf
@@ -43,7 +43,7 @@ signpkg: $(BUILD)
 	@mv $(OUTPUT).pkg $(OUTPUT)-cfw.pkg
 
 
-pkg: $(BUILD)
+pkg: $(BUILD)-l1ght
 	@echo Creating PKG...
 	@$(STRIP) $(OUTPUT).elf
 	@$(SPRX) $(OUTPUT).elf

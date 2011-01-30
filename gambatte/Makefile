@@ -17,7 +17,7 @@ INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/s
 CFLAGS		:=	-DHAVE_STDINT_H
 CXXFLAGS	:=	-DHAVE_STDINT_H
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
 	include $(CURDIR)/../../Makefile-$(PLATFORM).base
