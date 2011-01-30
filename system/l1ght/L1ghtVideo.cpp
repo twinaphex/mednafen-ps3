@@ -106,22 +106,22 @@ void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY,
 	aX += esClip.X;
 	aY += esClip.Y;
 
-	//TODO: Better clipping
-	if(aX + aWidth > esClip.Right() || aY + aHeight > (esClip.Bottom() + 10))
-	{
-		return;
-	}
+	Area texArea, outArea(aX, aY, aWidth, aHeight);
 
-	if(!aArea)
+	if(aArea)
 	{
-		ApplyTexture(aTexture, Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight()));
+		texArea = *aArea;
 	}
 	else
 	{
-		ApplyTexture(aTexture, *aArea);
+		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
 	}
 
-	DrawQuad(Area(aX, aY, aWidth, aHeight), aColor);
+	if(CalculateClip(aTexture, texArea, outArea))
+	{
+		ApplyTexture(aTexture, texArea);
+		DrawQuad(outArea, aColor);
+	}
 }
 
 void					L1ghtVideo::FillRectangle		(Area aArea, uint32_t aColor)

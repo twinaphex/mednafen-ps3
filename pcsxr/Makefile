@@ -19,7 +19,7 @@ CFLAGS		:= -fgnu89-inline -DLOG_STDOUT -DNOPSXREC
 #-DEMU_LOG=SysMessage -DPSXMEM_LOG=SysMessage -DPSXHW_LOG=SysMessage -DLOG_STDOUT -DPAD_LOG=SysMessage -DPSXDMA_LOG=SysMessage
 #-D_WINDOWS
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
 else
 	include $(CURDIR)/../../Makefile-$(PLATFORM).base
