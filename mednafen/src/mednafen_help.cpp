@@ -240,8 +240,6 @@ bool						MednafenEmu::Frame				()
 			RewindEnabled = rewindnow;
 		}
 
-		Counter.Tick();
-	
 		Inputs->Process();
 	
 		if(NetplayOn)
@@ -261,7 +259,9 @@ bool						MednafenEmu::Frame				()
 		EmulatorSpec.NeedRewind = !NetplayOn && es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
 		EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
 		MDFNI_Emulate(&EmulatorSpec);
+
 		Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
+		Counter.Tick(EmulatorSpec.skip);
 
 		if(!EmulatorSpec.skip)
 		{
@@ -273,7 +273,9 @@ bool						MednafenEmu::Frame				()
 			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
 			{
 				char buffer[128];
-				snprintf(buffer, 128, "%d", Counter.GetFPS());
+				uint32_t fps, skip;
+				fps = Counter.GetFPS(&skip);
+				snprintf(buffer, 128, "%d (%d)", fps, skip);
 				FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
 			}
 				
