@@ -164,16 +164,18 @@ class				FastCounter
 								
 		bool						Fast						();
 		uint32_t					GetSpeed					();
-		void						Tick						();
-		uint32_t					GetFPS						();
+		void						Tick						(bool aSkip = false);
+		uint32_t					GetFPS						(uint32_t* aSkip);
 								
 	protected:
 		uint32_t					Button;
 		uint32_t					Speed;
 		
 		uint32_t					LastFPS;
+		uint32_t					LastSkip;
 		uint32_t					LastFPSTime;
 		uint32_t					FrameCount;
+		uint32_t					SkipCount;
 };
 
 
