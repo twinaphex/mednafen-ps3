@@ -1,16 +1,16 @@
 #ifndef SAVESTATES___H
 #define SAVESTATES___H
 
-class					StateMenu : public SummerfaceWindow
+class					StateMenu : public SummerfaceLabel
 {
 	public:
 						StateMenu				(bool aLoad);
-						~StateMenu				();
+		virtual			~StateMenu				();
 
 		void			Do						();
 
 		bool			Input					();
-		bool			Draw					();
+		bool			PrepareDraw				();
 
 		void			FillScratch				(uint32_t aSlot);
 
