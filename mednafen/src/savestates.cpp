@@ -4,10 +4,10 @@
 //TODO: Put this somewhere
 extern StateStatusStruct*	StateStatusInfo;
 
-							StateMenu::StateMenu					(bool aLoad) : SummerfaceWindow(Area(0, 0, 0, 0))
+							StateMenu::StateMenu					(bool aLoad) : SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1")
 {
 	Load = aLoad;
-	Slot = 0;
+	Slot = 1;
 
 	Image = new uint32_t[1024 * 1024];
 
@@ -23,11 +23,10 @@ extern StateStatusStruct*	StateStatusInfo;
 
 	//We delete ourselves, segfault if this isn't here
 	SetNoDelete();
+	SetMessage("Slot %d\n", Slot);
 
 	//Create the UI
-	UI = new Summerface("StateImage", this);
-	UI->AddWindow("StateLabel", new SummerfaceLabel(Area(10, 85, 25, 6), "Slot %d", Slot));
-	UI->SetActiveWindow("StateImage");
+	UI = new Summerface("StateLabel", this);
 }
 
 							StateMenu::~StateMenu					()
@@ -71,14 +70,14 @@ bool						StateMenu::Input						()
 	return false;
 }
 
-bool						StateMenu::Draw							()
+bool						StateMenu::PrepareDraw					()
 {
 	if(StateStatusInfo && StateStatusInfo->gfx && StateStatusInfo->w && StateStatusInfo->h)
 	{
 		MednafenEmu::Blit(Image, StateStatusInfo->w, StateStatusInfo->h, 1024);
 	}
 
-	return false;
+	return SummerfaceLabel::PrepareDraw();
 }
 
 void						StateMenu::FillScratch					(uint32_t aSlot)
