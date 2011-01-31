@@ -24,7 +24,7 @@
 
 											ArchiveList::~ArchiveList					()
 {
-	fex_close(Archive);					
+	fex_close(Archive);		
 }
 
 uint32_t									ArchiveList::GetSelectedSize				()

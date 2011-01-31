@@ -10,14 +10,15 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion)
 {
-	Interface = 0;
 	InputHandler = 0;
 	DeleteHandler = false;
 
-	Area outregion(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));
+	NoDelete = false;
 
-	Region = outregion;
-	Client = Area(outregion.X + BorderWidth, outregion.Y + BorderWidth, outregion.Width - BorderWidth * 2, outregion.Height - BorderWidth * 2);
+	Interface = 0;
+
+	Region = Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));;
+	Client = Area(Region.X + BorderWidth, Region.Y + BorderWidth, Region.Width - BorderWidth * 2, Region.Height - BorderWidth * 2);
 }
 
 											SummerfaceWindow::~SummerfaceWindow					()
