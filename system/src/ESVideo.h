@@ -79,8 +79,6 @@ class								ESVideo
 		bool						CalculateClip			(Texture* aTexture, Area& aTextureArea, Area& aOutputArea)
 		{
 			Area clip = GetClip();
-			float fwidth = (float)GetScreenWidth();
-			float fheight = (float)GetScreenHeight();
 
 			//Are we going to draw anything?
 			if(aOutputArea.X > clip.Right() || aOutputArea.Right() < clip.X || aOutputArea.Y > clip.Bottom() || aOutputArea.Bottom() < clip.Y)
@@ -91,6 +89,11 @@ class								ESVideo
 			else if(aOutputArea.X > clip.X && aOutputArea.Right() < clip.Right() && aOutputArea.Y > clip.Y && aOutputArea.Bottom() < clip.Bottom())
 			{
 				return true;
+			}
+			//Are we zero dimensions?
+			else if(aOutputArea.Width == 0 || aOutputArea.Height == 0 || aTextureArea.Width == 0 || aTextureArea.Height == 0)
+			{
+				return false;
 			}
 			else
 			{
@@ -113,7 +116,8 @@ class								ESVideo
 				aTextureArea = Area(aTextureArea.X + xlT , aTextureArea.Y + ytT, aTextureArea.Width + xrT, aTextureArea.Height + ybT);
 				aOutputArea = Area(aOutputArea.X + clipPixels.X, aOutputArea.Y + clipPixels.Y, aOutputArea.Width + clipPixels.Width, aOutputArea.Height + clipPixels.Height);
 
-				return true;
+				//Are we placing anything?
+				return (aTextureArea.Width != 0 && aTextureArea.Height != 0 && aOutputArea.Width != 0 && aOutputArea.Height == 0);
 			}
 
 		}
