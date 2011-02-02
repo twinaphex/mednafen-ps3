@@ -10,7 +10,7 @@ namespace
 	Text.reserve(256);
 
 	Text = aText;
-	Header = aHeader;
+	SetHeader(aHeader);
 
 	Column = 0;
 	Row = 0;
@@ -27,8 +27,7 @@ namespace
 //TODO: This code can be dangerous
 bool						Keyboard::Draw									()
 {
-	FontManager::GetBigFont()->PutString(Header.c_str(), 16, 0, Colors::Normal);
-	FontManager::GetBigFont()->PutString(Text.c_str(), 16, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
+	FontManager::GetBigFont()->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
 	
 	uint32_t startX = 0;
 	

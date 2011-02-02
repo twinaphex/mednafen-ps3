@@ -2,6 +2,7 @@
 
 							Logger::Logger						(const Area& aRegion) : TextViewer(aRegion, "", false)
 {
+	SetHeader("Global Log");
 }
 
 							Logger::~Logger						()

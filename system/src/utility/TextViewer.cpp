@@ -23,6 +23,8 @@
 
 	LoadStream(stream);	
 	
+	SetHeader("[Text Viewer]");
+
 	delete stream;
 }
 						

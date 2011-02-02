@@ -22,8 +22,18 @@ namespace								MednafenSettings
 	class								SettingLineList : public SummerfaceLineList
 	{
 		public:
-										SettingLineList									(const Area& aRegion) : SummerfaceLineList(aRegion){}
+										SettingLineList									(const Area& aRegion) : SummerfaceLineList(aRegion){RefreshHeader = true;}
 			virtual						~SettingLineList								(){}
+
+			void						DoHeaderRefresh									()
+			{
+				if(RefreshHeader)
+				{
+					const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+					RefreshHeader = false;
+					SetHeader(Setting.desc->description);
+				}
+			}
 
 			virtual bool				DrawItem										(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
 			{
@@ -52,6 +62,8 @@ namespace								MednafenSettings
 			virtual bool				Input											()
 			{
 				const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+
+				DoHeaderRefresh();
 
 				{
 					if(Setting.desc->type == MDFNST_BOOL)
@@ -161,7 +173,16 @@ namespace								MednafenSettings
 
 					if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
 					{
-						return SummerfaceLineList::Input();
+						SummerfaceItem* selected = GetSelected();
+						bool output = SummerfaceLineList::Input();
+
+						if(selected != GetSelected())
+						{
+							RefreshHeader = true;
+							DoHeaderRefresh();
+						}
+
+						return output;
 					}
 					else
 					{
@@ -169,6 +190,8 @@ namespace								MednafenSettings
 					}
 				}
 			}
+
+			bool RefreshHeader;
 
 	};
 
@@ -254,6 +277,7 @@ namespace								MednafenSettings
 		GetCategories(settings);
 
 		SummerfaceLineList*	cats = new SummerfaceLineList(Area(10, 10, 80, 80));
+		cats->SetHeader("Choose Setting Category");
 		for(SettingCollection::iterator i = settings.begin(); i != settings.end(); i ++)
 		{
 			SummerfaceItem* item = new SummerfaceItem(TranslateCategory(i->first.c_str()), "");
