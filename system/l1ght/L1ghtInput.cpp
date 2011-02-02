@@ -14,6 +14,8 @@ namespace
 	ioPadGetInfo(&Info);
 	
 	Reset();
+
+	Rumble = false;
 	
 	ThreadDie = false;
 	sys_ppu_thread_create(&ThreadID, ProcessInputThread, 0, 0, 65536, 0, 0);
@@ -131,6 +133,9 @@ void				L1ghtInput::ProcessInputThread			(uint64_t aBcD)
 	{
 		Utility::Sleep(15);
 		input->Refresh();
+
+		PadActParam param = {input->Rumble, input->Rumble ? 255 : 0};
+		ioPadSetActDirect(0, &param);
 	}
 
 	input->ThreadDie = false;
@@ -150,5 +155,11 @@ void				L1ghtInput::Refresh						()
 			RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
 		}
 	}
+}
+
+
+void				L1ghtInput::RumbleOn					(bool aRumble)
+{
+	Rumble = aRumble;
 }
 
