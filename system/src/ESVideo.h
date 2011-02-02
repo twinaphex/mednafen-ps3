@@ -133,12 +133,13 @@ class								ESVideo
 			{
 				xLeft += fwidth * .125f;
 				xRight -= fwidth * .125f;
+				fwidth -= fwidth * .250f;
 			}
 
-			xLeft += fwidth * ((float)(aUnderscan + aUnderscanFine.X) / 200.0f);
-			xRight -= fwidth * ((float)(aUnderscan + aUnderscanFine.Width) / 200.0f);
-			yTop += fwidth * ((float)(aUnderscan + aUnderscanFine.Y) / 200.0f);
-			yBottom -= fwidth * ((float)(aUnderscan + aUnderscanFine.Height) / 200.0f);
+			xLeft += (fwidth * ((float)(aUnderscan + aUnderscanFine.X) / 200.0f));
+			xRight -= (fwidth * ((float)(aUnderscan + aUnderscanFine.Width) / 200.0f));
+			yTop += (fheight * ((float)(aUnderscan + aUnderscanFine.Y) / 200.0f));
+			yBottom -= (fheight * ((float)(aUnderscan + aUnderscanFine.Height) / 200.0f));
 
 			return Area(xLeft, yTop, xRight - xLeft, yBottom - yTop);
 		}
