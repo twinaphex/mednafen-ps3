@@ -22,7 +22,7 @@ class													SummerfaceWindow
 		virtual void									SetName							(const std::string& aName);
 		virtual std::string								GetName							();
 
-		virtual void									SetHeader						(const std::string& aHeader);
+		virtual void									SetHeader						(const std::string& aHeader, ...);
 		virtual std::string								GetHeader						();
 
 		virtual void									SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);

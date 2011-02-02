@@ -49,7 +49,7 @@ bool										SummerfaceWindow::PrepareDraw						()
 	{
 		FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal);
 		es_video->FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
-		es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - FontManager::GetBigFont()->GetHeight() + 3));
+		es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
 	}
 
 	return Draw();
@@ -97,9 +97,15 @@ std::string									SummerfaceWindow::GetName							()
 	return Name;
 }
 
-void										SummerfaceWindow::SetHeader							(const std::string& aHeader)
+void										SummerfaceWindow::SetHeader							(const std::string& aHeader, ...)
 {
-	Header = aHeader;
+	char array[1024];
+	va_list args;
+	va_start (args, aHeader);
+	vsnprintf(array, 1024, aHeader.c_str(), args);
+	va_end(args);
+
+	Header = array;
 }
 
 std::string									SummerfaceWindow::GetHeader							()

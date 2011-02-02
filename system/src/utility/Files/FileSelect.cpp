@@ -8,6 +8,7 @@
 	try
 	{
 		FileList* list = new FileList(Area(10, 10, 80, 80), aPath, aBookMarks);
+		list->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 		Summerface* sface = new Summerface("FileList", list);
 		sface->SetHook(InputHook);
 		Lists.push(sface);
@@ -58,6 +59,7 @@ std::string								FileSelect::GetFile					()
 				try
 				{
 					FileList* nlist = new FileList(Area(10, 10, 80, 80), list->GetSelected()->Properties["PATH"], BookMarks);
+					nlist->SetHeader("[%s] %s", Header.c_str(), list->GetSelected()->Properties["PATH"].c_str());
 					Summerface* sface = new Summerface("FileList", nlist);
 					sface->SetHook(InputHook);
 					Lists.push(sface);

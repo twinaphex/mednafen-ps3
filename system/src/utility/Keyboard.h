@@ -13,14 +13,11 @@ class										Keyboard : public SummerfaceWindow
 		std::string							GetText					()								{return Text;};
 		void								SetText					(const std::string& aText)		{Text = aText;};
 
-		void								SetHeader				(const std::string& aHeader)	{Header = aHeader;};
-				
 		bool								WasCanceled				()								{return Canceled;};
 				
 		
 	protected:
 		std::string							Text;
-		std::string							Header;
 		
 		int32_t								Column;
 		int32_t								Row;
