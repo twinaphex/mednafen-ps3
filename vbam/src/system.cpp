@@ -57,7 +57,8 @@ class soundy : public SoundDriver
 		}
 };
 
-
+//ROBO: From vbagx
+void rtcEnableWarioRumble(bool e);
 void 				sdlApplyPerImagePreferences				()
 {
 	FILE *f = fopen(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbam.vbaover").c_str()).c_str(), "r");
@@ -146,6 +147,27 @@ void 				sdlApplyPerImagePreferences				()
 		}
 	}
 	fclose(f);
+
+//ROBO: Copy from VBAGX
+	// In most cases this is already handled in GameSettings, but just to make sure:
+	switch (rom[0xac])
+	{
+		case 'F': // Classic NES
+			cpuSaveType = 1; // EEPROM
+			mirroringEnable = 1;
+			break;
+		case 'K': // Accelerometers
+			cpuSaveType = 4; // EEPROM + sensor
+			break;
+		case 'R': // WarioWare Twisted style sensors
+		case 'V': // Drill Dozer
+			rtcEnableWarioRumble(true);
+			break;
+		case 'U': // Boktai solar sensor and clock
+			rtcEnable(true);
+			break;
+	}
+//ROBO: End copy
 }
 
 
@@ -187,9 +209,13 @@ u32					systemGetClock							()										{return MDFND_GetTime() - start_time;}
 //Input
 bool				systemReadJoypads						()										{return true;}
 u32					systemReadJoypad						(int)									{return Ports[0][0] | (Ports[0][1] << 8);}
+bool rtcWarioRumbleEnabled;
+#ifdef L1GHT
+#include <../../system/ps3_system.h>
+void				systemCartridgeRumble					(bool aRumble)							{((L1ghtInput*)es_input)->RumbleOn(aRumble);}
+#else
 void				systemCartridgeRumble					(bool)									{}
-void				systemPossibleCartridgeRumble			(bool)									{}
-void				updateRumbleFrame						()										{}
+#endif
 void				systemUpdateMotionSensor				()										{}
 int					systemGetSensorX						()										{return 0;}
 int					systemGetSensorY						()										{return 0;}

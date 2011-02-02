@@ -38,6 +38,14 @@ bool rtcIsEnabled()
   return rtcEnabled;
 }
 
+//ROBO: From vbagx
+void rtcEnableWarioRumble(bool e)
+{
+  if (e) rtcEnable(true);
+  rtcWarioRumbleEnabled = e;
+}
+
+
 u16 rtcRead(u32 address)
 {
   if(rtcEnabled) {
@@ -74,7 +82,19 @@ bool rtcWrite(u32 address, u16 value)
     rtcClockData.byte2 = (u8)value; // enable ?
   } else if(address == 0x80000c6) {
     rtcClockData.byte1 = (u8)value; // read/write
+
+//ROBO: Copy from VBAGX
+	// rumble is off when not writing to that pin
+	if (rtcWarioRumbleEnabled && !(value & 8)) systemCartridgeRumble(false);
+//ROBO: End copy
   } else if(address == 0x80000c4) {
+//ROBO: Copy from VBAGX
+	// WarioWare Twisted  rumble
+	if(rtcWarioRumbleEnabled && (rtcClockData.byte1 & 8)) {
+		systemCartridgeRumble(value & 8);
+	}
+//ROBO: End copy
+
     if(rtcClockData.byte2 & 1) {
       if(rtcClockData.state == IDLE && rtcClockData.byte0 == 1 && value == 5) {
           rtcClockData.state = COMMAND;

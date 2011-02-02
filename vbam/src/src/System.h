@@ -89,4 +89,8 @@ extern int systemSpeed;
 #define SYSTEM_SAVE_UPDATED 30
 #define SYSTEM_SAVE_NOT_UPDATED 0
 
+//ROBO: For rumble
+void systemCartridgeRumble(bool);
+extern bool rtcWarioRumbleEnabled;
+
 #endif // SYSTEM_H
