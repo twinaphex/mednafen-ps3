@@ -85,6 +85,19 @@ namespace
 	}
 }
 
+void					L1ghtVideo::SetClip					(Area aClip)
+{
+	ESVideo::SetClip(aClip);
+
+	Area clap = GetClip();
+
+	realityViewportTranslate(GCMContext, clap.X, clap.Y, 0, 1);
+	for(int i = 0; i != 8; i ++)
+	{
+		realityViewportClip(GCMContext, i, clap.Right(), clap.Bottom());
+	}
+}
+
 void					L1ghtVideo::Flip				()
 {
 	gcmSetFlip(GCMContext, NextBuffer);
@@ -103,9 +116,6 @@ void					L1ghtVideo::Flip				()
 
 void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
 {
-	aX += esClip.X;
-	aY += esClip.Y;
-
 	Area texArea, outArea(aX, aY, aWidth, aHeight);
 
 	if(aArea)
@@ -117,7 +127,7 @@ void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY,
 		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
 	}
 
-	if(CalculateClip(aTexture, texArea, outArea))
+//	if(CalculateClip(aTexture, texArea, outArea))
 	{
 		ApplyTexture(aTexture, texArea);
 		DrawQuad(outArea, aColor);

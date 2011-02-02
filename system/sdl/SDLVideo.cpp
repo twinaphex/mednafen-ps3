@@ -34,6 +34,14 @@
 	delete FillerTexture;
 }
 
+void					SDLVideo::SetClip				(Area aClip)
+{
+	ESVideo::SetClip(aClip);
+
+	Area clap = GetClip();
+	glScissor(clap.X, GetScreenHeight() - clap.Bottom(), clap.Width, clap.Height);
+}
+
 void					SetExit							();
 void					SDLVideo::Flip					()
 {
@@ -57,7 +65,7 @@ void					SDLVideo::Flip					()
 	}
 //TODO: Done with event loop
 	
-	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
 	
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -68,6 +76,8 @@ void					SDLVideo::Flip					()
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_SCISSOR_TEST);
 }
 
 void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
@@ -86,7 +96,7 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
 	}
 
-	if(CalculateClip(aTexture, texArea, outArea))
+//	if(CalculateClip(aTexture, texArea, outArea))
 	{
 		float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
 		float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
