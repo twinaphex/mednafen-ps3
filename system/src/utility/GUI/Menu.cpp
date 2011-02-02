@@ -23,7 +23,7 @@ void						Menu::SetInputDelay			(uint32_t aDelay)
 
 void						Menu::Do					()
 {
-	uint32_t ticks = 0;
+	uint32_t ticks = InputDelay;
 
 	while(!WantToDie())
 	{
