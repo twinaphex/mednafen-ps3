@@ -40,6 +40,8 @@ class								L1ghtVideo : public ESVideo
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight) {return new L1ghtTexture(aWidth, aHeight);};
 							
 		bool						IsWideScreen			()				{return true;};
+
+		virtual void				SetClip					(Area aClip);
 	
 		void						Flip					();
 		

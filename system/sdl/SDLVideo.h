@@ -43,6 +43,8 @@ class								SDLVideo : public ESVideo
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight) {return new SDLTexture(aWidth, aHeight);};
 	
 		bool						IsWideScreen			()				{return true;};
+
+		virtual void				SetClip					(Area aClip);
 	
 		void						Flip					();
 		

@@ -22,6 +22,9 @@ class													SummerfaceWindow
 		virtual void									SetName							(const std::string& aName);
 		virtual std::string								GetName							();
 
+		virtual void									SetHeader						(const std::string& aHeader);
+		virtual std::string								GetHeader						();
+
 		virtual void									SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);
 		virtual SummerfaceInputConduit*					GetInputConduit					();
 
@@ -38,6 +41,7 @@ class													SummerfaceWindow
 
 		Summerface*										Interface;
 		std::string										Name;
+		std::string										Header;
 		Area											Region;
 		Area											Client;
 };

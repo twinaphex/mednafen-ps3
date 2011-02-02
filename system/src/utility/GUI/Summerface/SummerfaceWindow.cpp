@@ -44,6 +44,14 @@ bool										SummerfaceWindow::PrepareDraw						()
 	es_video->FillRectangle(Client, Colors::BackGround);
 	es_video->SetClip(Client);
 
+	std::string header = GetHeader();
+	if(!header.empty())
+	{
+		FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal);
+		es_video->FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
+		es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - FontManager::GetBigFont()->GetHeight() + 3));
+	}
+
 	return Draw();
 }
 
@@ -87,6 +95,16 @@ void										SummerfaceWindow::SetName							(const std::string& aName)
 std::string									SummerfaceWindow::GetName							()
 {
 	return Name;
+}
+
+void										SummerfaceWindow::SetHeader							(const std::string& aHeader)
+{
+	Header = aHeader;
+}
+
+std::string									SummerfaceWindow::GetHeader							()
+{
+	return Header;
 }
 
 
