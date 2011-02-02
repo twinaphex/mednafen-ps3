@@ -47,6 +47,7 @@ class													SummerfaceGrid : public SummerfaceList
 		uint32_t										Height;
 
 		bool											DrawHeader;
+		bool											RefreshHeader;
 		bool											DrawLabels;
 };
 

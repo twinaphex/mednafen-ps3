@@ -98,6 +98,8 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 
 	Width = aWidth;
 	Height = aHeight;
+
+	RefreshHeader = true;
 	
 	SetDrawMode(aHeader, aLabels);
 }
@@ -108,6 +110,7 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 
 bool										SummerfaceGrid::Input								()
 {
+	uint32_t oldIndex = SelectedIndex;
 	uint32_t XSelection = SelectedIndex % Width;
 	uint32_t YSelection = SelectedIndex / Width;
 
@@ -120,6 +123,12 @@ bool										SummerfaceGrid::Input								()
 	YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
 
 	SelectedIndex = YSelection * Width + XSelection;
+
+	if(DrawHeader && (oldIndex != SelectedIndex || RefreshHeader))
+	{
+		RefreshHeader = false;
+		SetHeader(GetSelected()->GetText());
+	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
@@ -179,15 +188,6 @@ bool										SummerfaceGrid::Draw								()
 	uint32_t XSelection = SelectedIndex % Width;
 	uint32_t YSelection = SelectedIndex / Width;
 
-	if(DrawHeader)
-	{
-		iconHeight = (es_video->GetClip().Height - LabelFont->GetHeight()) / Height - 4;
-		if(SelectedIndex < Items.size())
-		{
-			LabelFont->PutString(Items[SelectedIndex]->GetText().c_str(), 0, 0, Colors::Normal);
-		}
-	}
-
 	for(int i = 0; i != Height; i ++)
 	{
 		for(int j = 0; j != Width; j ++)
@@ -197,7 +197,7 @@ bool										SummerfaceGrid::Draw								()
 				break;
 			}
 		
-			DrawItem(Items[i * Width + j], j * iconWidth + 4, i * iconHeight + 4 + (DrawHeader ? LabelFont->GetHeight() : 0), iconWidth, iconHeight, j == XSelection && i == YSelection);
+			DrawItem(Items[i * Width + j], j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, j == XSelection && i == YSelection);
 		}
 	}
 	
@@ -208,6 +208,12 @@ void										SummerfaceGrid::SetDrawMode							(bool aHeader, bool aLabels)
 {
 	DrawHeader = aHeader;
 	DrawLabels = aLabels;
+	RefreshHeader = aHeader;
+
+	if(!aHeader)
+	{
+		SetHeader("");
+	}
 }
 
 											SummerfaceLineList::SummerfaceLineList				(const Area& aRegion) : SummerfaceList(aRegion)
