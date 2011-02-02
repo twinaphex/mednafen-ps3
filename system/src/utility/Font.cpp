@@ -46,7 +46,7 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 			
 			if(chara && chara->CharTexture)
 			{
-				es_video->PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + Height - chara->BaseY, chara->Width, chara->Height, aColor);
+				es_video->PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height, aColor);
 			}
 			
 			if(chara)
