@@ -171,8 +171,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Buffer->Clear(0);
 
 		Inputs = new InputHandler(GameInfo);
-		TextFile = new TextViewer(Area(10, 10, 80, 80), aFileName + ".txt");
-		TextFile->SetNoDelete();
 
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
@@ -217,12 +215,10 @@ void						MednafenEmu::CloseGame			()
 		MDFNI_CloseGame();
 		
 		delete Inputs;
-		delete TextFile;
 		delete Scaler;
 		
 		GameInfo = 0;
 		Inputs = 0;
-		TextFile = 0;
 		Scaler = 0;
 		
 		IsLoaded = false;
@@ -443,8 +439,22 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu(false).Do(); SuspendDraw = false;}
 		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu(true).Do(); SuspendDraw = false;}
 		if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
-		if(0 == strcmp(command.c_str(), "DoTextFile"))			Summerface("Text", TextFile).Do();
 		if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
+
+		if(0 == strcmp(command.c_str(), "DoTextFile"))
+		{
+			std::vector<std::string> nbm;
+			FileSelect FileChooser("Select Text File", nbm, "");
+			std::string result = FileChooser.GetFile();
+
+			if(!result.empty())
+			{
+				std::string filename = Enumerators::GetEnumerator(result).ObtainFile(result);
+				TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), filename);
+				tv->SetHeader(filename);
+				Summerface("TextView", tv).Do();
+			}
+		}
 
 		if(0 == strcmp(command.c_str(), "DoToggleRecordVideo"))
 		{
@@ -542,7 +552,6 @@ bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
 InputHandler*				MednafenEmu::Inputs = 0;
-TextViewer*					MednafenEmu::TextFile = 0;
 Filter*						MednafenEmu::Scaler = 0;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;

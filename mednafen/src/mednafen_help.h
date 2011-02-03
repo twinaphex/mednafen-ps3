@@ -63,7 +63,6 @@ class	MednafenEmu
 
 		static MDFNGI*					GameInfo;
 		static InputHandler*			Inputs;		
-		static TextViewer*				TextFile;
 		static Filter*					Scaler;
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
