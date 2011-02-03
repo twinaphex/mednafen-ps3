@@ -17,26 +17,12 @@ namespace
 
 	Small = 0;
 	Large = 0;
-	
-	ThreadDie = false;
-	sys_ppu_thread_create(&ThreadID, ProcessInputThread, 0, 0, 65536, 0, 0);
-
 }
 
 					L1ghtInput::~L1ghtInput					()
 {
-	ThreadDie = true;
-	
-	//Wait for at most one second for thread to die
-	for(int i = 0; i != 10 && ThreadDie; i ++)
-	{
-		Utility::Sleep(100);
-	}
-
 	ioPadEnd();
 }
-
-
 
 uint32_t			L1ghtInput::PadCount					()
 {
@@ -48,6 +34,26 @@ void				L1ghtInput::Reset						()
 	memset(HeldState, 0xFF, sizeof(HeldState));
 	memset(SingleState, 0xFF, sizeof(SingleState));
 }
+
+void				L1ghtInput::Refresh						()
+{
+	ioPadGetInfo(&Info);
+	
+	for(int p = 0; p != PadCount(); p ++)
+	{
+		ioPadGetData(p, &CurrentState[p]);
+	
+		for(int i = 0; i != BUTTONS; i ++)
+		{
+			RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
+		}
+	}
+
+	PadActParam param = {Small & 1, Large & 0xFF};
+	ioPadSetActDirect(0, &param);
+}
+
+
 
 
 int32_t				L1ghtInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
@@ -121,47 +127,10 @@ void				L1ghtInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis
 	}
 }
 
-void				L1ghtInput::ProcessInputThread			(uint64_t aBcD)
-{
-	while(!es_input)
-	{
-		Utility::Sleep(1);
-	}
-
-	L1ghtInput* input = (L1ghtInput*)es_input;
-
-	while(!input->ThreadDie)
-	{
-		Utility::Sleep(15);
-		input->Refresh();
-
-		PadActParam param = {input->Small & 1, input->Large & 0xFF};
-		ioPadSetActDirect(0, &param);
-	}
-
-	input->ThreadDie = false;
-	sys_ppu_thread_exit(0);	
-}
-
-void				L1ghtInput::Refresh						()
-{
-	ioPadGetInfo(&Info);
-	
-	for(int p = 0; p != PadCount(); p ++)
-	{
-		ioPadGetData(p, &CurrentState[p]);
-	
-		for(int i = 0; i != BUTTONS; i ++)
-		{
-			RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
-		}
-	}
-}
-
-
 void				L1ghtInput::RumbleOn					(uint32_t aSmall, uint32_t aLarge)
 {
 	Small = aSmall;
 	Large = aLarge;
+	Refresh();
 }
 

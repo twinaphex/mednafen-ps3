@@ -29,6 +29,8 @@ void						Menu::Do					()
 	{
 		if(ticks ++ == InputDelay)
 		{
+			es_input->Refresh();
+
 			ticks = 0;
 		
 			if(Hook && Hook->Input())

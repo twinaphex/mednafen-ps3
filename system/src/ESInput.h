@@ -8,6 +8,7 @@ class				ESInput
 	
 		virtual uint32_t					PadCount				() = 0;
 		virtual void						Reset					() = 0;
+		virtual void						Refresh					() = 0;
 		
 		virtual int32_t						GetAxis					(uint32_t aPad, uint32_t aAxis) = 0;
 
@@ -17,6 +18,8 @@ class				ESInput
 		virtual uint32_t					GetAnyButton			(uint32_t aPad) = 0;
 		virtual std::string					GetButtonName			(uint32_t aButton) = 0;
 		virtual std::string					GetButtonImage			(uint32_t aButton) = 0;
+
+		virtual void						RumbleOn				(uint32_t aSmall, uint32_t aLarge){}
 		
 	public:	//Helpers
 		static void							RefreshButton			(uint32_t aState, uint32_t& aHeld, uint32_t& aSingle)

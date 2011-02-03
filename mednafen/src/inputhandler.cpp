@@ -42,6 +42,8 @@ namespace
 
 void							InputHandler::Process					()
 {
+	es_input->Refresh();
+
 	//TODO: Support more input types, more than two controllers
 	for(int p = 0; p != GameInfo->InputInfo->InputPorts && p != 2; p ++)
 	{

@@ -18,6 +18,7 @@ class				SDLInput : public ESInput
 					
 		uint32_t							PadCount				();
 		void								Reset					();
+		void								Refresh					();
 		
 		int32_t								GetAxis					(uint32_t aPad, uint32_t aAxis);
 
@@ -36,7 +37,6 @@ class				SDLInput : public ESInput
 	
 		void								Assert					(uint32_t aPad, uint32_t aButton);
 		bool								IsJoystickButton		(uint32_t aButton);
-		void								Refresh					();
 		
 		std::vector<SDL_Joystick*>			Joysticks;
 
