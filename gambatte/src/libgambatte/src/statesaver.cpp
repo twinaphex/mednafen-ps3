@@ -384,7 +384,8 @@ void StateSaver::saveState(const SaveState &state, std::ostream& file) {
 	
 	{ static const char ver[] = { 0, 0 }; file.write(ver, sizeof(ver)); }
 	
-	writeSnapShot(file, state.ppu.drawBuffer.get(), state.ppu.drawBuffer.getSz() / 144);
+//ROBO: No screen shot
+//	writeSnapShot(file, state.ppu.drawBuffer.get(), state.ppu.drawBuffer.getSz() / 144);
 	
 	for (SaverList::const_iterator it = list.begin(); it != list.end(); ++it) {
 		file.write(it->label, it->labelsize);
@@ -401,7 +402,8 @@ bool StateSaver::loadState(SaveState &state, std::istream& file) {
 		return false;
 	
 	file.ignore();
-	file.ignore(get24(file));
+//ROBO: No screen shot
+//	file.ignore(get24(file));
 	
 	Array<char> labelbuf(list.maxLabelsize());
 	const Saver labelbufSaver = { label: labelbuf, save: 0, load: 0, labelsize: list.maxLabelsize() };
