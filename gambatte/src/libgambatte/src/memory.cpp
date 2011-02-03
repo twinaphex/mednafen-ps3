@@ -1615,7 +1615,7 @@ bool Memory::loadROM(std::istringstream& stream, const bool forceDmg) {
 		rom.read(reinterpret_cast<char*>(header), sizeof(header));
 
 //ROBO: Rumble
-		isRumbleCart = true;
+		isRumbleCart = false;
 
 		cgb = header[0x0143] >> 7 & 1;
 
