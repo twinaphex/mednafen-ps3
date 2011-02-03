@@ -393,11 +393,11 @@ void						MednafenEmu::DoCommands			()
 		"Save State",			"DoSaveState",		"DoSaveStateMenu",
 		"Load State",			"DoLoadState",		"DoLoadStateMenu",
 		"Take Screen Shot",		"DoScreenShot",		"DoScreenShot",
+		"Change Disk Side",		"DoDiskSide", 		"DoDiskSide",
 		"Settings",				"DoSettings",		"DoSettings",
 		"Configure Controls",	"DoInputConfig",	"DoInputConfig",
 		"Record Video",			"DoRecordVideo",	"DoToggleRecordVideo",
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
-		"Exit Mednafen",		"DoExit",			"DoExit",
 	};
 
 	SummerfaceGrid* grid = new SummerfaceGrid(Area(25, 25, 50, 50), 4, 3, true, false);
@@ -432,6 +432,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 
 	if(IsLoaded)
 	{
+		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
 		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings::Do(GameInfo->shortname);
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
