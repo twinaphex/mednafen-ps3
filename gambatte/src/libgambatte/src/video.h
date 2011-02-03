@@ -36,7 +36,8 @@ class SaveState;
 #include "array.h"
 #include "int.h"
 #include "colorconversion.h"
-#include "osd_element.h"
+//ROBO: No OSD
+//#include "osd_element.h"
 
 #include "video/video_event_comparer.h"
 #include "video/ly_counter.h"
@@ -108,7 +109,8 @@ class LCD {
 	Gambatte::PixelBuffer pb;
 	Array<Gambatte::uint_least32_t> tmpbuf;
 	Rgb32ToUyvy rgb32ToUyvy;
-	std::auto_ptr<OsdElement> osdElement;
+//ROBO: No OSD
+//	std::auto_ptr<OsdElement> osdElement;
 
 //ROBO: No filters
 //	std::vector<Filter*> filters;
@@ -176,9 +178,10 @@ public:
 	unsigned videoHeight() const;
 	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned long rgb32);
 
-	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
-		this->osdElement = osdElement;
-	}
+//ROBO: No OSD
+//	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
+//		this->osdElement = osdElement;
+//	}
 
 	void wdTileMapSelectChange(bool newValue, unsigned long cycleCounter);
 	void bgTileMapSelectChange(bool newValue, unsigned long cycleCounter);

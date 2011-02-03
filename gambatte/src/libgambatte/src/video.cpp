@@ -348,7 +348,8 @@ unsigned int LCD::videoHeight() const {
 	return 144;
 }
 
-template<class Blend>
+//ROBO: No OSD
+/*template<class Blend>
 static void blitOsdElement(Gambatte::uint_least32_t *d, const Gambatte::uint_least32_t *s, const unsigned width, unsigned h, const unsigned dpitch, Blend blend) {
 	while (h--) {
 		for (unsigned w = width; w--;) {
@@ -361,7 +362,7 @@ static void blitOsdElement(Gambatte::uint_least32_t *d, const Gambatte::uint_lea
 
 		d += dpitch - width;
 	}
-}
+}*/
 
 template<const unsigned weight>
 struct Blend {
@@ -376,7 +377,8 @@ void LCD::updateScreen(const unsigned long cycleCounter) {
 	update(cycleCounter);
 
 	if (pb.pixels) {
-		if (dbuffer && osdElement.get()) {
+//ROBO: No OSD
+/*		if (dbuffer && osdElement.get()) {
 			const Gambatte::uint_least32_t *s = osdElement->update();
 
 			if (s) {
@@ -388,7 +390,7 @@ void LCD::updateScreen(const unsigned long cycleCounter) {
 				}
 			} else
 				osdElement.reset();
-		}
+		}*/
 
 //ROBO: No filters
 //		if (filter) {

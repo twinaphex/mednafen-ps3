@@ -151,9 +151,10 @@ public:
 	void saveSavedata();
 	const std::string saveBasePath() const;
 	
-	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
-		display.setOsdElement(osdElement);
-	}
+//ROBO: No OSD
+//	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
+//		display.setOsdElement(osdElement);
+//	}
 
 	void speedChange(unsigned long cycleCounter);
 	bool isCgb() const { return cgb; }

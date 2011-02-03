@@ -94,9 +94,10 @@ public:
 		return memory.saveBasePath();
 	}
 	
-	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
-		memory.setOsdElement(osdElement);
-	}
+//ROBO: No OSD
+//	void setOsdElement(std::auto_ptr<OsdElement> osdElement) {
+//		memory.setOsdElement(osdElement);
+//	}
 
 //ROBO: Load from memory	
 //	bool load(const char* romfile, bool forceDmg);

@@ -21,7 +21,8 @@
 #include "savestate.h"
 #include "statesaver.h"
 #include "initstate.h"
-#include "state_osd_elements.h"
+//ROBO: No OSD
+//#include "state_osd_elements.h"
 #include <string>
 #include <sstream>
 
@@ -115,7 +116,8 @@ bool GB::load(std::istringstream& romfile, const bool forceDmg) {
 		z80->loadSavedata();
 		
 		stateNo = 1;
-		z80->setOsdElement(std::auto_ptr<OsdElement>());
+//ROBO: No OSD
+//		z80->setOsdElement(std::auto_ptr<OsdElement>());
 	}
 	
 	return failed;
@@ -139,9 +141,10 @@ void GB::loadState(std::istream& filepath, const bool osdMessage) {
 	
 	if (StateSaver::loadState(state, filepath)) {
 		z80->loadState(state);
-		
-		if (osdMessage)
-			z80->setOsdElement(newStateLoadedOsdElement(stateNo));
+	
+//ROBO: No OSD	
+//		if (osdMessage)
+//			z80->setOsdElement(newStateLoadedOsdElement(stateNo));
 	}
 }
 
@@ -173,6 +176,7 @@ void GB::loadState(std::istream& filepath) {
 void GB::selectState(int n) {
 	n -= (n / 10) * 10;
 	stateNo = n < 0 ? n + 10 : n;
-	z80->setOsdElement(newSaveStateOsdElement(statePath(z80->saveBasePath(), stateNo).c_str(), stateNo));
+//ROBO: No OSD
+//	z80->setOsdElement(newSaveStateOsdElement(statePath(z80->saveBasePath(), stateNo).c_str(), stateNo));
 }
 }
