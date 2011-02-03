@@ -27,7 +27,7 @@ class				L1ghtInput : public ESInput
 		std::string					GetButtonName			(uint32_t aButton);
 		std::string					GetButtonImage			(uint32_t aButton);
 
-		void						RumbleOn				(bool aRumble);
+		void						RumbleOn				(uint32_t aSmall, uint32_t aLarge);
 	
 	protected:
 		static const uint32_t		MAXPADS = 4;
@@ -48,7 +48,8 @@ class				L1ghtInput : public ESInput
 		uint32_t					HeldState[MAXPADS][BUTTONS];
 		uint32_t					SingleState[MAXPADS][BUTTONS];	
 
-		bool						Rumble;
+		uint32_t					Small;
+		uint32_t					Large;
 };
 
 #endif

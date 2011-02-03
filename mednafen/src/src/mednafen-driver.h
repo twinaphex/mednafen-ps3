@@ -15,6 +15,11 @@ void MDFN_printf(const char *format, ...) throw() MDFN_FORMATSTR(printf, 1, 2);
 
 #define MDFNI_printf MDFN_printf
 
+//ROBO: Rumble Rumble
+/* Enable Rumble */
+void MDFND_Rumble(int s, int l);
+
+
 /* Displays an error.  Can block or not. */
 void MDFND_PrintError(const char *s);
 void MDFND_Message(const char *s);

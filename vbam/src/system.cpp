@@ -210,12 +210,7 @@ u32					systemGetClock							()										{return MDFND_GetTime() - start_time;}
 bool				systemReadJoypads						()										{return true;}
 u32					systemReadJoypad						(int)									{return Ports[0][0] | (Ports[0][1] << 8);}
 bool rtcWarioRumbleEnabled;
-#ifdef L1GHT
-#include <../../system/ps3_system.h>
-void				systemCartridgeRumble					(bool aRumble)							{((L1ghtInput*)es_input)->RumbleOn(aRumble);}
-#else
-void				systemCartridgeRumble					(bool)									{}
-#endif
+void				systemCartridgeRumble					(bool aRumble)							{MDFND_Rumble(aRumble ? 1 : 0, aRumble ? 128 : 0);}
 void				systemUpdateMotionSensor				()										{}
 int					systemGetSensorX						()										{return 0;}
 int					systemGetSensorY						()										{return 0;}

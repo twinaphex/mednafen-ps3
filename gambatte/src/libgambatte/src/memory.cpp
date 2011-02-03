@@ -18,6 +18,7 @@
  ***************************************************************************/
 //ROBO: Mednafen MDFN_MakeFName
 #include <src/mednafen.h>
+#include <src/mednafen-driver.h>
 #include <src/general.h>
  
 #include "memory.h"
@@ -31,6 +32,9 @@
 
 // static const uint32_t timaClock[4]={ 1024, 16, 64, 256 };
 static const unsigned char timaClock[4] = { 10, 4, 6, 8 };
+//ROBO: Rumble
+static bool isRumbleCart = false;
+
 
 Memory::Memory(const Interrupter &interrupter_in) :
 memchunk(NULL),
@@ -1472,6 +1476,12 @@ void Memory::mbc_write(const unsigned P, const unsigned data) {
 			rambank = data & 0x03;
 			break;
 		case mbc5:
+//ROBO: Rumble
+			if(isRumbleCart)
+			{
+				MDFND_Rumble(data & 0x8 ? 1 : 0, data & 0x8 ? 128 : 0);
+			}
+
 			rambank = data & 0x0F;
 			break;
 		default:
@@ -1604,6 +1614,9 @@ bool Memory::loadROM(std::istringstream& stream, const bool forceDmg) {
 		unsigned char header[0x150];
 		rom.read(reinterpret_cast<char*>(header), sizeof(header));
 
+//ROBO: Rumble
+		isRumbleCart = true;
+
 		cgb = header[0x0143] >> 7 & 1;
 
 		if (cgb & forceDmg) {
@@ -1686,12 +1699,18 @@ bool Memory::loadROM(std::istringstream& stream, const bool forceDmg) {
 			battery = 1;
 			break;
 		case 0x1C: std::printf("MBC5+RUMLE ROM not supported.\n");
+//ROBO: Rumble
+			isRumbleCart = true;
 			romtype = mbc5;
 			break;
 		case 0x1D: std::printf("MBC5+RUMLE+RAM ROM not suported.\n");
+//ROBO: Rumble
+			isRumbleCart = true;
 			romtype = mbc5;
 			break;
 		case 0x1E: std::printf("MBC5+RUMLE+RAM+BATTERY ROM not supported.\n");
+//ROBO: Rumble
+			isRumbleCart = true;
 			romtype = mbc5;
 			battery = 1;
 			break;
