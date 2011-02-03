@@ -43,9 +43,15 @@ void				L1ghtInput::Refresh						()
 	{
 		ioPadGetData(p, &CurrentState[p]);
 	
-		for(int i = 0; i != BUTTONS; i ++)
+		for(int i = 0; i != BUTTONS - 8; i ++)
 		{
 			RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
+		}
+
+		for(int i = 0; i != 4; i ++)
+		{
+			RefreshButton(GetAxis(0, i) < -0x40, HeldState[p][16 + i * 2 + 0], SingleState[p][16 + i * 2 + 0]);
+			RefreshButton(GetAxis(0, i) >  0x40, HeldState[p][16 + i * 2 + 1], SingleState[p][16 + i * 2 + 1]);
 		}
 	}
 
@@ -74,11 +80,6 @@ int32_t				L1ghtInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 bool				L1ghtInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
-
-	if(aButton == ES_BUTTON_UP && GetAxis(aPad, PS3_AXIS_LEFT_Y) < -0x40)	return true;
-	if(aButton == ES_BUTTON_DOWN && GetAxis(aPad, PS3_AXIS_LEFT_Y) > 0x40)	return true;	
-	if(aButton == ES_BUTTON_LEFT && GetAxis(aPad, PS3_AXIS_LEFT_X) < -0x40)return true;
-	if(aButton == ES_BUTTON_RIGHT && GetAxis(aPad, PS3_AXIS_LEFT_X) > 0x40)return true;
 
 	return HeldState[aPad][aButton] == 1;
 }
