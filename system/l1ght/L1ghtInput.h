@@ -32,7 +32,7 @@ class				L1ghtInput : public ESInput
 	
 	protected:
 		static const uint32_t		MAXPADS = 4;
-		static const uint32_t		BUTTONS = 16;
+		static const uint32_t		BUTTONS = 24;
 		static const uint32_t		AXISCOUNT = 4;
 
 		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
