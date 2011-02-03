@@ -17,6 +17,7 @@ class				L1ghtInput : public ESInput
 					
 		uint32_t					PadCount				();
 		void						Reset					();
+		void						Refresh					();
 		
 		int32_t						GetAxis					(uint32_t aPad, uint32_t aAxis);
 
@@ -36,12 +37,6 @@ class				L1ghtInput : public ESInput
 
 		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
 
-		static void					ProcessInputThread		(uint64_t aBcD);
-		void						Refresh					();
-		
-		sys_ppu_thread_t			ThreadID;
-		volatile bool				ThreadDie;
-		
 		PadInfo						Info;
 		PadData						CurrentState[MAXPADS];
 
