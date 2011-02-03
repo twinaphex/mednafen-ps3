@@ -213,6 +213,7 @@ void						MednafenEmu::CloseGame			()
 		}
 	
 		MDFNI_CloseGame();
+		MDFND_Rumble(0, 0);
 		
 		delete Inputs;
 		delete Scaler;
@@ -380,6 +381,8 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 void						MednafenEmu::DoCommands			()
 {
+	MDFND_Rumble(0, 0);
+
 	const char*	commands[] =
 	{
 		//Display name,			Image name,			Command name

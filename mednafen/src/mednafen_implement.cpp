@@ -201,3 +201,10 @@ int			MDFND_UnlockMutex		(MDFN_Mutex *mutex)
 	return 0;
 }
 
+void		MDFND_Rumble			(int s, int l)
+{
+#ifdef L1GHT
+	((L1ghtInput*)es_input)->RumbleOn(s, l);
+#endif
+}
+

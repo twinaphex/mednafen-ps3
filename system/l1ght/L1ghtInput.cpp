@@ -15,7 +15,8 @@ namespace
 	
 	Reset();
 
-	Rumble = false;
+	Small = 0;
+	Large = 0;
 	
 	ThreadDie = false;
 	sys_ppu_thread_create(&ThreadID, ProcessInputThread, 0, 0, 65536, 0, 0);
@@ -134,7 +135,7 @@ void				L1ghtInput::ProcessInputThread			(uint64_t aBcD)
 		Utility::Sleep(15);
 		input->Refresh();
 
-		PadActParam param = {input->Rumble, input->Rumble ? 255 : 0};
+		PadActParam param = {input->Small & 1, input->Large & 0xFF};
 		ioPadSetActDirect(0, &param);
 	}
 
@@ -158,8 +159,9 @@ void				L1ghtInput::Refresh						()
 }
 
 
-void				L1ghtInput::RumbleOn					(bool aRumble)
+void				L1ghtInput::RumbleOn					(uint32_t aSmall, uint32_t aLarge)
 {
-	Rumble = aRumble;
+	Small = aSmall;
+	Large = aLarge;
 }
 
