@@ -1,3 +1,6 @@
+#ifndef PS3_SYSTEM_H____
+#define PS3_SYSTEM_H____
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -55,3 +58,4 @@ void				Abort					(const char* aMessage);
 void				ESSUB_Error				(const char* aMessage);
 std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage);
 
+#endif
