@@ -83,7 +83,7 @@ class								ESVideo
 			float fheight = (float)GetScreenHeight();
 
 
-			if(IsWideScreen() || !aAspectOverride)
+			if(IsWideScreen() && !aAspectOverride)
 			{
 				xLeft += fwidth * .125f;
 				xRight -= fwidth * .125f;
