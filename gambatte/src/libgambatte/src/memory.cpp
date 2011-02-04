@@ -1477,10 +1477,12 @@ void Memory::mbc_write(const unsigned P, const unsigned data) {
 			break;
 		case mbc5:
 //ROBO: Rumble
+#ifndef MLDLL
 			if(isRumbleCart)
 			{
 				MDFND_Rumble(data & 0x8 ? 1 : 0, data & 0x8 ? 128 : 0);
 			}
+#endif
 
 			rambank = data & 0x0F;
 			break;
