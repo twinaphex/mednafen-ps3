@@ -124,7 +124,8 @@ void				ReloadEmulator			()
 		}
 		else
 		{
-			throw ESException("Loader: File is larger than 64MB, can't open [File: %s, Size: %d]", enumpath.c_str(), size);
+			ESSUB_Error("File is larger than 64MB. Not supported, if this is a CD game you must load it through a cue file.");
+			ReloadEmulator();
 		}
 	}
 }

@@ -29,42 +29,44 @@ bool				L1ghtSecret::Input						()
 			FileSelect* selecter = new FileSelect("EBOOT.BIN", bms, "", 0);
 			std::string enumpath = selecter->GetFile();
 
-			if(enumpath.find("/EBOOT.BIN"))
+			std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
+
+			FILE* ongl = fopen(filename.c_str(), "rb");
+			if(!ongl)
 			{
-				std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
-
-				FILE* ongl = fopen(filename.c_str(), "rb");
-				if(!ongl)
-				{
-					ESSUB_Error("Couldn't open new EBOOT.BIN");
-					exit(0);
-				}
-
-				fseek(ongl, 0, SEEK_END);
-				uint32_t size = ftell(ongl);
-				fseek(ongl, 0, SEEK_SET);
-
-				uint8_t* data = (uint8_t*)malloc(size);;
-				fread(data, size, 1, ongl);
-				fclose(ongl);
-
-				FILE* ingl = fopen("/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN", "wb");
-				if(!ingl)
-				{
-					ESSUB_Error("Couldn't old open EBOOT.BIN");
-					exit(0);
-				}
-
-				fwrite(data, size, 1, ingl);
-				fclose(ingl);
-
-				free(data);
-
-				ESSUB_Error("EBOOT.BIN updated, Leaving!");
-				exit(0);
+				ESSUB_Error("Couldn't open new EBOOT.BIN");
+				return false;
 			}
 
-			ESSUB_Error("Not updating EBOOT.BIN");
+			fseek(ongl, 0, SEEK_END);
+			uint32_t size = ftell(ongl);
+			fseek(ongl, 0, SEEK_SET);
+
+			uint8_t* data = (uint8_t*)malloc(size);;
+			fread(data, size, 1, ongl);
+			fclose(ongl);
+
+			if(data[0] != 0x53 || data[1] != 0x43 || data[2] != 0x45)
+			{
+				free(data);
+				ESSUB_Error("File not a valid self file?");
+				return false;
+			}
+
+			FILE* ingl = fopen("/dev_hdd0/game/MDFN90002/USRDIR/EBOOT.BIN", "wb");
+			if(!ingl)
+			{
+				free(data);
+				ESSUB_Error("Couldn't open old EBOOT.BIN");
+				return true;
+			}
+
+			fwrite(data, size, 1, ingl);
+			fclose(ingl);
+
+			free(data);
+
+			ESSUB_Error("EBOOT.BIN updated!");
 		}
 
 		return true;

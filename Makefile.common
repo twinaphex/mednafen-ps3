@@ -23,9 +23,9 @@
 
 %.a:
 	@echo "[AR]  $(notdir $@)"
-	@$(AR) -rcs $@ $^
+	@$(AR) -rcs ../$(TARGET)-$(PLATFORM).a $^
 ifneq ($(strip $(SYMPREFIX)),)
-	python $(TOP)/manhandle.py $@ $(SYMPREFIX) $(OBJCOPY)
+	python $(TOP)/manhandle.py ../$(TARGET)-$(PLATFORM).a $(SYMPREFIX) $(OBJCOPY)
 endif
 
 
@@ -37,7 +37,7 @@ endif
 
 ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGET)-$(PLATFORM)
 export VPATH	:=	../
 export BUILDDIR	:=	$(CURDIR)/$(BUILD)-$(PLATFORM)
 export DEPSDIR	:=	$(BUILDDIR)
