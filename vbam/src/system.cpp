@@ -210,7 +210,11 @@ u32					systemGetClock							()										{return MDFND_GetTime() - start_time;}
 bool				systemReadJoypads						()										{return true;}
 u32					systemReadJoypad						(int)									{return Ports[0][0] | (Ports[0][1] << 8);}
 bool rtcWarioRumbleEnabled;
+#ifndef MLDLL
 void				systemCartridgeRumble					(bool aRumble)							{MDFND_Rumble(aRumble ? 1 : 0, aRumble ? 128 : 0);}
+#else
+void				systemCartridgeRumble					(bool aRumble)							{}
+#endif
 void				systemUpdateMotionSensor				()										{}
 int					systemGetSensorX						()										{return 0;}
 int					systemGetSensorY						()										{return 0;}
