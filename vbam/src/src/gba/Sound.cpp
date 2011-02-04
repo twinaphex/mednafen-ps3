@@ -348,7 +348,14 @@ static void end_frame( blip_time_t time )
 
 void flush_samples(Multi_Buffer * buffer)
 {
-	// We want to write the data frame by frame to support legacy audio drivers
+//ROBO: Ummm...
+	uint32_t samps_avail = buffer->samples_avail();
+	uint16_t samps[samps_avail];
+	buffer->read_samples((blip_sample_t*)samps, samps_avail);
+	soundDriver->write(samps, samps_avail * 2);
+	systemOnWriteDataToSoundBuffer(samps, samps_avail * 2);
+
+/*	// We want to write the data frame by frame to support legacy audio drivers
 	// that don't use the length parameter of the write method.
 	// TODO: Update the Win32 audio drivers (DS, OAL, XA2), and flush all the
 	// samples at once to help reducing the audio delay on all platforms.
@@ -369,7 +376,7 @@ void flush_samples(Multi_Buffer * buffer)
 
 		soundDriver->write(soundFinalWave, soundBufferLen);
 		systemOnWriteDataToSoundBuffer(soundFinalWave, soundBufferLen);
-	}
+	}*/
 }
 
 static void apply_filtering()

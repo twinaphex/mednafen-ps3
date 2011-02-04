@@ -103,7 +103,7 @@ void						MednafenEmu::Init				()
 			Settings.push_back(ESSettings[i]);
 		}
 
-		//Get the external emulators, nestopia and gambatte, vbam for PS3 only
+		//Get the external emulators
 		std::vector<MDFNGI*> externalSystems;
 		externalSystems.push_back(nestGetEmulator());
 		externalSystems.push_back(gmbtGetEmulator());
