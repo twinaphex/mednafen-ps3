@@ -6,168 +6,58 @@
 #include "gambatte.h"
 #include "resample/resamplerinfo.h"
 
-#include <src/snes/src/lib/libco/libco.h>
-
 using namespace Gambatte;
 
-namespace
+#include "mdfngmbt.h"
+
+namespace mdfngmbt
 {
 	EmulateSpecStruct*			ESpec;
 	bool						GameLoaded = false;
 	bool						NeedToClearFrameBuffer = false;
-
 	cothread_t					MainThread;
-
-	class							GameBoy;
-	GameBoy							*SideA, *SideB;
-
-	class gbblitter : public VideoBlitter
-	{
-		public:
-								gbblitter				()			{buffer.pixels = 0;}
-								~gbblitter				()			{delete[] (uint32_t*)buffer.pixels;}
-			const PixelBuffer	inBuffer				()			{return buffer;}
-			void				setSide					(uint32_t a){side = a;}
-
-
-			void				setBufferDimensions		(unsigned aWidth, unsigned aHeight)
-			{
-				delete[] (uint32_t*)buffer.pixels;
-				buffer.pixels = new uint32_t[aWidth * aHeight];
-
-				width = aWidth;
-				height = aHeight;
-				buffer.pitch = aWidth;
-			}
-
-
-			void				blit					()
-			{
-				uint32_t* sourceptr = (uint32_t*)buffer.pixels;
-
-				for(int i = 0; i != height; i ++)
-				{
-					for(int j = 0; j != width ; j ++)
-					{
-						if(!SideB)
-						{
-							ESpec->surface->pixels[i * ESpec->surface->pitch32 + j] = sourceptr[i * width + j];
-						}
-						else
-						{
-							ESpec->surface->pixels[(i + (144 / 2)) * ESpec->surface->pitch32 + j + (side ? 160 : 0)] = sourceptr[i * width + j];
-						}
-					}
-				}
-			}
-
-		protected:
-			uint32_t			width, height;
-			uint32_t			side;
-			PixelBuffer			buffer;
-	};
-
-
-	class gbinput : public InputStateGetter
-	{
-		public:
-			const InputState& 		operator()			()	{return inputs;};
-
-			InputState				inputs;
-	};
-
-	class							GameBoy
-	{
-		public:
-									GameBoy				(const void* aROM, uint32_t aSize, uint32_t aSide)
-			{
-				Side = aSide;
-
-				Gambatte = new GB();
-				Resample = ResamplerInfo::get(0).create(2097152, 48000, 35112);
-
-				SampleOverflow = 0;
-				memset(Samples, 0, sizeof(Samples));
-				memset(Resamples, 0, sizeof(Resamples));
-
-				std::istringstream file(std::string((const char*)aROM, (size_t)aSize), std::ios_base::in | std::ios_base::binary);	
-				if(Gambatte->load(file, MDFN_GetSettingB("gmbt.forcedmg")))
-				{
-					delete Resample;
-					delete Gambatte;
-
-					MDFND_PrintError("gambatte: Failed to load ROM");
-					throw 0;
-				}
-
-				Blitter.setSide(aSide);
-
-				Gambatte->setVideoBlitter(&Blitter);
-				Gambatte->setInputStateGetter(&Input);
-
-				Thread = co_create(65536 * sizeof(void*), aSide ? ThreadB : ThreadA);
-			}
-
-									~GameBoy			()
-			{
-				delete Resample;
-				delete Gambatte;
-
-				co_delete(Thread);
-			}
-
-			static void				ThreadA				();
-			static void				ThreadB				();
-
-			GB*						Gambatte;
-			Resampler*				Resample;
-			gbblitter				Blitter;
-			gbinput					Input;
-			uint32_t				Side;
-
-			cothread_t				Thread;
-
-			uint32_t				Samples[48000];
-			uint32_t				Resamples[48000];
-			int32_t					SampleOverflow;
-	};
-
-	uint8_t*						InputPort;
-	uint8_t*						ROMData;
-	uint32_t						ROMSize;
+	GameBoy						*SideA, *SideB;
+	uint8_t*					InputPort;
+	uint8_t*					ROMData;
+	uint32_t					ROMSize;
 
 	void							GameBoy::ThreadA	()
 	{
 		while(1)
 		{
-			if(ESpec->SoundFormatChanged)
+			if(!SideA->Done)
 			{
-				SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
-			}
+				if(ESpec->SoundFormatChanged)
+				{
+					SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
+				}
 
-			if(InputPort)
-			{
-				SideA->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
-				SideA->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-				SideA->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
-				SideA->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
-				SideA->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-				SideA->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-				SideA->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-				SideA->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-			}
+				if(InputPort)
+				{
+					SideA->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
+					SideA->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
+					SideA->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
+					SideA->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
+					SideA->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
+					SideA->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
+					SideA->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
+					SideA->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
+				}
 
-			uint32_t samps = SideA->Gambatte->runFor((Gambatte::uint_least32_t*)SideA->Samples, 35112 - SideA->SampleOverflow);
-			SideA->SampleOverflow += samps;
-			SideA->SampleOverflow -= 35112;
+				uint32_t samps = SideA->Gambatte->runFor((Gambatte::uint_least32_t*)SideA->Samples, 35112 - SideA->SampleOverflow);
+				SideA->SampleOverflow += samps;
+				SideA->SampleOverflow -= 35112;
 
-			//Grab sound
-			uint32_t count = SideA->Resample->resample((short*)SideA->Resamples, (short*)SideA->Samples, samps);
+				//Grab sound
+				uint32_t count = SideA->Resample->resample((short*)SideA->Resamples, (short*)SideA->Samples, samps);
 
-			if(ESpec->SoundBuf && (ESpec->SoundBufMaxSize >= count))
-			{
-				ESpec->SoundBufSize = count;
-				memcpy(ESpec->SoundBuf, SideA->Resamples, ESpec->SoundBufSize * 4);
+				if(ESpec->SoundBuf && (ESpec->SoundBufMaxSize >= count))
+				{
+					ESpec->SoundBufSize = count;
+					memcpy(ESpec->SoundBuf, SideA->Resamples, ESpec->SoundBufSize * 4);
+				}
+
+				SideA->Done = true;
 			}
 
 			co_switch(MainThread);
@@ -178,31 +68,36 @@ namespace
 	{
 		while(1)
 		{
-			if(ESpec->SoundFormatChanged)
+			if(!SideB->Done)
 			{
-				SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+				if(ESpec->SoundFormatChanged)
+				{
+					SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+				}
+
+				if(InputPort)
+				{
+					SideB->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
+					SideB->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
+					SideB->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
+					SideB->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
+					SideB->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
+					SideB->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
+					SideB->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
+					SideB->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
+				}
+
+				uint32_t samps = SideB->Gambatte->runFor((Gambatte::uint_least32_t*)SideB->Samples, 35112 - SideB->SampleOverflow);
+				SideB->SampleOverflow += samps;
+				SideB->SampleOverflow -= 35112;
 			}
 
-			if(InputPort)
-			{
-				SideB->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
-				SideB->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-				SideB->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
-				SideB->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
-				SideB->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-				SideB->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-				SideB->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-				SideB->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-			}
-
-			uint32_t samps = SideB->Gambatte->runFor((Gambatte::uint_least32_t*)SideB->Samples, 35112 - SideB->SampleOverflow);
-			SideB->SampleOverflow += samps;
-			SideB->SampleOverflow -= 35112;
-
+			SideB->Done = true;
 			co_switch(MainThread);
 		}
 	}
 }
+using namespace	mdfngmbt;
 
 int				GmbtLoad				(const char *name, MDFNFILE *fp);
 bool			GmbtTestMagic			(const char *name, MDFNFILE *fp);
@@ -323,12 +218,16 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//Run frame
+	SideA->Done = false;
+	if(SideB) SideB->Done = false;
+
 	co_switch(SideA->Thread);
 
-	//Run frame of second instance
+	while(!SideA->Done) co_switch(SideA->Thread);
+
 	if(SideB)
 	{
-		co_switch(SideB->Thread);
+		while(!SideB->Done) co_switch(SideB->Thread);
 	}
 
 	//Set frame size
@@ -354,16 +253,20 @@ void			GmbtDoSimpleCommand		(int cmd)
 	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
 		SideA->Gambatte->reset();
+		SideA->CycleCounter = 0;
 
 		if(SideB)
 		{
 			SideB->Gambatte->reset();
+			SideB->CycleCounter = 0;
 		}
 	}
 	else if(!SideB && cmd == MDFN_MSC_SELECT_DISK)
 	{
 		SideB = new GameBoy(ROMData, ROMSize, 1);
 		NeedToClearFrameBuffer = true;
+
+		GmbtDoSimpleCommand(MDFN_MSC_RESET);
 	}
 }
 

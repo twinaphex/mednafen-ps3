@@ -43,6 +43,9 @@ public:
 	GB();
 	~GB();
 
+//ROBO: Link support
+	void setSide(unsigned gside);
+
 //ROBO: Load from memory
 //	bool load(const char* romfile, bool forceDmg = false);	
 	bool load(std::istringstream& romfile, bool forceDmg = false);
