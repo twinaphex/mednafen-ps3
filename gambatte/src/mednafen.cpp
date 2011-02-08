@@ -14,8 +14,12 @@ namespace
 {
 	EmulateSpecStruct*			ESpec;
 	bool						GameLoaded = false;
+	bool						NeedToClearFrameBuffer = false;
 
 	cothread_t					MainThread;
+
+	class							GameBoy;
+	GameBoy							*SideA, *SideB;
 
 	class gbblitter : public VideoBlitter
 	{
@@ -23,6 +27,7 @@ namespace
 								gbblitter				()			{buffer.pixels = 0;}
 								~gbblitter				()			{delete[] (uint32_t*)buffer.pixels;}
 			const PixelBuffer	inBuffer				()			{return buffer;}
+			void				setSide					(uint32_t a){side = a;}
 
 
 			void				setBufferDimensions		(unsigned aWidth, unsigned aHeight)
@@ -44,13 +49,21 @@ namespace
 				{
 					for(int j = 0; j != width ; j ++)
 					{
-						ESpec->surface->pixels[i * ESpec->surface->pitch32 + j] = sourceptr[i * width + j];
+						if(!SideB)
+						{
+							ESpec->surface->pixels[i * ESpec->surface->pitch32 + j] = sourceptr[i * width + j];
+						}
+						else
+						{
+							ESpec->surface->pixels[(i + (144 / 2)) * ESpec->surface->pitch32 + j + (side ? 160 : 0)] = sourceptr[i * width + j];
+						}
 					}
 				}
 			}
 
 		protected:
 			uint32_t			width, height;
+			uint32_t			side;
 			PixelBuffer			buffer;
 	};
 
@@ -87,7 +100,7 @@ namespace
 					throw 0;
 				}
 
-//				Blitter.SetSide(aSide);
+				Blitter.setSide(aSide);
 
 				Gambatte->setVideoBlitter(&Blitter);
 				Gambatte->setInputStateGetter(&Input);
@@ -119,8 +132,9 @@ namespace
 			int32_t					SampleOverflow;
 	};
 
-	GameBoy*						SideA;
 	uint8_t*						InputPort;
+	uint8_t*						ROMData;
+	uint32_t						ROMSize;
 
 	void							GameBoy::ThreadA	()
 	{
@@ -162,7 +176,31 @@ namespace
 
 	void							GameBoy::ThreadB	()
 	{
+		while(1)
+		{
+			if(ESpec->SoundFormatChanged)
+			{
+				SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+			}
 
+			if(InputPort)
+			{
+				SideB->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
+				SideB->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
+				SideB->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
+				SideB->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
+				SideB->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
+				SideB->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
+				SideB->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
+				SideB->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
+			}
+
+			uint32_t samps = SideB->Gambatte->runFor((Gambatte::uint_least32_t*)SideB->Samples, 35112 - SideB->SampleOverflow);
+			SideB->SampleOverflow += samps;
+			SideB->SampleOverflow -= 35112;
+
+			co_switch(MainThread);
+		}
 	}
 }
 
@@ -185,6 +223,12 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 		GmbtCloseGame();
 	}
 
+	//Copy ROM data for multi-instance
+	ROMData = new uint8_t[fp->size];
+	ROMSize = fp->size;
+	memcpy(ROMData, fp->data, fp->size);
+
+	//Get main thread handle
 	MainThread = co_active();
 
 	//Load game
@@ -203,6 +247,12 @@ bool			GmbtTestMagic			(const char *name, MDFNFILE *fp)
 void			GmbtCloseGame			(void)
 {
 	delete SideA;
+	delete SideB;
+	delete[] ROMData;
+
+	SideA = 0;
+	SideB = 0;
+	ROMData = 0;
 
 	GameLoaded = false;
 }
@@ -265,14 +315,27 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
+	//Clear frame after starting new instance
+	if(NeedToClearFrameBuffer)
+	{
+		NeedToClearFrameBuffer = false;
+		memset(ESpec->surface->pixels, 0, ESpec->surface->h * ESpec->surface->pitch32);
+	}
+
 	//Run frame
 	co_switch(SideA->Thread);
+
+	//Run frame of second instance
+	if(SideB)
+	{
+		co_switch(SideB->Thread);
+	}
 
 	//Set frame size
 	espec->DisplayRect.x = 0;
 	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = 160;
-	espec->DisplayRect.h = 144;
+	espec->DisplayRect.w = SideB ? 320 : 160;
+	espec->DisplayRect.h = SideB ? 288 : 144;
 
 	//TODO: Real timing
 	espec->MasterCycles = 1LL * 100;
@@ -291,6 +354,16 @@ void			GmbtDoSimpleCommand		(int cmd)
 	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
 		SideA->Gambatte->reset();
+
+		if(SideB)
+		{
+			SideB->Gambatte->reset();
+		}
+	}
+	else if(!SideB && cmd == MDFN_MSC_SELECT_DISK)
+	{
+		SideB = new GameBoy(ROMData, ROMSize, 1);
+		NeedToClearFrameBuffer = true;
 	}
 }
 
@@ -353,13 +426,13 @@ static MDFNGI	GmbtInfo =
 /*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:*/				0,
 /*	multires:*/			false,
-/*	lcm_width:*/		160,
-/*	lcm_height:*/		144,
+/*	lcm_width:*/		320,
+/*	lcm_height:*/		288,
 /*	dummy_separator:*/	0,
-/*	nominal_width:*/	160,
-/*	nominal_height:*/	144,
-/*	fb_width:*/			160,
-/*	fb_height:*/		144,
+/*	nominal_width:*/	320,
+/*	nominal_height:*/	288,
+/*	fb_width:*/			320,
+/*	fb_height:*/		288,
 /*	soundchan:*/		2
 };
 
