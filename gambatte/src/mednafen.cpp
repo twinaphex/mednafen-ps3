@@ -6,12 +6,16 @@
 #include "gambatte.h"
 #include "resample/resamplerinfo.h"
 
+#include <src/snes/src/lib/libco/libco.h>
+
 using namespace Gambatte;
 
 namespace
 {
 	EmulateSpecStruct*			ESpec;
 	bool						GameLoaded = false;
+
+	cothread_t					MainThread;
 
 	class gbblitter : public VideoBlitter
 	{
@@ -59,16 +63,107 @@ namespace
 			InputState				inputs;
 	};
 
-	GB*							gambatte;
-	Resampler*					resampler;
-	gbblitter 					blitter;
-	gbinput						input;
+	class							GameBoy
+	{
+		public:
+									GameBoy				(const void* aROM, uint32_t aSize, uint32_t aSide)
+			{
+				Side = aSide;
 
-	uint32_t					samples[48000];
-	uint32_t					resamples[48000];
-	int32_t						sampleoverflow;
+				Gambatte = new GB();
+				Resample = ResamplerInfo::get(0).create(2097152, 48000, 35112);
 
-	uint8_t*					InputPort;
+				SampleOverflow = 0;
+				memset(Samples, 0, sizeof(Samples));
+				memset(Resamples, 0, sizeof(Resamples));
+
+				std::istringstream file(std::string((const char*)aROM, (size_t)aSize), std::ios_base::in | std::ios_base::binary);	
+				if(Gambatte->load(file, MDFN_GetSettingB("gmbt.forcedmg")))
+				{
+					delete Resample;
+					delete Gambatte;
+
+					MDFND_PrintError("gambatte: Failed to load ROM");
+					throw 0;
+				}
+
+//				Blitter.SetSide(aSide);
+
+				Gambatte->setVideoBlitter(&Blitter);
+				Gambatte->setInputStateGetter(&Input);
+
+				Thread = co_create(65536 * sizeof(void*), aSide ? ThreadB : ThreadA);
+			}
+
+									~GameBoy			()
+			{
+				delete Resample;
+				delete Gambatte;
+
+				co_delete(Thread);
+			}
+
+			static void				ThreadA				();
+			static void				ThreadB				();
+
+			GB*						Gambatte;
+			Resampler*				Resample;
+			gbblitter				Blitter;
+			gbinput					Input;
+			uint32_t				Side;
+
+			cothread_t				Thread;
+
+			uint32_t				Samples[48000];
+			uint32_t				Resamples[48000];
+			int32_t					SampleOverflow;
+	};
+
+	GameBoy*						SideA;
+	uint8_t*						InputPort;
+
+	void							GameBoy::ThreadA	()
+	{
+		while(1)
+		{
+			if(ESpec->SoundFormatChanged)
+			{
+				SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
+			}
+
+			if(InputPort)
+			{
+				SideA->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
+				SideA->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
+				SideA->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
+				SideA->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
+				SideA->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
+				SideA->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
+				SideA->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
+				SideA->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
+			}
+
+			uint32_t samps = SideA->Gambatte->runFor((Gambatte::uint_least32_t*)SideA->Samples, 35112 - SideA->SampleOverflow);
+			SideA->SampleOverflow += samps;
+			SideA->SampleOverflow -= 35112;
+
+			//Grab sound
+			uint32_t count = SideA->Resample->resample((short*)SideA->Resamples, (short*)SideA->Samples, samps);
+
+			if(ESpec->SoundBuf && (ESpec->SoundBufMaxSize >= count))
+			{
+				ESpec->SoundBufSize = count;
+				memcpy(ESpec->SoundBuf, SideA->Resamples, ESpec->SoundBufSize * 4);
+			}
+
+			co_switch(MainThread);
+		}
+	}
+
+	void							GameBoy::ThreadB	()
+	{
+
+	}
 }
 
 int				GmbtLoad				(const char *name, MDFNFILE *fp);
@@ -90,29 +185,10 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 		GmbtCloseGame();
 	}
 
-	//Create emulator
-	gambatte = new GB();
-	resampler = ResamplerInfo::get(0).create(2097152, 48000, 35112);
-
-	//Init Sound
-	sampleoverflow = 0;
-	memset(samples, 0, sizeof(samples));
-	memset(resamples, 0, sizeof(resamples));
+	MainThread = co_active();
 
 	//Load game
-	std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);	
-	if(gambatte->load(file, MDFN_GetSettingB("gmbt.forcedmg")))
-	{
-		delete resampler;
-		delete gambatte;
-
-		MDFND_PrintError("gambatte: Failed to load ROM");
-		return 0;
-	}
-
-	//Set Input and video
-	gambatte->setVideoBlitter(&blitter);
-	gambatte->setInputStateGetter(&input);
+	SideA = new GameBoy(fp->data, fp->size, 0);
 
 	GameLoaded = true;
 	return 1;
@@ -126,11 +202,7 @@ bool			GmbtTestMagic			(const char *name, MDFNFILE *fp)
 
 void			GmbtCloseGame			(void)
 {
-	delete resampler;
-	delete gambatte;
-
-	resampler = 0;
-	gambatte = 0;
+	delete SideA;
 
 	GameLoaded = false;
 }
@@ -157,7 +229,7 @@ int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 	if(!load)
 	{
 		std::ostringstream os(std::ios_base::out | std::ios_base::binary);
-		gambatte->saveState(os);
+		SideA->Gambatte->saveState(os);
 
 		void* buffer = malloc(os.str().size());
 		memcpy(buffer, os.str().data(), os.str().size());
@@ -178,11 +250,11 @@ int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 		smem_read(sm, buffer, size);
 
 		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);
-		gambatte->loadState(iss);
+		SideA->Gambatte->loadState(iss);
 
 		free(buffer);
 
-		sampleoverflow = 0;
+		SideA->SampleOverflow = 0;
 
 		return 1;
 	}
@@ -193,40 +265,8 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
-	//Setup sound
-	if(espec->SoundFormatChanged)
-	{
-		resampler->adjustRate(2097152, espec->SoundRate);
-	}
-
-	//TODO: Support color shift, 16-bit, yuv
-
-	//Setup input
-	if(InputPort)
-	{
-		input.inputs.startButton	= (*InputPort & 8) ? 1 : 0;
-		input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-		input.inputs.bButton		= (*InputPort & 2) ? 1 : 0;
-		input.inputs.aButton		= (*InputPort & 1) ? 1 : 0;
-		input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-		input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-		input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-		input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-	}
-
 	//Run frame
-	uint32_t samps = gambatte->runFor((Gambatte::uint_least32_t*)samples, 35112 - sampleoverflow);
-	sampleoverflow += samps;
-	sampleoverflow -= 35112;
-
-	//Grab sound
-	uint32_t count = resampler->resample((short*)resamples, (short*)samples, samps);
-
-	if(espec->SoundBuf && (espec->SoundBufMaxSize >= count))
-	{
-		espec->SoundBufSize = count;
-		memcpy(espec->SoundBuf, resamples, espec->SoundBufSize * 4);
-	}
+	co_switch(SideA->Thread);
 
 	//Set frame size
 	espec->DisplayRect.x = 0;
@@ -250,7 +290,7 @@ void			GmbtDoSimpleCommand		(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
-		gambatte->reset();
+		SideA->Gambatte->reset();
 	}
 }
 
