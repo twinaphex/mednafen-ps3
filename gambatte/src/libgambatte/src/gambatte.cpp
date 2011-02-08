@@ -49,6 +49,9 @@ GB::~GB() {
 	delete z80;
 }
 
+//ROBO: Link support
+void GB::setSide(unsigned gside){z80->setSide(gside);}
+
 unsigned GB::runFor(Gambatte::uint_least32_t *const soundBuf, const unsigned samples) {
 	z80->setSoundBuffer(soundBuf);
 	z80->runFor(samples * 2);
