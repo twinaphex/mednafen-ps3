@@ -1,0 +1,20 @@
+export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
+.SUFFIXES:
+
+OBJCOPY		:= $(PREFIX)objcopy
+AR			:= $(PREFIX)ar
+AS			:= $(PREFIX)gcc
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+LD			:= $(CXX)
+STRIP		:= $(PREFIX)strip
+
+CFLAGS		+= -DMLDLL -fPIC -fvisibility=hidden -g -O3 -std=gnu99 -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE 
+CXXFLAGS	+= -DMLDLL -fPIC -fvisibility=hidden -g -O3 -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DC_CORE
+DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
+
+###
+include $(TOP)/Makefile.common
+###
+
