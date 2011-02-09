@@ -28,7 +28,9 @@ extern "C" {
 
 //#define ENABLE_SIO1API 1
 
-#ifndef _WIN32
+//ROBO: Never win32
+//#ifndef _WIN32
+#if 1
 
 typedef void* HWND;
 #define CALLBACK

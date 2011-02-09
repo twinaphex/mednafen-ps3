@@ -25,7 +25,11 @@ namespace
 //TODO: Support psl1ght, throw on error
 		const char *subs[] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware", "video", "wave"};
 
+#ifdef __WIN32__
+		if(mkdir(es_paths->Build("mednafen").c_str()) == -1 && errno != EEXIST)
+#else
 		if(mkdir(es_paths->Build("mednafen").c_str(), S_IRWXU) == -1 && errno != EEXIST)
+#endif
 		{
 			return;
 		}
@@ -35,7 +39,11 @@ namespace
 		for(int i = 0; i != 9; i ++)
 		{
 			sprintf(buffer, "mednafen"PSS"%s", subs[i]);
+#ifdef __WIN32__
+			if(mkdir(es_paths->Build(buffer).c_str()) == -1 && errno != EEXIST)
+#else
 			if(mkdir(es_paths->Build(buffer).c_str(), S_IRWXU) == -1 && errno != EEXIST)
+#endif
 			{
 				return;
 			}

@@ -35,6 +35,11 @@
 #include "../general.h"
 #include "../endian.h"
 
+//ROBO: For windows
+#ifdef __WIN32__
+#include <io.h>
+#endif
+
 AudioReader::AudioReader()
 {
 

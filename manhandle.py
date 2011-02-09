@@ -19,9 +19,16 @@ tf, tfn = tempfile.mkstemp()
 
 for i in things:
 	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i and not "stat" in i:
-		donethings.append(i)
-		os.write(tf, i + " " + sys.argv[2] + i)
-		os.write(tf, "\n")
+		if "windows" in os.getenv("TARGETPLATFORM", "other"):
+			if len(i) != 0 and i[0] == '_':
+				donethings.append(i)
+				os.write(tf, i + " _" + sys.argv[2] + i[1:])
+				os.write(tf, "\n")
+		else:
+			donethings.append(i)
+			os.write(tf, i + " " + sys.argv[2] + i)
+			os.write(tf, "\n")
+
 
 os.close(tf)
 os.system(sys.argv[3] + " --redefine-syms " + tfn + " " + sys.argv[1])

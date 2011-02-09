@@ -13,18 +13,10 @@ void				SetExit					()
 void				ESSUB_Init				()
 {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER);
-
-#ifdef __WIN32__
-	WSADATA data;
-	WSAStartup(MAKEWORD(2, 2), &data);
-#endif
 }
 
 void				ESSUB_Quit				()
 {
-#ifdef __WIN32__
-	WSACleanup();
-#endif
 	SDL_Quit();
 }
 
