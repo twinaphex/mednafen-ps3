@@ -17,7 +17,7 @@ namespace mdfngmbt
 	bool						NeedToClearFrameBuffer = false;
 	cothread_t					MainThread;
 	GameBoy						*SideA, *SideB;
-	uint8_t*					InputPort;
+	uint8_t*					InputPort[2];
 	uint8_t*					ROMData;
 	uint32_t					ROMSize;
 
@@ -25,39 +25,42 @@ namespace mdfngmbt
 	{
 		while(1)
 		{
-			if(!SideA->Done)
+			if(SideA && ESpec)
 			{
-				if(ESpec->SoundFormatChanged)
+				if(!SideA->Done)
 				{
-					SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
+					if(ESpec->SoundFormatChanged)
+					{
+						SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
+					}
+
+					if(InputPort[0])
+					{
+						SideA->Input.inputs.startButton		= (*InputPort[0] & 8) ? 1 : 0;
+						SideA->Input.inputs.selectButton	= (*InputPort[0] & 4) ? 1 : 0;
+						SideA->Input.inputs.bButton			= (*InputPort[0] & 2) ? 1 : 0;
+						SideA->Input.inputs.aButton			= (*InputPort[0] & 1) ? 1 : 0;
+						SideA->Input.inputs.dpadUp			= (*InputPort[0] & 0x40) ? 1 : 0;
+						SideA->Input.inputs.dpadDown		= (*InputPort[0] & 0x80) ? 1 : 0;
+						SideA->Input.inputs.dpadLeft		= (*InputPort[0] & 0x20) ? 1 : 0;
+						SideA->Input.inputs.dpadRight		= (*InputPort[0] & 0x10) ? 1 : 0;
+					}
+
+					uint32_t samps = SideA->Gambatte->runFor((Gambatte::uint_least32_t*)SideA->Samples, 35112 - SideA->SampleOverflow);
+					SideA->SampleOverflow += samps;
+					SideA->SampleOverflow -= 35112;
+
+					//Grab sound
+					uint32_t count = SideA->Resample->resample((short*)SideA->Resamples, (short*)SideA->Samples, samps);
+
+					if(ESpec->SoundBuf && (ESpec->SoundBufMaxSize >= count))
+					{
+						ESpec->SoundBufSize = count;
+						memcpy(ESpec->SoundBuf, SideA->Resamples, ESpec->SoundBufSize * 4);
+					}
+
+					SideA->Done = true;
 				}
-
-				if(InputPort)
-				{
-					SideA->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
-					SideA->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-					SideA->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
-					SideA->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
-					SideA->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-					SideA->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-					SideA->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-					SideA->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-				}
-
-				uint32_t samps = SideA->Gambatte->runFor((Gambatte::uint_least32_t*)SideA->Samples, 35112 - SideA->SampleOverflow);
-				SideA->SampleOverflow += samps;
-				SideA->SampleOverflow -= 35112;
-
-				//Grab sound
-				uint32_t count = SideA->Resample->resample((short*)SideA->Resamples, (short*)SideA->Samples, samps);
-
-				if(ESpec->SoundBuf && (ESpec->SoundBufMaxSize >= count))
-				{
-					ESpec->SoundBufSize = count;
-					memcpy(ESpec->SoundBuf, SideA->Resamples, ESpec->SoundBufSize * 4);
-				}
-
-				SideA->Done = true;
 			}
 
 			co_switch(MainThread);
@@ -68,31 +71,34 @@ namespace mdfngmbt
 	{
 		while(1)
 		{
-			if(!SideB->Done)
+			if(SideB && ESpec)
 			{
-				if(ESpec->SoundFormatChanged)
+				if(!SideB->Done)
 				{
-					SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+					if(ESpec->SoundFormatChanged)
+					{
+						SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+					}
+
+					if(InputPort[1])
+					{
+						SideB->Input.inputs.startButton		= (*InputPort[1] & 8) ? 1 : 0;
+						SideB->Input.inputs.selectButton	= (*InputPort[1] & 4) ? 1 : 0;
+						SideB->Input.inputs.bButton			= (*InputPort[1] & 2) ? 1 : 0;
+						SideB->Input.inputs.aButton			= (*InputPort[1] & 1) ? 1 : 0;
+						SideB->Input.inputs.dpadUp			= (*InputPort[1] & 0x40) ? 1 : 0;
+						SideB->Input.inputs.dpadDown		= (*InputPort[1] & 0x80) ? 1 : 0;
+						SideB->Input.inputs.dpadLeft		= (*InputPort[1] & 0x20) ? 1 : 0;
+						SideB->Input.inputs.dpadRight		= (*InputPort[1] & 0x10) ? 1 : 0;
+					}
+
+					uint32_t samps = SideB->Gambatte->runFor((Gambatte::uint_least32_t*)SideB->Samples, 35112 - SideB->SampleOverflow);
+					SideB->SampleOverflow += samps;
+					SideB->SampleOverflow -= 35112;
 				}
 
-				if(InputPort)
-				{
-					SideB->Input.inputs.startButton		= (*InputPort & 8) ? 1 : 0;
-					SideB->Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-					SideB->Input.inputs.bButton			= (*InputPort & 2) ? 1 : 0;
-					SideB->Input.inputs.aButton			= (*InputPort & 1) ? 1 : 0;
-					SideB->Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-					SideB->Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-					SideB->Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-					SideB->Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-				}
-
-				uint32_t samps = SideB->Gambatte->runFor((Gambatte::uint_least32_t*)SideB->Samples, 35112 - SideB->SampleOverflow);
-				SideB->SampleOverflow += samps;
-				SideB->SampleOverflow -= 35112;
+				SideB->Done = true;
 			}
-
-			SideB->Done = true;
 			co_switch(MainThread);
 		}
 	}
@@ -242,9 +248,9 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 
 void			GmbtSetInput			(int port, const char *type, void *ptr)
 {
-	if(port == 0)
+	if(port >= 0 && port < 2)
 	{
-		InputPort = (uint8_t*)ptr;
+		InputPort[port] = (uint8_t*)ptr;
 	}
 }
 
@@ -283,8 +289,8 @@ static const InputDeviceInputInfoStruct IDII[] =
 };
 
 static InputDeviceInfoStruct InputDeviceInfo[] =	{{"gamepad", "Gamepad", NULL, 8, IDII,}};
-static const InputPortInfoStruct PortInfo[] =		{{0, "builtin", "Built-In", 1, InputDeviceInfo, "gamepad"}};
-static InputInfoStruct GmbtInput =					{1, PortInfo};
+static const InputPortInfoStruct PortInfo[] =		{{0, "builtin", "Built-In", 1, InputDeviceInfo, "gamepad"},{0, "builtin", "Built-In", 1, InputDeviceInfo, "gamepad"}};
+static InputInfoStruct GmbtInput =					{2, PortInfo};
 
 static FileExtensionSpecStruct	extensions[] = 
 {
