@@ -48,6 +48,10 @@ public:
 
 // 	unsigned interrupt(unsigned address, unsigned cycleCounter);
 	
+	//ROBO: Link support
+	int side;
+	void setSide(unsigned gside){side = gside;}
+
 	void runFor(unsigned long cycles);
 	void setStatePtrs(SaveState &state);
 	void saveState(SaveState &state);

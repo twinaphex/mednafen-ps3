@@ -36,11 +36,11 @@ SOURCE				+=	src/src/gb src/src/gba src/src/hw_sound/gb_apu src/src/pce_fast src
 #						src/src/snes/src/chip/sdd1/sdd1.cpp src/src/snes/src/chip/spc7110/spc7110.cpp src/src/snes/src/chip/cx4/cx4.cpp src/src/snes/src/chip/dsp1/dsp1.cpp src/src/snes/src/chip/dsp2/dsp2.cpp \
 #						src/src/snes/src/chip/dsp3/dsp3.cpp src/src/snes/src/chip/dsp4/dsp4.cpp src/src/snes/src/chip/obc1/obc1.cpp src/src/snes/src/chip/st010/st010.cpp src/src/snes/src/chip/st011/st011.cpp \
 #						src/src/snes/src/chip/st018/st018.cpp src/src/snes/src/chip/superfx/superfx.cpp src/src/snes/src/chip/21fx/21fx.cpp
-#CFILES				:=	src/src/snes/src/lib/libco/libco.c
-#ifeq ($(strip $(PLATFORM)),l1ght)
-#	SFILES			:=	src/src/snes/src/lib/libco/blargg_libco_ppc64-5/ppc.S
-#	MEDNAFENFLAGS	+=	-DLIBCO_PPC_ASM
-#endif
+CFILES				:=	src/src/snes/src/lib/libco/libco.c
+ifeq ($(strip $(PLATFORM)),l1ght)
+	SFILES			:=	src/src/snes/src/lib/libco/blargg_libco_ppc64-5/ppc.S
+	MEDNAFENFLAGS	+=	-DLIBCO_PPC_ASM
+endif
 
 INCLUDE				:=	src ../system $(MEDNAFENINCLUDES) 
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr
