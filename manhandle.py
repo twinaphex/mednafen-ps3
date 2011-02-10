@@ -18,7 +18,7 @@ donethings = []
 tf, tfn = tempfile.mkstemp()
 
 for i in things:
-	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i and not "stat" in i:
+	if not i in donethings and not "basic_stringbuf" in i and not "vector" in i and not "string" in i and not "stat" in i and not "printf" in i:
 		if "windows" in os.getenv("TARGETPLATFORM", "other"):
 			if len(i) != 0 and i[0] == '_':
 				donethings.append(i)
