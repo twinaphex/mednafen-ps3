@@ -2840,22 +2840,36 @@ void CPU::process(const unsigned long cycles) {
 //     default: break;
 			}
 
+			//ROBO: Link support
 			if(SideB)
 			{
 				if(side == 0)
 				{
 					SideA->CycleCounter = cycleCounter;
-					if(((int32_t)SideB->CycleCounter - (int32_t)SideA->CycleCounter) < 15)
+					if(((int32_t)SideB->CycleCounter - (int32_t)SideA->CycleCounter) < 32)
 					{
 						co_switch(SideB->Thread);
 					}
+
+					if(SideB->ShiftOutValid)
+					{
+						memory.setupShiftIRQ(cycleCounter, SideB->ShiftOutClock);
+						SideB->ShiftOutValid = 0;
+					}
+
 				}
 				else
 				{
 					SideB->CycleCounter = cycleCounter;
-					if(((int32_t)SideA->CycleCounter - (int32_t)SideB->CycleCounter) < 15)
+					if(((int32_t)SideA->CycleCounter - (int32_t)SideB->CycleCounter) < 32)
 					{
 						co_switch(SideA->Thread);
+					}
+
+					if(SideA->ShiftOutValid)
+					{
+						memory.setupShiftIRQ(cycleCounter, SideA->ShiftOutClock);
+						SideA->ShiftOutValid = 0;
 					}
 				}
 			}
