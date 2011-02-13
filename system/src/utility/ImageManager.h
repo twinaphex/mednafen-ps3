@@ -4,6 +4,20 @@
 class													ImageManager
 {
 	public:
+		struct											PNGFile
+		{
+														PNGFile							(const std::string& aFileName);
+														~PNGFile						();
+			void										CopyToTexture					(Texture* aTexture);
+			
+			png_structp									png_ptr;
+			png_infop									info_ptr;
+			png_bytep*									row_pointers;
+			uint32_t									Width;
+			uint32_t									Height;
+		};
+	
+	public:
 		static void										Purge							();
 		static void										LoadDirectory					(const std::string& aPath);
 		static void										CreateScratch					();
@@ -11,8 +25,11 @@ class													ImageManager
 		static Texture*									LoadImage						(const std::string& aName, const std::string& aPath);
 		static Texture*									GetImage						(const std::string& aName);
 
+		static void										FillScratch						(uint32_t aScratchIndex, const std::string& aFileName);
+	
 	protected:
 		static std::map<std::string, Texture*>			Images;
+		static std::map<std::string, PNGFile*>			Files;
 };
 
 #endif
