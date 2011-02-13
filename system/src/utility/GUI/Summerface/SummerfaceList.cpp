@@ -221,6 +221,14 @@ bool										GridListModel::Input								()
 bool										GridListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
+	
+	//TODO: Make this work!
+	if(Utility::FileExists(aItem->Properties["THUMB"]))
+	{
+		image = ImageManager::GetImage("SCRATCH%0");
+		ImageManager::FillScratch(0, aItem->Properties["THUMB"]);
+	}
+	
 	Area ImageArea(0, 0, 0, 0);
 
 	if(image && aWidth && aHeight)

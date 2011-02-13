@@ -14,6 +14,7 @@ namespace
 										FileList::FileList						(const Area& aRegion, const std::string& aPath, std::vector<std::string>& aBookmarks) : SummerfaceList(aRegion), BookMarks(aBookmarks)
 {
 	FileEnumerator& enumer = Enumerators::GetEnumerator(aPath);
+//	SetModel(new GridListModel(this, 4, 4, false, true));
 
 	Path = aPath;
 
@@ -54,7 +55,14 @@ namespace
 
 	for(int i = 0; i != items.size(); i ++)
 	{
-		AddItem(items[i]);
+		if(Utility::GetExtension(items[i]->Properties["PATH"]) == "tbn")
+		{
+			delete items[i];
+		}
+		else
+		{	
+			AddItem(items[i]);
+		}
 	}
 
 	Sort(AlphaSortC);
@@ -115,6 +123,7 @@ SummerfaceItem*							FileList::MakeItem						(const std::string& aName, const s
 	item->IntProperties["FILE"] = aFile;
 	item->IntProperties["BOOKMARK"] = aBookMark;
 	item->Properties["PATH"] = aPath;
+	item->Properties["THUMB"] = Enumerators::CleanPath(aPath) + ".tbn";
 
 	if(aBookMark)
 	{

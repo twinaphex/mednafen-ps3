@@ -48,9 +48,15 @@ class				Utility
 		static bool						FileExists					(const std::string& aPath)
 		{
 			struct stat statbuf;
-			stat(aPath.c_str(), &statbuf);
 
-			return (statbuf.st_mode & S_IFREG);
+			if(0 == stat(aPath.c_str(), &statbuf))
+			{
+				return (statbuf.st_mode & S_IFREG);
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
