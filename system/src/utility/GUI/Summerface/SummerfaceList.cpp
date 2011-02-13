@@ -98,7 +98,8 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 
 	Width = aWidth;
 	Height = aHeight;
-
+	FirstItem = 0;
+	
 	RefreshHeader = true;
 	
 	SetDrawMode(aHeader, aLabels);
@@ -111,18 +112,44 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 bool										SummerfaceGrid::Input								()
 {
 	uint32_t oldIndex = SelectedIndex;
-	uint32_t XSelection = SelectedIndex % Width;
-	uint32_t YSelection = SelectedIndex / Width;
+	int32_t XSelection = SelectedIndex % Width;
+	int32_t YSelection = (SelectedIndex - FirstItem) / Width;
 
-	XSelection += es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	XSelection -= es_input->ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
+	XSelection += es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	XSelection -= es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
 	XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
 
-	YSelection += es_input->ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
-	YSelection -= es_input->ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
-	YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
+	YSelection += es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
+	YSelection -= es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
 
-	SelectedIndex = YSelection * Width + XSelection;
+	while(YSelection < 0)
+	{
+		YSelection ++;
+		FirstItem -= Width;
+	}	
+		
+	while(YSelection >= Height)
+	{
+		YSelection --;
+		FirstItem += Width;
+	}
+	
+	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= Items.size() + Width))
+	{
+		FirstItem -= Width;
+	}
+
+	while(FirstItem < 0)
+	{
+		FirstItem += Width;
+	}
+	
+	
+	SelectedIndex = FirstItem + (YSelection * Width + XSelection);
+	if(SelectedIndex >= Items.size())
+	{
+		SelectedIndex = oldIndex;
+	}
 
 	if(DrawHeader && (oldIndex != SelectedIndex || RefreshHeader))
 	{
@@ -139,6 +166,11 @@ bool										SummerfaceGrid::Input								()
 	if(GetInputConduit() && SelectedIndex < Items.size())
 	{
 		return GetInputConduit()->HandleInput(GetInterface(), GetName()); 
+	}
+	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	{
+		Canceled = false;
+		return true;
 	}
 
 	return false;
@@ -192,12 +224,12 @@ bool										SummerfaceGrid::Draw								()
 	{
 		for(int j = 0; j != Width; j ++)
 		{
-			if(i * Width + j >= Items.size())
+			if(FirstItem + (i * Width + j) >= Items.size())
 			{
 				break;
 			}
 		
-			DrawItem(Items[i * Width + j], j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, j == XSelection && i == YSelection);
+			DrawItem(Items[FirstItem + (i * Width + j)], j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, SelectedIndex == FirstItem + (i * Width + j));
 		}
 	}
 	
