@@ -11,7 +11,7 @@ namespace
 	}
 }
 
-										FileList::FileList						(const Area& aRegion, const std::string& aPath, std::vector<std::string>& aBookmarks) : SummerfaceLineList(aRegion), BookMarks(aBookmarks)
+										FileList::FileList						(const Area& aRegion, const std::string& aPath, std::vector<std::string>& aBookmarks) : SummerfaceList(aRegion), BookMarks(aBookmarks)
 {
 	FileEnumerator& enumer = Enumerators::GetEnumerator(aPath);
 
@@ -83,7 +83,7 @@ bool									FileList::Input							()
 		return false;
 	}
 
-	return 	SummerfaceLineList::Input();
+	return 	SummerfaceList::Input();
 }
 
 std::string								FileList::GetFile						()

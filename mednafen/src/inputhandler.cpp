@@ -76,7 +76,7 @@ void							InputHandler::Configure				()
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
-		SummerfaceLineList*	linelist = new SummerfaceLineList(Area(10, 10, 80, 20));
+		SummerfaceList*	linelist = new SummerfaceList(Area(10, 10, 80, 20));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
