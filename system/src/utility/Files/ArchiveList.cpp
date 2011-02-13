@@ -1,6 +1,6 @@
 #include <ps3_system.h>
 
-											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : SummerfaceLineList(aRegion)
+											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : SummerfaceList(aRegion)
 {
 	FileName = aFileName;
 

@@ -19,25 +19,25 @@ namespace								MednafenSettings
 
 	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;
 
-	class								SettingLineList : public SummerfaceLineList
+	class								SettingLineModel : public LineListModel
 	{
 		public:
-										SettingLineList									(const Area& aRegion) : SummerfaceLineList(aRegion){RefreshHeader = true;}
-			virtual						~SettingLineList								(){}
+										SettingLineModel								(SummerfaceList* aList) : LineListModel(aList){RefreshHeader = true;}
+			virtual						~SettingLineModel								(){}
 
 			void						DoHeaderRefresh									()
 			{
 				if(RefreshHeader)
 				{
-					const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+					const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
 					RefreshHeader = false;
-					SetHeader(Setting.desc->description);
+					List->SetHeader(Setting.desc->description);
 				}
 			}
 
 			virtual bool				DrawItem										(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
 			{
-				SummerfaceLineList::DrawItem(aItem, aX, aY, aSelected);
+				LineListModel::DrawItem(aItem, aX, aY, aSelected);
 
 				const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
 
@@ -53,15 +53,18 @@ namespace								MednafenSettings
 					{
 						    snprintf(buffer, 250, "%s", MDFN_GetSettingS(setting->name).c_str());
 					}
+					
+//HACK: Use real font
+				  //  List->LabelFont->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+					FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
 
-				    LabelFont->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
 				}
 				return false;
 			}
 
 			virtual bool				Input											()
 			{
-				const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+				const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
 
 				DoHeaderRefresh();
 
@@ -173,10 +176,10 @@ namespace								MednafenSettings
 
 					if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
 					{
-						SummerfaceItem* selected = GetSelected();
-						bool output = SummerfaceLineList::Input();
+						SummerfaceItem* selected = List->GetSelected();
+						bool output = LineListModel::Input();
 
-						if(selected != GetSelected())
+						if(selected != List->GetSelected())
 						{
 							RefreshHeader = true;
 							DoHeaderRefresh();
@@ -257,8 +260,9 @@ namespace								MednafenSettings
 
 	static void							DoCategory										(std::vector<const MDFNCS*>& aSettings)
 	{
-		SettingLineList* settingList = new SettingLineList(Area(10, 10, 80, 80));
-
+		SummerfaceList* settingList = new SummerfaceList(Area(10, 10, 80, 80));
+		settingList->SetModel(new SettingLineModel(settingList));
+	
 		for(int i = 0; i != aSettings.size(); i ++)
 		{
 			SummerfaceItem* item = new SummerfaceItem(aSettings[i]->name, "");
@@ -276,7 +280,7 @@ namespace								MednafenSettings
 		SettingCollection settings;
 		GetCategories(settings);
 
-		SummerfaceLineList*	cats = new SummerfaceLineList(Area(10, 10, 80, 80));
+		SummerfaceList*	cats = new SummerfaceList(Area(10, 10, 80, 80));
 		cats->SetHeader("Choose Setting Category");
 		for(SettingCollection::iterator i = settings.begin(); i != settings.end(); i ++)
 		{

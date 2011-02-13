@@ -1,7 +1,7 @@
 #ifndef SYSTEM__ARCHIVE_H
 #define SYSTEM__ARCHIVE_H
 
-class												ArchiveList : public SummerfaceLineList
+class												ArchiveList : public SummerfaceList
 {
 	public:
 													ArchiveList						(const Area& aRegion, const std::string& aFileName);

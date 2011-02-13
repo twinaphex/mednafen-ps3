@@ -19,6 +19,13 @@
 # include "l1ght/L1ghtInput.h"
 # include "l1ght/L1ghtNetwork.h"
 # include "l1ght/utility.h"
+#elif defined(MDWII)
+# include "wii/cell.h"
+# include "wii/WiiVideo.h"
+# include "wii/WiiAudio.h"
+# include "wii/WiiInput.h"
+# include "wii/WiiNetwork.h"
+# include "wii/utility.h"
 #else
 # include "sdl/cell.h"
 # include "sdl/SDLVideo.h"

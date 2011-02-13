@@ -113,10 +113,10 @@ void						MednafenEmu::Init				()
 
 		//Get the external emulators
 		std::vector<MDFNGI*> externalSystems;
-		externalSystems.push_back(nestGetEmulator());
-		externalSystems.push_back(gmbtGetEmulator());
-		externalSystems.push_back(vbamGetEmulator());
-		externalSystems.push_back(pcsxGetEmulator());
+//		externalSystems.push_back(nestGetEmulator());
+//		externalSystems.push_back(gmbtGetEmulator());
+//		externalSystems.push_back(vbamGetEmulator());
+//		externalSystems.push_back(pcsxGetEmulator());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system
@@ -408,7 +408,8 @@ void						MednafenEmu::DoCommands			()
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
 	};
 
-	SummerfaceGrid* grid = new SummerfaceGrid(Area(25, 25, 50, 50), 4, 3, true, false);
+	SummerfaceList* grid = new SummerfaceList(Area(25, 25, 50, 50));
+	grid->SetModel(new GridListModel(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
 	grid->SetInputConduit(new SummerfaceStaticConduit(DoCommand, 0), true);
 	for(int i = 0; i != 12; i ++)
@@ -427,7 +428,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 
 	if(aInterface && aInterface->GetWindow(aWindow) && es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		command = ((SummerfaceLineList*)aInterface->GetWindow(aWindow))->GetSelected()->Properties["COMMAND"];
+		command = ((SummerfaceList*)aInterface->GetWindow(aWindow))->GetSelected()->Properties["COMMAND"];
 	}
 	else if(!aInterface)
 	{

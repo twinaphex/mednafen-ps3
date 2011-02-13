@@ -1,13 +1,13 @@
 #ifndef SYSTEM__FILELIST_H
 #define SYSTEM__FILELIST_H
 
-class												FileList : public SummerfaceLineList
+class												FileList : public SummerfaceList
 {
 	public:
 													FileList						(const Area& aRegion, const std::string& aPath, std::vector<std::string>& aBookmarks);
 		virtual										~FileList						(){};
 													
-		bool										Input							();
+		virtual bool								Input							();
 
 		std::string									GetFile							();
 		bool										IsDirectory						();

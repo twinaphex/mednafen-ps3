@@ -1,11 +1,69 @@
 #ifndef SYSTEM__SUMMERFACE_LIST_H
 #define SYSTEM__SUMMERFACE_LIST_H
 
+class													ListModel
+{
+	public:
+		virtual											~ListModel						(){}
+	
+		virtual bool									Input							() = 0;
+		virtual bool									Draw							() = 0;
+};
+
+class													SummerfaceList;
+class													LineListModel : public ListModel
+{
+	public:
+														LineListModel					(SummerfaceList* aList);
+														~LineListModel					();
+														
+		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected);
+														
+		virtual bool									Input							();
+		virtual bool									Draw							();
+
+	protected:
+		SummerfaceList*									List;
+		uint32_t										FirstLine;
+		uint32_t										LinesDrawn;
+};
+
+class													GridListModel : public ListModel
+{
+	public:
+														GridListModel					(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false);
+		virtual											~GridListModel					();
+		
+		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);
+		
+		virtual bool									Input							();
+		virtual bool									Draw							();
+		
+	protected:
+		SummerfaceList*									List;
+
+		uint32_t										Width;
+		uint32_t										Height;
+		
+		int32_t											FirstItem;
+
+		bool											DrawHeader;
+		bool											RefreshHeader;
+		bool											DrawLabels;
+};
+
 class													SummerfaceList : public SummerfaceWindow
 {
+	friend class										ListModel;
+	friend class										LineListModel;
+	friend class										GridListModel;
+
 	public:
 														SummerfaceList					(const Area& aRegion);
 		virtual											~SummerfaceList					();
+
+		virtual bool									Draw							();
+		virtual bool									Input							();
 
 		virtual void									AddItem							(SummerfaceItem* aItem);
 
@@ -18,6 +76,7 @@ class													SummerfaceList : public SummerfaceWindow
 		bool											WasCanceled						();
 
 		void											SetFont							(Font* aFont);
+		void											SetModel						(ListModel* aModel);
 
 		void											Sort							(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*) = 0);
 
@@ -27,45 +86,9 @@ class													SummerfaceList : public SummerfaceWindow
 		bool											Canceled;
 
 		Font*											LabelFont;
+		
+		ListModel*										Model;
 };
-
-class													SummerfaceGrid : public SummerfaceList
-{
-	public:
-														SummerfaceGrid					(const Area& aRegion, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false);
-		virtual											~SummerfaceGrid					();
-
-		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);
-		virtual bool									Draw							();
-		virtual bool									Input							();
-
-		void											SetDrawMode						(bool aHeader, bool aLabels);
-
-
-	protected:
-		uint32_t										Width;
-		uint32_t										Height;
-		int32_t											FirstItem;
-
-		bool											DrawHeader;
-		bool											RefreshHeader;
-		bool											DrawLabels;
-};
-
-class													SummerfaceLineList : public SummerfaceList
-{
-	public:
-														SummerfaceLineList				(const Area& aRegion);
-		virtual											~SummerfaceLineList				();
-
-		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected);
-		virtual bool									Draw							();
-		virtual bool									Input							();
-
-	protected:
-		uint32_t										LinesDrawn;
-};
-
 
 #endif
 

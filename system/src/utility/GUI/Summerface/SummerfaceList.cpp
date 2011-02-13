@@ -10,6 +10,8 @@ namespace
 }
 
 
+
+
 											SummerfaceList::SummerfaceList						(const Area& aRegion) : SummerfaceWindow(aRegion)
 {
 	SelectedIndex = 0;
@@ -17,6 +19,8 @@ namespace
 	Canceled = false;
 
 	LabelFont = FontManager::GetBigFont();
+	
+	Model = new LineListModel(this);
 }
 
 											SummerfaceList::~SummerfaceList						()
@@ -25,10 +29,30 @@ namespace
 	{
 		delete (*iter);
 	}
+	
+	delete Model;
+}
+
+bool										SummerfaceList::Draw								()
+{
+	return Model->Draw();
+}
+
+bool										SummerfaceList::Input								()
+{
+	return Model->Input();
 }
 
 void										SummerfaceList::AddItem								(SummerfaceItem* aItem)
 {
+	for(int i = 0; i != Items.size(); i ++)
+	{
+		if(Items[i] == aItem)
+		{
+			throw ESException("SummerfaceList::AddItem: Can't add the same item to the list twice");
+		}
+	}
+
 	Items.push_back(aItem);
 }
 
@@ -53,7 +77,7 @@ void										SummerfaceList::SetSelection						(uint32_t aIndex)
 {
 	if(aIndex >= Items.size())
 	{
-		throw ESException("WinterfaceList: Item index out of range [Item %d, Total %d]", aIndex, Items.size());
+		throw ESException("SummerfaceList::SetSelection: Item index out of range [Item %d, Total %d]", aIndex, Items.size());
 	}
 
 	SelectedIndex = aIndex;
@@ -80,7 +104,23 @@ bool										SummerfaceList::WasCanceled							()
 
 void										SummerfaceList::SetFont								(Font* aFont)
 {
+	if(!aFont)
+	{
+		throw ESException("SummerfaceList::SetFont: Font must not be null");
+	}
+
 	LabelFont = aFont;
+}
+
+void										SummerfaceList::SetModel							(ListModel* aModel)
+{
+	if(!aModel)
+	{
+		throw ESException("SummerfaceList::SetModel: Model must not be null");
+	}
+
+	delete Model;
+	Model = aModel;
 }
 
 void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*))
@@ -89,31 +129,33 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 }
 
 
-											SummerfaceGrid::SummerfaceGrid						(const Area& aRegion, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) : SummerfaceList(aRegion)
+											GridListModel::GridListModel						(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels)
 {
+	List = aList;
+
 	if(aWidth == 0 || aHeight == 0 || aWidth > 16 || aHeight > 16)
 	{
-		throw ESException("Summerface grid dimensions out of range. [X: %d, Y: %d]", aWidth, aHeight);
+		throw ESException("GridListModel::GridListModel: Grid dimensions out of range. [X: %d, Y: %d]", aWidth, aHeight);
 	}
 
 	Width = aWidth;
 	Height = aHeight;
 	FirstItem = 0;
 	
+	DrawLabels = aLabels;
+	DrawHeader = aHeader;
 	RefreshHeader = true;
-	
-	SetDrawMode(aHeader, aLabels);
 }
 
-											SummerfaceGrid::~SummerfaceGrid						()
+											GridListModel::~GridListModel						()
 {
 }
 
-bool										SummerfaceGrid::Input								()
+bool										GridListModel::Input								()
 {
-	uint32_t oldIndex = SelectedIndex;
-	int32_t XSelection = SelectedIndex % Width;
-	int32_t YSelection = (SelectedIndex - FirstItem) / Width;
+	uint32_t oldIndex = List->SelectedIndex;
+	int32_t XSelection = List->SelectedIndex % Width;
+	int32_t YSelection = (List->SelectedIndex - FirstItem) / Width;
 
 	XSelection += es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
 	XSelection -= es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
@@ -134,7 +176,7 @@ bool										SummerfaceGrid::Input								()
 		FirstItem += Width;
 	}
 	
-	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= Items.size() + Width))
+	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->Items.size() + Width))
 	{
 		FirstItem -= Width;
 	}
@@ -145,38 +187,38 @@ bool										SummerfaceGrid::Input								()
 	}
 	
 	
-	SelectedIndex = FirstItem + (YSelection * Width + XSelection);
-	if(SelectedIndex >= Items.size())
+	List->SelectedIndex = FirstItem + (YSelection * Width + XSelection);
+	if(List->SelectedIndex >= List->Items.size())
 	{
-		SelectedIndex = oldIndex;
+		List->SelectedIndex = oldIndex;
 	}
 
-	if(DrawHeader && (oldIndex != SelectedIndex || RefreshHeader))
+	if(DrawHeader && (oldIndex != List->SelectedIndex || RefreshHeader))
 	{
 		RefreshHeader = false;
-		SetHeader(GetSelected()->GetText());
+		List->SetHeader(List->GetSelected()->GetText());
 	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
-		Canceled = true;
+		List->Canceled = true;
 		return true;
 	}
 
-	if(GetInputConduit() && SelectedIndex < Items.size())
+	if(List->GetInputConduit() && List->SelectedIndex < List->Items.size())
 	{
-		return GetInputConduit()->HandleInput(GetInterface(), GetName()); 
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		Canceled = false;
+		List->Canceled = false;
 		return true;
 	}
 
 	return false;
 }
 
-bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
+bool										GridListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 	Area ImageArea(0, 0, 0, 0);
@@ -190,7 +232,7 @@ bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX
 
 		if(DrawLabels)
 		{
-			aHeight -= LabelFont->GetHeight();
+			aHeight -= List->LabelFont->GetHeight();
 		}
 
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
@@ -200,7 +242,7 @@ bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX
 
 		if(DrawLabels)
 		{
-			LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor());
+			List->LabelFont->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor());
 		}
 	}
 	
@@ -212,73 +254,64 @@ bool										SummerfaceGrid::DrawItem							(SummerfaceItem* aItem, uint32_t aX
 	return false;
 }
 
-bool										SummerfaceGrid::Draw								()
+bool										GridListModel::Draw									()
 {
 	uint32_t iconWidth = es_video->GetClip().Width / Width - 4;
 	uint32_t iconHeight = es_video->GetClip().Height / Height - 4;	
 
-	uint32_t XSelection = SelectedIndex % Width;
-	uint32_t YSelection = SelectedIndex / Width;
+	uint32_t XSelection = List->SelectedIndex % Width;
+	uint32_t YSelection = List->SelectedIndex / Width;
 
 	for(int i = 0; i != Height; i ++)
 	{
 		for(int j = 0; j != Width; j ++)
 		{
-			if(FirstItem + (i * Width + j) >= Items.size())
+			if(FirstItem + (i * Width + j) >= List->Items.size())
 			{
 				break;
 			}
 		
-			DrawItem(Items[FirstItem + (i * Width + j)], j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, SelectedIndex == FirstItem + (i * Width + j));
+			DrawItem(List->Items[FirstItem + (i * Width + j)], j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, List->SelectedIndex == FirstItem + (i * Width + j));
 		}
 	}
 	
 	return false;
 }
 
-void										SummerfaceGrid::SetDrawMode							(bool aHeader, bool aLabels)
+											LineListModel::LineListModel						(SummerfaceList* aList)
 {
-	DrawHeader = aHeader;
-	DrawLabels = aLabels;
-	RefreshHeader = aHeader;
-
-	if(!aHeader)
-	{
-		SetHeader("");
-	}
+	List = aList;
+	
+	FirstLine = 0;
+	LinesDrawn = 0;
 }
 
-											SummerfaceLineList::SummerfaceLineList				(const Area& aRegion) : SummerfaceList(aRegion)
-{
-
-}
-
-											SummerfaceLineList::~SummerfaceLineList				()
+											LineListModel::~LineListModel						()
 {
 }
 
-bool										SummerfaceLineList::DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool										LineListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 
 	if(image)
 	{
-		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(LabelFont->GetHeight() - 4) / (double)image->GetHeight()));
+		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(List->LabelFont->GetHeight() - 4) / (double)image->GetHeight()));
 
-		es_video->PlaceTexture(image, aX, aY + 2, width, LabelFont->GetHeight() - 4);
+		es_video->PlaceTexture(image, aX, aY + 2, width, List->LabelFont->GetHeight() - 4);
 		aX += width;
 	}
 
-	LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+	List->LabelFont->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
 
 	return false;
 }
 
-bool										SummerfaceLineList::Draw							()
+bool										LineListModel::Draw									()
 {
-	if(Items.size() != 0)
+	if(List->Items.size() != 0)
 	{
-		uint32_t itemheight = LabelFont->GetHeight();
+		uint32_t itemheight = List->LabelFont->GetHeight();
 		LinesDrawn = es_video->GetClip().Height / itemheight;
 		
 		//TODO: Fix it to draw one or two line lists!
@@ -289,7 +322,7 @@ bool										SummerfaceLineList::Draw							()
 		
 		uint32_t online = 0;
 	
-		for(int i = SelectedIndex - LinesDrawn / 2; i != SelectedIndex + LinesDrawn / 2 + 2; i ++)
+		for(int i = List->SelectedIndex - LinesDrawn / 2; i != List->SelectedIndex + LinesDrawn / 2 + 2; i ++)
 		{
 			if(i < 0)
 			{
@@ -297,13 +330,13 @@ bool										SummerfaceLineList::Draw							()
 				continue;
 			}
 		
-			if(i >= Items.size())
+			if(i >= List->Items.size())
 			{
 				break;
 			}
 			
 
-			if(DrawItem(Items[i], 16, (online * itemheight), i == SelectedIndex))
+			if(DrawItem(List->Items[i], 16, (online * itemheight), i == List->SelectedIndex))
 			{
 				return true;
 			}	
@@ -315,31 +348,31 @@ bool										SummerfaceLineList::Draw							()
 	return false;
 }
 
-bool										SummerfaceLineList::Input							()
+bool										LineListModel::Input								()
 {
-	if(Items.size() != 0)
+	if(List->Items.size() != 0)
 	{
-		SelectedIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		SelectedIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-		SelectedIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
-		SelectedIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
+		List->SelectedIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+		List->SelectedIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+		List->SelectedIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
+		List->SelectedIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
 	
-		SelectedIndex = Utility::Clamp(SelectedIndex, 0, Items.size() - 1);
+		List->SelectedIndex = Utility::Clamp(List->SelectedIndex, 0, List->Items.size() - 1);
 	}
 
-	if(GetInputConduit())
+	if(List->GetInputConduit())
 	{
-		return GetInputConduit()->HandleInput(GetInterface(), GetName()); 
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		Canceled = false;
+		List->Canceled = false;
 		return true;
 	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
-		Canceled = true;
+		List->Canceled = true;
 		return true;
 	}
 	
