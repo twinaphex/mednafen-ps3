@@ -35,7 +35,7 @@ void										ImageManager::CreateScratch							()
 	if(!Images["SCRATCH%0"])
 	{
 		char buffer[32];
-		for(int i =0; i != 10; i ++)
+		for(int i =0; i != 20; i ++)
 		{
 			Texture* tex = es_video->CreateTexture(512, 512);
 			tex->SetFilter(1);
@@ -77,9 +77,9 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 			Abort("[read_png_file] Error during read_image");
 
 #ifdef L1GHT	
-		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_SWAP_ALPHA, 0);
+		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
 #else
-		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_BGR, 0);
+		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_BGR, 0);
 #endif
 	
 		fclose(fp);
@@ -91,10 +91,30 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		Texture* output = es_video->CreateTexture(width, height);
 		output->SetFilter(true);
 
-		for(int i = 0; i != height; i ++)
+		if(info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
 		{
-			memcpy(output->GetPixels() + (output->GetWidth() * i), row_pointers[i], width * 4);
+			for(int i = 0; i != height; i ++)
+			{
+				memcpy(output->GetPixels() + (output->GetWidth() * i), row_pointers[i], width * 4);
+			}
 		}
+		else
+		{
+			for(int i = 0; i != height; i ++)
+			{
+				uint32_t* dest = output->GetPixels() + (output->GetWidth() * i);
+				uint8_t* source = row_pointers[i];
+
+				for(int j = 0; j != width; j ++)
+				{
+					uint32_t r = *source ++;
+					uint32_t g = *source ++;
+					uint32_t b = *source ++;
+					*dest++ = (r << 0) | (g << 8) | (b << 16) | 0xFF000000;
+				}
+			}
+		}
+
 		
 		png_destroy_info_struct(png_ptr, &info_ptr);
 		png_destroy_read_struct(&png_ptr, 0, 0);
