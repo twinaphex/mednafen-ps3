@@ -1,7 +1,7 @@
 #include <ps3_system.h>
 #include "SecretMenu.h"
 
-					L1ghtSecret::L1ghtSecret				() : SummerfaceLineList(Area(10, 10, 80, 80))
+					L1ghtSecret::L1ghtSecret				() : SummerfaceList(Area(10, 10, 80, 80))
 {
 	AddItem(new SummerfaceItem("Show Log", ""));
 	AddItem(new SummerfaceItem("Get New EBOOT", ""));
@@ -72,7 +72,7 @@ bool				L1ghtSecret::Input						()
 		return true;
 	}
 
-	return SummerfaceLineList::Input();
+	return SummerfaceList::Input();
 }
 
 void				L1ghtSecret::Do							()
