@@ -51,7 +51,7 @@ class				Utility
 		{
 			struct stat statbuf;
 
-			if(0 == stat(aPath.c_str(), &statbuf)
+			if(0 == stat(aPath.c_str(), &statbuf))
 			{
 				return statbuf.st_mode & S_IFREG;
 			}

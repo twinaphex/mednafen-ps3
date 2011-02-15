@@ -1,7 +1,7 @@
 #ifndef L1GHT_SECRET_H
 #define L1GHT_SECRET_H
 
-class				L1ghtSecret : public SummerfaceLineList
+class				L1ghtSecret : public SummerfaceList
 {
 	public:
 					L1ghtSecret					();
