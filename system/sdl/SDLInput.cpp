@@ -7,6 +7,8 @@
 		Joysticks.push_back(SDL_JoystickOpen(i));
 	}
 
+	SDLInputConfig::Load(ESInputs);
+
 	Reset();
 }
 
@@ -36,6 +38,11 @@ void				SDLInput::Refresh						()
 {
 	int numkeys;
 	uint8_t* keys = SDL_GetKeyState(&numkeys);
+
+	if(keys[SDLK_F11])
+	{
+		SDLInputConfig::Get(ESInputs);	
+	}
 
 	for(int j = 0; j != numkeys && j != MAXKEYS; j ++)
 	{
@@ -77,6 +84,11 @@ int32_t				SDLInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 
 bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 {
+	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
+	{
+		aButton = ESInputs[aButton & 0xFF];
+	}
+
 	Assert(aPad, aButton);
 
 	if(!IsJoystickButton(aButton) && aPad == 0)
@@ -91,6 +103,11 @@ bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 
 bool				SDLInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 {
+	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
+	{
+		aButton = ESInputs[aButton & 0xFF];
+	}
+
 	Assert(aPad, aButton);
 
 	if(!IsJoystickButton(aButton) && aPad == 0)
