@@ -11,7 +11,7 @@ print "Mangling Symbols in " + sys.argv[1]
 print "Prefixing with " + sys.argv[2]
 print "Using objcopy " + sys.argv[3]
 
-proc = subprocess.Popen("nm --defined-only -A -a " + sys.argv[1] + " | sed -e 's/.*\ //'", stdout=subprocess.PIPE, shell=True)
+proc = subprocess.Popen("ppu-nm -U -A -a " + sys.argv[1] + " | sed -e 's/.*\ //'", stdout=subprocess.PIPE, shell=True)
 things = proc.communicate()[0].split('\n')
 
 donethings = []

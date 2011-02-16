@@ -22,6 +22,7 @@
 #include <png.h>
 
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <net/net.h>
