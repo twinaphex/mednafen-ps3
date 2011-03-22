@@ -20,35 +20,12 @@ class	MednafenEmu
 		static bool						DoState				(void* aUserData, Summerface* aInterface, const std::string& aWindow);
 
 	public:		//Inlines
-		static bool						IsGameLoaded		()
-		{
-			return IsLoaded;
-		}
-		
-		static bool						IsEmuInitialized	()
-		{
-			return IsInitialized;
-		}
+		static bool						IsGameLoaded		() {return IsInitialized && IsLoaded;}
+		static bool						IsEmuInitialized	() {return IsInitialized;}
 
-		static void						DisplayMessage		(std::string aMessage)
-		{
-			if(IsInitialized && IsLoaded)
-			{
-				Message = aMessage;
-				MessageTime = MDFND_GetTime();
-			}
-		}
+		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
-		static bool						DummyFrame			()
-		{
-			if(IsInitialized && IsLoaded && !SuspendDraw)
-			{
-				Blit();
-				return true;
-			}
-
-			return false;
-		}
+		static bool						DummyFrame			() {if(IsGameLoaded() && !SuspendDraw){Blit(); return true;} return false;}
 
 	protected:	//Internals
 		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);

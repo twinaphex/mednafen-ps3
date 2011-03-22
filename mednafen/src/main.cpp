@@ -54,27 +54,26 @@ std::string			GetFile					()
 
 void				ReloadEmulator			()
 {
-	std::string enumpath = GetFile();
+	std::string filename = GetFile();
 
-	if(enumpath.empty() && !MednafenEmu::IsGameLoaded())
+	if(filename.empty() && !MednafenEmu::IsGameLoaded())
 	{
 		Exit();
 	}
-	else if(enumpath.empty() && MednafenEmu::IsGameLoaded())
+	else if(filename.empty() && MednafenEmu::IsGameLoaded())
 	{
 		return;
 	}
 	else
 	{
-		//Get the real filename of the local file (already downloaded to a normal location) and open it in fex
-		std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
+		//Load file as an archive
 		ArchiveList* archive = new ArchiveList(Area(10, 10, 80, 80), filename);
 		Summerface sface("Archive", archive);
 
 		//If there are no items we are lost
 		if(archive->GetItemCount() == 0)
 		{
-			throw ESException("Loader: Could not read file [File: %s]", enumpath.c_str());
+			throw ESException("Loader: Could not read file [File: %s]", filename.c_str());
 		}
 
 		//If there is more than one file, run a list to get the specific file
@@ -145,10 +144,6 @@ int					main					(int argc, char* argv[])
 		//Init the system and the emulator
 		InitES(Exit);
 		MednafenEmu::Init();
-
-		//Set FTP settings
-		FTPEnumerator::SetEnabled(MDFN_GetSettingB("ftp.es.enable"));
-		FTPEnumerator::SetCredentials(MDFN_GetSettingS("ftp.es.host"), MDFN_GetSettingS("ftp.es.port"), MDFN_GetSettingS("ftp.es.username"), MDFN_GetSettingS("ftp.es.password"));
 
 		//Set the Summerface background
 		Summerface::SetDrawBackground(SummerfaceBackground);

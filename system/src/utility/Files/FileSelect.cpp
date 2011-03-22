@@ -1,33 +1,17 @@
 #include <es_system.h>
 
-										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) : BookMarks(aBookMarks)
+										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
+	BookMarks(aBookMarks),
+	List(Area(10, 10, 80, 80)),
+	Interface("List", &List)
 {
+	List.SetNoDelete();
+
 	Header = aHeader;
-	InputHook = aInputHook;
+	Interface.SetHook(aInputHook);
 
-	try
-	{
-		FileList* list = new FileList(Area(10, 10, 80, 80), aPath, aBookMarks);
-		list->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
-		Summerface* sface = new Summerface("FileList", list);
-		sface->SetHook(InputHook);
-		Lists.push(sface);
-		Valid = true;
-	}
-	catch(ESException ex)
-	{
-		ESSUB_Error(ex.what());
-		Valid = false;
-	}
-}
-
-										FileSelect::~FileSelect				()
-{
-	while(Lists.size() != 0)
-	{
-		delete Lists.top();
-		Lists.pop();
-	}
+	Paths.push(aPath);
+	LoadList(aPath.c_str());
 }
 
 std::string								FileSelect::GetFile					()
@@ -38,40 +22,31 @@ std::string								FileSelect::GetFile					()
 	
 		while(!WantToDie())
 		{
-			Lists.top()->Do();
-			FileList* list = (FileList*)Lists.top()->GetWindow("FileList");			
+			Interface.Do();
 
-			if(list->WasCanceled())
+			if(List.WasCanceled())
 			{
-				if(Lists.size() == 1)
+				if(Paths.size())
+				{
+					Paths.pop();
+					continue;
+				}
+				else
 				{
 					return "";
 				}
-			
-				delete Lists.top();
-				Lists.pop();
-				
-				continue;
 			}
 			
-			if(list->GetSelected()->IntProperties["DIRECTORY"])
+			if(List.GetSelected()->IntProperties["DIRECTORY"])
 			{
-				try
-				{
-					FileList* nlist = new FileList(Area(10, 10, 80, 80), list->GetSelected()->Properties["PATH"], BookMarks);
-					nlist->SetHeader("[%s] %s", Header.c_str(), list->GetSelected()->Properties["PATH"].c_str());
-					Summerface* sface = new Summerface("FileList", nlist);
-					sface->SetHook(InputHook);
-					Lists.push(sface);
-				}
-				catch(ESException ex)
-				{
-					ESSUB_Error(ex.what());
-				}
+				Paths.push(List.GetSelected()->Properties["PATH"]);
+				List.SetHeader("[%s] %s", Header.c_str(), List.GetSelected()->Properties["PATH"].c_str());
+
+				LoadList(Paths.top().c_str());
 			}
 			else
 			{
-				return list->GetSelected()->Properties["PATH"];
+				return List.GetSelected()->Properties["PATH"];
 				break;
 			}
 		}
@@ -84,8 +59,35 @@ std::string								FileSelect::GetFile					()
 	}
 }
 
-bool									FileSelect::IsValid					()
+void								FileSelect::LoadList						(const char* aPath)
 {
-	return Valid;
+	assert(aPath);
+
+	std::vector<std::string> items;
+	Utility::ListDirectory(aPath, items);
+
+	for(int i = 0; i != items.size(); i ++)
+	{
+		List.AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/', false));
+	}
+}
+
+SummerfaceItem*						FileSelect::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark)
+{
+	std::string extension = Utility::GetExtension(aPath);
+
+	SummerfaceItem* item = new SummerfaceItem(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
+	item->IntProperties["DIRECTORY"] = aDirectory;
+	item->IntProperties["FILE"] = aFile;
+	item->IntProperties["BOOKMARK"] = aBookMark;
+	item->Properties["PATH"] = aPath;
+	item->Properties["THUMB"] = aPath + ".tbn";
+
+	if(aBookMark)
+	{
+		item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+	}
+
+	return item;
 }
 
