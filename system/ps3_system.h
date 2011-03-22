@@ -18,7 +18,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 		vsnprintf(buffer, 2048, aMessage, args);
 		va_end (args);
 
-		throw ESException(buffer);		
+		throw ESException(buffer);
 	}
 }
 
@@ -56,7 +56,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
 #include "src/utility/GUI/Menu.h"
-#include "src/utility/GUI/ListItem.h"
 #include "src/utility/GUI/Summerface.h"
 #include "src/utility/Files/FileEnumerator.h"
 #include "src/utility/Files/FileList.h"
