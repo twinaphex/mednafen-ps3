@@ -52,6 +52,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 
 #include "src/fex/fex/fex.h"
 
+#include "src/utility/FastCounter.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
 #include "src/utility/GUI/Menu.h"
