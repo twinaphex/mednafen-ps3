@@ -177,15 +177,18 @@ int					main					(int argc, char* argv[])
 	{
 		printf("%s\n", s);
 		Exit();
+		abort();
 	}
 	catch(ESException& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
+		abort();
 	}
 	catch(std::exception& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
+		abort();
 	}
 }

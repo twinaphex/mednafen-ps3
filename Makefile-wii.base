@@ -1,0 +1,42 @@
+export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
+.SUFFIXES:
+
+ifeq ($(strip $(PREFIX)),)
+PREFIX=powerpc-eabi-
+endif
+
+
+OBJCOPY		:= $(PREFIX)objcopy
+AR			:= $(PREFIX)ar
+AS			:= $(PREFIX)gcc
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+LD			:= $(CXX)
+STRIP		:= $(PREFIX)strip
+
+ifeq ($(strip $(SDLCONFIG)),)
+	SDLCONFIG=sdl-config
+endif
+
+ifeq ($(strip $(FREETYPECONFIG)),)
+	FREETYPECONFIG=freetype-config
+endif
+
+MACHDEP		:= -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
+CXXNCFLAGS	:= -DMDWII -g -O3 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -DC_CORE $(MACHDEP)
+CXXNCFLAGS	+= `$(FREETYPECONFIG) --cflags` -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/portlibs/ppc/lib 
+
+CFLAGS		+= $(CXXNCFLAGS) -std=gnu99
+CXXFLAGS	+= $(CXXNCFLAGS)
+LDFLAGS		+= -g $(MACHDEP) -L$(DEVKITPRO)/libogc/lib/wii -L$(DEVKITPRO)/portlibs/ppc/lib -L$(DEVKITPRO)/portlibs/ppc/lib/wii -lpng -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard `$(FREETYPECONFIG) --libs`
+DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
+
+
+###
+include $(TOP)/Makefile.common
+###
+
+dol: $(BUILD)-wii
+	@echo [elf2dol] $(BUILD)-wii
+	@elf2dol $(OUTPUT).elf $(OUTPUT).dol
