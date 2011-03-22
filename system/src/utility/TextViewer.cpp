@@ -1,4 +1,4 @@
-#include <ps3_system.h>
+#include <es_system.h>
 
 						TextViewer::TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile) : SummerfaceWindow(aRegion)
 {

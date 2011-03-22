@@ -1,4 +1,4 @@
-#include <ps3_system.h>
+#include <es_system.h>
 
 //TODO: This isn't thread safe
 extern "C"
