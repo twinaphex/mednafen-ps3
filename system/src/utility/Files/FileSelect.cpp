@@ -11,7 +11,7 @@
 	Interface.SetHook(aInputHook);
 
 	Paths.push(aPath);
-	LoadList(aPath.c_str());
+	LoadList(aPath.empty() ? "/" : aPath.c_str());
 }
 
 std::string								FileSelect::GetFile					()
@@ -62,6 +62,8 @@ std::string								FileSelect::GetFile					()
 void								FileSelect::LoadList						(const char* aPath)
 {
 	assert(aPath);
+
+	List.ClearItems();
 
 	std::vector<std::string> items;
 	Utility::ListDirectory(aPath, items);
