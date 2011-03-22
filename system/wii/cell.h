@@ -24,6 +24,8 @@
 
 #include <fat.h>
 #include <wiiuse/wpad.h>
+#include <ogc/mutex.h>
+#include <ogc/audio.h>
 
 #include <SDL/SDL.h>
 

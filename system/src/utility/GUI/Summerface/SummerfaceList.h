@@ -66,6 +66,7 @@ class													SummerfaceList : public SummerfaceWindow
 		virtual bool									Input							();
 
 		virtual void									AddItem							(SummerfaceItem* aItem);
+		virtual void									ClearItems						();
 
 		SummerfaceItem*									GetSelected						();
 

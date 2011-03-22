@@ -17,7 +17,7 @@ void				ESSUB_Init				()
 	//HACK: Dumb, but it works
 	while(!fatInitDefault());
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 }
 
 void				ESSUB_Quit				()

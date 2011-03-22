@@ -2,24 +2,31 @@
 
 						WiiAudio::WiiAudio				()
 {
-	SDL_AudioSpec spec;
-	spec.freq = 48000;
-	spec.format = AUDIO_S16;
-	spec.channels = 2;
-	spec.samples = 2048;
-	spec.callback = ProcessAudioCallback;
+	assert(((SegmentSize * 4) % 32) == 0); //Segment size must be multiple of 32 bytes
+	assert((((uint32_t)Buffer[0]) % 32) == 0); //Buffers must be 32 byte aligned
+	assert((((uint32_t)Buffer[1]) % 32) == 0); //Buffers must be 32 byte aligned
 
-	ReadCount = 0;
-	WriteCount = 0;
+	BufferIndex = 0;
+	memset(Buffer[0], 0, sizeof(Buffer[0]));
+	memset(Buffer[1], 0, sizeof(Buffer[1]));
+	DCFlushRange(Buffer[0], sizeof(Buffer[0]));
+	DCFlushRange(Buffer[1], sizeof(Buffer[1]));
 
-	SDL_OpenAudio(&spec, &Format);
-	SDL_PauseAudio(0);
+	LWP_MutexInit(&BufferMutex, false);
+
+	AUDIO_Init(0);
+	AUDIO_SetDSPSampleRate(AI_SAMPLERATE_48KHZ);
+	AUDIO_RegisterDMACallback(ProcessAudioCallback);
+	AUDIO_InitDMA((uint32_t)Buffer[1], SegmentSize);
+	AUDIO_StartDMA();
 }
 
 
 						WiiAudio::~WiiAudio				()
 {
-	SDL_CloseAudio();
+	AUDIO_StopDMA();
+
+	LWP_MutexDestroy(BufferMutex);
 }
 
 void					WiiAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
@@ -29,18 +36,20 @@ void					WiiAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 		Utility::Sleep(0);
 	}
 
-	SDL_LockAudio();
+	LWP_MutexLock(BufferMutex);
 	
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
 	}
 	
-	SDL_UnlockAudio();
+	LWP_MutexUnlock(BufferMutex);
 }
 
 void					WiiAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
+	LWP_MutexLock(BufferMutex);
+
 	//TODO: Fix this
 	if(GetBufferAmount() < aCount)
 	{
@@ -54,32 +63,20 @@ void					WiiAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 			aSamples[i] = RingBuffer[ReadCount & BufferMask];
 		}
 	}
+
+	LWP_MutexUnlock(BufferMutex);	
 }
 
-void					WiiAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
+void					WiiAudio::ProcessAudioCallback	()
 {
 	if(es_audio)
 	{
-		uint32_t* buffer = (uint32_t*)stream;
-	
-		uint32_t samps[8192];
-	
-		((WiiAudio*)es_audio)->GetSamples(samps, len / 4);
-	
-		for(int i = 0; i != len / 4; i ++)
-		{
-			buffer[i] = samps[i];
-		}
+		WiiAudio* audio = (WiiAudio*)es_audio;
+
+		audio->GetSamples(audio->Buffer[audio->BufferIndex], SegmentSize);
+		DCFlushRange(audio->Buffer[audio->BufferIndex], SegmentSize * 4);
+
+		AUDIO_InitDMA((uint32_t)audio->Buffer[audio->BufferIndex], SegmentSize * 4);
+		audio->BufferIndex = audio->BufferIndex == 0 ? 1 : 0;
 	}
 }
-
-volatile int32_t 		WiiAudio::GetBufferAmount		()
-{
-	return (WriteCount - ReadCount);
-}
-
-volatile int32_t 		WiiAudio::GetBufferFree			()
-{
-	return BufferSize - (WriteCount - ReadCount);
-}
-
