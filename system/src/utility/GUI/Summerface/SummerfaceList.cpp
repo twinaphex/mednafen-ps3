@@ -25,10 +25,7 @@ namespace
 
 											SummerfaceList::~SummerfaceList						()
 {
-	for(std::vector<SummerfaceItem*>::iterator iter = Items.begin(); iter != Items.end(); iter ++)
-	{
-		delete (*iter);
-	}
+	ClearItems();
 	
 	delete Model;
 }
@@ -54,6 +51,16 @@ void										SummerfaceList::AddItem								(SummerfaceItem* aItem)
 	}
 
 	Items.push_back(aItem);
+}
+
+void										SummerfaceList::ClearItems							()
+{
+	for(std::vector<SummerfaceItem*>::iterator iter = Items.begin(); iter != Items.end(); iter ++)
+	{
+		delete (*iter);
+	}
+
+	Items.clear();
 }
 
 SummerfaceItem*								SummerfaceList::GetSelected							()
