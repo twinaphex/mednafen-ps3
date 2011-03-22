@@ -458,11 +458,10 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 		{
 			std::vector<std::string> nbm;
 			FileSelect FileChooser("Select Text File", nbm, "");
-			std::string result = FileChooser.GetFile();
+			std::string filename = FileChooser.GetFile();
 
-			if(!result.empty())
+			if(!filename.empty())
 			{
-				std::string filename = Enumerators::GetEnumerator(result).ObtainFile(result);
 				TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), filename);
 				tv->SetHeader(filename);
 				Summerface("TextView", tv).Do();
