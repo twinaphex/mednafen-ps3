@@ -5,7 +5,7 @@
 #include "src/driver.h"
 #include "src/general.h"
 
-#include <ps3_system.h>
+#include <es_system.h>
 
 #include "ers.h"
 #include "filters/filter.h"

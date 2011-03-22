@@ -1,4 +1,4 @@
-#include <ps3_system.h>
+#include <es_system.h>
 
 int dup(int a){printf("dup() stub!"); return a;}
 

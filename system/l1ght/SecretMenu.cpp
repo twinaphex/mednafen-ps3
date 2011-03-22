@@ -1,4 +1,4 @@
-#include <ps3_system.h>
+#include <es_system.h>
 #include "SecretMenu.h"
 
 					L1ghtSecret::L1ghtSecret				() : SummerfaceList(Area(10, 10, 80, 80))

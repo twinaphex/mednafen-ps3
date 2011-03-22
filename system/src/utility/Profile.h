@@ -1,7 +1,7 @@
 #ifndef ES_PROFILE_H
 #define ES_PROFILE_H
 
-#include "../../ps3_system.h"
+#include "../../es_system.h"
 
 class						Profile
 {
