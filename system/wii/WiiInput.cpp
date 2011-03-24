@@ -2,7 +2,6 @@
 
 					WiiInput::WiiInput						()
 {
-	WPAD_Init();
 }
 
 					WiiInput::~WiiInput						()

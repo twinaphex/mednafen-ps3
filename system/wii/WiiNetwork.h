@@ -9,9 +9,11 @@ class								WiiSocket : public ESSocket
 
 		virtual uint32_t			ReadString			(void* aBuffer, uint32_t aLength);
 		virtual uint32_t			Read				(void* aBuffer, uint32_t aLength);
+		virtual void				WriteString			(const char* aBuffer) {Write(aBuffer, strlen(aBuffer));};//TODO: Make for everyone!
 		virtual void				Write				(const void* aBuffer, uint32_t aLength);
 
 	protected:
+		int							Socket;
 };
 
 class								WiiNetwork : public ESNetwork

@@ -7,7 +7,7 @@ namespace
 	bool			want_to_die = false;
 };
 
-void				SetExit					()
+void				SetExit					(int32_t aChan)
 {
 	want_to_die = true;
 }
@@ -17,12 +17,13 @@ void				ESSUB_Init				()
 	//HACK: Dumb, but it works
 	while(!fatInitDefault());
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+	VIDEO_Init();
+	WPAD_Init();
+	AUDIO_Init(0);
 }
 
 void				ESSUB_Quit				()
 {
-	SDL_Quit();
 }
 
 ESVideo*			ESSUB_MakeVideo			()
@@ -37,7 +38,9 @@ ESAudio*			ESSUB_MakeAudio			()
 
 ESInput*			ESSUB_MakeInput			()
 {
-	return new WiiInput();
+	ESInput* input = new WiiInput();
+	WPAD_SetPowerButtonCallback(SetExit);
+	return input;
 }
 
 ESNetwork*			ESSUB_MakeNetwork		()
