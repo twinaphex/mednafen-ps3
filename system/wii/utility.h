@@ -93,12 +93,15 @@ class				Utility
 	
 		static uint32_t					GetTicks					()
 		{
-			return SDL_GetTicks();
+			//Stolen from SDL wii
+			const uint64_t ticks      = gettime();
+			const uint64_t ms         = ticks / TB_TIMER_CLOCK;
+			return ms;
 		}
 
 		static void						Sleep						(uint32_t aMilliseconds)
 		{
-			SDL_Delay(aMilliseconds);
+			usleep(aMilliseconds * 1000);
 		}
 
 		static std::vector<std::string>	StringToVector				(const std::string& aString, char aSeparate)

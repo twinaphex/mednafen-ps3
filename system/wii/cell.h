@@ -20,14 +20,16 @@
 #include <exception>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <png.h>
+
+#include <malloc.h>
 
 #include <fat.h>
+#include <network.h>
 #include <wiiuse/wpad.h>
 #include <ogc/mutex.h>
 #include <ogc/audio.h>
-
-#include <SDL/SDL.h>
+#include <ogc/lwp_watchdog.h>
+#include <png.h>
 
 extern "C"
 {
