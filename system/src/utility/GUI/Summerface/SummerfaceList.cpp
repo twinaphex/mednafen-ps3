@@ -17,7 +17,7 @@ namespace
 	SelectedIndex(0),
 	Canceled(false),
 	LabelFont(FontManager::GetBigFont()),
-	Model(new LineListModel(this))
+	View(new AnchoredListView(this))
 	
 {
 }
@@ -25,7 +25,7 @@ namespace
 											SummerfaceList::~SummerfaceList						()
 {
 	ClearItems();
-	delete Model;
+	delete View;
 }
 
 void										SummerfaceList::SetSelection						(uint32_t aIndex)
@@ -73,12 +73,12 @@ void										SummerfaceList::SetFont								(Font* aFont)
 	LabelFont = aFont;
 }
 
-void										SummerfaceList::SetModel							(ListModel* aModel)
+void										SummerfaceList::SetView								(ListView* aView)
 {
-	ErrorCheck(aModel, "SummerfaceList::SetModel: Model must not be null");
+	ErrorCheck(aView, "SummerfaceList::SetView: View must not be null");
 
-	delete Model;
-	Model = aModel;
+	delete View;
+	View = aView;
 }
 
 void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*))
@@ -87,7 +87,7 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 }
 
 
-											GridListModel::GridListModel						(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
+											GridListView::GridListView							(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
 	List(aList),
 	Width(aWidth),
 	Height(aHeight),
@@ -96,11 +96,11 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 	RefreshHeader(true),
 	DrawLabels(aLabels)
 {
-	ErrorCheck(Width != 0 && Height != 0 && Width <= 16 && Height <= 16, "GridListModel::GridListModel: Grid dimensions out of range. [X: %d, Y: %d]", Width, Height);
+	ErrorCheck(Width != 0 && Height != 0 && Width <= 16 && Height <= 16, "GridListView::GridListView: Grid dimensions out of range. [X: %d, Y: %d]", Width, Height);
 }
 
 
-bool										GridListModel::Input								()
+bool										GridListView::Input									()
 {
 	uint32_t oldIndex = List->GetSelection();
 	int32_t XSelection = List->GetSelection() % Width;
@@ -125,7 +125,7 @@ bool										GridListModel::Input								()
 		FirstItem += Width;
 	}
 	
-	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->Items.size() + Width))
+	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->GetItemCount() + Width))
 	{
 		FirstItem -= Width;
 	}
@@ -137,7 +137,7 @@ bool										GridListModel::Input								()
 	
 
 	List->SetSelection(FirstItem + (YSelection * Width + XSelection));
-	if(List->GetSelection() >= List->Items.size())
+	if(List->GetSelection() >= List->GetItemCount())
 	{
 		List->SetSelection(oldIndex);
 	}
@@ -154,7 +154,7 @@ bool										GridListModel::Input								()
 		return true;
 	}
 
-	if(List->GetInputConduit() && List->GetSelection() < List->Items.size())
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
 	{
 		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
@@ -167,7 +167,7 @@ bool										GridListModel::Input								()
 	return false;
 }
 
-bool										GridListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
+bool										GridListView::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 	
@@ -211,7 +211,7 @@ bool										GridListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX
 	return false;
 }
 
-bool										GridListModel::Draw									()
+bool										GridListView::Draw									()
 {
 	uint32_t iconWidth = es_video->GetClip().Width / Width - 4;
 	uint32_t iconHeight = es_video->GetClip().Height / Height - 4;	
@@ -223,7 +223,7 @@ bool										GridListModel::Draw									()
 	{
 		for(int j = 0; j != Width; j ++)
 		{
-			if(FirstItem + (i * Width + j) >= List->Items.size())
+			if(FirstItem + (i * Width + j) >= List->GetItemCount())
 			{
 				break;
 			}
@@ -235,14 +235,14 @@ bool										GridListModel::Draw									()
 	return false;
 }
 
-											LineListModel::LineListModel						(SummerfaceList* aList) :
+											AnchoredListView::AnchoredListView					(SummerfaceList* aList) :
 	List(aList),
 	FirstLine(0),
 	LinesDrawn(0)
 {
 }
 
-bool										LineListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool										AnchoredListView::DrawItem							(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 
@@ -259,7 +259,7 @@ bool										LineListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX
 	return false;
 }
 
-bool										LineListModel::Draw									()
+bool										AnchoredListView::Draw								()
 {
 	if(List->GetItemCount() != 0)
 	{
@@ -300,7 +300,7 @@ bool										LineListModel::Draw									()
 	return false;
 }
 
-bool										LineListModel::Input								()
+bool										AnchoredListView::Input								()
 {
 	uint32_t oldIndex = List->GetSelection();
 	if(List->GetItemCount() != 0)
@@ -333,6 +333,3 @@ bool										LineListModel::Input								()
 	
 	return false;
 }
-
-
-
