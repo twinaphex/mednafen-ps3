@@ -61,6 +61,7 @@ void										SummerfaceList::ClearItems							()
 	}
 
 	Items.clear();
+	SelectedIndex = 0;
 }
 
 SummerfaceItem*								SummerfaceList::GetSelected							()
