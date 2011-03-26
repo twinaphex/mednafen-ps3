@@ -44,27 +44,20 @@
 
 void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 {
-	if(info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-	{
-		for(int i = 0; i != Height; i ++)
-		{
-			memcpy(aTexture->GetPixels() + (aTexture->GetPitch() * i), row_pointers[i], Width * 4);
-		}
-	}
-	else
-	{
-		for(int i = 0; i != Height; i ++)
-		{
-			uint32_t* dest = aTexture->GetPixels() + (aTexture->GetPitch() * i);
-			uint8_t* source = row_pointers[i];
+	aTexture->Clear(0);
 
-			for(int j = 0; j != Width; j ++)
-			{
-				uint32_t r = *source ++;
-				uint32_t g = *source ++;
-				uint32_t b = *source ++;
-				*dest++ = (r << 0) | (g << 8) | (b << 16) | 0xFF000000;
-			}
+	for(int i = 0; i != Height; i ++)
+	{
+		uint32_t* dest = aTexture->GetPixels() + (aTexture->GetPitch() * i);
+		uint8_t* source = row_pointers[i];
+
+		for(int j = 0; j != Width; j ++)
+		{
+			uint32_t a = PNG_COLOR_TYPE_RGB_ALPHA ? *source++ : 0xFF;
+			uint32_t r = *source ++;
+			uint32_t g = *source ++;
+			uint32_t b = *source ++;
+			*dest++ = aTexture->ConvertPixel(r, g, b, a);
 		}
 	}
 }
