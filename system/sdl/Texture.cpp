@@ -40,11 +40,6 @@ uint32_t*				SDLTexture::GetPixels				()
 	Valid = false;
 	return Pixels;
 }
-		
-void					SDLTexture::SetFilter				(uint32_t aOn)
-{
-	Filter = aOn == 0 ? 0 : 1;
-}
 
 void					SDLTexture::Apply					()
 {
