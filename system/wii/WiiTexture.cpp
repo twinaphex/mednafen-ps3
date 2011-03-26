@@ -9,7 +9,7 @@
 	AdjustedHeight(MultipleOfFour(aHeight)),
 	Filter(0),
 	Pixels(0),
-	Valid(false),
+	Valid(false)
 {
 	//TODO: Max is 1024x1024 on Wii!
 	ErrorCheck(Pitch != 0 && AdjustedHeight != 0 && Pitch <= 2048 && AdjustedHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", Pitch, AdjustedHeight);
