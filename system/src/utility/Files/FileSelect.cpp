@@ -1,13 +1,16 @@
 #include <es_system.h>
 
 										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
-	BookMarks(aBookMarks),
 	List(Area(10, 10, 80, 80)),
-	Interface("List", &List)
+	Interface("List", &List),
+	Valid(true),
+	Header(aHeader),
+	BookMarks(aBookMarks)
+
 {
 	List.SetNoDelete();
+	List.SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
-	Header = aHeader;
 	Interface.SetHook(aInputHook);
 
 	Paths.push(aPath);
@@ -26,9 +29,10 @@ std::string								FileSelect::GetFile					()
 
 			if(List.WasCanceled())
 			{
-				if(Paths.size())
+				if(Paths.size() > 1)
 				{
 					Paths.pop();
+					LoadList(Paths.top().c_str());
 					continue;
 				}
 				else
