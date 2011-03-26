@@ -62,21 +62,22 @@ void					WiiTexture::Apply					()
 		Pixels = newbuf;
 
 		DCFlushRange(Pixels, Pitch * AdjustedHeight * 4);
+
+		//Needed?
+		GX_InvalidateTexAll();
 	}
 	else if(!Valid)
 	{
+		Valid = true;
+
 		//TODO: Convert texture
 		DCFlushRange(Pixels, Width * Height * 4);
-		Valid = true;
-	}
 
-//Needed?
-	GX_InvalidateTexAll();
+		//Needed?
+		GX_InvalidateTexAll();
+
+	}
 
 	GX_InitTexObj(&TextureObject, Pixels, Pitch, AdjustedHeight, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
 	GX_LoadTexObj(&TextureObject, GX_TEXMAP0);
-
-//Needed?
-	GX_SetTevOp(GX_TEVSTAGE0,GX_REPLACE);
-	GX_SetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
 }

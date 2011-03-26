@@ -56,6 +56,9 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 
 	//Seutp vertex format
 	GX_ClearVtxDesc();
+
+	GX_SetBlendMode(GX_BM_BLEND,GX_BL_SRCALPHA,GX_BL_INVSRCALPHA,GX_LO_CLEAR);
+
 	GX_SetVtxDesc(GX_VA_POS, GX_DIRECT);
 	GX_SetVtxDesc(GX_VA_CLR0, GX_DIRECT);
 	GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
@@ -64,12 +67,14 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
 
+	GX_SetTevOp(GX_TEVSTAGE0, GX_MODULATE);
+	GX_SetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+
 	GX_SetNumChans(1);
 	GX_SetNumTexGens(1);
 	GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
 
-    GX_InvVtxCache();
-	GX_InvalidateTexAll();
+	GX_Flush();
 
 	//Setup View
 	memset(&view, 0, sizeof(Mtx));

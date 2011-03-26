@@ -23,7 +23,7 @@
 	
 	if (setjmp(png_jmpbuf(png_ptr))) Abort("[read_png_file] Error during read_image");
 	
-#ifdef L1GHT	
+#if defined(L1GHT) || defined(MDWII)
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
 #else
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_BGR, 0);
@@ -48,14 +48,14 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 	{
 		for(int i = 0; i != Height; i ++)
 		{
-			memcpy(aTexture->GetPixels() + (aTexture->GetWidth() * i), row_pointers[i], Width * 4);
+			memcpy(aTexture->GetPixels() + (aTexture->GetPitch() * i), row_pointers[i], Width * 4);
 		}
 	}
 	else
 	{
 		for(int i = 0; i != Height; i ++)
 		{
-			uint32_t* dest = aTexture->GetPixels() + (aTexture->GetWidth() * i);
+			uint32_t* dest = aTexture->GetPixels() + (aTexture->GetPitch() * i);
 			uint8_t* source = row_pointers[i];
 
 			for(int j = 0; j != Width; j ++)

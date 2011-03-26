@@ -60,10 +60,10 @@ void				InitES					(void (*aExitFunction)())
 
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
 
+	es_network = ESSUB_MakeNetwork();
 	es_video = ESSUB_MakeVideo();
 	es_audio = ESSUB_MakeAudio();
 	es_input = ESSUB_MakeInput();
-	es_network = ESSUB_MakeNetwork();
 
 	FontManager::InitFonts();
 	ImageManager::CreateScratch();

@@ -89,8 +89,10 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 		if(character->Width != 0 && character->Height != 0)
 		{
 			character->CharTexture = es_video->CreateTexture(FontFace->glyph->bitmap.width, FontFace->glyph->bitmap.rows);
+			character->CharTexture->Clear(0);
 		
 			uint32_t* pixels = character->CharTexture->GetPixels();
+			uint32_t pitch = character->CharTexture->GetPitch();
 	
 			for(int y = 0; y != FontFace->glyph->bitmap.rows; y ++)
 			{
@@ -98,7 +100,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 			
 				for(int x = 0; x != FontFace->glyph->bitmap.width; x ++)
 				{
-					pixels[y * character->Width + x] = 0xFFFFFF | (row[x] << 24);
+					pixels[y * pitch + x] = (0xFFFFFF << 8) | (row[x]);
 				}
 			}
 		}
