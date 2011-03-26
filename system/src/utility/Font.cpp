@@ -100,7 +100,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 			
 				for(int x = 0; x != FontFace->glyph->bitmap.width; x ++)
 				{
-					pixels[y * pitch + x] = (0xFFFFFF << 8) | (row[x]);
+					pixels[y * pitch + x] = character->CharTexture->ConvertPixel(0xFF, 0xFF, 0xFF, row[x]);
 				}
 			}
 		}
