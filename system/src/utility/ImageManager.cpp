@@ -23,11 +23,7 @@
 	
 	if (setjmp(png_jmpbuf(png_ptr))) Abort("[read_png_file] Error during read_image");
 	
-#if defined(L1GHT) || defined(MDWII)
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
-#else
-	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_BGR, 0);
-#endif
 	
 	fclose(fp);
 
