@@ -19,11 +19,11 @@ namespace								MednafenSettings
 
 	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;
 
-	class								SettingLineModel : public LineListModel
+	class								SettingLineView : public AnchoredListView
 	{
 		public:
-										SettingLineModel								(SummerfaceList* aList) : LineListModel(aList){RefreshHeader = true;}
-			virtual						~SettingLineModel								(){}
+										SettingLineView									(SummerfaceList* aList) : AnchoredListView(aList){RefreshHeader = true;}
+			virtual						~SettingLineView								(){}
 
 			void						DoHeaderRefresh									()
 			{
@@ -37,7 +37,7 @@ namespace								MednafenSettings
 
 			virtual bool				DrawItem										(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
 			{
-				LineListModel::DrawItem(aItem, aX, aY, aSelected);
+				AnchoredListView::DrawItem(aItem, aX, aY, aSelected);
 
 				const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
 
@@ -177,7 +177,7 @@ namespace								MednafenSettings
 					if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
 					{
 						SummerfaceItem* selected = List->GetSelected();
-						bool output = LineListModel::Input();
+						bool output = AnchoredListView::Input();
 
 						if(selected != List->GetSelected())
 						{
@@ -261,7 +261,7 @@ namespace								MednafenSettings
 	static void							DoCategory										(std::vector<const MDFNCS*>& aSettings)
 	{
 		SummerfaceList* settingList = new SummerfaceList(Area(10, 10, 80, 80));
-		settingList->SetModel(new SettingLineModel(settingList));
+		settingList->SetView(new SettingLineView(settingList));
 	
 		for(int i = 0; i != aSettings.size(); i ++)
 		{

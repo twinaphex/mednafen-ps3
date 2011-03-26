@@ -1,21 +1,21 @@
 #ifndef SYSTEM__SUMMERFACE_LIST_H
 #define SYSTEM__SUMMERFACE_LIST_H
 
-class													ListModel
+class													ListView
 {
 	public:
-		virtual											~ListModel						(){}
+		virtual											~ListView						(){}
 	
 		virtual bool									Input							() = 0;
 		virtual bool									Draw							() = 0;
 };
 
 class													SummerfaceList;
-class													LineListModel : public ListModel
+class													AnchoredListView : public ListView
 {
 	public:
-														LineListModel					(SummerfaceList* aList); //External
-														~LineListModel					() {};
+														AnchoredListView				(SummerfaceList* aList); //External
+														~AnchoredListView				() {};
 														
 		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
 														
@@ -28,11 +28,11 @@ class													LineListModel : public ListModel
 		uint32_t										LinesDrawn;
 };
 
-class													GridListModel : public ListModel
+class													GridListView : public ListView
 {
 	public:
-														GridListModel					(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false); //External
-		virtual											~GridListModel					() {};
+														GridListView					(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false); //External
+		virtual											~GridListView					() {};
 		
 		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected); //External
 		
@@ -54,16 +54,12 @@ class													GridListModel : public ListModel
 
 class													SummerfaceList : public SummerfaceWindow
 {
-	friend class										ListModel;
-	friend class										LineListModel;
-	friend class										GridListModel;
-
 	public:
 														SummerfaceList					(const Area& aRegion); //External
 		virtual											~SummerfaceList					(); //External
 
-		virtual bool									Draw							() {return Model->Draw();};
-		virtual bool									Input							() {return Model->Draw();};
+		virtual bool									Draw							() {return View->Draw();};
+		virtual bool									Input							() {return View->Draw();};
 
 
 		uint32_t										GetSelection					() const {return SelectedIndex;};
@@ -83,8 +79,8 @@ class													SummerfaceList : public SummerfaceWindow
 		void											SetFont							(Font* aFont); //External
 		Font*											GetFont							() const {return LabelFont;}
 
-		void											SetModel						(ListModel* aModel); //External
-		ListModel*										GetModel						() const {return Model;}
+		void											SetView							(ListView* aView); //External
+		ListView*										GetView							() const {return View;}
 
 		void											Sort							(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*) = 0); //External
 
@@ -94,7 +90,7 @@ class													SummerfaceList : public SummerfaceWindow
 
 		Font*											LabelFont;
 		
-		ListModel*										Model;
+		ListView*										View;
 		std::vector<SummerfaceItem*>					Items;
 };
 

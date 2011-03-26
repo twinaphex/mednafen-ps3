@@ -413,7 +413,7 @@ void						MednafenEmu::DoCommands			()
 	};
 
 	SummerfaceList* grid = new SummerfaceList(Area(25, 25, 50, 50));
-	grid->SetModel(new GridListModel(grid, 4, 3, true, false));
+	grid->SetView(new GridListView(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
 	grid->SetInputConduit(new SummerfaceStaticConduit(DoCommand, 0), true);
 	for(int i = 0; i != 12; i ++)
