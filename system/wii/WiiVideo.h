@@ -53,7 +53,7 @@ class								WiiVideo : public ESVideo
 									WiiVideo				();
 									~WiiVideo				();
 	
-		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight, true);};//HACK
+		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight, aStatic);};
 	
 		bool						IsWideScreen			() {return true;};
 
