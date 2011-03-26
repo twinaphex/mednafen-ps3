@@ -254,7 +254,7 @@ bool										GridListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
 		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
 		
-		es_video->PlaceTexture(image, x, y, w, h, 0xFFFFFFFF, &ImageArea);
+		es_video->PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
 
 		if(DrawLabels)
 		{
@@ -314,7 +314,7 @@ bool										LineListModel::DrawItem								(SummerfaceItem* aItem, uint32_t aX
 	{
 		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(List->LabelFont->GetHeight() - 4) / (double)image->GetHeight()));
 
-		es_video->PlaceTexture(image, aX, aY + 2, width, List->LabelFont->GetHeight() - 4);
+		es_video->PlaceTexture(image, Area(aX, aY + 2, width, List->LabelFont->GetHeight() - 4), Area(0, 0, image->GetWidth(), image->GetHeight()), 0xFFFFFFFF);
 		aX += width;
 	}
 

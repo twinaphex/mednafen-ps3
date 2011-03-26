@@ -35,6 +35,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	//Copy size
 	esScreenWidth = ScreenMode->fbWidth;
 	esScreenHeight = ScreenMode->efbHeight;
+	esWideScreen = false;
 
 	//Setup GX
 	FIFOBuffer = memalign(32, FIFOSize);
@@ -87,7 +88,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	GX_LoadProjectionMtx (p, GX_ORTHOGRAPHIC);
 
 	//Create the filler texture
-	FillerTexture = CreateTexture(2, 2, true);
+	FillerTexture = CreateTexture(4, 4, true);
 	FillerTexture->Clear(0xFFFFFFFF);
 }
 
@@ -131,58 +132,46 @@ void					WiiVideo::Flip					()
 	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
 }
 
-void					WiiVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
+
+void					WiiVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
-	aX += esClip.X;
-	aY += esClip.Y;
-
-	Area texArea;
-	if(aArea)
-	{
-		texArea = *aArea;
-	}
-	else
-	{
-		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
-	}
-
+	((WiiTexture*)aTexture)->Apply(aSource.Right(), aSource.Bottom());
 
 	uint8_t r = ((aColor >> 24) & 0xFF);
 	uint8_t g = ((aColor >> 16) & 0xFF);
 	uint8_t b = ((aColor >> 8) & 0xFF);
 	uint8_t a = ((aColor >> 0) & 0xFF);	
 
-	GX_InvVtxCache();
-	((WiiTexture*)aTexture)->Apply();
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-		GX_Position3s16(aX, aY, -250);
+		GX_Position3s16(esClip.X + aDestination.X, esClip.Y + aDestination.Y, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2u16(texArea.X, texArea.Y);
+		GX_TexCoord2u16(aSource.X, aSource.Y);
 
-		GX_Position3s16(aX + aWidth, aY, -250);
+		GX_Position3s16(esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2u16(texArea.Right(), texArea.Y);
+		GX_TexCoord2u16(aSource.Right(), aSource.Y);
 
-		GX_Position3s16(aX + aWidth, aY + aHeight, -250);
+		GX_Position3s16(esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2u16(texArea.Right(), texArea.Bottom());
+		GX_TexCoord2u16(aSource.Right(), aSource.Bottom());
 
-		GX_Position3s16(aX, aY + aHeight, -250);
+		GX_Position3s16(esClip.X + aDestination.X, esClip.Y + aDestination.Bottom(), -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2u16(texArea.X, texArea.Bottom());
+		GX_TexCoord2u16(aSource.X, aSource.Bottom());
 	GX_End();
 }
 
-void					WiiVideo::FillRectangle			(Area aArea, uint32_t aColor)
+void					WiiVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
 {
-	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
+	PlaceTexture(FillerTexture, aArea, Area(0, 0, 4, 4), aColor);
 }
 
-void					WiiVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					WiiVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
+	((WiiTexture*)aTexture)->Apply(aViewPort.Right(), aViewPort.Bottom());
+
 	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
-	((WiiTexture*)aTexture)->Apply();
 	GX_SetBlendMode(GX_BM_NONE, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
 		GX_Position3s16(output.X, output.Y, -250);

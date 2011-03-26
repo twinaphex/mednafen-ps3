@@ -46,7 +46,7 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 			
 			if(chara && chara->CharTexture)
 			{
-				es_video->PlaceTexture(chara->CharTexture, aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height, aColor);
+				es_video->PlaceTexture(chara->CharTexture, Area(aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height), chara->TextureArea, aColor);
 			}
 			
 			if(chara)
@@ -89,6 +89,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 		if(character->Width != 0 && character->Height != 0)
 		{
 			character->CharTexture = es_video->CreateTexture(FontFace->glyph->bitmap.width, FontFace->glyph->bitmap.rows, true);
+			character->TextureArea = Area(0, 0, character->CharTexture->GetWidth(), character->CharTexture->GetHeight());
 			character->CharTexture->Clear(0);
 		
 			uint32_t* pixels = character->CharTexture->GetPixels();
