@@ -1,19 +1,17 @@
 #include <es_system.h>
 
-											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : SummerfaceList(aRegion)
+											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : 
+	SummerfaceList(aRegion),
+	FileName(aFileName),
+	Archive(0)
 {
-	FileName = aFileName;
-
-	if(0 != fex_open(&Archive, aFileName.c_str()))
-	{
-		throw ESException("ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
-	}
+	ErrorCheck(0 != fex_open(&Archive, FileName.c_str()), "ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
 
 	while(!fex_done(Archive))
 	{
 		if(fex_name(Archive) != 0)
 		{
-			Items.push_back(new SummerfaceItem(fex_name(Archive), ""));
+			AddItem(new SummerfaceItem(fex_name(Archive), ""));
 		}
 		
 		fex_next(Archive);
@@ -27,7 +25,7 @@
 	fex_close(Archive);		
 }
 
-uint32_t									ArchiveList::GetSelectedSize				()
+uint32_t									ArchiveList::GetSelectedSize				() const
 {
 	FindFexFile(GetSelected()->GetText());
 
@@ -35,7 +33,7 @@ uint32_t									ArchiveList::GetSelectedSize				()
 	return fex_size(Archive);
 }
 
-void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
+void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData) const
 {
 	FindFexFile(GetSelected()->GetText());
 
@@ -43,12 +41,7 @@ void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData)
 	fex_read(Archive, aData, aSize);
 }
 
-std::string									ArchiveList::GetSelectedFileName			()
-{
-	return GetSelected()->GetText();
-}
-
-void										ArchiveList::FindFexFile					(const std::string& aFileName)
+void										ArchiveList::FindFexFile					(const std::string& aFileName) const
 {
 	fex_rewind(Archive);
 

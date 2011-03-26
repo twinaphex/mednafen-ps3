@@ -14,13 +14,13 @@ class													SummerfaceList;
 class													LineListModel : public ListModel
 {
 	public:
-														LineListModel					(SummerfaceList* aList);
-														~LineListModel					();
+														LineListModel					(SummerfaceList* aList); //External
+														~LineListModel					() {};
 														
-		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected);
+		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
 														
-		virtual bool									Input							();
-		virtual bool									Draw							();
+		virtual bool									Input							(); //External
+		virtual bool									Draw							(); //External
 
 	protected:
 		SummerfaceList*									List;
@@ -31,13 +31,13 @@ class													LineListModel : public ListModel
 class													GridListModel : public ListModel
 {
 	public:
-														GridListModel					(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false);
-		virtual											~GridListModel					();
+														GridListModel					(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false); //External
+		virtual											~GridListModel					() {};
 		
-		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);
+		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected); //External
 		
-		virtual bool									Input							();
-		virtual bool									Draw							();
+		virtual bool									Input							(); //External
+		virtual bool									Draw							(); //External
 		
 	protected:
 		SummerfaceList*									List;
@@ -59,36 +59,43 @@ class													SummerfaceList : public SummerfaceWindow
 	friend class										GridListModel;
 
 	public:
-														SummerfaceList					(const Area& aRegion);
-		virtual											~SummerfaceList					();
+														SummerfaceList					(const Area& aRegion); //External
+		virtual											~SummerfaceList					(); //External
 
-		virtual bool									Draw							();
-		virtual bool									Input							();
+		virtual bool									Draw							() {return Model->Draw();};
+		virtual bool									Input							() {return Model->Draw();};
 
-		virtual void									AddItem							(SummerfaceItem* aItem);
-		virtual void									ClearItems						();
 
-		SummerfaceItem*									GetSelected						();
+		uint32_t										GetSelection					() const {return SelectedIndex;};
+		void											SetSelection					(uint32_t aIndex); //External
+		void											SetSelection					(const std::string& aText); //External
 
-		uint32_t										GetItemCount					();
-		void											SetSelection					(uint32_t aIndex);
-		void											SetSelection					(const std::string& aText);
+		SummerfaceItem*									GetSelected						() const {return (SelectedIndex < Items.size()) ? Items[SelectedIndex] : 0;};
+		SummerfaceItem*									GetItem							(uint32_t aIndex) {return (aIndex < Items.size()) ? Items[aIndex] : 0;};
 
-		bool											WasCanceled						();
+		virtual void									AddItem							(SummerfaceItem* aItem); //External
+		virtual void									ClearItems						(); //External
 
-		void											SetFont							(Font* aFont);
-		void											SetModel						(ListModel* aModel);
+		uint32_t										GetItemCount					() const {return Items.size();}
+		bool											WasCanceled						() const {return Canceled;};
+		void											SetCanceled						(bool aCanceled) {Canceled = aCanceled;};
 
-		void											Sort							(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*) = 0);
+		void											SetFont							(Font* aFont); //External
+		Font*											GetFont							() const {return LabelFont;}
 
-	protected:
-		std::vector<SummerfaceItem*>					Items;
+		void											SetModel						(ListModel* aModel); //External
+		ListModel*										GetModel						() const {return Model;}
+
+		void											Sort							(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*) = 0); //External
+
+	private:
 		uint32_t										SelectedIndex;
 		bool											Canceled;
 
 		Font*											LabelFont;
 		
 		ListModel*										Model;
+		std::vector<SummerfaceItem*>					Items;
 };
 
 #endif
