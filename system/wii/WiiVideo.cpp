@@ -64,7 +64,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
 
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
 
 	GX_SetTevOp(GX_TEVSTAGE0, GX_MODULATE);
@@ -72,7 +72,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 
 	GX_SetNumChans(1);
 	GX_SetNumTexGens(1);
-	GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
+	GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX3x4, GX_TG_TEX0, GX_TEXMTX0);
 
 	GX_Flush();
 
@@ -83,7 +83,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 
 	//Setup Projection
 	Mtx44 p;
-	guOrtho(p, 0, 480, 0, 680, 100, 1000); // matrix, t, b, l, r, n, f
+	guOrtho(p, 0, esScreenHeight, 0, esScreenWidth, 100, 1000); // matrix, t, b, l, r, n, f
 	GX_LoadProjectionMtx (p, GX_ORTHOGRAPHIC);
 
 	//Create the filler texture
@@ -157,19 +157,19 @@ void					WiiVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
 		GX_Position3f32(aX, aY, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2f32(0, 0);
+		GX_TexCoord2u16(texArea.X, texArea.Y);
 
 		GX_Position3f32(aX + aWidth, aY, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2f32(1, 0);
+		GX_TexCoord2u16(texArea.Right(), texArea.Y);
 
 		GX_Position3f32(aX + aWidth, aY + aHeight, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2f32(1, 1);
+		GX_TexCoord2u16(texArea.Right(), texArea.Bottom());
 
 		GX_Position3f32(aX, aY + aHeight, -250);
 		GX_Color4u8(r, g, b, a);
-		GX_TexCoord2f32(0, 1);
+		GX_TexCoord2u16(texArea.X, texArea.Bottom());
 	GX_End();
 }
 

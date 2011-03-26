@@ -80,4 +80,9 @@ void					WiiTexture::Apply					()
 
 	GX_InitTexObj(&TextureObject, Pixels, Pitch, AdjustedHeight, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
 	GX_LoadTexObj(&TextureObject, GX_TEXMAP0);
+
+	Mtx matrix;
+	guMtxIdentity(matrix);
+	guMtxScale(matrix, 1.0f / (float)Pitch, 1.0f / (float)AdjustedHeight, 1);
+	GX_LoadTexMtxImm(matrix, GX_TEXMTX0, GX_MTX3x4);
 }
