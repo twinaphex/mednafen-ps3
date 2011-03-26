@@ -9,8 +9,8 @@ class							Area
 	public:
 		int32_t					X, Y, Width, Height;
 		
-		int32_t					Right					()		{return X + Width;}
-		int32_t					Bottom					()		{return Y + Height;}
+		int32_t					Right					() const {return X + Width;}
+		int32_t					Bottom					() const {return Y + Height;}
 
 								Area					(int32_t aX = 0, int32_t aY = 0, int32_t aWidth = 0, int32_t aHeight = 0)
 		{
@@ -28,15 +28,8 @@ class								ESVideo
 	
 		virtual Texture*			CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) = 0;
 	
-		virtual uint32_t			GetScreenWidth			()
-		{
-			return esScreenWidth;
-		}
-		
-		virtual uint32_t			GetScreenHeight			()
-		{
-			return esScreenHeight;
-		}
+		virtual uint32_t			GetScreenWidth			() const {return esScreenWidth;}
+		virtual uint32_t			GetScreenHeight			() const {return esScreenHeight;}
 		
 		virtual bool				IsWideScreen			() = 0;
 	
@@ -52,10 +45,7 @@ class								ESVideo
 			}
 		}
 		
-		virtual Area				GetClip					()
-		{
-			return esClip;
-		}
+		virtual Area				GetClip					() const {return esClip;}
 	
 		virtual void				Flip					() = 0;
 		
