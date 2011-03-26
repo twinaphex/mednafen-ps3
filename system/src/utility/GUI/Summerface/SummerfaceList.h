@@ -1,6 +1,8 @@
 #ifndef SYSTEM__SUMMERFACE_LIST_H
 #define SYSTEM__SUMMERFACE_LIST_H
 
+class													SummerfaceList;
+
 class													ListView
 {
 	public:
@@ -10,11 +12,10 @@ class													ListView
 		virtual bool									Draw							() = 0;
 };
 
-class													SummerfaceList;
 class													AnchoredListView : public ListView
 {
 	public:
-														AnchoredListView				(SummerfaceList* aList); //External
+														AnchoredListView				(SummerfaceList* aList, bool aAnchored = true, bool aWrap = true); //External
 														~AnchoredListView				() {};
 														
 		virtual bool									DrawItem						(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
@@ -24,8 +25,11 @@ class													AnchoredListView : public ListView
 
 	protected:
 		SummerfaceList*									List;
-		uint32_t										FirstLine;
+		int32_t											FirstLine;
 		uint32_t										LinesDrawn;
+
+		bool											Anchored;
+		bool											Wrap;
 };
 
 class													GridListView : public ListView
@@ -59,7 +63,7 @@ class													SummerfaceList : public SummerfaceWindow
 		virtual											~SummerfaceList					(); //External
 
 		virtual bool									Draw							() {return View->Draw();};
-		virtual bool									Input							() {return View->Draw();};
+		virtual bool									Input							() {return View->Input();};
 
 
 		uint32_t										GetSelection					() const {return SelectedIndex;};

@@ -235,10 +235,12 @@ bool										GridListView::Draw									()
 	return false;
 }
 
-											AnchoredListView::AnchoredListView					(SummerfaceList* aList) :
+											AnchoredListView::AnchoredListView					(SummerfaceList* aList, bool aAnchored, bool aWrap) :
 	List(aList),
 	FirstLine(0),
-	LinesDrawn(0)
+	LinesDrawn(0),
+	Anchored(aAnchored),
+	Wrap(aWrap)
 {
 }
 
@@ -266,34 +268,17 @@ bool										AnchoredListView::Draw								()
 		uint32_t itemheight = List->GetFont()->GetHeight();
 		LinesDrawn = es_video->GetClip().Height / itemheight;
 		
-		//TODO: Fix it to draw one or two line lists!
-		if(LinesDrawn < 3)
-		{
-			return true;
-		}
-		
 		uint32_t online = 0;
-	
-		for(int i = List->GetSelection() - LinesDrawn / 2; i != List->GetSelection() + LinesDrawn / 2 + 2; i ++)
+		int onitem = Anchored ? List->GetSelection() - LinesDrawn / 2 : FirstLine;
+
+		for(int i = 0; i != LinesDrawn + 2; i ++, onitem ++, online ++)
 		{
-			if(i < 0)
+			if(onitem < 0 || onitem >= List->GetItemCount())
 			{
-				online ++;
 				continue;
 			}
-		
-			if(i >= List->GetItemCount())
-			{
-				break;
-			}
-			
-
-			if(DrawItem(List->GetItem(i), 16, (online * itemheight), i == List->GetSelection()))
-			{
-				return true;
-			}	
-
-			online ++;
+	
+			DrawItem(List->GetItem(onitem), 16, (online * itemheight), onitem == List->GetSelection());
 		}
 	}
 
@@ -302,7 +287,7 @@ bool										AnchoredListView::Draw								()
 
 bool										AnchoredListView::Input								()
 {
-	uint32_t oldIndex = List->GetSelection();
+	int32_t oldIndex = List->GetSelection();
 	if(List->GetItemCount() != 0)
 	{
 		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
@@ -310,9 +295,27 @@ bool										AnchoredListView::Input								()
 		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
 		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
 	
-		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
+		if(Wrap)
+		{
+			oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
+			oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
+		}
 
+		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
 		List->SetSelection(oldIndex);
+
+		if(List->GetItemCount() != 1 && !Anchored)
+		{
+			if(oldIndex >= FirstLine + LinesDrawn)
+			{
+				FirstLine = oldIndex - LinesDrawn;
+			}
+
+			if(oldIndex < FirstLine)
+			{
+				FirstLine = oldIndex;
+			}
+		}
 	}
 
 	if(List->GetInputConduit())
