@@ -5,7 +5,7 @@
 	FileName(aFileName),
 	Archive(0)
 {
-	ErrorCheck(0 != fex_open(&Archive, FileName.c_str()), "ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
+	ErrorCheck(0 == fex_open(&Archive, FileName.c_str()), "ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
 
 	while(!fex_done(Archive))
 	{
