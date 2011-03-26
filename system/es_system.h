@@ -22,6 +22,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 	}
 }
 
+#include "src/ESTexture.h"
 #include "src/ESVideo.h"
 #include "src/ESAudio.h"
 #include "src/ESInput.h"

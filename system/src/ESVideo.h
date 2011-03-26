@@ -21,24 +21,12 @@ class							Area
 		};
 };
 
-class								Texture
-{
-	public:
-		virtual void				Clear					(uint32_t aColor) = 0;
-		virtual uint32_t*			GetPixels				() = 0;
-		
-		virtual uint32_t			GetWidth				() = 0;
-		virtual uint32_t			GetHeight				() = 0;
-
-		virtual void				SetFilter				(uint32_t aOn) = 0;
-};
-
 class								ESVideo
 {
 	public:	
 		virtual						~ESVideo				(){};
 	
-		virtual Texture*			CreateTexture			(uint32_t aWidth, uint32_t aHeight) = 0;
+		virtual Texture*			CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) = 0;
 	
 		virtual uint32_t			GetScreenWidth			()
 		{

@@ -143,6 +143,7 @@ int					main					(int argc, char* argv[])
 	{
 		//Init the system and the emulator
 		InitES(Exit);
+
 		MednafenEmu::Init();
 
 		//Set the Summerface background
@@ -170,18 +171,30 @@ int					main					(int argc, char* argv[])
 	}
 	catch(const char* s)
 	{
+		FILE* tack = fopen("/DEBUGEX.TXT", "w");
+		fprintf(tack, "%s\n", s);
+		fclose(tack);
+
 		printf("%s\n", s);
 		Exit();
 		abort();
 	}
 	catch(ESException& s)
 	{
+		FILE* tack = fopen("/DEBUGEX.TXT", "w");
+		fprintf(tack, "%s\n", s.what());
+		fclose(tack);
+
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();
 	}
 	catch(std::exception& s)
 	{
+		FILE* tack = fopen("/DEBUGEX.TXT", "w");
+		fprintf(tack, "%s\n", s.what());
+		fclose(tack);
+
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();

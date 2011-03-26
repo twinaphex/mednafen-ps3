@@ -20,6 +20,11 @@ class								WiiTexture : public Texture
 
 		void						SetFilter				(uint32_t aOn) {Filter = aOn ? 1 : 0;}
 
+		uint32_t					GetRedShift				() const {return 0;};
+		uint32_t					GetGreenShift			() const {return 8;};
+		uint32_t					GetBlueShift			() const {return 16;};
+		uint32_t					GetAlphaShift			() const {return 24;};
+
 	private:
 		void						Apply					();
 		

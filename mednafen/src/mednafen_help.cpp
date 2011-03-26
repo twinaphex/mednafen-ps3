@@ -130,8 +130,12 @@ void						MednafenEmu::Init				()
 		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
 
 		//Create video buffer and surface. 1080p max, we should never come even close to this
-		Buffer = es_video->CreateTexture(1920, 1080);
-		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
+//HACK:
+		Buffer = es_video->CreateTexture(640, 480);
+		Surface = new MDFN_Surface(0, 640, 480, 480, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
+
+//		Buffer = es_video->CreateTexture(1920, 1080);
+//		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
 	}
 
 	IsInitialized = true;
