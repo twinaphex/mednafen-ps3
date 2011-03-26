@@ -24,6 +24,7 @@
 	
 	esScreenWidth = dispinfo->current_w;
 	esScreenHeight = dispinfo->current_h;
+	esWideScreen = false;
 		
 	FillerTexture = new SDLTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
@@ -78,59 +79,42 @@ void					SDLVideo::Flip					()
 	glEnable(GL_SCISSOR_TEST);
 }
 
-void					SDLVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
+void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
-	aX += esClip.X;
-	aY += esClip.Y;
+	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
+	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
+	float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
+	float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
 
-	Area texArea, outArea(aX, aY, aWidth, aHeight);
+	float xl = 0, xr = 1, yl = 0, yr = 1;
+	xl = (float)aSource.X / (float)aTexture->GetWidth();
+	xr = (float)aSource.Right() / (float)aTexture->GetWidth();
+	yl = (float)aSource.Y / (float)aTexture->GetHeight();
+	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
-	if(aArea)
-	{
-		texArea = *aArea;
-	}
-	else
-	{
-		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
-	}
-
-//	if(CalculateClip(aTexture, texArea, outArea))
-	{
-		float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
-		float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
-		float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
-		float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
-
-		float xl = 0, xr = 1, yl = 0, yr = 1;
-		xl = (float)texArea.X / (float)aTexture->GetWidth();
-		xr = (float)texArea.Right() / (float)aTexture->GetWidth();
-		yl = (float)texArea.Y / (float)aTexture->GetHeight();
-		yr = (float)texArea.Bottom() / (float)aTexture->GetHeight();
-
-		((SDLTexture*)aTexture)->Apply();
-		glBegin(GL_QUADS);
-			glColor4f(r,g,b,a);
-			glTexCoord2f(xl, yl);
-			glVertex3f(outArea.X, outArea.Y, 0);
-			glColor4f(r,g,b,a);
-			glTexCoord2f(xr, yl);
-			glVertex3f(outArea.Right(), outArea.Y, 0);
-			glColor4f(r,g,b,a);		
-			glTexCoord2f(xr, yr);		
-			glVertex3f(outArea.Right(), outArea.Bottom(), 0);
-			glColor4f(r,g,b,a);		
-			glTexCoord2f(xl, yr);		
-			glVertex3f(outArea.X, outArea.Bottom(), 0);
-		glEnd();
-	}
+	((SDLTexture*)aTexture)->Apply();
+	glBegin(GL_QUADS);
+		glColor4f(r,g,b,a);
+		glTexCoord2f(xl, yl);
+		glVertex3f(esClip.X + aDestination.X, esClip.Y + aDestination.Y, 0);
+		glColor4f(r,g,b,a);
+		glTexCoord2f(xr, yl);
+		glVertex3f(esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, 0);
+		glColor4f(r,g,b,a);		
+		glTexCoord2f(xr, yr);		
+		glVertex3f(esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), 0);
+		glColor4f(r,g,b,a);		
+		glTexCoord2f(xl, yr);		
+		glVertex3f(esClip.X + aDestination.X, esClip.Y + aDestination.Bottom(), 0);
+	glEnd();
 }
 
-void					SDLVideo::FillRectangle			(Area aArea, uint32_t aColor)
+void					SDLVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
 {
-	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
+	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
 
-void					SDLVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 

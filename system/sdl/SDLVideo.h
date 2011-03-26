@@ -14,10 +14,16 @@ class								SDLTexture : public Texture
 		void						Clear					(uint32_t aColor);
 		uint32_t*					GetPixels				();
 		
-		uint32_t					GetWidth				()				{return Width;};
-		uint32_t					GetHeight				()				{return Height;};
+		uint32_t					GetWidth				() {return Width;};
+		uint32_t					GetHeight				() {return Height;};
+		uint32_t					GetPitch				() {return Width;};
 
-		void						SetFilter				(uint32_t aOn);
+		void						SetFilter				(uint32_t aOn) {Filter = aOn ? 1 : 0;};
+
+		uint32_t					GetRedShift				() const {return 16;};
+		uint32_t					GetGreenShift			() const {return 8;};
+		uint32_t					GetBlueShift			() const {return 0;};
+		uint32_t					GetAlphaShift			() const {return 24;};
 		
 	protected:
 		void						Apply					();
@@ -40,17 +46,15 @@ class								SDLVideo : public ESVideo
 									SDLVideo				();
 									~SDLVideo				();
 	
-		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight) {return new SDLTexture(aWidth, aHeight);};
+		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic) {return new SDLTexture(aWidth, aHeight);};
 	
-		bool						IsWideScreen			()				{return true;};
-
 		virtual void				SetClip					(Area aClip);
 	
 		void						Flip					();
 		
-		void						PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor = 0xFFFFFFFF, Area* aArea = 0);
-		void						FillRectangle			(Area aArea, uint32_t aColor);
-		void						PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine);
+		virtual void				PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //External
+		virtual void				FillRectangle			(const Area& aArea, uint32_t aColor); //External
+		virtual void				PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
 		
 	protected:
 		SDL_Surface*				Screen;
