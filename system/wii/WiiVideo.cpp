@@ -63,7 +63,7 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	GX_SetVtxDesc(GX_VA_CLR0, GX_DIRECT);
 	GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
 
-	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
 
@@ -155,19 +155,19 @@ void					WiiVideo::PlaceTexture			(Texture* aTexture, uint32_t aX, uint32_t aY, 
 	GX_InvVtxCache();
 	((WiiTexture*)aTexture)->Apply();
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-		GX_Position3f32(aX, aY, -250);
+		GX_Position3s16(aX, aY, -250);
 		GX_Color4u8(r, g, b, a);
 		GX_TexCoord2u16(texArea.X, texArea.Y);
 
-		GX_Position3f32(aX + aWidth, aY, -250);
+		GX_Position3s16(aX + aWidth, aY, -250);
 		GX_Color4u8(r, g, b, a);
 		GX_TexCoord2u16(texArea.Right(), texArea.Y);
 
-		GX_Position3f32(aX + aWidth, aY + aHeight, -250);
+		GX_Position3s16(aX + aWidth, aY + aHeight, -250);
 		GX_Color4u8(r, g, b, a);
 		GX_TexCoord2u16(texArea.Right(), texArea.Bottom());
 
-		GX_Position3f32(aX, aY + aHeight, -250);
+		GX_Position3s16(aX, aY + aHeight, -250);
 		GX_Color4u8(r, g, b, a);
 		GX_TexCoord2u16(texArea.X, texArea.Bottom());
 	GX_End();
@@ -180,28 +180,28 @@ void					WiiVideo::FillRectangle			(Area aArea, uint32_t aColor)
 
 void					WiiVideo::PresentFrame			(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
-/*	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
+	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
 	((WiiTexture*)aTexture)->Apply();
 	GX_SetBlendMode(GX_BM_NONE, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-		GX_Position3s16(output.X, output.Y, 0);
+		GX_Position3s16(output.X, output.Y, -250);
 		GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-		GX_TexCoord2s16(aViewPort.X, aViewPort.Y);
+		GX_TexCoord2u16(aViewPort.X, aViewPort.Y);
 
-		GX_Position3s16(output.Right(), output.Y, 0);
+		GX_Position3s16(output.Right(), output.Y, -250);
 		GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-		GX_TexCoord2s16(aViewPort.Right(), aViewPort.Y);
+		GX_TexCoord2u16(aViewPort.Right(), aViewPort.Y);
 
-		GX_Position3s16(output.Right(), output.Bottom(), 0);
+		GX_Position3s16(output.Right(), output.Bottom(), -250);
 		GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-		GX_TexCoord2s16(aViewPort.Right(), aViewPort.Bottom());
+		GX_TexCoord2u16(aViewPort.Right(), aViewPort.Bottom());
 
-		GX_Position3s16(output.X, output.Bottom(), 0);
+		GX_Position3s16(output.X, output.Bottom(), -250);
 		GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-		GX_TexCoord2s16(aViewPort.X, aViewPort.Bottom());
+		GX_TexCoord2u16(aViewPort.X, aViewPort.Bottom());
 	GX_End();
-	GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);*/
+	GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
 }
 
 void					WiiVideo::HandleRetrace			(uint32_t unused)

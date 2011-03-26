@@ -105,7 +105,7 @@ void										ImageManager::CreateScratch							()
 		char buffer[32];
 		for(int i =0; i != 20; i ++)
 		{
-			Texture* tex = es_video->CreateTexture(512, 512);
+			Texture* tex = es_video->CreateTexture(512, 512, false);
 			tex->SetFilter(1);
 
 			snprintf(buffer, 32, "SCRATCH%%%d", i);
@@ -120,7 +120,7 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 	{
 		PNGFile ping(aPath);
 
-		Texture* output = es_video->CreateTexture(ping.Width, ping.Height);
+		Texture* output = es_video->CreateTexture(ping.Width, ping.Height, true);
 		output->SetFilter(true);
 
 		ping.CopyToTexture(output);
