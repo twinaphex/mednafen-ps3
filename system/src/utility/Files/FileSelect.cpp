@@ -6,14 +6,12 @@
 	Valid(true),
 	Header(aHeader),
 	BookMarks(aBookMarks)
-
 {
 	List.SetNoDelete();
-	List.SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
 	Interface.SetHook(aInputHook);
 
-	Paths.push(aPath);
+	Paths.push(aPath.empty() ? "/" : aPath);
 	LoadList(aPath.empty() ? "/" : aPath.c_str());
 }
 
@@ -44,8 +42,6 @@ std::string								FileSelect::GetFile					()
 			if(List.GetSelected()->IntProperties["DIRECTORY"])
 			{
 				Paths.push(List.GetSelected()->Properties["PATH"]);
-				List.SetHeader("[%s] %s", Header.c_str(), List.GetSelected()->Properties["PATH"].c_str());
-
 				LoadList(Paths.top().c_str());
 			}
 			else
@@ -66,6 +62,8 @@ std::string								FileSelect::GetFile					()
 void								FileSelect::LoadList						(const char* aPath)
 {
 	assert(aPath);
+
+	List.SetHeader("[%s] %s", Header.c_str(), aPath);
 
 	List.ClearItems();
 
