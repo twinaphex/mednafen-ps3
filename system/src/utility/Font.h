@@ -5,6 +5,7 @@ class										FontCharacter
 {
 	public:
 		Texture*							CharTexture;
+		Area								TextureArea;
 		uint32_t							Width;
 		uint32_t							Height;
 		uint32_t							Advance;

@@ -38,6 +38,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "l1ght/utility.h"
 #elif defined(MDWII)
 # include "wii/cell.h"
+# include "wii/WiiTexture.h"
 # include "wii/WiiVideo.h"
 # include "wii/WiiAudio.h"
 # include "wii/WiiInput.h"

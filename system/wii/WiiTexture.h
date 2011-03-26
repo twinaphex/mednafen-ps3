@@ -1,7 +1,5 @@
-#ifndef WiiVideo_H
-#define	WiiVideo_H
-
-class								WiiVideo;
+#ifndef WiiTexture_H
+#define	WiiTexture_H
 
 class								WiiTexture : public Texture
 {
@@ -25,14 +23,11 @@ class								WiiTexture : public Texture
 		uint32_t					GetBlueShift			() const {return 0;};
 		uint32_t					GetAlphaShift			() const {return 24;};
 
+	public: //WiiTexture specific helpers, do not call directly
 		uint32_t					MultipleOfFour			(uint32_t aNumber) const {return aNumber + ((aNumber % 4) ? (4 - aNumber % 4) : 0);};
-
-	private:
 		void						Apply					(uint32_t aWidth, uint32_t aHeight);
 		
 	private:
-		GXTexObj					TextureObject;
-
 		bool						Static;
 		bool						Locked;
 
@@ -45,41 +40,8 @@ class								WiiTexture : public Texture
 
 		uint32_t*					Pixels;
 		bool						Valid;
-};
 
-class								WiiVideo : public ESVideo
-{
-	friend class					WiiTexture;
-
-	public:	
-									WiiVideo				();
-									~WiiVideo				();
-	
-		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight, aStatic);};
-	
-		virtual void				SetClip					(Area aClip);
-	
-		void						Flip					();
-		
-		void						PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor);
-		void						FillRectangle			(const Area& aArea, uint32_t aColor);
-		void						PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine);
-		
-	private:
-		static void					HandleRetrace			(uint32_t unused);
-
-	private:
-		static const int			FIFOSize = 1024 * 256;
-
-		Texture*					FillerTexture;
-
-		void*						FrameBuffer[2];
-		uint32_t					CurrentFrameBuffer;
-		bool						FirstFrame;
-		void*						FIFOBuffer;
-		GXRModeObj*					ScreenMode;
-
-		bool						ReadyForCopy;
+		GXTexObj					TextureObject;
 };
 
 #endif
