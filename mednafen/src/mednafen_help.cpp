@@ -131,8 +131,9 @@ void						MednafenEmu::Init				()
 
 		//Create video buffer and surface. 1080p max, we should never come even close to this
 //HACK:
-		Buffer = es_video->CreateTexture(640, 480);
-		Surface = new MDFN_Surface(0, 640, 480, 480, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
+		Buffer = es_video->CreateTexture(640, 480, false);
+		bool slowread = Buffer->GetFlags() & Texture::SLOW_READ;
+		Surface = new MDFN_Surface(slowread ? 0 : Buffer->GetPixels(), 640, 480, slowread ? 480 : Buffer->GetPitch(), MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
 
 //		Buffer = es_video->CreateTexture(1920, 1080);
 //		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
@@ -330,6 +331,22 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
 {
+	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+
+	if(Buffer->GetFlags() & Texture::SLOW_READ)
+	{
+		uint32_t* pix = Buffer->GetPixels();
+
+		for(int i = 0; i != aHeight; i ++)
+		{
+			memcpy(&pix[i * Buffer->GetPitch()], &aPixels[i * aPitch], aWidth * 4);
+		}
+	}
+
+	Buffer->Invalidate();
+	es_video->PresentFrame(Buffer, output, MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
+	
+/*
 	if(IsInitialized && (aPixels || IsLoaded))
 	{
 		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
@@ -388,7 +405,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		Area underscanfine(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 
 		es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")), underscanfine);
-	}
+	}*/
 }
 
 void						MednafenEmu::DoCommands			()
