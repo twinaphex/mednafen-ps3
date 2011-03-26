@@ -4,16 +4,22 @@
 class								Texture
 {
 	public:
+		enum Flags {SLOW_READ = 1, SLOW_WRITE = 2, USE_IS_DISCARD = 4};
+
+	public:
 		virtual						~Texture				() {};
 
 		virtual void				Clear					(uint32_t aColor) = 0; //Pure Virtual
 		virtual uint32_t*			GetPixels				() = 0; //Pure Virtual
-		
+		virtual void				Invalidate				() = 0; //Pure Virtual
+
 		virtual uint32_t			GetWidth				() = 0; //Pure Virtual
 		virtual uint32_t			GetHeight				() = 0; //Pure Virtual
 		virtual uint32_t			GetPitch				() = 0; //Pure Virtual
 
 		virtual void				SetFilter				(uint32_t aOn) = 0; //Pure Virtual
+
+		virtual uint32_t			GetFlags				() const = 0; //Pure Virtual
 
 		virtual uint32_t			GetRedShift				() const = 0; //Pure Virtual
 		virtual uint32_t			GetGreenShift			() const = 0; //Pure Virtual
