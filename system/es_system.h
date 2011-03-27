@@ -29,6 +29,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 
 #ifdef L1GHT
 # include "l1ght/L1ghtPlatform.h"
+# include "l1ght/L1ghtTexture.h"
 # include "l1ght/L1ghtVideo.h"
 # include "l1ght/L1ghtAudio.h"
 # include "l1ght/L1ghtInput.h"
