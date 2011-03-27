@@ -29,6 +29,7 @@ class	MednafenEmu
 
 	protected:	//Internals
 		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
+		static void						ReadSettings		();
 
 	protected:
 		static bool						IsInitialized;
@@ -58,6 +59,14 @@ class	MednafenEmu
 		static int16_t					SamplesUp[48000];
 		static bool						SkipNext;
 		static uint32_t					SkipCount;
+
+		static bool						RewindSetting;
+		static bool						DisplayFPSSetting;
+		static bool						FullFrameSetting;
+		static int32_t					UnderscanSetting;
+		static bool						FilterSetting;
+		static int32_t					ScalerSetting;
+		static Area						UndertuneSetting;
 };
 
 #endif
