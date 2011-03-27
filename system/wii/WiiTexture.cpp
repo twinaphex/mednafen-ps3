@@ -91,6 +91,7 @@ void					WiiTexture::Apply					(uint32_t aWidth, uint32_t aHeight)
 		GX_InitTexObj(&TextureObject, Pixels, Pitch, AdjustedHeight, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
 	}
 
+	GX_InitTexObjFilterMode(&TextureObject, Filter ? GX_LINEAR : GX_NEAR, Filter ? GX_LINEAR : GX_NEAR);
 	GX_LoadTexObj(&TextureObject, GX_TEXMAP0);
 
 	Mtx matrix;

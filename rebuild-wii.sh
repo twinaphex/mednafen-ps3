@@ -18,6 +18,6 @@ make clean
 make -j2
 cd ../mednafen
 make clean
-make -j2
+make -j2 dol
 cd ..
 

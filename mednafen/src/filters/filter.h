@@ -20,7 +20,8 @@
 #define FILTER_H
 
 class Filter;
-#include <mednafen_includes.h>
+#include <stdint.h>
+#include <string>
 
 struct FilterInfo {
 	std::string handle;

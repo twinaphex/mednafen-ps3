@@ -83,18 +83,11 @@ namespace
 	MDFNSetting ESSettings[] =
 	{
 		{"es.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
-		{"ftp.es.enable", MDFNSF_NOFLAGS, "Enable Loading from FTP Server.", NULL, MDFNST_BOOL, "0" },
-		{"ftp.es.host", MDFNSF_NOFLAGS, "Hostname for FTP Server.", NULL, MDFNST_STRING, "192.168.0.250" },
-		{"ftp.es.port", MDFNSF_NOFLAGS, "Port for FTP Server.", NULL, MDFNST_STRING, "21" },
-		{"ftp.es.username", MDFNSF_NOFLAGS, "User name for FTP Server.", NULL, MDFNST_STRING, "anonymous" },
-		{"ftp.es.password", MDFNSF_NOFLAGS, "Password for FTP Server.", NULL, MDFNST_STRING, "" },
 		{"net.es.username", MDFNSF_NOFLAGS, "User name for netplay.", NULL, MDFNST_STRING, "Me" },		
 		{"net.es.password", MDFNSF_NOFLAGS, "Password for the netplay Server.", NULL, MDFNST_STRING, "sexybeef" },
 		{"net.es.host", MDFNSF_NOFLAGS, "Hostname for netplay Server.", NULL, MDFNST_STRING, "192.168.0.115" },
 		{"net.es.port", MDFNSF_NOFLAGS, "Port for netplay Server.", NULL, MDFNST_UINT, "4046" },
 		{"net.es.gameid", MDFNSF_NOFLAGS, "Game ID for netplay Server.", NULL, MDFNST_STRING, "doing" },
-
-
 	};
 }
 
@@ -274,11 +267,11 @@ bool						MednafenEmu::Frame				()
 		Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
 		Counter.Tick(EmulatorSpec.skip);
 
+		//VIDEO
 		if(!EmulatorSpec.skip)
 		{
 			SkipCount = 0;
 
-			//VIDEO
 			Blit();
 	
 			if(DisplayFPSSetting)
