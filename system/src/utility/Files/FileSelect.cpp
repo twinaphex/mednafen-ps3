@@ -74,6 +74,8 @@ void								FileSelect::LoadList						(const char* aPath)
 	{
 		List.AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/', false));
 	}
+
+	List.Sort();
 }
 
 SummerfaceItem*						FileSelect::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark)

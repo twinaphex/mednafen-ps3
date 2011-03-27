@@ -2,20 +2,19 @@
 
 extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
-						L1ghtAudio::L1ghtAudio			()
+						L1ghtAudio::L1ghtAudio			() : 
+	ThreadID(0),
+	ThreadDie(false),
+	QueueID(0),
+	QueueKey(0),
+	Port(0)
 {
-	ReadCount = 0;
-	WriteCount = 0;
-	InitialFill = false;
-
 	audioInit();
 	
 	audioPortParam portparam = {2, BlockCount, 0, 0};
 	audioPortOpen(&portparam, &Port);
 
 	audioGetPortConfig(Port, &Config);
-
-	memset(RingBuffer, 0, sizeof(RingBuffer));
 
 	audioCreateNotifyEventQueue(&QueueID, &QueueKey);
 	audioSetNotifyEventQueue(QueueKey);
@@ -27,7 +26,6 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
 	audioPortStart(Port);
 	
-	ThreadDie = false;
 	sysThreadCreate(&ThreadID, ProcessAudioThread, 0, 0, 65536, 0, 0);
 }
 
@@ -48,40 +46,10 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 	sysLwMutexDestroy(&BufferMutex);
 }
 
-void					L1ghtAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
-{
-	while(GetBufferFree() < aCount)
-	{
-		Utility::Sleep(0);
-	}
-
-	sysLwMutexLock(&BufferMutex, 0);
-
-	for(int i = 0; i != aCount; i ++, WriteCount ++)
-	{
-		RingBuffer[WriteCount & BufferMask] = aSamples[i];
-	}
-
-	sysLwMutexUnlock(&BufferMutex);
-}
-
-void				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
+void					L1ghtAudio::AddSamples			(const uint32_t* aSamples, uint32_t aCount)
 {
 	sysLwMutexLock(&BufferMutex, 0);
-
-	if(GetBufferAmount() < aCount)
-	{
-		//Would report, but inside menu this is hit all of the time
-		memset(aSamples, 0, aCount * 4);
-	}
-	else
-	{
-		for(int i = 0; i != aCount; i ++, ReadCount ++)
-		{
-			aSamples[i] = RingBuffer[ReadCount & BufferMask];
-		}
-	}
-
+	RingBuffer.WriteData(aSamples, aCount);
 	sysLwMutexUnlock(&BufferMutex);
 }
 
@@ -106,12 +74,9 @@ void					L1ghtAudio::ProcessAudioThread	(void* aBcD)
 			break;
 		}
 
-		for(int i = 0; i != 512; i ++)
-		{
-			outbuffer[i] = 0.0f;
-		}
-
-		audio->GetSamples((uint32_t*)samples, 256);
+		sysLwMutexLock(&audio->BufferMutex, 0);
+		audio->RingBuffer.ReadDataSilentUnderrun((uint32_t*)samples, 256);
+		sysLwMutexUnlock(&audio->BufferMutex);
 
 		for(uint32_t i = 0; i != 256 * 2; i ++)
 		{
@@ -124,14 +89,3 @@ void					L1ghtAudio::ProcessAudioThread	(void* aBcD)
 	audio->ThreadDie = false;
 	sysThreadExit(0);
 }
-
-volatile int32_t 		L1ghtAudio::GetBufferAmount		()
-{
-	return (WriteCount - ReadCount);
-}
-
-volatile int32_t 		L1ghtAudio::GetBufferFree		()
-{
-	return BufferSize - (WriteCount - ReadCount);
-}
-

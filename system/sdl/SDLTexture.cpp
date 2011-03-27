@@ -5,7 +5,7 @@
 	Pixels(0),
 	ID(0)
 {
-	ErrorCheck(esWidth != 0 && esHeight != 0 && esWidth <= 2048 && esHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", Pitch, AdjustedHeight);
+	ErrorCheck(esWidth != 0 && esHeight != 0 && esWidth <= 2048 && esHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", esWidth, esHeight);
 
 	Pixels = new uint32_t[esWidth * esHeight];
 	glGenTextures(1, &ID);

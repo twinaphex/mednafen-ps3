@@ -63,11 +63,13 @@ class				Utility
 		{
 			DIR* dirhandle;
 			struct dirent* item;
+
+			//HACK: Limit directory size to 50
 			int taco = 0;
 
 			if((dirhandle = opendir(aPath.c_str())))
 			{
-				while(taco < 20 && (item = readdir(dirhandle)))
+				while(taco < 50 && (item = readdir(dirhandle)))
 				{
 					taco ++;
 					struct stat statbuf;
