@@ -15,7 +15,7 @@ class								L1ghtAudio : public ESAudio
 		volatile int32_t			GetBufferAmount			();
 		volatile int32_t			GetBufferFree			();
 		
-		static void					ProcessAudioThread		(uint64_t aBcD);
+		static void					ProcessAudioThread		(void* aBcD);
 	
 		static const int			BlockCount = 16;
 		static const int			BufferSize = 8192;
@@ -27,10 +27,10 @@ class								L1ghtAudio : public ESAudio
 		sys_event_queue_t			QueueID;
 		uint64_t					QueueKey;
 
-		sys_mutex_t					BufferMutex;
+		sys_lwmutex_t				BufferMutex;
 	
 		uint32_t					Port;
-		AudioPortConfig				Config;
+		audioPortConfig				Config;
 
 		uint32_t 					RingBuffer[BufferSize];
 		volatile int32_t			ReadCount;

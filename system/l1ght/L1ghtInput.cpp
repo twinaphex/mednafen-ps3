@@ -55,7 +55,7 @@ void				L1ghtInput::Refresh						()
 		}
 	}
 
-	PadActParam param = {Small & 1, Large & 0xFF};
+	padActParam param = {Small & 1, Large & 0xFF};
 	ioPadSetActDirect(0, &param);
 }
 

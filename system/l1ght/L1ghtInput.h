@@ -37,8 +37,8 @@ class				L1ghtInput : public ESInput
 
 		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
 
-		PadInfo						Info;
-		PadData						CurrentState[MAXPADS];
+		padInfo						Info;
+		padData						CurrentState[MAXPADS];
 
 		uint32_t					HeldState[MAXPADS][BUTTONS];
 		uint32_t					SingleState[MAXPADS][BUTTONS];	

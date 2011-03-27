@@ -1,10 +1,10 @@
 #include <es_system.h>
 
-extern "C"
-{
-	extern realityFragmentProgram nv30_fp;
-}
-#include "nv40_vp.vcg.h"
+extern "C" rsxFragmentProgram* vp_bin;
+extern "C" int vp_bin_size;
+extern "C" rsxVertexProgram* fp_bin;
+extern "C" int fp_bin_size;
+
 
 namespace
 {
@@ -31,7 +31,7 @@ namespace
 {
 	//Initialize rsx
 	void *host_addr = memalign(1024*1024, 8192*1024);
-	GCMContext = realityInit(0x80000, 8192 * 1024, host_addr);
+	GCMContext = rsxInit(0x80000, 8192 * 1024, host_addr);
 
 	//Get Resolution and aspect
 	VideoState state;
@@ -58,6 +58,7 @@ namespace
 
 	esScreenWidth = Resolution.width;
 	esScreenHeight = Resolution.height;
+	esWideScreen = true;
 
 	//Make vertex buffer
 	Allocate(VertexBuffer[0], VertexBufferOffset[0], 1024 * 1024, 64);
@@ -68,8 +69,7 @@ namespace
 	FillerTexture->Clear(0xFFFFFFFF);
 
 	//Make fragment program
-	u32 *frag_mem = (u32*)rsxMemAlign(256, 256);
-	realityInstallFragmentProgram(GCMContext, &nv30_fp, frag_mem);
+	Allocate(FragmentMemory, FragmentOffset, 256, 256);
 
 	NextBuffer = 0;
 	VertexBufferPosition = 0;
@@ -77,12 +77,17 @@ namespace
 
 						L1ghtVideo::~L1ghtVideo			()
 {
-	//TODO: Clean up rsxMemory, not supported right now so not done right now
+	delete FillerTexture;
 
-	if(FillerTexture)
-	{
-		delete FillerTexture;
-	}
+	//TODO: rsxFinish
+	rsxFree(Screen[0]);
+	rsxFree(Screen[1]);
+	rsxFree(Screen[2]);
+	rsxFree(VertexBuffer[0]);
+	rsxFree(VertexBuffer[1]);
+	rsxFree(FragmentMemory);
+
+	rsxFinish(GCMContext, 0);
 }
 
 void					L1ghtVideo::SetClip					(Area aClip)
@@ -91,17 +96,20 @@ void					L1ghtVideo::SetClip					(Area aClip)
 
 	Area clap = GetClip();
 
-	realityViewportTranslate(GCMContext, clap.X, clap.Y, 0, 1);
+	f32 scale[4] = {1.0f, 1.0f, 1.0f, 0.0f};
+	f32 trans[4] = {clap.X, clap.Y, 0.0f, 0.0f};
+	rsxSetViewport(GCMContext, 0, 0, Resolution.width, Resolution.height, -1, 1, scale, trans);
+
 	for(int i = 0; i != 8; i ++)
 	{
-		realityViewportClip(GCMContext, i, clap.Right(), clap.Bottom());
+		rsxSetViewportClip(GCMContext, i, clap.Right(), clap.Bottom());
 	}
 }
 
 void					L1ghtVideo::Flip				()
 {
 	gcmSetFlip(GCMContext, NextBuffer);
-	realityFlushBuffer(GCMContext);
+	rsxFlushBuffer(GCMContext);
 	gcmSetWaitFlip(GCMContext);
 
 	while(gcmGetFlipStatus() != 0)
@@ -114,77 +122,86 @@ void					L1ghtVideo::Flip				()
 	esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
-void					L1ghtVideo::PlaceTexture		(Texture* aTexture, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, uint32_t aColor, Area* aArea)
+
+
+void					L1ghtVideo::PlaceTexture		(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
-	Area texArea, outArea(aX, aY, aWidth, aHeight);
-
-	if(aArea)
-	{
-		texArea = *aArea;
-	}
-	else
-	{
-		texArea = Area(0, 0, aTexture->GetWidth(), aTexture->GetHeight());
-	}
-
-//	if(CalculateClip(aTexture, texArea, outArea))
-	{
-		ApplyTexture(aTexture, texArea);
-		DrawQuad(outArea, aColor);
-	}
+	ApplyTexture(aTexture, aSource);
+	DrawQuad(aDestination, aColor);
 }
 
-void					L1ghtVideo::FillRectangle		(Area aArea, uint32_t aColor)
+void					L1ghtVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
 {
-	PlaceTexture(FillerTexture, aArea.X, aArea.Y, aArea.Width, aArea.Height, aColor);
+	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
 
-void					L1ghtVideo::PresentFrame		(Texture* aTexture, Area aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					L1ghtVideo::PresentFrame		(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
-	ApplyTexture(aTexture, Area(aViewPort.X, aViewPort.Y, aViewPort.Width, aViewPort.Height));
-
+	ApplyTexture(aTexture, aViewPort);
 	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 	
-	realityBlendEnable(GCMContext, 0);	
+	rsxSetBlendEnable(GCMContext, 0);
 	DrawQuad(output, 0xFFFFFFFF);
-	realityBlendEnable(GCMContext, 1);		
+	rsxSetBlendEnable(GCMContext, 1);
 }
 
 void					L1ghtVideo::PrepareBuffer		()
 {
 	NextBuffer = (NextBuffer + 1) & 1;
 
-	realitySetRenderSurface(GCMContext, REALITY_SURFACE_COLOR0, REALITY_RSX_MEMORY, ScreenOffset[NextBuffer], Resolution.width * 4);
-	realitySetRenderSurface(GCMContext, REALITY_SURFACE_ZETA, REALITY_RSX_MEMORY, ScreenOffset[2], Resolution.width * 4);
-	realitySelectRenderTarget(GCMContext, REALITY_TARGET_0, REALITY_TARGET_FORMAT_COLOR_X8R8G8B8 | REALITY_TARGET_FORMAT_ZETA_Z16 | REALITY_TARGET_FORMAT_TYPE_LINEAR, Resolution.width, Resolution.height, 0, 0);
+	gcmSurface surface =
+	{
+//TODO: What is proper for these values?
+		0, //?
+		0, //?
+		GCM_TF_COLOR_X8R8G8B8,
+		GCM_TF_TARGET_NONE,
+		{GCM_LOCATION_RSX, GCM_LOCATION_RSX, GCM_LOCATION_RSX, GCM_LOCATION_RSX},
+		{ScreenOffset[NextBuffer], 0, 0, 0},
+		{Resolution.width * 4, 0, 0, 0},
+		GCM_TF_ZETA_Z24S8,
+		GCM_LOCATION_RSX,
+		{0, 0},
+		ScreenOffset[2],
+		Resolution.width * 4,
+		Resolution.width,
+		Resolution.height,
+		0,
+		0
+	};
 
-	realitySetClearColor(GCMContext, 0);
-	realitySetClearDepthValue(GCMContext, 0xffff);
-	realityClearBuffers(GCMContext, REALITY_CLEAR_BUFFERS_COLOR_R | REALITY_CLEAR_BUFFERS_COLOR_G | REALITY_CLEAR_BUFFERS_COLOR_B | NV30_3D_CLEAR_BUFFERS_COLOR_A | NV30_3D_CLEAR_BUFFERS_STENCIL | REALITY_CLEAR_BUFFERS_DEPTH);
+	rsxSetSurface(GCMContext, &surface);
 
-	realityViewport(GCMContext, Resolution.width, Resolution.height);
-	realityViewportTranslate(GCMContext, 0.0, 0.0, 0.0, 0.0);
-	realityViewportScale(GCMContext, 1.0, 1.0, 1.0, 0.0); 
-	realityZControl(GCMContext, 0, 1, 1);
-	realityBlendFunc(GCMContext, NV30_3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | NV30_3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA, NV30_3D_BLEND_FUNC_DST_RGB_ONE_MINUS_SRC_ALPHA | NV30_3D_BLEND_FUNC_DST_ALPHA_ZERO);
-	realityBlendEquation(GCMContext, NV40_3D_BLEND_EQUATION_RGB_FUNC_ADD | NV40_3D_BLEND_EQUATION_ALPHA_FUNC_ADD);
-	realityBlendEnable(GCMContext, 1);	
-	realityLoadVertexProgram(GCMContext, (realityVertexProgram*)&nv40_vp_bin);
-	realityLoadFragmentProgram(GCMContext, &nv30_fp);
+	rsxSetClearColor(GCMContext, 0);
+	rsxSetClearDepthValue(GCMContext, 0xffff);
+	rsxClearSurface(GCMContext, GCM_CLEAR_R | GCM_CLEAR_G | GCM_CLEAR_B | GCM_CLEAR_A | GCM_CLEAR_S | GCM_CLEAR_Z);
+
+	f32 scale[4] = {1.0f, 1.0f, 1.0f, 0.0f};
+	f32 trans[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	rsxSetViewport(GCMContext, 0, 0, Resolution.width, Resolution.height, -1, 1, scale, trans);
+	rsxZControl(GCMContext, 0, 1, 1);
+//TODO: Is this right?
+	rsxSetBlendFunc(GCMContext, GCM_SRC_COLOR, GCM_DST_COLOR, GCM_SRC_ALPHA, GCM_ONE_MINUS_SRC_ALPHA);
+	rsxSetBlendEquation(GCMContext, GCM_FUNC_ADD, GCM_FUNC_ADD);
+	rsxSetBlendEnable(GCMContext, 1);
+
+//TODO: Shaders!
+	rsxLoadVertexProgram(GCMContext, fp_bin, rsxVertexProgramGetUCode(fp_bin));
+	rsxLoadFragmentProgramLocation(GCMContext, vp_bin, FragmentOffset, GCM_LOCATION_RSX);
 	
 	VertexBufferPosition = 0;
 }
 
 void					L1ghtVideo::Allocate			(uint32_t*& aMemory, uint32_t& aOffset, uint32_t aSize, uint32_t aAlign)
 {
-	aMemory = (uint32_t*)rsxMemAlign(aAlign, aSize);
-	
+	aMemory = (uint32_t*)rsxMemalign(aAlign, aSize);
+
 	if(!aMemory)
 	{
 		Abort("ESVideo::Allocate: Couldn't allocate rsx memory");
 	}
 	
-	realityAddressToOffset(aMemory, &aOffset);
+	rsxAddressToOffset(aMemory, &aOffset);
 }
 
 void					L1ghtVideo::ApplyTexture		(Texture* aTexture, Area aRegion)
@@ -192,36 +209,42 @@ void					L1ghtVideo::ApplyTexture		(Texture* aTexture, Area aRegion)
 	L1ghtTexture* l1ghtTexture = (L1ghtTexture*)aTexture;
 
 	//TODO: Handle this better
-	if(aRegion.Right() > l1ghtTexture->Width || aRegion.Bottom() > l1ghtTexture->Height)
+	if(aRegion.Right() > l1ghtTexture->esWidth || aRegion.Bottom() > l1ghtTexture->esHeight)
 	{
 		Abort("ESVideo::ApplyTexture: Area out of range");
 	}
 
-	realityTexture tex;
-	tex.swizzle = NV30_3D_TEX_SWIZZLE_S0_X_S1 | NV30_3D_TEX_SWIZZLE_S0_Y_S1 | NV30_3D_TEX_SWIZZLE_S0_Z_S1 | NV30_3D_TEX_SWIZZLE_S0_W_S1 |  NV30_3D_TEX_SWIZZLE_S1_X_X | NV30_3D_TEX_SWIZZLE_S1_Y_Y | NV30_3D_TEX_SWIZZLE_S1_Z_Z | NV30_3D_TEX_SWIZZLE_S1_W_W;
-	tex.format = NV40_3D_TEX_FORMAT_FORMAT_A8R8G8B8 | NV40_3D_TEX_FORMAT_LINEAR | NV30_3D_TEX_FORMAT_DIMS_2D | NV30_3D_TEX_FORMAT_DMA0 | NV30_3D_TEX_FORMAT_NO_BORDER | (0x8000) | (1 << NV40_3D_TEX_FORMAT_MIPMAP_COUNT__SHIFT);
-	tex.wrap =  NV30_3D_TEX_WRAP_S_CLAMP_TO_EDGE | NV30_3D_TEX_WRAP_T_CLAMP_TO_EDGE | NV30_3D_TEX_WRAP_R_CLAMP_TO_EDGE;
-	tex.enable = NV40_3D_TEX_ENABLE_ENABLE;
-
-	tex.filter = 0x3FD6 | (l1ghtTexture->Filter ? NV30_3D_TEX_FILTER_MIN_LINEAR | NV30_3D_TEX_FILTER_MAG_LINEAR : NV30_3D_TEX_FILTER_MIN_NEAREST | NV30_3D_TEX_FILTER_MAG_NEAREST);
-	tex.offset = l1ghtTexture->Offset + 4 * ((aRegion.Y * l1ghtTexture->Width) + aRegion.X);
+	//TODO: What is proper for theses values?
+	gcmTexture tex;
+	tex.format = GCM_TEXTURE_FORMAT_LIN | GCM_TEXTURE_FORMAT_A8R8G8B8; //?
+	tex.mipmap = 1; //?
+	tex.dimension = GCM_TEXTURE_DIMS_2D; //?
+	tex.cubemap = 0; //?
+	tex.remap = 0; //?
 	tex.width = aRegion.Width;
 	tex.height = aRegion.Height;
-	tex.stride = l1ghtTexture->Width * 4;
-	
-	realitySetTexture(GCMContext, 0, &tex);
+	tex.depth = 32; //?
+	tex.location = GCM_LOCATION_RSX;
+	tex.pitch = l1ghtTexture->esWidth * 4;
+	tex.offset = l1ghtTexture->Offset + 4 * ((aRegion.Y * l1ghtTexture->esWidth) + aRegion.X);
+
+	rsxLoadTexture(GCMContext, 0, &tex);
+	rsxTextureFilter(GCMContext, 0, l1ghtTexture->esFilter ? GCM_TEXTURE_LINEAR : GCM_TEXTURE_NEAREST, l1ghtTexture->esFilter ? GCM_TEXTURE_LINEAR : GCM_TEXTURE_NEAREST, GCM_TEXTURE_CONVOLUTION_QUINCUNX); //Convolution?
+	rsxTextureWrapMode(GCMContext, 0, GCM_TEXTURE_CLAMP, GCM_TEXTURE_CLAMP, GCM_TEXTURE_CLAMP, 0, 0, 128); //Gamma?
+	rsxTextureControl(GCMContext, 0, GCM_TRUE, 0, 0, 0); //LOD?
 }
 
 void					L1ghtVideo::ApplyVertexBuffer	(uint32_t aPosition)
 {
-	int off_position = realityVertexProgramGetInputAttribute((realityVertexProgram*) nv40_vp_bin, "inputvertex.vertex");
-	int off_texture  = realityVertexProgramGetInputAttribute((realityVertexProgram*) nv40_vp_bin, "inputvertex.texcoord");
-	int off_color    = realityVertexProgramGetInputAttribute((realityVertexProgram*) nv40_vp_bin, "inputvertex.color");
+	//TODO: Fucking shaders!
+	int off_position = rsxVertexProgramGetAttrib((rsxVertexProgram*)vp_bin, "inputvertex.vertex");
+	int off_texture  = rsxVertexProgramGetAttrib((rsxVertexProgram*)vp_bin, "inputvertex.texcoord");
+	int off_color    = rsxVertexProgramGetAttrib((rsxVertexProgram*)vp_bin, "inputvertex.color");
 	uint32_t offset = VertexBufferOffset[NextBuffer] + sizeof(Vertex) * aPosition;
 
-	realityBindVertexBufferAttribute(GCMContext, off_position, offset, sizeof(Vertex), 4, REALITY_BUFFER_DATATYPE_FLOAT, REALITY_RSX_MEMORY);
-	realityBindVertexBufferAttribute(GCMContext, off_color, offset + 16, sizeof(Vertex), 4, REALITY_BUFFER_DATATYPE_BYTE, REALITY_RSX_MEMORY);
-	realityBindVertexBufferAttribute(GCMContext, off_texture, offset + 20, sizeof(Vertex), 2, REALITY_BUFFER_DATATYPE_FLOAT, REALITY_RSX_MEMORY);
+	rsxBindVertexArrayAttrib(GCMContext, off_position, offset, sizeof(Vertex), 4, GCM_VERTEX_DATA_TYPE_F32, GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(GCMContext, off_color, offset + 16, sizeof(Vertex), 4, GCM_VERTEX_DATA_TYPE_U8, GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(GCMContext, off_texture, offset + 20, sizeof(Vertex), 2, GCM_VERTEX_DATA_TYPE_F32, GCM_LOCATION_RSX);
 }
 
 void					L1ghtVideo::DrawQuad			(Area aRegion, uint32_t aColor)
@@ -239,5 +262,5 @@ void					L1ghtVideo::DrawQuad			(Area aRegion, uint32_t aColor)
 	FillVertex(&vertices[VertexBufferPosition ++], aRegion.Right(), aRegion.Bottom(), 1.0, aColor, 1.0, 1.0);	
 	FillVertex(&vertices[VertexBufferPosition ++], aRegion.X, aRegion.Bottom(), 1.0, aColor, 0.0, 1.0);	
 
-	realityDrawVertexBuffer(GCMContext, REALITY_QUADS, 0, 4);
+	rsxDrawVertexArray(GCMContext, GCM_TYPE_QUADS, 0, 4);
 }

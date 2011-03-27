@@ -63,15 +63,15 @@ class				Utility
 	
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
-			Lv2FsFile dirhandle;
-			Lv2FsDirent item;
+			s32 dirhandle;
+			sysFSDirent item;
 			uint64_t readsize;
 			
-			if(0 == lv2FsOpenDir(aPath.c_str(), &dirhandle))
+			if(0 == sysFsOpendir(aPath.c_str(), &dirhandle))
 			{
 				while(1)
 				{
-					lv2FsReadDir(dirhandle, &item, &readsize);
+					sysFsReaddir(dirhandle, &item, &readsize);
 					
 					if(readsize == 0)
 					{
@@ -92,7 +92,7 @@ class				Utility
 					aOutput.push_back(std::string(item.d_name) + (item.d_type == 1 ? "/" : ""));					
 				}
 				
-				lv2FsCloseDir(dirhandle);
+				sysFsClosedir(dirhandle);
 				
 				return true;
 			}
@@ -104,7 +104,7 @@ class				Utility
 	
 		static uint32_t					GetTicks					()
 		{
-			return sys_time_get_system_time() / 1000;
+			return sysGetSystemTime() / 1000;
 		}
 
 		static void						Sleep						(uint32_t aMilliseconds)
@@ -162,5 +162,6 @@ class				PathBuild
 	protected:
 		std::string					Base;
 };
+
 
 #endif
