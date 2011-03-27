@@ -3,15 +3,16 @@ import tempfile
 import sys
 import subprocess
 
-if len(sys.argv) != 4:
-	print "Usage: manhandle.py [libwhatever.a] [prefix] [objcopy binary path]"
+if len(sys.argv) != 5:
+	print "Usage: manhandle.py [libwhatever.a] [prefix] [objcopy binary path] [nm binary path]"
 	sys.exit()
 
 print "Mangling Symbols in " + sys.argv[1]
 print "Prefixing with " + sys.argv[2]
 print "Using objcopy " + sys.argv[3]
+print "Using nm " + sys.argv[4]
 
-proc = subprocess.Popen("ppu-nm -U -A -a " + sys.argv[1] + " | sed -e 's/.*\ //'", stdout=subprocess.PIPE, shell=True)
+proc = subprocess.Popen(sys.argv[4] + " --defined-only -A -a " + sys.argv[1] + " | sed -e 's/.*\ //'", stdout=subprocess.PIPE, shell=True)
 things = proc.communicate()[0].split('\n')
 
 donethings = []

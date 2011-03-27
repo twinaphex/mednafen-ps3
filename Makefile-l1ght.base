@@ -11,6 +11,7 @@ CC			:= $(PREFIX)gcc
 CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
+NM			:= $(PREFIX)nm
 FSELF		:= $(PSL1GHT)/bin/fself.py
 SFO			:= $(PSL1GHT)/bin/sfo.py
 PS3LOADAPP	:= $(PSL1GHT)/bin/ps3load
