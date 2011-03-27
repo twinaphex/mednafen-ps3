@@ -11,7 +11,7 @@ class	MednafenEmu
 		static void						CloseGame			();
 		
 		static bool						Frame				();
-		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0);
+		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0, bool aDummy = false);
 
 		static void						DoCommands			();
 		static bool						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow);
@@ -25,7 +25,7 @@ class	MednafenEmu
 
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
-		static bool						DummyFrame			() {if(IsGameLoaded() && !SuspendDraw){Blit(); return true;} return false;}
+		static bool						DummyFrame			() {if(IsGameLoaded() && !SuspendDraw){Blit(0, 0, 0, 0, true); return true;} return false;}
 
 	protected:	//Internals
 		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
