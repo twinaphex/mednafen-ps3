@@ -44,6 +44,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "wii/utility.h"
 #else
 # include "sdl/SDLPlatform.h"
+# include "sdl/SDLTexture.h"
 # include "sdl/SDLVideo.h"
 # include "sdl/SDLAudio.h"
 # include "sdl/SDLInput.h"

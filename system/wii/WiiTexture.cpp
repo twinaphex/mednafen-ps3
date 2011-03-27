@@ -1,20 +1,14 @@
 #include <es_system.h>
 
-						WiiTexture::WiiTexture				(uint32_t aWidth, uint32_t aHeight, bool aStatic) : 
-	Static(aStatic),
-	Locked(false),
-	Width(aWidth),
-	Height(aHeight),
-	Pitch(MultipleOfFour(aWidth)),
+						WiiTexture::WiiTexture				(uint32_t aWidth, uint32_t aHeight) : 
+	Texture(aWidth, aHeight, MultipleOfFour(aWidth)),
 	AdjustedHeight(MultipleOfFour(aHeight)),
-	Filter(0),
-	Pixels(0),
-	Valid(false)
+	Pixels(0)
 {
 	//TODO: Max is 1024x1024 on Wii!
-	ErrorCheck(Pitch != 0 && AdjustedHeight != 0 && Pitch <= 2048 && AdjustedHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", Pitch, AdjustedHeight);
+	ErrorCheck(esPitch != 0 && AdjustedHeight != 0 && esPitch <= 2048 && AdjustedHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", esPitch, AdjustedHeight);
 
-	Pixels = (uint32_t*)memalign(32, Pitch * AdjustedHeight * 4);
+	Pixels = (uint32_t*)memalign(32, esPitch * AdjustedHeight * 4);
 }
 						
 						WiiTexture::~WiiTexture				()
@@ -24,48 +18,38 @@
 
 void					WiiTexture::Clear					(uint32_t aColor)
 {
-	ErrorCheck(!Static || !Locked, "Texture::GetPixels: Attempt to clear a locked static texture");
-
-	for(int i = 0; i != Pitch * AdjustedHeight; i ++)
+	for(int i = 0; i != esPitch * AdjustedHeight; i ++)
 	{
 		Pixels[i] = aColor;
 	}
 
-	Valid = false;
+	esValid = false;
 }	
 
 uint32_t*				WiiTexture::GetPixels				()
 {
-	ErrorCheck(!Static || !Locked, "Texture::GetPixels: Attempt to get data of a locked static texture");
-
-	Valid = false;
+	esValid = false;
 	return Pixels;
 }
 
 void					WiiTexture::Apply					(uint32_t aWidth, uint32_t aHeight)
 {
-	//Lock static texture
-	Locked = true;
-
 	//Convert static textures
-	if(!Valid)
+	if(!esValid)
 	{
-		Valid = true;
+		esValid = true;
 
 		//Process size
+		aWidth = (aWidth == 0) ? esWidth : aWidth;
 		aWidth = MultipleOfFour(aWidth);
+		aWidth = (aWidth > esPitch) ? esPitch : aWidth;
+
+		aHeight = (aHeight == 0) ? esHeight : aHeight;
 		aHeight = MultipleOfFour(aHeight);
-
-		//Always convert entire static texture
-		aWidth = Static ? Pitch : aWidth;
-		aHeight = Static ? AdjustedHeight : aHeight;
-
-		//Clamp to real texture size
-		aWidth = (aWidth > Pitch) ? Pitch : aWidth;
 		aHeight = (aHeight > AdjustedHeight) ? AdjustedHeight : aHeight;
 
 		//Convert texture
-		uint16_t bufferCache[Pitch * 4 * 2];
+		uint16_t bufferCache[esPitch * 4 * 2];
 
 		for(int i = 0; i != aHeight / 4; i ++)
 		{
@@ -75,27 +59,27 @@ void					WiiTexture::Apply					(uint32_t aWidth, uint32_t aHeight)
 				{
 					int x = (j * 4) + (k % 4);
 					int y = (k / 4);
-					uint32_t pixel = Pixels[(i * Pitch * 4) + (y * Pitch) + x];
+					uint32_t pixel = Pixels[(i * esPitch * 4) + (y * esPitch) + x];
 
 					bufferCache[j * 32 + k] = pixel >> 16;
 					bufferCache[j * 32 + k + 16] = pixel & 0xFFFF;
 				}
 			}
 
-			memcpy(&Pixels[i * Pitch * 4], bufferCache, Pitch * 4 * 4);
+			memcpy(&Pixels[i * esPitch * 4], bufferCache, esPitch * 4 * 4);
 		}
 
 		//Flush and load the texture
-		DCFlushRange(Pixels, Pitch * AdjustedHeight * 4);
+		DCFlushRange(Pixels, esPitch * AdjustedHeight * 4);
 		GX_InvalidateTexAll();
-		GX_InitTexObj(&TextureObject, Pixels, Pitch, AdjustedHeight, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+		GX_InitTexObj(&TextureObject, Pixels, esPitch, AdjustedHeight, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
 	}
 
-	GX_InitTexObjFilterMode(&TextureObject, Filter ? GX_LINEAR : GX_NEAR, Filter ? GX_LINEAR : GX_NEAR);
+	GX_InitTexObjFilterMode(&TextureObject, esFilter ? GX_LINEAR : GX_NEAR, esFilter ? GX_LINEAR : GX_NEAR);
 	GX_LoadTexObj(&TextureObject, GX_TEXMAP0);
 
 	Mtx matrix;
 	guMtxIdentity(matrix);
-	guMtxScale(matrix, 1.0f / (float)Pitch, 1.0f / (float)AdjustedHeight, 1);
+	guMtxScale(matrix, 1.0f / (float)esPitch, 1.0f / (float)AdjustedHeight, 1);
 	GX_LoadTexMtxImm(matrix, GX_TEXMTX0, GX_MTX3x4);
 }

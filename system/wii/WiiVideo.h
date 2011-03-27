@@ -9,7 +9,7 @@ class								WiiVideo : public ESVideo
 									WiiVideo				();
 									~WiiVideo				();
 	
-		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight, aStatic);};
+		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight);};
 	
 		virtual void				SetClip					(Area aClip);
 	
