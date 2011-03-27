@@ -1,11 +1,8 @@
 #ifndef PS3_SYSTEM_H____
 #define PS3_SYSTEM_H____
 
-#include <stdint.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <string>
+#include "src/stdheaders.h"
+
 
 #include "src/ESException.h"
 inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
@@ -28,6 +25,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/ESAudio.h"
 #include "src/ESInput.h"
 #include "src/ESNetwork.h"
+#include "src/main.h"
 
 #ifdef L1GHT
 # include "l1ght/cell.h"
@@ -65,20 +63,5 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/utility/Keyboard.h"
 #include "src/utility/TextViewer.h"
 #include "src/utility/Logger.h"
-
-extern ESVideo*			es_video;
-extern ESAudio*			es_audio;
-extern ESInput*			es_input;
-extern ESNetwork*		es_network;
-extern PathBuild*		es_paths;
-extern Logger*			es_log;
-
-void				InitES					(void (*aExitFunction)() = 0);
-void				QuitES					();
-volatile bool		WantToDie				();
-volatile bool		WantToSleep				();
-void				Abort					(const char* aMessage);
-void				ESSUB_Error				(const char* aMessage);
-std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage);
 
 #endif
