@@ -1,7 +1,4 @@
-//Collection of PS3 Headers
-
-#ifndef CELL_H
-#define	CELL_H
+#pragma once
 
 #include <unistd.h>
 #include <assert.h>
@@ -16,7 +13,4 @@
 #include <ogc/mutex.h>
 #include <ogc/audio.h>
 #include <ogc/lwp_watchdog.h>
-
-#endif
-
 

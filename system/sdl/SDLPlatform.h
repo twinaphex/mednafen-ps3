@@ -1,7 +1,4 @@
-//Collection of PS3 Headers
-
-#ifndef CELL_H
-#define	CELL_H
+#pragma once
 
 #include <unistd.h>
 #include <assert.h>
@@ -18,7 +15,4 @@
 #include <windows.h>
 #include <shlobj.h>
 #endif
-
-#endif
-
 

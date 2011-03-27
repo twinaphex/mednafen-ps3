@@ -28,14 +28,14 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/main.h"
 
 #ifdef L1GHT
-# include "l1ght/cell.h"
+# include "l1ght/L1ghtPlatform.h"
 # include "l1ght/L1ghtVideo.h"
 # include "l1ght/L1ghtAudio.h"
 # include "l1ght/L1ghtInput.h"
 # include "l1ght/L1ghtNetwork.h"
 # include "l1ght/utility.h"
 #elif defined(MDWII)
-# include "wii/cell.h"
+# include "wii/WiiPlatform.h"
 # include "wii/WiiTexture.h"
 # include "wii/WiiVideo.h"
 # include "wii/WiiAudio.h"
@@ -43,7 +43,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "wii/WiiNetwork.h"
 # include "wii/utility.h"
 #else
-# include "sdl/cell.h"
+# include "sdl/SDLPlatform.h"
 # include "sdl/SDLVideo.h"
 # include "sdl/SDLAudio.h"
 # include "sdl/SDLInput.h"
