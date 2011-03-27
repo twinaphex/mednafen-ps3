@@ -25,7 +25,7 @@
 	@echo "[AR]  $(notdir $@)"
 	@$(AR) -rcs ../$(TARGET)-$(PLATFORM).a $^
 ifneq ($(strip $(SYMPREFIX)),)
-	python $(TOP)/manhandle.py ../$(TARGET)-$(PLATFORM).a $(SYMPREFIX) $(OBJCOPY)
+	python $(TOP)/manhandle.py ../$(TARGET)-$(PLATFORM).a $(SYMPREFIX) $(OBJCOPY) $(NM)
 endif
 
 

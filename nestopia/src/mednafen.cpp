@@ -100,7 +100,7 @@ static void NST_CALLBACK		DoFileIO						(void *userData, User::File& file)
 MDFNGI	NestInfo =
 {
 /*	shortname:			*/	"nest",
-/*	fullname:			*/	"Nintendo Entartainment System (Nestopia)",
+/*	fullname:			*/	"Nintendo Entertainment System (Nestopia)",
 /*	FileExtensions:		*/	NestExtensions,
 /*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,
