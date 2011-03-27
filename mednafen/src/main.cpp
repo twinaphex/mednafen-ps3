@@ -96,10 +96,7 @@ void				ReloadEmulator			()
 		if(size < 64 * 1024 * 1024)
 		{
 			void* data = malloc(size);
-			if(!data)
-			{
-				throw ESException("Loader: Failed to allocate memory for file [File: %s, Size: %d]", filename.c_str(), size);
-			}
+			ErrorCheck(data, "Loader: Failed to allocate memory for file [File: %s, Size: %d]", filename.c_str(), size);
 
 			archive->GetSelectedData(size, data);
 
@@ -171,30 +168,18 @@ int					main					(int argc, char* argv[])
 	}
 	catch(const char* s)
 	{
-		FILE* tack = fopen("/DEBUGEX.TXT", "w");
-		fprintf(tack, "%s\n", s);
-		fclose(tack);
-
 		printf("%s\n", s);
 		Exit();
 		abort();
 	}
 	catch(ESException& s)
 	{
-		FILE* tack = fopen("/DEBUGEX.TXT", "w");
-		fprintf(tack, "%s\n", s.what());
-		fclose(tack);
-
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();
 	}
 	catch(std::exception& s)
 	{
-		FILE* tack = fopen("/DEBUGEX.TXT", "w");
-		fprintf(tack, "%s\n", s.what());
-		fclose(tack);
-
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();

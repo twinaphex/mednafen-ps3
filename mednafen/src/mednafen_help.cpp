@@ -323,7 +323,7 @@ bool						MednafenEmu::Frame				()
 	return false;
 }
 
-void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
+void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch, bool aDummy)
 {
 	//Get the output area
 	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
@@ -346,7 +346,11 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 	}
 
 	//Invalidate and draw the buffer
-	Buffer->Invalidate();
+	if(!aDummy)
+	{
+		Buffer->Invalidate();
+	}
+
 	es_video->PresentFrame(Buffer, output, FullFrameSetting, UnderscanSetting, UndertuneSetting);
 	
 /*
