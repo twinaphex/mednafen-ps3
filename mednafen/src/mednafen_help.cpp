@@ -199,6 +199,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
 		SuspendDraw = false;
+
+		ReadSettings();
 	}
 }
 
@@ -243,11 +245,10 @@ bool						MednafenEmu::Frame				()
 {
 	if(IsInitialized && IsLoaded)
 	{
-		bool rewindnow = MDFN_GetSettingB(SETTINGNAME("rewind"));
-		if(rewindnow != RewindEnabled)
+		if(RewindSetting != RewindEnabled)
 		{
-			MDFNI_EnableStateRewind(rewindnow);
-			RewindEnabled = rewindnow;
+			MDFNI_EnableStateRewind(RewindSetting);
+			RewindEnabled = RewindSetting;
 		}
 
 		Inputs->Process();
@@ -278,9 +279,9 @@ bool						MednafenEmu::Frame				()
 			SkipCount = 0;
 
 			//VIDEO
-			Blit();			
+			Blit();
 	
-			if(MDFN_GetSettingB(SETTINGNAME("displayfps")))
+			if(DisplayFPSSetting)
 			{
 				char buffer[128];
 				uint32_t fps, skip;
@@ -331,20 +332,29 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
 {
+	//Get the output area
 	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+	if(aPixels)
+	{
+		output = Area(0, 0, aWidth, aHeight);
+	}
 
-	if(Buffer->GetFlags() & Texture::SLOW_READ)
+	//If we are drawing predefined pixels, or have a slow_read texture, move it into the buffer texture
+	if(aPixels || (Buffer->GetFlags() & Texture::SLOW_READ))
 	{
 		uint32_t* pix = Buffer->GetPixels();
+		uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
+		uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
 
 		for(int i = 0; i != aHeight; i ++)
 		{
-			memcpy(&pix[i * Buffer->GetPitch()], &aPixels[i * aPitch], aWidth * 4);
+			memcpy(&pix[i * Buffer->GetPitch()], &srcpix[i * srcpitch], aWidth * 4);
 		}
 	}
 
+	//Invalidate and draw the buffer
 	Buffer->Invalidate();
-	es_video->PresentFrame(Buffer, output, MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")));
+	es_video->PresentFrame(Buffer, output, FullFrameSetting, UnderscanSetting, UndertuneSetting);
 	
 /*
 	if(IsInitialized && (aPixels || IsLoaded))
@@ -402,7 +412,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 			memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
 		}
 
-		Area underscanfine(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
+		Area underscanfine();
 
 		es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")), underscanfine);
 	}*/
@@ -464,7 +474,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	{
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
-		if(0 == strcmp(command.c_str(), "DoSettings"))			MednafenSettings::Do(GameInfo->shortname);
+		if(0 == strcmp(command.c_str(), "DoSettings"))			{MednafenSettings::Do(GameInfo->shortname); ReadSettings();}
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
@@ -576,6 +586,17 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 	}
 }
 
+void						MednafenEmu::ReadSettings		()
+{
+	RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
+	DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("displayfps"));
+	FullFrameSetting = MDFN_GetSettingB(SETTINGNAME("fullframe"));
+	UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
+	FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
+	ScalerSetting = MDFN_GetSettingI(SETTINGNAME("scaler"));
+	UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
+}
+
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 	
@@ -604,3 +625,10 @@ int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
 
+bool						MednafenEmu::RewindSetting = false;
+bool						MednafenEmu::DisplayFPSSetting = false;
+bool						MednafenEmu::FullFrameSetting = false;
+int32_t						MednafenEmu::UnderscanSetting = 10;
+bool						MednafenEmu::FilterSetting = false;
+int32_t						MednafenEmu::ScalerSetting = 0;
+Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
