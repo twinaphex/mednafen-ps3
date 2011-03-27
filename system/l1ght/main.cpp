@@ -14,9 +14,9 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 	//TODO: Use constants from psl1ght
 	switch (status)
 	{
-		case EVENT_REQUEST_EXITAPP:				want_to_die = true; break;
-		case 0x121:								want_to_sleep = true; break; 
-		case 0x122: 							want_to_sleep = false; break;
+		case SYSUTIL_EXIT_GAME:				want_to_die = true; break;
+		case SYSUTIL_MENU_OPEN:				want_to_sleep = true; break; 
+		case SYSUTIL_MENU_CLOSE: 			want_to_sleep = false; break;
 	}
 
 	return;
@@ -25,12 +25,12 @@ static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata
 
 void				ESSUB_Init				()
 {
-	sysRegisterCallback(EVENT_SLOT0, (sysCallback)sysutil_callback, NULL);
+	sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, (sysutilCallback)sysutil_callback, NULL);
 }
 
 void				ESSUB_Quit				()
 {
-	sysUnregisterCallback(EVENT_SLOT0);
+	sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
 }
 
 ESVideo*			ESSUB_MakeVideo			()
@@ -55,13 +55,13 @@ ESNetwork*			ESSUB_MakeNetwork		()
 
 bool				ESSUB_WantToDie			()
 {
-	sysCheckCallback();
+	sysUtilCheckCallback();
 	return want_to_die;
 }
 
 bool				ESSUB_WantToSleep		()
 {
-	sysCheckCallback();
+	sysUtilCheckCallback();
 	return want_to_sleep;
 }
 
@@ -73,7 +73,7 @@ std::string			ESSUB_GetBaseDirectory	()
 static bool			KillError = false;
 static void			DialogCallback			(msgButton button, void *userdata)
 {
-	if(button != MSGDIALOG_BUTTON_NONE)
+	if(button != MSG_DIALOG_BTN_NONE)
 	{
 		KillError = true;
 	}
@@ -83,14 +83,14 @@ static void			DialogCallback			(msgButton button, void *userdata)
 void				ESSUB_Error				(const char* aMessage)
 {
 	KillError = false;
-	msgDialogOpen(MSGDIALOG_ERROR, aMessage, DialogCallback, 0, 0);
+	msgDialogOpen(MSG_DIALOG_ERROR, aMessage, DialogCallback, 0, 0);
 
 	while(!KillError)
 	{
 		es_video->Flip();
-		sysCheckCallback();
+		sysUtilCheckCallback();
 	}
 
-	msgDialogClose();
+	msgDialogClose(0);
 }
 

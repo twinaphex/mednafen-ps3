@@ -11,21 +11,23 @@ CC			:= $(PREFIX)gcc
 CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
-NM			:= $(PREFIX)nm
-FSELF		:= $(PSL1GHT)/bin/fself.py
-SFO			:= $(PSL1GHT)/bin/sfo.py
-PS3LOADAPP	:= $(PSL1GHT)/bin/ps3load
-SFOXML		:= $(PSL1GHT)/bin/sfo.xml
-PKG			:= $(PSL1GHT)/bin/pkg.py
-SPRX		:= $(PSL1GHT)/bin/sprxlinker
+FSELF		:= fself.py
+SFO			:= sfo.py
+PS3LOADAPP	:= ps3load
+SFOXML		:= sfo.xml
+PKG			:= pkg.py
+SPRX		:= sprxlinker
 
 ifeq ($(strip $(FREETYPECONFIG)),)
 	FREETYPECONFIG=freetype-config
 endif
 
-CFLAGS		+= -DL1GHT -O3 -g --std=gnu99 -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
-CXXFLAGS	+= -DL1GHT -O3 -g -I$(PSL1GHT)/include -I$(PS3DEV)/ppu/include `$(FREETYPECONFIG) --cflags` -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
-LDFLAGS		+= -T $(PSL1GHT)/lib/linker.x -B$(PSL1GHT)/lib -B$(PS3DEV)/ppu/lib -lpng `$(FREETYPECONFIG) --libs` -laudio -lgcm_sys -lreality -lnet -lsysutil -lio -lz -lm -lsysmodule 
+CNCXXFLAGS	:= -DL1GHT -O3 -pipe -g `$(FREETYPECONFIG) --cflags` -I$(DEVKITPRO)/portlibs/ppu/include -I$(DEVKITPRO)/libpsl1ght/ppu/include -I$(DEVKITPS3)/ppu/include
+CNCXXFLAGS	+= -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
+
+CFLAGS		+= $(CNCXXFLAGS) --std=gnu99
+CXXFLAGS	+= $(CNCXXFLAGS)
+LDFLAGS		+= -L$(DEVKITPRO)/libpsl1ght/ppu/lib -lpng `$(FREETYPECONFIG) --libs` -llv2 -lrt -laudio -lrsx -lsysfs -lgcm_sys -lnet -lsysutil -lio -lz -lm -lsysmodule 
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 ###
@@ -52,3 +54,10 @@ pkg: $(BUILD)-l1ght
 	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
 	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
 
+%.vpo: %.vcg
+	@echo $(notdir $<)
+	@$(CGCOMP) -v $^ $@
+	
+%.fpo: %.fcg
+	@echo $(notdir $<)
+	@$(CGCOMP) -f $^ $@

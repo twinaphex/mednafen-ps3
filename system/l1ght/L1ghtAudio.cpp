@@ -10,7 +10,7 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
 	audioInit();
 	
-	AudioPortParam portparam = {2, BlockCount, 0, 0};
+	audioPortParam portparam = {2, BlockCount, 0, 0};
 	audioPortOpen(&portparam, &Port);
 
 	audioGetPortConfig(Port, &Config);
@@ -19,15 +19,16 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 
 	audioCreateNotifyEventQueue(&QueueID, &QueueKey);
 	audioSetNotifyEventQueue(QueueKey);
-	sys_event_queue_drain(QueueID);
+	sysEventQueueDrain(QueueID);
 
-	sys_mutex_attribute_t MutexAttrs = {MUTEX_PROTOCOL_FIFO, MUTEX_NOT_RECURSIVE, 0, 0, 0, 0, 0, '\0'};
-	sys_mutex_create(&BufferMutex, &MutexAttrs);
+//TODO: Fix this
+	sys_lwmutex_attr_t MutexAttrs = {SYS_LWMUTEX_ATTR_PROTOCOL, SYS_LWMUTEX_ATTR_RECURSIVE, '\0'};
+	sysLwMutexCreate(&BufferMutex, &MutexAttrs);
 
 	audioPortStart(Port);
 	
 	ThreadDie = false;
-	sys_ppu_thread_create(&ThreadID, ProcessAudioThread, 0, 0, 65536, 0, 0);
+	sysThreadCreate(&ThreadID, ProcessAudioThread, 0, 0, 65536, 0, 0);
 }
 
 
@@ -44,7 +45,7 @@ extern "C" int audioAddData(u32 portNum, float *data, u32 frames, float volume);
 	audioPortClose(Port);
 	audioQuit();
 
-	sys_mutex_destroy(BufferMutex);
+	sysLwMutexDestroy(&BufferMutex);
 }
 
 void					L1ghtAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
@@ -54,19 +55,19 @@ void					L1ghtAudio::AddSamples			(uint32_t* aSamples, uint32_t aCount)
 		Utility::Sleep(0);
 	}
 
-	sys_mutex_lock(BufferMutex, 0);
+	sysLwMutexLock(&BufferMutex, 0);
 
 	for(int i = 0; i != aCount; i ++, WriteCount ++)
 	{
 		RingBuffer[WriteCount & BufferMask] = aSamples[i];
 	}
 
-	sys_mutex_unlock(BufferMutex);
+	sysLwMutexUnlock(&BufferMutex);
 }
 
 void				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 {
-	sys_mutex_lock(BufferMutex, 0);
+	sysLwMutexLock(&BufferMutex, 0);
 
 	if(GetBufferAmount() < aCount)
 	{
@@ -81,10 +82,10 @@ void				L1ghtAudio::GetSamples			(uint32_t* aSamples, uint32_t aCount)
 		}
 	}
 
-	sys_mutex_unlock(BufferMutex);
+	sysLwMutexUnlock(&BufferMutex);
 }
 
-void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
+void					L1ghtAudio::ProcessAudioThread	(void* aBcD)
 {
 	while(!es_audio)
 	{
@@ -100,7 +101,7 @@ void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
 
 	while(!audio->ThreadDie)
 	{
-		if(0 != sys_event_queue_receive(audio->QueueID, &event, 0))
+		if(0 != sysEventQueueReceive(audio->QueueID, &event, 0))
 		{
 			break;
 		}
@@ -121,7 +122,7 @@ void					L1ghtAudio::ProcessAudioThread	(uint64_t aBcD)
 	}
 	
 	audio->ThreadDie = false;
-	sys_ppu_thread_exit(0);
+	sysThreadExit(0);
 }
 
 volatile int32_t 		L1ghtAudio::GetBufferAmount		()

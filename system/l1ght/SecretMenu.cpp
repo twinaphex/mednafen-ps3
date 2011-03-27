@@ -27,9 +27,7 @@ bool				L1ghtSecret::Input						()
 		{
 			std::vector<std::string> bms;
 			FileSelect* selecter = new FileSelect("EBOOT.BIN", bms, "", 0);
-			std::string enumpath = selecter->GetFile();
-
-			std::string filename = Enumerators::GetEnumerator(enumpath).ObtainFile(enumpath);
+			std::string filename = selecter->GetFile();
 
 			FILE* ongl = fopen(filename.c_str(), "rb");
 			if(!ongl)
