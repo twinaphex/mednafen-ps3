@@ -1,25 +1,8 @@
-//Collection of PS3 Headers
+#pragma once
 
-#ifndef CELL_H
-#define	CELL_H
-
-#include <map>
-#include <string>
-#include <vector>
-#include <stack>
-#include <sstream>
-#include <fstream>
-#include <algorithm>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <malloc.h>
 #include <unistd.h>
 #include <assert.h>
-#include <exception>
-#include <png.h>
 
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -46,10 +29,6 @@ extern "C"
 	#include <rsx/nv40.h>
 	#include <rsx/reality.h>
 	#include <psl1ght/lv2/thread.h>
-	#include <ft2build.h>
-	#include FT_FREETYPE_H
-	#include FT_BITMAP_H
-	#include FT_GLYPH_H
 }
 
 #define	HAVE_ESSUB_ERROR
