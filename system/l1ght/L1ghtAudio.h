@@ -1,5 +1,6 @@
-#ifndef L1GHTAUDIO_H
-#define	L1GHTAUDIO_H
+#pragma once
+
+#include "src/utility/AudioBuffer.h"
 
 class								L1ghtAudio : public ESAudio
 {
@@ -7,19 +8,15 @@ class								L1ghtAudio : public ESAudio
 									L1ghtAudio				();
 									~L1ghtAudio				();
 
-		void						AddSamples				(uint32_t* aSamples, uint32_t aCount);
+		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount);
+
+		volatile int32_t			GetBufferFree			() const {return RingBuffer.GetBufferAmount();};
+		volatile int32_t			GetBufferAmount			() const {return RingBuffer.GetBufferFree();};
 
 	protected:
-		void						GetSamples				(uint32_t* aSamples, uint32_t aCount);
-
-		volatile int32_t			GetBufferAmount			();
-		volatile int32_t			GetBufferFree			();
-		
 		static void					ProcessAudioThread		(void* aBcD);
 	
 		static const int			BlockCount = 16;
-		static const int			BufferSize = 8192;
-		static const int			BufferMask = 0x1FFF;
 
 		sys_ppu_thread_t			ThreadID;
 		volatile bool				ThreadDie;
@@ -32,11 +29,6 @@ class								L1ghtAudio : public ESAudio
 		uint32_t					Port;
 		audioPortConfig				Config;
 
-		uint32_t 					RingBuffer[BufferSize];
-		volatile int32_t			ReadCount;
-		volatile int32_t			WriteCount;
-		bool						InitialFill;
-		
+		AudioBuffer<>				RingBuffer;
 };
 
-#endif
