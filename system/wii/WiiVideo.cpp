@@ -135,7 +135,7 @@ void					WiiVideo::Flip					()
 
 void					WiiVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
-	((WiiTexture*)aTexture)->Apply(aSource.Right(), aSource.Bottom());
+	((WiiTexture*)aTexture)->Apply(0, 0);
 
 	uint8_t r = ((aColor >> 24) & 0xFF);
 	uint8_t g = ((aColor >> 16) & 0xFF);
