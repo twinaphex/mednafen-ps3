@@ -5,6 +5,7 @@ ESVideo*			es_video = 0;
 ESAudio*			es_audio = 0;
 ESInput*			es_input = 0;
 ESNetwork*			es_network = 0;
+ESThreads*			es_threads = 0;
 PathBuild*			es_paths = 0;
 
 namespace
@@ -19,6 +20,7 @@ ESVideo*			ESSUB_MakeVideo			();
 ESAudio*			ESSUB_MakeAudio			();
 ESInput*			ESSUB_MakeInput			();
 ESNetwork*			ESSUB_MakeNetwork		();
+ESThreads*			ESSUB_MakeThreads		();
 bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
 std::string			ESSUB_GetBaseDirectory	();
@@ -60,6 +62,7 @@ void				InitES					(void (*aExitFunction)())
 
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
 
+	es_threads = ESSUB_MakeThreads();
 	es_network = ESSUB_MakeNetwork();
 	es_video = ESSUB_MakeVideo();
 	es_audio = ESSUB_MakeAudio();

@@ -97,51 +97,31 @@ void		MDFND_SetMovieStatus	(StateStatusStruct *status)
 //Threading
 struct					MDFN_Thread
 {
-	void*				data;
+	ESThread*			Thread;
 };
 
 struct					MDFN_Mutex
 {
-	void*				data;
+	ESMutex*			Mutex;
 };
-
-#ifdef L1GHT
-void					ThreadWrap	(uint64_t aData)
-{
-	uint64_t* threaddata = (uint64_t*)aData;
-
-	uint32_t result = ((int (*)(void*))threaddata[0])((void*)threaddata[1]);
-	sys_ppu_thread_exit(result);
-}
-#endif
 
 MDFN_Thread*MDFND_CreateThread		(int (*fn)(void *), void *data)
 {
 	MDFN_Thread* thread = (MDFN_Thread*)malloc(sizeof(MDFN_Thread));
-
-#ifdef L1GHT
-	uint64_t threaddata[2] = {(uint64_t)fn, (uint64_t)data};
-	sys_ppu_thread_create((sys_ppu_thread_t*)&thread->data, ThreadWrap, (uint64_t)threaddata, 1001, 0x10000, THREAD_JOINABLE, 0);
-#elif defined(MDSDL)
-	thread->data = (void*)SDL_CreateThread(fn, data);
-#endif
+	thread->Thread = es_threads->MakeThread(fn, data);
 	return thread;
 }
 
 void		MDFND_WaitThread		(MDFN_Thread *thread, int *status)
 {
-#ifdef L1GHT
-	uint64_t out;
-	sys_ppu_thread_join((sys_ppu_thread_t)thread->data, &out);
+	int result = thread->Thread->Wait();
 
 	if(status)
 	{
-		*status = out;
+		*status = result;
 	}
-#elif defined(MDSDL)
-	SDL_WaitThread((SDL_Thread*)thread->data, status);
-#endif
 
+	delete thread->Thread;
 	free(thread);
 }
 
@@ -153,51 +133,25 @@ void		MDFND_KillThread		(MDFN_Thread *thread)
 MDFN_Mutex*	MDFND_CreateMutex		(void)
 {
 	MDFN_Mutex* mutex = (MDFN_Mutex*)malloc(sizeof(MDFN_Mutex));
-
-#ifdef L1GHT
-	sys_lwmutex_attribute_t MutexAttrs;
-	memset(&MutexAttrs, 0, sizeof(sys_lwmutex_attribute_t));
-	MutexAttrs.attr_protocol = 0;
-	MutexAttrs.attr_recursive = LWMUTEX_ATTR_RECURSIVE;
-
-	sys_lwmutex_create((sys_lwmutex_t*)&mutex->data, &MutexAttrs);
-#elif defined(MDSDL)
-	mutex->data = (void*)SDL_CreateMutex();
-#endif
-
+	mutex->Mutex = es_threads->MakeMutex();
 	return mutex;
 }
 
 void		MDFND_DestroyMutex		(MDFN_Mutex *mutex)
 {
-#ifdef L1GHT
-	sys_lwmutex_destroy((sys_lwmutex_t*)mutex->data);
-#elif defined(MDSDL)
-	SDL_DestroyMutex((SDL_mutex*)mutex->data);
-#endif
-
+	delete mutex->Mutex;
 	free(mutex);
-
 }
 
 int			MDFND_LockMutex			(MDFN_Mutex *mutex)
 {
-#ifdef L1GHT
-	sys_lwmutex_lock((sys_lwmutex_t*)mutex->data, 0);
-#elif defined(MDSDL)
-	SDL_mutexP((SDL_mutex*)mutex->data);
-#endif
-
+	mutex->Mutex->Lock();
 	return 0;
 }
 
 int			MDFND_UnlockMutex		(MDFN_Mutex *mutex)
 {
-#ifdef L1GHT
-	sys_lwmutex_unlock((sys_lwmutex_t*)mutex->data);
-#elif defined(MDSDL)
-	SDL_mutexV((SDL_mutex*)mutex->data);
-#endif
+	mutex->Mutex->Unlock();
 	return 0;
 }
 
