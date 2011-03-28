@@ -1,7 +1,7 @@
 #ifndef SAVESTATES___H
 #define SAVESTATES___H
 
-class					StateMenu : public SummerfaceLabel
+class					StateMenu : public SummerfaceLabel, public boost::enable_shared_from_this<StateMenu>
 {
 	public:
 						StateMenu				(bool aLoad);
@@ -15,10 +15,11 @@ class					StateMenu : public SummerfaceLabel
 		void			FillScratch				(uint32_t aSlot);
 
 	protected:
-		Summerface*		UI;
+		Summerface_Ptr	UI;
 		bool			Load;
 		uint32_t		Slot;
 		uint32_t*		Image;
+		bool			Added;
 };
 
 #endif

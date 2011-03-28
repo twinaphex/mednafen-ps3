@@ -11,7 +11,7 @@
 	{
 		if(fex_name(Archive) != 0)
 		{
-			AddItem(new SummerfaceItem(fex_name(Archive), ""));
+			AddItem(boost::make_shared<SummerfaceItem>(fex_name(Archive), ""));
 		}
 		
 		fex_next(Archive);
@@ -22,7 +22,7 @@
 
 											ArchiveList::~ArchiveList					()
 {
-	fex_close(Archive);		
+	fex_close(Archive);
 }
 
 uint32_t									ArchiveList::GetSelectedSize				() const

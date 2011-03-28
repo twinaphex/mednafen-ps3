@@ -9,37 +9,31 @@ class													SummerfaceWindow
 {
 	public:
 														SummerfaceWindow				(const Area& aRegion);
-		virtual											~SummerfaceWindow				();
+		virtual											~SummerfaceWindow				() {};
 
-		virtual bool									PrepareDraw						();
+		virtual bool									PrepareDraw						(); //External
 
-		virtual bool									Draw							() = 0;
-		virtual bool									Input							();
+		virtual bool									Draw							() = 0; //Pure virtual
+		virtual bool									Input							(); //External
 
-		virtual void									SetInterface					(Summerface* aInterface, const std::string& aName);
-		virtual Summerface*								GetInterface					();
+		virtual void									SetInterface					(Summerface_Ptr aInterface, const std::string& aName); //External
+		virtual Summerface_Ptr							GetInterface					(); //External
 
-		virtual void									SetName							(const std::string& aName);
-		virtual std::string								GetName							();
+		virtual void									SetName							(const std::string& aName) {Name = aName;}
+		virtual std::string								GetName							() const {return Name;}
 
-		virtual void									SetHeader						(const std::string& aHeader, ...);
-		virtual std::string								GetHeader						();
+		virtual void									SetHeader						(const std::string& aHeader, ...); //External
+		virtual std::string								GetHeader						() const {return Header;};
 
-		virtual void									SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete);
-		virtual SummerfaceInputConduit*					GetInputConduit					();
-
-		virtual void									SetNoDelete						();
-		virtual bool									GetNoDelete						();
+		virtual void									SetInputConduit					(SummerfaceInputConduit_Ptr aInputConduit) {InputHandler = aInputConduit;}
+		virtual SummerfaceInputConduit_Ptr				GetInputConduit					() const {return InputHandler;};
 
 	private:
 		static const uint32_t							BorderWidth = 4;
 
-		SummerfaceInputConduit*							InputHandler;
-		bool											DeleteHandler;
+		Summerface_WeakPtr								Interface;
+		SummerfaceInputConduit_Ptr						InputHandler;
 
-		bool											NoDelete;
-
-		Summerface*										Interface;
 		std::string										Name;
 		std::string										Header;
 		Area											Region;

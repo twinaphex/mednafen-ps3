@@ -1,5 +1,4 @@
-#ifndef SYSTEM__MENU_H
-#define SYSTEM__MENU_H
+#pragma once
 
 class								MenuHook
 {
@@ -26,6 +25,4 @@ class								Menu
 		uint32_t					InputDelay;
 		MenuHook*					Hook;
 };
-
-#endif
 

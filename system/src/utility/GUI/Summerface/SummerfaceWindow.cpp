@@ -8,25 +8,12 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 }
 
 
-											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion)
+											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion) :
+	Interface(Summerface_WeakPtr()),
+	InputHandler(SummerfaceInputConduit_Ptr())
 {
-	InputHandler = 0;
-	DeleteHandler = false;
-
-	NoDelete = false;
-
-	Interface = 0;
-
 	Region = Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));;
 	Client = Area(Region.X + BorderWidth, Region.Y + BorderWidth, Region.Width - BorderWidth * 2, Region.Height - BorderWidth * 2);
-}
-
-											SummerfaceWindow::~SummerfaceWindow					()
-{
-	if(InputHandler && DeleteHandler)
-	{
-		delete InputHandler;
-	}
 }
 
 //Draw the border and background, leave clip set to the windows client area
@@ -68,33 +55,20 @@ bool										SummerfaceWindow::Input								()
 	}
 }
 
-void										SummerfaceWindow::SetInterface						(Summerface* aInterface, const std::string& aName)
+void										SummerfaceWindow::SetInterface						(Summerface_Ptr aInterface, const std::string& aName)
 {
-	//TODO: Leap of logic here!
-//	if(!Interface || NoDelete)
-	{
-		Interface = aInterface;
-		Name = aName;
-	}
-//	else
-	{
-//		throw ESException("SummerfaceWindow::SetInterface may only be called once per window. Once it's assigned it belongs to its parent forever.");
-	}
-}
-
-Summerface*									SummerfaceWindow::GetInterface						()
-{
-	return Interface;
-}
-
-void										SummerfaceWindow::SetName							(const std::string& aName)
-{
+	Interface = aInterface;
 	Name = aName;
 }
 
-std::string									SummerfaceWindow::GetName							()
+Summerface_Ptr								SummerfaceWindow::GetInterface						()
 {
-	return Name;
+	if(!Interface.expired())
+	{
+		return Interface.lock();
+	}
+
+	return Summerface_Ptr();
 }
 
 void										SummerfaceWindow::SetHeader							(const std::string& aHeader, ...)
@@ -106,37 +80,5 @@ void										SummerfaceWindow::SetHeader							(const std::string& aHeader, ...
 	va_end(args);
 
 	Header = array;
-}
-
-std::string									SummerfaceWindow::GetHeader							()
-{
-	return Header;
-}
-
-
-void										SummerfaceWindow::SetInputConduit					(SummerfaceInputConduit* aInputConduit, bool aDelete)
-{
-	if(InputHandler && DeleteHandler)
-	{
-		delete InputHandler;
-	}
-
-	InputHandler = aInputConduit;
-	DeleteHandler = aDelete;
-}
-
-SummerfaceInputConduit*						SummerfaceWindow::GetInputConduit					()
-{
-	return InputHandler;
-}
-
-void										SummerfaceWindow::SetNoDelete						()
-{
-	NoDelete = true;
-}
-
-bool										SummerfaceWindow::GetNoDelete						()
-{
-	return NoDelete;
 }
 

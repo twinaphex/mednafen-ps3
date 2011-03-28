@@ -2,17 +2,19 @@
 #include "SummerfaceInputConduit.h"
 
 
-											SummerfaceStaticConduit::SummerfaceStaticConduit	(bool (*aCallback)(void*, Summerface* aInterface, const std::string&), void* aUserData)
+											SummerfaceStaticConduit::SummerfaceStaticConduit	(bool (*aCallback)(void*, Summerface_Ptr aInterface, const std::string&), void* aUserData)
 {
 	Callback = aCallback;
 	UserData = aUserData;
 }
 
-bool										SummerfaceStaticConduit::HandleInput				(Summerface* aInterface, const std::string& aWindow)
+bool										SummerfaceStaticConduit::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	if(Callback)
 	{
-		Callback(UserData, aInterface, aWindow);
+		return Callback(UserData, aInterface, aWindow);
 	}
+
+	return false;
 }
 

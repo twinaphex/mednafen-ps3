@@ -9,9 +9,12 @@ DEC_AND_DEF(ESAudio, es_audio);
 DEC_AND_DEF(ESInput, es_input);
 DEC_AND_DEF(ESNetwork, es_network);
 DEC_AND_DEF(PathBuild, es_paths);
-DEC_AND_DEF(Logger, es_log);
 
 #undef DEC_AND_DEF
+
+class	Logger;
+typedef boost::shared_ptr<Logger> Logger_Ptr;
+extern Logger_Ptr es_log;
 
 //Happy functions
 void					InitES					(void (*aExitFunction)() = 0);

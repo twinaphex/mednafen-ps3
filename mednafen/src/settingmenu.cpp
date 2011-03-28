@@ -2,7 +2,7 @@
 
 namespace								MednafenSettings
 {
-	bool								CompareItems									(SummerfaceItem* a, SummerfaceItem* b)
+	bool								CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
 	{
 		//Keep enable at the top
 		if(a->GetText().find(".enable") != std::string::npos)												return true;
@@ -22,11 +22,13 @@ namespace								MednafenSettings
 	class								SettingLineView : public AnchoredListView
 	{
 		public:
-										SettingLineView									(SummerfaceList* aList) : AnchoredListView(aList){RefreshHeader = true;}
+										SettingLineView									(SummerfaceList_WeakPtr aList) : AnchoredListView(aList){RefreshHeader = true;}
 			virtual						~SettingLineView								(){}
 
 			void						DoHeaderRefresh									()
 			{
+				SummerfaceList_Ptr List = WeakList.lock();
+
 				if(RefreshHeader)
 				{
 					const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
@@ -35,7 +37,7 @@ namespace								MednafenSettings
 				}
 			}
 
-			virtual bool				DrawItem										(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
+			virtual bool				DrawItem										(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
 			{
 				AnchoredListView::DrawItem(aItem, aX, aY, aSelected);
 
@@ -64,6 +66,9 @@ namespace								MednafenSettings
 
 			virtual bool				Input											()
 			{
+//TODO: Error check
+				SummerfaceList_Ptr List = WeakList.lock();
+
 				const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
 
 				DoHeaderRefresh();
@@ -176,7 +181,7 @@ namespace								MednafenSettings
 
 					if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
 					{
-						SummerfaceItem* selected = List->GetSelected();
+						SummerfaceItem_Ptr selected = List->GetSelected();
 						bool output = AnchoredListView::Input();
 
 						if(selected != List->GetSelected())
@@ -260,19 +265,19 @@ namespace								MednafenSettings
 
 	static void							DoCategory										(std::vector<const MDFNCS*>& aSettings)
 	{
-		SummerfaceList* settingList = new SummerfaceList(Area(10, 10, 80, 80));
-		settingList->SetView(new SettingLineView(settingList));
+		SummerfaceList_Ptr settingList = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+		settingList->SetView(boost::make_shared<SettingLineView>(settingList));
 	
 		for(int i = 0; i != aSettings.size(); i ++)
 		{
-			SummerfaceItem* item = new SummerfaceItem(aSettings[i]->name, "");
+			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(aSettings[i]->name, "");
 			item->IntProperties["MDFNCS"] = (uint64_t)aSettings[i];
 			settingList->AddItem(item);
 		}
 
 		settingList->Sort(CompareItems);
 
-		Summerface("SettingList", settingList).Do();
+		Summerface::Create("SettingList", settingList)->Do();
 	}
 
 	void								Do												(const std::string& aDefaultCategory)
@@ -280,21 +285,22 @@ namespace								MednafenSettings
 		SettingCollection settings;
 		GetCategories(settings);
 
-		SummerfaceList*	cats = new SummerfaceList(Area(10, 10, 80, 80));
+		SummerfaceList_Ptr cats = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+		cats->SetView(boost::make_shared<AnchoredListView>(cats));
 		cats->SetHeader("Choose Setting Category");
 		for(SettingCollection::iterator i = settings.begin(); i != settings.end(); i ++)
 		{
-			SummerfaceItem* item = new SummerfaceItem(TranslateCategory(i->first.c_str()), "");
+			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
 			item->Properties["CATEGORY"] = i->first;
 			cats->AddItem(item);
 		}
 		cats->Sort();
 		cats->SetSelection(TranslateCategory(aDefaultCategory.c_str()));
 
-		Summerface settingsface("Categories", cats);
+		Summerface_Ptr settingsface = Summerface::Create("Categories", cats);
 		while(!WantToDie())
 		{
-			settingsface.Do();
+			settingsface->Do();
 
 			if(!cats->WasCanceled())
 			{

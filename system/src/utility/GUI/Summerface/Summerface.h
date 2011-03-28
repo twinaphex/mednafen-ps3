@@ -1,34 +1,32 @@
-#ifndef SYSTEM__SUMMERFACE_H
-#define SYSTEM__SUMMERFACE_H
+#pragma once
 
 #include "SummerfaceWindow.h"
 
-class													Summerface : public Menu
+class													Summerface : public Menu, public boost::enable_shared_from_this<Summerface>
 {
-	public:
-														Summerface						();
-														Summerface						(const std::string& aName, SummerfaceWindow* aWindow);
+	public: //Do not call!
+														Summerface						() {};
 
-		virtual											~Summerface						();
+	public:
+		static Summerface_Ptr							Create							(); //External
+		static Summerface_Ptr							Create							(const std::string& aName, SummerfaceWindow_Ptr aWindow); //External
+
+		virtual											~Summerface						() {};
 
 		virtual bool									Draw							();
 		virtual bool									Input							();
 
-		void											AddWindow						(const std::string& aName, SummerfaceWindow* aWindow);
-		void											RemoveWindow					(const std::string& aName, bool aDelete);
-		SummerfaceWindow*								GetWindow						(const std::string& aName);
-
+		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow);
+		void											RemoveWindow					(const std::string& aName);
+		SummerfaceWindow_Ptr							GetWindow						(const std::string& aName);
 		void											SetActiveWindow					(const std::string& aName);
 
-		static void										SetDrawBackground				(void (*aCallback)());
+		static void										SetDrawBackground				(void (*aCallback)()) {BackgroundCallback = aCallback;};
 		
 	private:
-		std::map<std::string, SummerfaceWindow*>		Windows;
+		std::map<std::string, SummerfaceWindow_Ptr>		Windows;
 		std::string										ActiveWindow;
 
 		static void										(*BackgroundCallback)			();
 };
-
-
-#endif
 

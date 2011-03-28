@@ -14,10 +14,7 @@ class	MednafenEmu
 		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0, bool aDummy = false);
 
 		static void						DoCommands			();
-		static bool						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow);
-
-		static void						DoStates			(bool aLoad);
-		static bool						DoState				(void* aUserData, Summerface* aInterface, const std::string& aWindow);
+		static bool						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow);
 
 	public:		//Inlines
 		static bool						IsGameLoaded		() {return IsInitialized && IsLoaded;}
