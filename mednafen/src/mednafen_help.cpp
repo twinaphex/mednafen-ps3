@@ -166,7 +166,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		if(GameInfo == 0)
 		{
-			Summerface("Log", es_log).Do();
+			Summerface::Create("Log", es_log)->Do();
 			Exit();
 		}
 
@@ -436,27 +436,28 @@ void						MednafenEmu::DoCommands			()
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
 	};
 
-	SummerfaceList* grid = new SummerfaceList(Area(25, 25, 50, 50));
-	grid->SetView(new GridListView(grid, 4, 3, true, false));
+	SummerfaceList_Ptr grid = boost::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
+	grid->SetView(boost::make_shared<GridListView>(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
-	grid->SetInputConduit(new SummerfaceStaticConduit(DoCommand, 0), true);
+	grid->SetInputConduit(boost::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
 	for(int i = 0; i != 12; i ++)
 	{
-		SummerfaceItem* item = new SummerfaceItem(commands[i * 3], commands[i * 3 + 1]);
+		SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
 		item->Properties["COMMAND"] = commands[i * 3 + 2];
 		grid->AddItem(item);
 	}
 
-	Summerface sface("Grid", grid); sface.Do();
+	Summerface::Create("Grid", grid)->Do();
 }
 
-bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow)
+bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	std::string command;
 
 	if(aInterface && aInterface->GetWindow(aWindow) && es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		command = ((SummerfaceList*)aInterface->GetWindow(aWindow))->GetSelected()->Properties["COMMAND"];
+		SummerfaceList_Ptr list = boost::static_pointer_cast<SummerfaceList>(aInterface->GetWindow(aWindow));
+		command = list->GetSelected()->Properties["COMMAND"];
 	}
 	else if(!aInterface)
 	{
@@ -490,9 +491,10 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 
 			if(!filename.empty())
 			{
-				TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), filename);
+//				TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), filename);
+				boost::shared_ptr<TextViewer> tv = boost::make_shared<TextViewer>(Area(10, 10, 80, 80), filename);
 				tv->SetHeader(filename);
-				Summerface("TextView", tv).Do();
+				Summerface::Create("TextView", tv)->Do();
 			}
 		}
 

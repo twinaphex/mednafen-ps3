@@ -4,11 +4,14 @@
 //TODO: Put this somewhere
 extern StateStatusStruct*	StateStatusInfo;
 
-							StateMenu::StateMenu					(bool aLoad) : SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1")
+							StateMenu::StateMenu					(bool aLoad) :
+	SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1"),
+	UI(Summerface::Create()),
+	Load(aLoad),
+	Slot(1),
+	Image(0),
+	Added(false)
 {
-	Load = aLoad;
-	Slot = 1;
-
 	Image = new uint32_t[1024 * 1024];
 
 	//Refresh the images
@@ -22,21 +25,21 @@ extern StateStatusStruct*	StateStatusInfo;
 	FillScratch(Slot);
 
 	//We delete ourselves, segfault if this isn't here
-	SetNoDelete();
 	SetMessage("Slot %d\n", Slot);
-
-	//Create the UI
-	UI = new Summerface("StateLabel", this);
 }
 
 							StateMenu::~StateMenu					()
 {
-	delete UI;
 	delete[] Image;
 }
 
 void						StateMenu::Do							()
 {
+	if(!Added)
+	{
+		UI->AddWindow("StateLabel", shared_from_this());
+	}
+
 	UI->Do();
 }
 
@@ -53,7 +56,8 @@ bool						StateMenu::Input						()
 		MDFNI_SelectState(Slot);
 		FillScratch(Slot);
 
-		((SummerfaceLabel*)GetInterface()->GetWindow("StateLabel"))->SetMessage("Slot %d", Slot);
+		SummerfaceLabel_Ptr label = boost::static_pointer_cast<SummerfaceLabel>(GetInterface()->GetWindow("StateLabel"));
+		label->SetMessage("Slot %d", Slot);
 	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
@@ -63,7 +67,7 @@ bool						StateMenu::Input						()
 
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		MednafenEmu::DoCommand(0, 0, Load ? "DoLoadState" : "DoSaveState");
+		MednafenEmu::DoCommand(0, Summerface_Ptr(), Load ? "DoLoadState" : "DoSaveState");
 		return true;
 	}
 

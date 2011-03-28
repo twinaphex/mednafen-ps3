@@ -12,6 +12,10 @@ print "Prefixing with " + sys.argv[2]
 print "Using objcopy " + sys.argv[3]
 print "Using nm " + sys.argv[4]
 
+if "windows" in os.getenv("TARGETPLATFORM", "other"):
+	print "Using Windows compatible mode"
+
+
 proc = subprocess.Popen(sys.argv[4] + " --defined-only -A -a " + sys.argv[1] + " | sed -e 's/.*\ //'", stdout=subprocess.PIPE, shell=True)
 things = proc.communicate()[0].split('\n')
 

@@ -47,7 +47,7 @@ CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
 SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
 
 export OFILES	:=	$(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM)
+export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM) -I$(BOOST_PATH)
 export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
 .PHONY: $(BUILD)-$(PLATFORM) clean

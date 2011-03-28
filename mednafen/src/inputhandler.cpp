@@ -71,21 +71,22 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
-	Summerface* sface = 0;
+	Summerface_Ptr sface;
 
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
-		SummerfaceList*	linelist = new SummerfaceList(Area(10, 10, 80, 20));
+		SummerfaceList_Ptr linelist = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
+		linelist->SetView(boost::make_shared<AnchoredListView>(linelist));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
-			SummerfaceItem* item = new SummerfaceItem(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
+			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
 			item->Properties["REALNAME"] = GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName;
 			linelist->AddItem(item);
 		}
 
-		sface = new Summerface("Categories", linelist);
+		sface = Summerface::Create("Categories", linelist);
 		sface->Do();
 
 		PadType = linelist->GetSelected()->Properties["REALNAME"];
@@ -102,8 +103,8 @@ void							InputHandler::Configure				()
 	GetGamepad(GameInfo->InputInfo, PadType.c_str(), inputs);
 
 	uint32_t buttonID;
-	SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
-	button->SetInputConduit(new SummerfaceStaticConduit(GetButton, &buttonID), true);
+	SummerfaceLabel_Ptr button = boost::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
+	button->SetInputConduit(boost::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 	if(sface)
 	{
@@ -111,13 +112,13 @@ void							InputHandler::Configure				()
 	}
 	else
 	{
-		sface = new Summerface("InputWindow", button);
+		sface = Summerface::Create("InputWindow", button);
 	}
 
 	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
 	if(ImageManager::GetImage(imagename))
 	{
-		sface->AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
+		sface->AddWindow("InputImage", boost::make_shared<SummerfaceImage>(Area(10, 50, 80, 40), imagename));
 	}
 
 	sface->SetActiveWindow("InputWindow");
@@ -141,11 +142,6 @@ void							InputHandler::Configure				()
 				MDFNI_SetSettingUI(settingname.c_str(), buttonID);
 			}
 		}
-	}
-
-	if(sface)
-	{
-		delete sface;
 	}
 }
 
@@ -270,7 +266,7 @@ void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char
 	}
 }
 
-bool							InputHandler::GetButton					(void* aUserData, Summerface* aInterface, const std::string& aWindow)
+bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	static bool gotbutton = true;
 

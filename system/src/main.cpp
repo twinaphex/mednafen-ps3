@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-Logger*				es_log = 0;
+Logger_Ptr			es_log;
 ESVideo*			es_video = 0;
 ESAudio*			es_audio = 0;
 ESInput*			es_input = 0;
@@ -28,16 +28,16 @@ std::string			ESSUB_GetBaseDirectory	();
 #ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage)
 {
-	SummerfaceLabel* text = new SummerfaceLabel(Area(10, 10, 80, 20), aMessage);
-	Summerface("Error", text).Do();
+	SummerfaceLabel_Ptr text = boost::make_shared<SummerfaceLabel>(Area(10, 10, 80, 20), aMessage);
+	Summerface::Create("Error", text)->Do();
 }
 #endif
 
 #ifndef HAVE_ESSUB_GETSTRING
 std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
 {
-	Keyboard* kb = new Keyboard(Area(10, 10, 80, 80), aHeader, aMessage);
-	Summerface sface("Keyboard", kb); sface.Do();
+	Keyboard_Ptr kb = boost::make_shared<Keyboard>(Area(10, 10, 80, 80), aHeader, aMessage);
+	Summerface::Create("Keyboard", kb)->Do();
 	return kb->GetText();
 }
 #endif
@@ -72,14 +72,11 @@ void				InitES					(void (*aExitFunction)())
 	ImageManager::CreateScratch();
 	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
 
-	es_log = new Logger(Area(10, 10, 80, 80));
-	es_log->SetNoDelete();
+	es_log = boost::make_shared<Logger>(Area(10, 10, 80, 80));
 }
 
 void				QuitES					()
 {
-	delete es_log;
-
 	FontManager::QuitFonts();
 
 	delete es_network;

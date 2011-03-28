@@ -12,12 +12,12 @@ class												FileSelect
 
 	private:
 		void										LoadList						(const char* aPath);
-		static SummerfaceItem*						MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark);
+		static SummerfaceItem_Ptr					MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark);
 
 	private:
 
-		SummerfaceList								List;
-		Summerface									Interface;
+		SummerfaceList_Ptr							List;
+		Summerface_Ptr								Interface;
 		std::stack<std::string>						Paths;
 
 		bool										Valid;

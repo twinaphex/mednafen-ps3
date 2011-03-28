@@ -19,6 +19,17 @@
 #include <fstream>
 #include <algorithm>
 
+//Boost
+#include <boost/smart_ptr.hpp>
+#include <boost/make_shared.hpp>
+
+//Shared ptr helper macro
+#define DEFINE_PTR_TYPE(a)						\
+	class	a;									\
+	typedef boost::shared_ptr<a>	a##_Ptr;	\
+	typedef boost::weak_ptr<a>		a##_WeakPtr;
+
+
 //Depends
 #include <png.h>
 

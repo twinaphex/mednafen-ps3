@@ -3,7 +3,7 @@
 
 namespace
 {
-	bool									AlphaSort											(SummerfaceItem* a, SummerfaceItem* b)
+	bool									AlphaSort											(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
 	{
 		return a->GetText() < b->GetText();
 	}
@@ -17,15 +17,8 @@ namespace
 	SelectedIndex(0),
 	Canceled(false),
 	LabelFont(FontManager::GetBigFont()),
-	View(new AnchoredListView(this))
-	
+	View(boost::make_shared<ListView>())
 {
-}
-
-											SummerfaceList::~SummerfaceList						()
-{
-	ClearItems();
-	delete View;
 }
 
 void										SummerfaceList::SetSelection						(uint32_t aIndex)
@@ -48,7 +41,7 @@ void										SummerfaceList::SetSelection						(const std::string& aText)
 	SelectedIndex = 0;
 }
 
-void										SummerfaceList::AddItem								(SummerfaceItem* aItem)
+void										SummerfaceList::AddItem								(SummerfaceItem_Ptr aItem)
 {
 	ErrorCheck(std::find(Items.begin(), Items.end(), aItem) == Items.end(), "SummerfaceList::AddItem: Can't add the same item to the list twice");
 
@@ -57,11 +50,6 @@ void										SummerfaceList::AddItem								(SummerfaceItem* aItem)
 
 void										SummerfaceList::ClearItems							()
 {
-	for(std::vector<SummerfaceItem*>::iterator iter = Items.begin(); iter != Items.end(); iter ++)
-	{
-		delete (*iter);
-	}
-
 	Items.clear();
 	SelectedIndex = 0;
 }
@@ -73,22 +61,20 @@ void										SummerfaceList::SetFont								(Font* aFont)
 	LabelFont = aFont;
 }
 
-void										SummerfaceList::SetView								(ListView* aView)
+void										SummerfaceList::SetView								(ListView_Ptr aView)
 {
 	ErrorCheck(aView, "SummerfaceList::SetView: View must not be null");
-
-	delete View;
 	View = aView;
 }
 
-void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, SummerfaceItem*))
+void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr, SummerfaceItem_Ptr))
 {
 	std::sort(Items.begin(), Items.end(), aCallback ? aCallback : AlphaSort);
 }
 
 
-											GridListView::GridListView							(SummerfaceList* aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
-	List(aList),
+											GridListView::GridListView							(SummerfaceList_WeakPtr aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
+	WeakList(aList),
 	Width(aWidth),
 	Height(aHeight),
 	FirstItem(0),
@@ -102,6 +88,9 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem*, Su
 
 bool										GridListView::Input									()
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	uint32_t oldIndex = List->GetSelection();
 	int32_t XSelection = List->GetSelection() % Width;
 	int32_t YSelection = (List->GetSelection() - FirstItem) / Width;
@@ -167,8 +156,11 @@ bool										GridListView::Input									()
 	return false;
 }
 
-bool										GridListView::DrawItem								(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
+bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 	
 	//TODO: Make this work!
@@ -213,6 +205,9 @@ bool										GridListView::DrawItem								(SummerfaceItem* aItem, uint32_t aX,
 
 bool										GridListView::Draw									()
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	uint32_t iconWidth = es_video->GetClip().Width / Width - 4;
 	uint32_t iconHeight = es_video->GetClip().Height / Height - 4;	
 
@@ -235,8 +230,8 @@ bool										GridListView::Draw									()
 	return false;
 }
 
-											AnchoredListView::AnchoredListView					(SummerfaceList* aList, bool aAnchored, bool aWrap) :
-	List(aList),
+											AnchoredListView::AnchoredListView					(SummerfaceList_WeakPtr aList, bool aAnchored, bool aWrap) :
+	WeakList(aList),
 	FirstLine(0),
 	LinesDrawn(0),
 	Anchored(aAnchored),
@@ -244,8 +239,11 @@ bool										GridListView::Draw									()
 {
 }
 
-bool										AnchoredListView::DrawItem							(SummerfaceItem* aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool										AnchoredListView::DrawItem							(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 
 	if(image)
@@ -263,6 +261,9 @@ bool										AnchoredListView::DrawItem							(SummerfaceItem* aItem, uint32_t 
 
 bool										AnchoredListView::Draw								()
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	if(List->GetItemCount() != 0)
 	{
 		uint32_t itemheight = List->GetFont()->GetHeight();
@@ -287,6 +288,9 @@ bool										AnchoredListView::Draw								()
 
 bool										AnchoredListView::Input								()
 {
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
 	int32_t oldIndex = List->GetSelection();
 	if(List->GetItemCount() != 0)
 	{
