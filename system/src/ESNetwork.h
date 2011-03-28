@@ -1,5 +1,4 @@
-#ifndef ESNETWORK_H
-#define ESNETWORK_H
+#pragma once
 
 class								ESSocket
 {
@@ -19,4 +18,3 @@ class								ESNetwork
 		virtual ESSocket*			OpenSocket			(const char* aHost, uint32_t aPort) = 0;
 };
 
-#endif

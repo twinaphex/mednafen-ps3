@@ -11,9 +11,9 @@ endif
 SONAME		:=	libpcsxr
 SYMPREFIX	:=	pcsx
 BUILD		:=	build
-SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin
+SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin src/libpcsxcore/ppc
 INCLUDE		:=	src src/libpcsxcore ../mednafen/src ../system
-CFLAGS		:= -fgnu89-inline -DLOG_STDOUT -DNOPSXREC
+CFLAGS		:= -fgnu89-inline -DLOG_STDOUT
 
 
 #-DEMU_LOG=SysMessage -DPSXMEM_LOG=SysMessage -DPSXHW_LOG=SysMessage -DLOG_STDOUT -DPAD_LOG=SysMessage -DPSXDMA_LOG=SysMessage

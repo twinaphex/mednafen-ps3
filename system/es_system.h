@@ -20,6 +20,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 	}
 }
 
+#include "src/ESThreads.h"
 #include "src/ESTexture.h"
 #include "src/ESVideo.h"
 #include "src/ESAudio.h"
@@ -37,6 +38,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "l1ght/utility.h"
 #elif defined(MDWII)
 # include "wii/WiiPlatform.h"
+# include "wii/WiiThreads.h"
 # include "wii/WiiTexture.h"
 # include "wii/WiiVideo.h"
 # include "wii/WiiAudio.h"
@@ -45,6 +47,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "wii/utility.h"
 #else
 # include "sdl/SDLPlatform.h"
+# include "sdl/SDLThreads.h"
 # include "sdl/SDLTexture.h"
 # include "sdl/SDLVideo.h"
 # include "sdl/SDLAudio.h"

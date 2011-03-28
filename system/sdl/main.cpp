@@ -40,6 +40,11 @@ ESNetwork*			ESSUB_MakeNetwork		()
 	return new SDLNetwork();
 }
 
+ESThreads*			ESSUB_MakeThreads		()
+{
+	return new SDLThreads();
+}
+
 bool				ESSUB_WantToDie			()
 {
 	return want_to_die;

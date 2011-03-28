@@ -81,7 +81,7 @@ int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
-    Config.Cpu = CPU_DYNAREC;
+    Config.Cpu = EnableRecompiler ? CPU_DYNAREC : CPU_INTERPRETER;
     strcpy(Config.PluginsDir, "builtin");
     strcpy(Config.Gpu, "builtin");
     strcpy(Config.Spu, "builtin");
