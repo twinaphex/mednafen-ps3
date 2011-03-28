@@ -9,7 +9,7 @@ namespace
 			{
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 				{
-					MednafenSettings::Do();
+					SettingMenu().Do();
 				}
 
 				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))

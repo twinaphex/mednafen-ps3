@@ -23,10 +23,10 @@ class	MednafenEmu
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
 		static bool						DummyFrame			() {if(IsGameLoaded() && !SuspendDraw){Blit(0, 0, 0, 0, true); return true;} return false;}
+		static void						ReadSettings		();
 
 	protected:	//Internals
 		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
-		static void						ReadSettings		();
 
 	protected:
 		static bool						IsInitialized;

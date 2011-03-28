@@ -472,7 +472,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
-		if(0 == strcmp(command.c_str(), "DoSettings"))			{MednafenSettings::Do(GameInfo->shortname); ReadSettings();}
+		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
@@ -568,6 +568,20 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	return false;
 }
 
+void						MednafenEmu::ReadSettings		()
+{
+	if(IsGameLoaded())
+	{
+		RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
+		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("displayfps"));
+		FullFrameSetting = MDFN_GetSettingB(SETTINGNAME("fullframe"));
+		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
+		FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
+		ScalerSetting = MDFN_GetSettingI(SETTINGNAME("scaler"));
+		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
+	}
+}
+
 void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 {
 	for(int i = 0; i != MDFNSystems.size(); i ++)
@@ -583,17 +597,6 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 			aSettings.push_back(thisone);
 		}
 	}
-}
-
-void						MednafenEmu::ReadSettings		()
-{
-	RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
-	DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("displayfps"));
-	FullFrameSetting = MDFN_GetSettingB(SETTINGNAME("fullframe"));
-	UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
-	FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
-	ScalerSetting = MDFN_GetSettingI(SETTINGNAME("scaler"));
-	UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 }
 
 bool						MednafenEmu::IsInitialized = false;
