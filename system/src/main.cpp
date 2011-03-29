@@ -69,8 +69,7 @@ void				InitES					(void (*aExitFunction)())
 	es_input = ESSUB_MakeInput();
 
 	FontManager::InitFonts();
-	ImageManager::CreateScratch();
-	ImageManager::LoadDirectory(es_paths->Build("assets/png/"));
+	ImageManager::SetDirectory(es_paths->Build("assets/png/"));
 
 	es_log = boost::make_shared<Logger>(Area(10, 10, 80, 80));
 }

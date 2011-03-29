@@ -164,11 +164,11 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 	
 	//TODO: Make this work!
-	if(Utility::FileExists(aItem->Properties["THUMB"]))
-	{
-		image = ImageManager::GetImage("SCRATCH%0");
-		ImageManager::FillScratch(0, aItem->Properties["THUMB"]);
-	}
+//	if(Utility::FileExists(aItem->Properties["THUMB"]))
+//	{
+//		image = ImageManager::GetImage("SCRATCH%0");
+//		ImageManager::FillScratch(0, aItem->Properties["THUMB"]);
+//	}
 	
 	Area ImageArea(0, 0, 0, 0);
 

@@ -65,54 +65,19 @@ void										ImageManager::Purge									()
 		delete i->second;
 	}
 
-	for(std::map<std::string, PNGFile*>::iterator i = Files.begin(); i != Files.end(); i ++)
-	{
-		delete i->second;
-	}
-	
 	Images.clear();
-	Files.clear();
 }
 
-void										ImageManager::LoadDirectory							(const std::string& aPath)
+void										ImageManager::SetDirectory							(const std::string& aPath)
 {
-	std::vector<std::string> items;
-
-	if(Utility::ListDirectory(aPath, items))
-	{
-		for(int i = 0 ; i != items.size(); i ++)
-		{
-			if(items[i].find(".png") != std::string::npos)
-			{
-				LoadImage(items[i].substr(0, items[i].length() - 4), aPath + items[i]);
-			}
-		}
-	}
-	else
-	{
-		printf("ImageManager::LoadDirectory: Path '%s' not found\n", aPath.c_str());
-	}
-}
-
-void										ImageManager::CreateScratch							()
-{
-	if(!Images["SCRATCH%0"])
-	{
-		char buffer[32];
-		for(int i =0; i != 20; i ++)
-		{
-			Texture* tex = es_video->CreateTexture(512, 512, false);
-			tex->SetFilter(1);
-
-			snprintf(buffer, 32, "SCRATCH%%%d", i);
-			Images[buffer] = tex;
-		}
-	}
+	Directory = aPath;
 }
 	
 Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)
 {
-	if(Images[aName] == 0)
+	ErrorCheck(Utility::FileExists(aPath), "ImageManager: File not found. [Path: %s, Name: %s]", aPath.c_str(), aName.c_str());
+
+	if(Images.find(aName) == Images.end())
 	{
 		PNGFile ping(aPath);
 
@@ -129,35 +94,26 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 
 Texture*									ImageManager::GetImage								(const std::string& aName)
 {
+	if(Images.find(aName) == Images.end())
+	{
+		std::string filename = Directory + "/" + aName;
+
+		if(Utility::FileExists(filename))
+		{
+			return LoadImage(aName, filename);
+		}
+		else if(Utility::FileExists(filename + ".png"))
+		{
+			return LoadImage(aName, filename + ".png");
+		}
+		else
+		{
+			Images[aName] = 0; //Don't check every time for a non-existant image
+		}
+	}
+	
 	return Images[aName];
 }
 
-void										ImageManager::FillScratch							(uint32_t aScratchIndex, const std::string& aFileName)
-{
-	if(aScratchIndex >= 20)
-	{
-		throw ESException("FillScratch: Index out of range [Index: %d]", aScratchIndex);
-	}
-	
-	char buffer[256];
-	snprintf(buffer, 256, "SCRATCH%%%d", aScratchIndex);
-	Texture* scratch = GetImage(buffer);
-	
-	if(!scratch)
-	{
-		throw ESException("FillScratch: Scratch asset not available [Index: %d]", aScratchIndex);
-	}
-	
-	if(Files[aFileName] == 0)
-	{
-		//Load it
-		PNGFile* file = new PNGFile(aFileName);
-		Files[aFileName] = file;
-	}
-	
-	Files[aFileName]->CopyToTexture(scratch);
-}
-
-
+std::string									ImageManager::Directory;
 std::map<std::string, Texture*>				ImageManager::Images;
-std::map<std::string, ImageManager::PNGFile*>ImageManager::Files;
