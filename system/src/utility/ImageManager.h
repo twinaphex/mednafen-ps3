@@ -19,17 +19,15 @@ class													ImageManager
 	
 	public:
 		static void										Purge							();
-		static void										LoadDirectory					(const std::string& aPath);
-		static void										CreateScratch					();
+		static void										SetDirectory					(const std::string& aPath);
 
 		static Texture*									LoadImage						(const std::string& aName, const std::string& aPath);
 		static Texture*									GetImage						(const std::string& aName);
-
-		static void										FillScratch						(uint32_t aScratchIndex, const std::string& aFileName);
 	
 	protected:
+		static std::string								Directory;
+
 		static std::map<std::string, Texture*>			Images;
-		static std::map<std::string, PNGFile*>			Files;
 };
 
 #endif
