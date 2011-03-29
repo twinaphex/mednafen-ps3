@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-										FileSelect::FileSelect				(const std::string& aHeader, std::vector<std::string>& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
+										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
 	List(boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
 	Valid(true),
@@ -9,9 +9,34 @@
 {
 	Interface->SetHook(aInputHook);
 	List->SetView(boost::make_shared<AnchoredListView>(List, true));
+	List->SetInputConduit(boost::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
 
-	Paths.push(aPath.empty() ? "/" : aPath);
-	LoadList(aPath.empty() ? "/" : aPath.c_str());
+	Paths.push(aPath);
+	LoadList(aPath);
+}
+
+bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
+{
+	if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT2))
+	{
+		SummerfaceItem_Ptr item = List->GetSelected();
+		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->Properties["PATH"]);
+		
+		if(bookmark != BookMarks.end())
+		{
+			BookMarks.erase(bookmark);
+			item->IntProperties["BOOKMARK"] = 0;
+			item->SetColors(Colors::Normal, Colors::HighLight);
+		}
+		else
+		{
+			BookMarks.push_back(item->Properties["PATH"]);
+			item->IntProperties["BOOKMARK"] = 1;
+			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+		}
+	}
+
+	return false;
 }
 
 std::string								FileSelect::GetFile					()
@@ -41,7 +66,7 @@ std::string								FileSelect::GetFile					()
 			if(List->GetSelected()->IntProperties["DIRECTORY"])
 			{
 				Paths.push(List->GetSelected()->Properties["PATH"]);
-				LoadList(Paths.top().c_str());
+				LoadList(Paths.top());
 			}
 			else
 			{
@@ -58,37 +83,64 @@ std::string								FileSelect::GetFile					()
 	}
 }
 
-void								FileSelect::LoadList						(const char* aPath)
+void								FileSelect::LoadList						(const std::string& aPath)
 {
-	assert(aPath);
-
-	List->SetHeader("[%s] %s", Header.c_str(), aPath);
-
 	List->ClearItems();
+	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
-	std::vector<std::string> items;
-	Utility::ListDirectory(aPath, items);
-
-	for(int i = 0; i != items.size(); i ++)
+	if(aPath.empty())
 	{
-		List->AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/', false));
-	}
+		List->AddItem(MakeItem("Local Files", "/", true, false));
 
-	List->Sort();
+		for(BookmarkList::iterator i = BookMarks.begin(); i != BookMarks.end(); i ++)
+		{
+			if(!i->empty())
+			{
+				std::string nicename = *i;
+
+				bool directory = false;
+				if(nicename[nicename.length() - 1] != '/')
+				{
+						nicename = nicename.substr(nicename.rfind('/') + 1);
+				}
+				else
+				{
+						nicename = nicename.substr(0, nicename.length() - 1);
+						nicename = nicename.substr(nicename.rfind('/') + 1);
+						nicename.push_back('/');
+						directory = true;
+				}
+				
+				List->AddItem(MakeItem(nicename, *i, directory, !directory));
+			}
+		}
+	}
+	else
+	{
+		std::vector<std::string> items;
+		Utility::ListDirectory(aPath, items);
+
+		for(int i = 0; i != items.size(); i ++)
+		{
+			List->AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/'));
+		}
+
+		List->Sort();
+	}
 }
 
-SummerfaceItem_Ptr					FileSelect::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark)
+SummerfaceItem_Ptr					FileSelect::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile)
 {
 	std::string extension = Utility::GetExtension(aPath);
 
 	SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
 	item->IntProperties["DIRECTORY"] = aDirectory;
 	item->IntProperties["FILE"] = aFile;
-	item->IntProperties["BOOKMARK"] = aBookMark;
+	item->IntProperties["BOOKMARK"] = std::find(BookMarks.begin(), BookMarks.end(), aPath) != BookMarks.end();
 	item->Properties["PATH"] = aPath;
 	item->Properties["THUMB"] = aPath + ".tbn";
 
-	if(aBookMark)
+	if(item->IntProperties["BOOKMARK"])
 	{
 		item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
 	}

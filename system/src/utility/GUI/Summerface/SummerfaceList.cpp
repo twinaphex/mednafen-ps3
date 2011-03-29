@@ -10,8 +10,6 @@ namespace
 }
 
 
-
-
 											SummerfaceList::SummerfaceList						(const Area& aRegion) : 
 	SummerfaceWindow(aRegion),
 	SelectedIndex(0),
@@ -137,20 +135,23 @@ bool										GridListView::Input									()
 		List->SetHeader(List->GetSelected()->GetText());
 	}
 
+//TODO: Handle conduits better!
+
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
 	}
 
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
-	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		List->SetCanceled(false);
 		return true;
+	}
+
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+	{
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
 	return false;
@@ -322,20 +323,23 @@ bool										AnchoredListView::Input								()
 		}
 	}
 
-	if(List->GetInputConduit())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
-	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		List->SetCanceled(false);
-		return true;
-	}
+//TODO: Handle conduits better!
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
+	}
+
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	{
+		List->SetCanceled(false);
+		return true;
+	}
+
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+	{
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 	
 	return false;

@@ -19,5 +19,22 @@ class													SummerfaceStaticConduit	: public SummerfaceInputConduit
 		void*											UserData;
 };
 
+//Happy hacky conduit
+template<class T>
+class													SummerfaceTemplateConduit : public SummerfaceInputConduit
+{
+	public:
+														SummerfaceTemplateConduit		(T* aObject) : Data(aObject) {};
+
+		virtual bool									HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow)
+		{
+			return Data->HandleInput(aInterface, aWindow);
+		}
+
+	protected:
+		T*												Data;
+};
+
+
 #endif
 
