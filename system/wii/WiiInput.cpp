@@ -31,16 +31,19 @@ int32_t				WiiInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 
 bool				WiiInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 {
+	WPAD_ScanPads(); //:HACK
 	return WPAD_ButtonsHeld(aPad) & (1 << aButton);
 }
 
 bool				WiiInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 {
+	WPAD_ScanPads(); //:HACK
 	return WPAD_ButtonsDown(aPad) & (1 << aButton);
 }
 
 uint32_t			WiiInput::GetAnyButton					(uint32_t aPad)
 {
+	WPAD_ScanPads(); //:HACK
 	for(int i = 0; i != 32; i ++)
 	{
 		if(WPAD_ButtonsDown(aPad) & (1 << i))

@@ -57,16 +57,6 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 	}
 }
 
-uint32_t				Font::GetWidth				()
-{
-	return Width;
-}
-
-uint32_t				Font::GetHeight				()					
-{
-	return Height;
-}
-
 FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 {
 	if(Cache[aCharacter] == 0)

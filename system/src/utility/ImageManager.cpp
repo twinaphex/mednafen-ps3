@@ -2,34 +2,39 @@
 
 											ImageManager::PNGFile::PNGFile						(const std::string& aPath)
 {
-	char header[8];
+	uint8_t header[8];
 		
 	FILE *fp = fopen(aPath.c_str(), "rb");
-	if (!fp) Abort("[read_png_file] File could not be opened for reading");
+	ErrorCheck(fp, "PNG Reader: File could not be opened for reading. [File: %s]", aPath.c_str());
 
 	fread(header, 1, 8, fp);
-	if (png_sig_cmp((png_bytep)header, 0, 8)) Abort("[read_png_file] File is not recognized as a PNG file");
-	
+	ErrorCheck(!png_sig_cmp(header, 0, 8), "PNG Reader: File not recognized as a PNG file. [File: %s]", aPath.c_str());
+
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr) Abort("[read_png_file] png_create_read_struct failed");
+	ErrorCheck(png_ptr, "PNG Reader: png_create_read_struct failed. [File: %s]", aPath.c_str());
 	
 	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) Abort("[read_png_file] png_create_info_struct failed");
+	ErrorCheck(info_ptr, "PNG Reader: png_create_info_struct failed. [File: %s]", aPath.c_str());
 	
-	if (setjmp(png_jmpbuf(png_ptr))) Abort("[read_png_file] Error during init_io");
+	if(setjmp(png_jmpbuf(png_ptr)))
+	{
+		ErrorCheck(0, "PNG Reader: Error during init_io. [File: %s]", aPath.c_str());
+	}
 	
 	png_init_io(png_ptr, fp);
 	png_set_sig_bytes(png_ptr, 8);
-	
-	if (setjmp(png_jmpbuf(png_ptr))) Abort("[read_png_file] Error during read_image");
-	
+
+	if(setjmp(png_jmpbuf(png_ptr)))
+	{
+		ErrorCheck(0, "PNG Reader: Error during read_png. [File: %s]", aPath.c_str());
+	}
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
 	
 	fclose(fp);
 
 	row_pointers = png_get_rows(png_ptr, info_ptr);
 	Width = png_get_image_width(png_ptr, info_ptr);
-	Height = png_get_image_height(png_ptr, info_ptr);		
+	Height = png_get_image_height(png_ptr, info_ptr);
 }
 
 											ImageManager::PNGFile::~PNGFile						()
@@ -42,12 +47,15 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 {
 	aTexture->Clear(0);
 
-	for(int i = 0; i != Height; i ++)
+	uint32_t copyWidth = std::min(Width, aTexture->GetWidth());
+	uint32_t copyHeight = std::min(Height, aTexture->GetHeight());
+
+	for(int i = 0; i != copyHeight; i ++)
 	{
 		uint32_t* dest = aTexture->GetPixels() + (aTexture->GetPitch() * i);
 		uint8_t* source = row_pointers[i];
 
-		for(int j = 0; j != Width; j ++)
+		for(int j = 0; j != copyWidth; j ++)
 		{
 			uint32_t a = PNG_COLOR_TYPE_RGB_ALPHA ? *source++ : 0xFF;
 			uint32_t r = *source ++;
@@ -66,11 +74,6 @@ void										ImageManager::Purge									()
 	}
 
 	Images.clear();
-}
-
-void										ImageManager::SetDirectory							(const std::string& aPath)
-{
-	Directory = aPath;
 }
 	
 Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)

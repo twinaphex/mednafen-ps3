@@ -76,17 +76,17 @@ void				InitES					(void (*aExitFunction)())
 
 void				QuitES					()
 {
-	FontManager::QuitFonts();
+	ESSUB_Quit();
 
-	delete es_network;
 	delete es_input;
 	delete es_audio;
 	delete es_video;
+	delete es_network;
+	delete es_threads;
 
 	ImageManager::Purge();
+	FontManager::QuitFonts();
 
-	ESSUB_Quit();
-	
 	delete es_paths;
 }
 
