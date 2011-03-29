@@ -21,8 +21,8 @@ class										Font
 								
 		void								PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor);
 
-		uint32_t							GetWidth					();
-		uint32_t							GetHeight					();
+		uint32_t							GetWidth					() const {return Width;};
+		uint32_t							GetHeight					() const {return Height;};
 		
 	protected:
 		FontCharacter*						CacheCharacter				(uint32_t aCharacter);

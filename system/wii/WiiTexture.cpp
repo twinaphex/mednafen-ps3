@@ -2,13 +2,14 @@
 
 						WiiTexture::WiiTexture				(uint32_t aWidth, uint32_t aHeight) : 
 	Texture(aWidth, aHeight, MultipleOfFour(aWidth)),
-	AdjustedHeight(MultipleOfFour(aHeight)),
+	AdjustedHeight(MultipleOfFour(aHeight)), //Extra oomph for fun
 	Pixels(0)
 {
 	//TODO: Max is 1024x1024 on Wii!
 	ErrorCheck(esPitch != 0 && AdjustedHeight != 0 && esPitch <= 2048 && AdjustedHeight <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", esPitch, AdjustedHeight);
 
-	Pixels = (uint32_t*)memalign(32, esPitch * AdjustedHeight * 4);
+	//Allocate 4 extra rows at the top, this allows in place conversion without memcpy
+	Pixels = (uint32_t*)memalign(32, esPitch * (AdjustedHeight + 4) * 4);
 }
 						
 						WiiTexture::~WiiTexture				()
@@ -18,7 +19,7 @@
 
 void					WiiTexture::Clear					(uint32_t aColor)
 {
-	for(int i = 0; i != esPitch * AdjustedHeight; i ++)
+	for(int i = 0; i != esPitch * (AdjustedHeight + 4); i ++)
 	{
 		Pixels[i] = aColor;
 	}
@@ -29,12 +30,11 @@ void					WiiTexture::Clear					(uint32_t aColor)
 uint32_t*				WiiTexture::GetPixels				()
 {
 	esValid = false;
-	return Pixels;
+	return Pixels + (esPitch * 4); //Keep a buffer at the top for conversion
 }
 
 void					WiiTexture::Apply					(uint32_t aWidth, uint32_t aHeight)
 {
-	//Convert static textures
 	if(!esValid)
 	{
 		esValid = true;
@@ -49,24 +49,22 @@ void					WiiTexture::Apply					(uint32_t aWidth, uint32_t aHeight)
 		aHeight = (aHeight > AdjustedHeight) ? AdjustedHeight : aHeight;
 
 		//Convert texture
-		uint16_t bufferCache[esPitch * 4 * 2];
-
 		for(int i = 0; i != aHeight / 4; i ++)
 		{
+			uint16_t* bufferCache = (uint16_t*)&Pixels[i * esPitch * 4];
+
 			for(int j = 0; j != aWidth / 4; j ++)
 			{
 				for(int k = 0; k != 16; k ++)
 				{
 					int x = (j * 4) + (k % 4);
 					int y = (k / 4);
-					uint32_t pixel = Pixels[(i * esPitch * 4) + (y * esPitch) + x];
+					uint32_t pixel = Pixels[((i + 1) * esPitch * 4) + (y * esPitch) + x];
 
 					bufferCache[j * 32 + k] = pixel >> 16;
 					bufferCache[j * 32 + k + 16] = pixel & 0xFFFF;
 				}
 			}
-
-			memcpy(&Pixels[i * esPitch * 4], bufferCache, esPitch * 4 * 4);
 		}
 
 		//Flush and load the texture
