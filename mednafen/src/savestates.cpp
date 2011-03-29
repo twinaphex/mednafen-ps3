@@ -4,46 +4,28 @@
 //TODO: Put this somewhere
 extern StateStatusStruct*	StateStatusInfo;
 
-							StateMenu::StateMenu					(bool aLoad) :
+							StateLabel::StateLabel					(bool aLoad) :
 	SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1"),
-	UI(Summerface::Create()),
-	Load(aLoad),
-	Slot(1),
 	Image(0),
-	Added(false)
+	Slot(1),
+	Load(aLoad)
 {
 	Image = new uint32_t[1024 * 1024];
 
-	//Refresh the images
 	MDFNI_SelectState(0);
 
-	if(StateStatusInfo)
-	{
-		Slot = StateStatusInfo->recently_saved;
-		MDFNI_SelectState(Slot);
-	}
-	FillScratch(Slot);
-
-	//We delete ourselves, segfault if this isn't here
-	SetMessage("Slot %d\n", Slot);
+	Slot = StateStatusInfo ? StateStatusInfo->recently_saved : Slot;
+	SetSlot(Slot);
 }
 
-							StateMenu::~StateMenu					()
+void						StateLabel::SetSlot						(uint32_t aSlot)
 {
-	delete[] Image;
+	MDFNI_SelectState(Slot);
+	SetMessage("Slot %d", Slot);
+	FillScratch(aSlot);
 }
 
-void						StateMenu::Do							()
-{
-	if(!Added)
-	{
-		UI->AddWindow("StateLabel", shared_from_this());
-	}
-
-	UI->Do();
-}
-
-bool						StateMenu::Input						()
+bool						StateLabel::Input						()
 {
 	uint32_t oldSlot = Slot;
 
@@ -53,11 +35,7 @@ bool						StateMenu::Input						()
 
 	if(Slot != oldSlot)
 	{
-		MDFNI_SelectState(Slot);
-		FillScratch(Slot);
-
-		SummerfaceLabel_Ptr label = boost::static_pointer_cast<SummerfaceLabel>(GetInterface()->GetWindow("StateLabel"));
-		label->SetMessage("Slot %d", Slot);
+		SetSlot(Slot);
 	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
@@ -74,7 +52,7 @@ bool						StateMenu::Input						()
 	return false;
 }
 
-bool						StateMenu::PrepareDraw					()
+bool						StateLabel::PrepareDraw					()
 {
 	if(StateStatusInfo && StateStatusInfo->gfx && StateStatusInfo->w && StateStatusInfo->h)
 	{
@@ -84,7 +62,7 @@ bool						StateMenu::PrepareDraw					()
 	return SummerfaceLabel::PrepareDraw();
 }
 
-void						StateMenu::FillScratch					(uint32_t aSlot)
+void						StateLabel::FillScratch					(uint32_t aSlot)
 {
 	if(StateStatusInfo && StateStatusInfo->gfx && StateStatusInfo->w && StateStatusInfo->w < 1024 && StateStatusInfo->h < 1024)
 	{
@@ -104,3 +82,9 @@ void						StateMenu::FillScratch					(uint32_t aSlot)
 	}
 }
 
+							StateMenu::StateMenu					(bool aLoad) :
+	Label(boost::make_shared<StateLabel>(aLoad)),
+	UI(Summerface::Create("StateLabel", Label))
+{
+
+}

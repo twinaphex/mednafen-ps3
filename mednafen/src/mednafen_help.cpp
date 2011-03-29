@@ -4,52 +4,20 @@
 namespace
 {
 	uint32_t		CurrentFilter = 0;
-	Filter*			BuildFilter			(uint32_t aIndex)
+	Filter_Ptr		BuildFilter			(uint32_t aIndex)
 	{
 		CurrentFilter = aIndex;
 
-		if(aIndex == 0)	return new Identity();
-		if(aIndex == 1)	return new Identity2x();
-		if(aIndex == 2) return new Kreed_2xSaI();
-		if(aIndex == 3)	return new MaxSt_Hq2x();
-		if(aIndex == 4)	return new MaxSt_Hq3x();	
-		if(aIndex == 5)	return new Catrom2x();	
-		if(aIndex == 6)	return new Catrom3x();		
+		if(aIndex == 0)	return boost::make_shared<Identity>();
+		if(aIndex == 1)	return boost::make_shared<Identity2x>();
+		if(aIndex == 2) return boost::make_shared<Kreed_2xSaI>();
+		if(aIndex == 3)	return boost::make_shared<MaxSt_Hq2x>();
+		if(aIndex == 4)	return boost::make_shared<MaxSt_Hq3x>();	
+		if(aIndex == 5)	return boost::make_shared<Catrom2x>();	
+		if(aIndex == 6)	return boost::make_shared<Catrom3x>();		
 
-		return new Identity();
+		return boost::make_shared<Identity>();
 	};
-
-	void			MakeDirectories		()
-	{
-#ifndef L1GHT
-//TODO: Support psl1ght, throw on error
-		const char *subs[] = {"mcs", "mcm", "snaps", "palettes", "sav", "cheats", "firmware", "video", "wave"};
-
-#ifdef __WIN32__
-		if(mkdir(es_paths->Build("mednafen").c_str()) == -1 && errno != EEXIST)
-#else
-		if(mkdir(es_paths->Build("mednafen").c_str(), S_IRWXU) == -1 && errno != EEXIST)
-#endif
-		{
-			return;
-		}
-
-		char buffer[1024];
-
-		for(int i = 0; i != 9; i ++)
-		{
-			sprintf(buffer, "mednafen"PSS"%s", subs[i]);
-#ifdef __WIN32__
-			if(mkdir(es_paths->Build(buffer).c_str()) == -1 && errno != EEXIST)
-#else
-			if(mkdir(es_paths->Build(buffer).c_str(), S_IRWXU) == -1 && errno != EEXIST)
-#endif
-			{
-				return;
-			}
-		}
-#endif
-	}
 
 	const MDFNSetting_EnumList	FilterEnumList[] =
 	{
@@ -116,20 +84,10 @@ void						MednafenEmu::Init				()
 		GenerateSettings(Settings);
 		InputHandler::GenerateSettings(Settings);
 
-		//Build directory trees, if these don't exist we can't save games
-		MakeDirectories();
+		//TODO: Build directory trees, if these don't exist we can't save games
 
 		//Initialize mednafen and go
 		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
-
-		//Create video buffer and surface. 1080p max, we should never come even close to this
-//HACK:
-		Buffer = es_video->CreateTexture(640, 480, false);
-		bool slowread = Buffer->GetFlags() & Texture::SLOW_READ;
-		Surface = new MDFN_Surface(slowread ? 0 : Buffer->GetPixels(), 640, 480, slowread ? 480 : Buffer->GetPitch(), MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
-
-//		Buffer = es_video->CreateTexture(1920, 1080);
-//		Surface = new MDFN_Surface(0, 1920, 1080, 1920, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, 16, 8, 0, 24));
 	}
 
 	IsInitialized = true;
@@ -139,9 +97,6 @@ void						MednafenEmu::Quit				()
 {
 	if(IsInitialized)
 	{
-		delete Buffer;
-		delete Surface;
-
 		CloseGame();
 		MDFNI_Kill();
 	}
@@ -155,6 +110,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 	{
 		MDFNDES_BlockExit(false);
 
+		//Load the game
+		//TODO: Support other casing of '.cue'
 		if(strstr(aFileName.c_str(), ".cue"))
 		{
 			GameInfo = MDFNI_LoadCD(0, aFileName.c_str());
@@ -164,36 +121,39 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			GameInfo = MDFNI_LoadGame(0, aFileName.c_str(), aData, aSize);
 		}
 
-		if(GameInfo == 0)
+		//Display log on error!
+		if(!GameInfo)
 		{
 			Summerface::Create("Log", es_log)->Do();
 			Exit();
 		}
 
+		//Reset states
 		MDFND_NetworkClose();
-		MDFNI_EnableStateRewind(false);
-		RewindEnabled = false;
+		SkipCount = 0;
+		SkipNext = false;
+		IsLoaded = true;
+		SuspendDraw = false;
+		RecordingVideo = false;
+		RecordingWave = false;
 
-		Buffer->Clear(0);
+		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
-		Inputs = new InputHandler(GameInfo);
+		ReadSettings();
 
+		//Create the helpers for this game
+		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
+		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
+		Inputs = boost::make_shared<InputHandler>(GameInfo);
+
+		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_LoadState(0, "mcq");
 		}
-	
-		IsLoaded = true;
-		SkipCount = 0;
-		SkipNext = false;
 
+		//Display emulator name	
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
-
-		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
-
-		SuspendDraw = false;
-
-		ReadSettings();
 	}
 }
 
@@ -201,35 +161,37 @@ void						MednafenEmu::CloseGame			()
 {
 	if(IsLoaded && IsInitialized)
 	{
+		//Stop any recordings
 		if(RecordingVideo)
 		{
 			MDFNI_StopAVRecord();
-			RecordingVideo = false;
 		}
 
 		if(RecordingWave)
 		{
 			MDFNI_StopWAVRecord();
-			RecordingWave = false;
 		}
 
+		//You know, I don't even remember what this is supposed to do...
 		MDFNDES_BlockExit(true);
 
+		//Save any anto states
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_SaveState(0, "mcq", 0, 0, 0);
 		}
 	
+		//Close the game
 		MDFNI_CloseGame();
+
+		//Clean up
 		MDFND_Rumble(0, 0);
 		
-		delete Inputs;
-		delete Scaler;
-		
-		GameInfo = 0;
-		Inputs = 0;
-		Scaler = 0;
-		
+		Inputs.reset();
+		Scaler.reset();
+		Buffer.reset();
+		Surface.reset();
+
 		IsLoaded = false;
 	}
 }
@@ -238,11 +200,7 @@ bool						MednafenEmu::Frame				()
 {
 	if(IsInitialized && IsLoaded)
 	{
-		if(RewindSetting != RewindEnabled)
-		{
-			MDFNI_EnableStateRewind(RewindSetting);
-			RewindEnabled = RewindSetting;
-		}
+		MDFNI_EnableStateRewind(RewindSetting);
 
 		Inputs->Process();
 	
@@ -251,9 +209,10 @@ bool						MednafenEmu::Frame				()
 			Syncher.Sync();
 		}
 
+		//Emulate frame
 		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
-		EmulatorSpec.surface = Surface;
+		EmulatorSpec.surface = Surface.get(); //It's a shared pointer now
 		EmulatorSpec.LineWidths = VideoWidths;
 		EmulatorSpec.soundmultiplier = NetplayOn ? 1 : Counter.GetSpeed();
 		EmulatorSpec.SoundRate = 48000;
@@ -267,46 +226,7 @@ bool						MednafenEmu::Frame				()
 		Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
 		Counter.Tick(EmulatorSpec.skip);
 
-		//VIDEO
-		if(!EmulatorSpec.skip)
-		{
-			SkipCount = 0;
-
-			Blit();
-	
-			if(DisplayFPSSetting)
-			{
-				char buffer[128];
-				uint32_t fps, skip;
-				fps = Counter.GetFPS(&skip);
-				snprintf(buffer, 128, "%d (%d)", fps, skip);
-				FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
-			}
-				
-			if(MDFND_GetTime() - MessageTime < 5000)
-			{
-				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
-			}
-		}
-
-		//AUDIO
-		uint32_t* realsamps = (uint32_t*)Samples;
-
-		if(GameInfo->soundchan == 1)
-		{
-			for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
-			{
-				SamplesUp[i * 2] = Samples[i];
-				SamplesUp[i * 2 + 1] = Samples[i];
-			}
-
-			realsamps = (uint32_t*)SamplesUp;
-		}
-
-		SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
-		es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
-
-
+		//Handle inputs
 		if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 		{
 			MDFND_NetworkClose();
@@ -315,6 +235,48 @@ bool						MednafenEmu::Frame				()
 		{
 			DoCommands();
 			return false;
+		}
+		else
+		{
+			//VIDEO
+			if(!EmulatorSpec.skip)
+			{
+				SkipCount = 0;
+				Blit();
+
+				//Show FPS
+				if(DisplayFPSSetting)
+				{
+					char buffer[128];
+					uint32_t fps, skip;
+					fps = Counter.GetFPS(&skip);
+					snprintf(buffer, 128, "%d (%d)", fps, skip);
+					FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
+				}
+
+				//Show message
+				if(MDFND_GetTime() - MessageTime < 5000)
+				{
+					FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
+				}
+			}
+
+			//AUDIO
+			uint32_t* realsamps = (uint32_t*)Samples;
+
+			if(GameInfo->soundchan == 1)
+			{
+				for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
+				{
+					SamplesUp[i * 2] = Samples[i];
+					SamplesUp[i * 2 + 1] = Samples[i];
+				}
+
+				realsamps = (uint32_t*)SamplesUp;
+			}
+
+			SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
+			es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 		}
 
 		return !EmulatorSpec.skip;
@@ -325,33 +287,35 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch, bool aDummy)
 {
-	//Get the output area
-	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-	if(aPixels)
+	if(IsInitialized && (aPixels || IsLoaded))
 	{
-		output = Area(0, 0, aWidth, aHeight);
-	}
-
-	//If we are drawing predefined pixels, or have a slow_read texture, move it into the buffer texture
-	if(aPixels || (Buffer->GetFlags() & Texture::SLOW_READ))
-	{
-		uint32_t* pix = Buffer->GetPixels();
-		uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
-		uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
-
-		for(int i = 0; i != aHeight; i ++)
+		//Get the output area
+		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+		if(aPixels)
 		{
-			memcpy(&pix[i * Buffer->GetPitch()], &srcpix[i * srcpitch], aWidth * 4);
+			output = Area(0, 0, aWidth, aHeight);
 		}
+
+		if(1)//if(CurrentFilter == 0)
+		{
+			uint32_t* pix = Buffer->GetPixels();
+			uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
+			uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
+
+			for(int i = output.Y; i != output.Bottom(); i ++)
+			{
+				memcpy(&pix[i * Buffer->GetPitch() + output.X], &srcpix[i * srcpitch + output.X], output.Width * 4);
+			}
+		}
+		else
+		{
+			//TODO: Filter it
+		}
+
+		es_video->PresentFrame(Buffer.get(), output, FullFrameSetting, UnderscanSetting, UndertuneSetting);
 	}
 
-	//Invalidate and draw the buffer
-	if(!aDummy)
-	{
-		Buffer->Invalidate();
-	}
 
-	es_video->PresentFrame(Buffer, output, FullFrameSetting, UnderscanSetting, UndertuneSetting);
 	
 /*
 	if(IsInitialized && (aPixels || IsLoaded))
@@ -475,8 +439,8 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
-		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
-		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
+		if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
 		if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
 		if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu(false).Do(); SuspendDraw = false;}
 		if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu(true).Do(); SuspendDraw = false;}
@@ -491,7 +455,6 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 			if(!filename.empty())
 			{
-//				TextViewer* tv = new TextViewer(Area(10, 10, 80, 80), filename);
 				boost::shared_ptr<TextViewer> tv = boost::make_shared<TextViewer>(Area(10, 10, 80, 80), filename);
 				tv->SetHeader(filename);
 				Summerface::Create("TextView", tv)->Do();
@@ -558,9 +521,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 		
 		Inputs->ReadSettings();
-		
-		delete Scaler;
-		Scaler = 0;
+		Scaler.reset();
 
 		return true;
 	}
@@ -602,19 +563,18 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 	
-Texture*					MednafenEmu::Buffer = 0;
-MDFN_Surface*				MednafenEmu::Surface = 0;
+Texture_Ptr					MednafenEmu::Buffer;
+MDFN_Surface_Ptr			MednafenEmu::Surface ;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
-InputHandler*				MednafenEmu::Inputs = 0;
-Filter*						MednafenEmu::Scaler = 0;
+InputHandler_Ptr			MednafenEmu::Inputs;
+Filter_Ptr					MednafenEmu::Scaler;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
-bool						MednafenEmu::RewindEnabled = false;
 bool						MednafenEmu::RecordingVideo = false;
 bool						MednafenEmu::RecordingWave = false;
 
