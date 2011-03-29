@@ -12,6 +12,8 @@ class								WiiThread : public ESThread
 		static void*				ThreadWrapper		(void* aUserData);
 
 		ThreadFunction				Function;
+		void*						UserData;
+
 		lwp_t						Thread;
 		int32_t						Result;
 };
@@ -32,6 +34,7 @@ class								WiiMutex : public ESMutex
 class								WiiThreads : public ESThreads
 {
 	public:
-		virtual ESThread*			CreateThread		(ThreadFunction aThreadFunction, void* aUserData) {return new WiiThread(aThreadFunction, aUserData);}
+		virtual ESThread*			MakeThread			(ThreadFunction aThreadFunction, void* aUserData) {return new WiiThread(aThreadFunction, aUserData);}
+		virtual ESMutex*			MakeMutex			() {return new WiiMutex();}
 };
 

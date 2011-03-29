@@ -48,6 +48,11 @@ ESNetwork*			ESSUB_MakeNetwork		()
 	return new WiiNetwork();
 }
 
+ESThreads*			ESSUB_MakeThreads		()
+{
+	return new WiiThreads();
+}
+
 volatile bool		ESSUB_WantToDie			()
 {
 	return want_to_die;
