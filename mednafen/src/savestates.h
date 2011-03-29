@@ -1,13 +1,14 @@
-#ifndef SAVESTATES___H
-#define SAVESTATES___H
+#pragma once
 
-class					StateMenu : public SummerfaceLabel, public boost::enable_shared_from_this<StateMenu>
+DEFINE_PTR_TYPE(StateLabel);
+
+class					StateLabel : public SummerfaceLabel
 {
 	public:
-						StateMenu				(bool aLoad);
-		virtual			~StateMenu				();
+						StateLabel				(bool aLoad);
+		virtual			~StateLabel				() {delete[] Image;};
 
-		void			Do						();
+		void			SetSlot					(uint32_t aSlot);
 
 		bool			Input					();
 		bool			PrepareDraw				();
@@ -15,12 +16,21 @@ class					StateMenu : public SummerfaceLabel, public boost::enable_shared_from_t
 		void			FillScratch				(uint32_t aSlot);
 
 	protected:
-		Summerface_Ptr	UI;
-		bool			Load;
-		uint32_t		Slot;
 		uint32_t*		Image;
-		bool			Added;
+		uint32_t		Slot;
+		bool			Load;
 };
 
-#endif
+class					StateMenu
+{
+	public:
+						StateMenu				(bool aLoad); //Extern
+		virtual			~StateMenu				() {};
+
+		void			Do						() {UI->Do();};
+
+	private:
+		StateLabel_Ptr	Label;
+		Summerface_Ptr	UI;
+};
 

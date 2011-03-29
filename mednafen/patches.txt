@@ -16,6 +16,7 @@ src/settings.cpp:
 
 src/state.cpp:
   Make workmem in MDFN_StateEvil static to prvent overflowing stack on PS3
+  Make MDFNI_EnableStateRewind do nothing if the state isn't changed
 
 src/tremor/misc.h:
   Change byte ordering constants

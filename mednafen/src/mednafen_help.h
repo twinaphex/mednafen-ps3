@@ -1,6 +1,11 @@
 #ifndef MEDNAFEN_HELP_H
 #define MEDNAFEN_HELP_H
 
+DEFINE_PTR_TYPE(MDFN_Surface);
+DEFINE_PTR_TYPE(Texture);
+DEFINE_PTR_TYPE(InputHandler);
+DEFINE_PTR_TYPE(Filter);
+
 class	MednafenEmu
 {
 	public:
@@ -32,19 +37,18 @@ class	MednafenEmu
 		static bool						IsInitialized;
 		static bool						IsLoaded;
 	
-		static Texture*					Buffer;
-		static MDFN_Surface*			Surface;
+		static Texture_Ptr				Buffer;
+		static MDFN_Surface_Ptr			Surface;
 		static bool						SuspendDraw;
 
 		static MDFNGI*					GameInfo;
-		static InputHandler*			Inputs;		
-		static Filter*					Scaler;
+		static InputHandler_Ptr			Inputs;		
+		static Filter_Ptr				Scaler;
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
-		static bool						RewindEnabled;
 		static bool						RecordingVideo;
 		static bool						RecordingWave;
 
@@ -57,6 +61,7 @@ class	MednafenEmu
 		static bool						SkipNext;
 		static uint32_t					SkipCount;
 
+		//Setting cache
 		static bool						RewindSetting;
 		static bool						DisplayFPSSetting;
 		static bool						FullFrameSetting;

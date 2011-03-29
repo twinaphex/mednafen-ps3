@@ -1240,7 +1240,9 @@ int MDFN_StateEvil(int rewind)
 
 void MDFNI_EnableStateRewind(int enable)
 {
- if(!MDFNGameInfo->StateAction) 
+// if(!MDFNGameInfo->StateAction) 
+//ROBO: It's happy here! Promise
+ if(!MDFNGameInfo->StateAction || enable == EvilEnabled) 
   return;
 
  MDFN_StateEvilEnd();
