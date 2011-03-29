@@ -2,11 +2,11 @@
 
 						WiiThread::WiiThread			(ThreadFunction aThreadFunction, void* aUserData) : 
 	Function(aThreadFunction),
+	UserData(aUserData),
 	Thread(0),
 	Result(0)
 {
-	void* threaddata[2] = {(void*)Function, aUserData};
-	LWP_CreateThread(&Thread, ThreadWrapper, threaddata, 0, 0, 64);
+	LWP_CreateThread(&Thread, ThreadWrapper, (void*)this, 0, 128 * 1024, 64);
 }
 
 						WiiThread::~WiiThread			()
@@ -24,8 +24,8 @@ int32_t					WiiThread::Wait					()
 
 void*					WiiThread::ThreadWrapper		(void* aUserData)
 {
-	void** userdata = (void**)aUserData;
-	return (void*)((ThreadFunction)userdata[0])(userdata[1]);
+	WiiThread* thread = (WiiThread*)aUserData;
+	return (void*)thread->Function(thread->UserData);
 }
 
 						WiiMutex::WiiMutex				()
