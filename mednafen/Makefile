@@ -27,8 +27,13 @@ SOURCE				:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_
 						src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
 
 ##Maybe remove these later, they aren't used often
-MEDNAFENFLAGS		+=	-DWANT_GB_EMU -DWANT_NES_EMU -DWANT_GBA_EMU -DWANT_PCE_FAST_EMU #-DWANT_SNES_EMU
-SOURCE				+=	src/src/gb src/src/gba src/src/hw_sound/gb_apu src/src/pce_fast src/src/nes src/src/nes/boards src/src/nes/input src/src/nes/ntsc src/src/nes/ppu src/src/nes/ppu/palettes
+MEDNAFENFLAGS		+=	-DWANT_GB_EMU -DWANT_NES_EMU -DWANT_PCE_FAST_EMU #-DWANT_SNES_EMU
+SOURCE				+=	src/src/gb src/src/hw_sound/gb_apu src/src/pce_fast src/src/nes src/src/nes/boards src/src/nes/input src/src/nes/ntsc src/src/nes/ppu src/src/nes/ppu/palettes
+
+ifneq ($(strip $(PLATFORM)),dork)
+	SOURCE 				+= src/src/gba
+	MEDNAFENFLAGS		+=	-DWANT_GBA_EMU
+endif
 #CXXFILES			:=	src/src/snes/interface.cpp src/src/snes/src/cartridge/cartridge.cpp src/src/snes/src/cheat/cheat.cpp \
 #						src/src/snes/src/memory/memory.cpp src/src/snes/src/memory/smemory/smemory.cpp src/src/snes/src/cpu/cpu.cpp src/src/snes/src/cpu/core/core.cpp src/src/snes/src/cpu/scpu/scpu.cpp \
 #						src/src/snes/src/smp/smp.cpp src/src/snes/src/smp/core/core.cpp src/src/snes/src/smp/ssmp/ssmp.cpp src/src/snes/src/dsp/sdsp/sdsp.cpp src/src/snes/src/ppu/ppu.cpp \
@@ -43,11 +48,11 @@ ifeq ($(strip $(PLATFORM)),l1ght)
 endif
 
 INCLUDE				:=	src ../system $(MEDNAFENINCLUDES) 
-LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr
+LIBDIRS				:=	../system #../nestopia ../gambatte ../vbam ../pcsxr
 
 CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lvbam-$(PLATFORM) -lpcsxr-$(PLATFORM)
+LIBS				:=	-lemusys-$(PLATFORM) #-lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lvbam-$(PLATFORM) -lpcsxr-$(PLATFORM)
 
 ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base

@@ -609,7 +609,9 @@ void NetplayUpdate(const char **PortDNames, void *PortData[], uint32 PortLen[], 
 
 			 if(neobuf[1]) // Player is merged?
 			 {
-			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log(neobuf[1]) / log(2));
+//ROBO: Sony SDK can't do log either
+//			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log(neobuf[1]) / log(2));
+			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log((float)neobuf[1]) / log((float)2));
 			 }
 			 else
 			  mergedstr[0] = 0;

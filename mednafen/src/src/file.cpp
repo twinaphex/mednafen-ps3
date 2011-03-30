@@ -518,7 +518,9 @@ bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, 
   {
    int fd;
 
-   fd = dup(fileno( (FILE *)t));
+//ROBO: No dup on ps3sdk :(, luckily this probably won't run with mednafen-ps3's archive loader
+//   fd = dup(fileno( (FILE *)t));
+   fd = 0;
    lseek(fd, 0, SEEK_SET);
 
    if(!(t=gzdopen(fd, "rb")))

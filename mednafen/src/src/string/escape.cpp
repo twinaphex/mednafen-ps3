@@ -18,6 +18,11 @@
 #include "../mednafen.h"
 #include "escape.h"
 
+//ROBO: PS3SDK
+#ifdef MDDORK
+#include <ctype.h>
+#endif
+
 static unsigned int hex_nibble_to_val(char nibble)
 {
  unsigned int ret = 0;

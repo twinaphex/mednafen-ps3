@@ -557,7 +557,9 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
 	 return(MDFNI_LoadCD(force_module, name));
 	}
 	
-	if(!stat(name, &stat_buf) && !S_ISREG(stat_buf.st_mode))
+//ROBO: Stupid sony SDK
+//	if(!stat(name, &stat_buf) && !S_ISREG(stat_buf.st_mode))
+	if(!stat(name, &stat_buf) && (stat_buf.st_mode & S_IFREG))
 	{
 	 return(MDFNI_LoadCD(force_module, name));
 	}
