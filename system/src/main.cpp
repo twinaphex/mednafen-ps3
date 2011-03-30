@@ -76,7 +76,8 @@ void				InitES					(void (*aExitFunction)())
 
 void				QuitES					()
 {
-	ESSUB_Quit();
+	FontManager::QuitFonts();
+	ImageManager::Purge();
 
 	delete es_input;
 	delete es_audio;
@@ -84,10 +85,9 @@ void				QuitES					()
 	delete es_network;
 	delete es_threads;
 
-	ImageManager::Purge();
-	FontManager::QuitFonts();
-
 	delete es_paths;
+
+	ESSUB_Quit();
 }
 
 volatile bool		WantToDie				()

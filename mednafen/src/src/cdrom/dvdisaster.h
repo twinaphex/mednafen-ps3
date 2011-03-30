@@ -40,7 +40,10 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+//ROBO: Sony doesn't give you options
+#ifndef MDDORK
 #include <getopt.h>
+#endif
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -36,6 +36,15 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "l1ght/L1ghtInput.h"
 # include "l1ght/L1ghtNetwork.h"
 # include "l1ght/utility.h"
+#elif defined(MDDORK)
+# include "dork/DorkPlatform.h"
+# include "dork/DorkThreads.h"
+# include "dork/DorkTexture.h"
+# include "dork/DorkVideo.h"
+# include "dork/DorkAudio.h"
+# include "dork/DorkInput.h"
+# include "dork/DorkNetwork.h"
+# include "dork/utility.h"
 #elif defined(MDWII)
 # include "wii/WiiPlatform.h"
 # include "wii/WiiThreads.h"

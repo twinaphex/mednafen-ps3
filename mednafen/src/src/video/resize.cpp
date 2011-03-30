@@ -23,7 +23,13 @@
 #include <math.h>
 
 #define INT(x) ((int)(x))
+
+//ROBO: SoDK
+#ifndef MDDORK
 #define FRACT(x) ((x) - floor(x))
+#else
+#define FRACT(x) (((float)x) - floor((float)x))
+#endif
 
 #define READ_PIXEL(src_x, src_y, components)	\
 {	\

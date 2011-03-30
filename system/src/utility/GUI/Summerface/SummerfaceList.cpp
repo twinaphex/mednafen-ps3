@@ -143,15 +143,15 @@ bool										GridListView::Input									()
 		return true;
 	}
 
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+	{
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
+	}
+
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		List->SetCanceled(false);
 		return true;
-	}
-
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
 	return false;
