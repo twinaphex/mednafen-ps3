@@ -91,15 +91,15 @@ Area								ESVideo::CalculatePresentArea		(int32_t aAspectOverride, int32_t aUn
 
 		if((LastAspect == 0 && IsWideScreen()) || (LastAspect < 0))
 		{
-			xLeft += fwidth * .125f;
-			xRight -= fwidth * .125f;
+			xLeft += (int32_t)(fwidth * .125f);
+			xRight -= (int32_t)(fwidth * .125f);
 			fwidth -= fwidth * .250f;
 		}
 
-		xLeft += (fwidth * ((float)(LastUnderscan + LastUnderscanFine.X) / 200.0f));
-		xRight -= (fwidth * ((float)(LastUnderscan + LastUnderscanFine.Width) / 200.0f));
-		yTop += (fheight * ((float)(LastUnderscan + LastUnderscanFine.Y) / 200.0f));
-		yBottom -= (fheight * ((float)(LastUnderscan + LastUnderscanFine.Height) / 200.0f));
+		xLeft += (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.X) / 200.0f));
+		xRight -= (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.Width) / 200.0f));
+		yTop += (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Y) / 200.0f));
+		yBottom -= (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Height) / 200.0f));
 
 		PresentArea = Area(xLeft, yTop, xRight - xLeft, yBottom - yTop);
 	}

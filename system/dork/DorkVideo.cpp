@@ -47,8 +47,7 @@ namespace
     psglResetCurrentContext();
 
 	psglGetRenderBufferDimensions(Device, &esScreenWidth, &esScreenHeight);
-//TODO:
-	esWideScreen = false;
+	esWideScreen = psglGetDeviceAspectRatio(Device) > 1.5f;
 
 	glEnable(GL_VSYNC_SCE);
 	glEnableClientState(GL_VERTEX_ARRAY);

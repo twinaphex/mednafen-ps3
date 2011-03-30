@@ -1,5 +1,4 @@
-#ifndef SYSTEM__SUMMERFACE_LIST_H
-#define SYSTEM__SUMMERFACE_LIST_H
+#pragma once
 
 class													SummerfaceList;
 
@@ -15,7 +14,7 @@ class													ListView
 class													AnchoredListView : public ListView
 {
 	public:
-														AnchoredListView				(SummerfaceList_WeakPtr aList, bool aAnchored = true, bool aWrap = true); //External
+														AnchoredListView				(SummerfaceList_WeakPtr aList, bool aAnchored = true, bool aWrap = false); //External
 														~AnchoredListView				() {};
 														
 		virtual bool									DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
@@ -97,6 +96,4 @@ class													SummerfaceList : public SummerfaceWindow
 		ListView_Ptr									View;
 		std::vector<SummerfaceItem_Ptr>					Items;
 };
-
-#endif
 

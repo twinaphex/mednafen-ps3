@@ -28,6 +28,11 @@
 #include "NstCore.hpp"
 #include "NstPins.hpp"
 
+//ROBO: Sony SDK needs this
+#ifdef MDDORK
+using _CSTD wcslen;
+#endif
+
 namespace Nes
 {
 	namespace Core

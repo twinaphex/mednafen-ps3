@@ -10,8 +10,8 @@ class								DorkAudio : public ESAudio
 
 		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount);
 
-		volatile int32_t			GetBufferFree			() const {return RingBuffer.GetBufferAmount();};
-		volatile int32_t			GetBufferAmount			() const {return RingBuffer.GetBufferFree();};
+		volatile int32_t			GetBufferFree			() const {return RingBuffer.GetBufferFree();};
+		volatile int32_t			GetBufferAmount			() const {return RingBuffer.GetBufferAmount();};
 
 	protected:
 		static int					ProcessAudioThread		(void* aAudio);
