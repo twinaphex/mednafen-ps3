@@ -119,7 +119,8 @@ unsigned char Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
 // so (PSXCLK / 75) = cdr read time (linuzappz)
 #define cdReadTime (PSXCLK / 75)
 
-static struct CdrStat stat;
+//ROBO: Rename to cdrstat to avoid collision with libc stat
+static struct CdrStat cdrstat;
 static struct SubQ *subq;
 
 //ROBO: Copy from cdriso.c
@@ -354,14 +355,14 @@ void Check_Shell( int Irq )
 		{
 			u32 i;
 
-			i = stat.Status;
-			if (CDR_getStatus(&stat) != -1)
+			i = cdrstat.Status;
+			if (CDR_getStatus(&cdrstat) != -1)
 			{
-				if (stat.Type == 0xff)
+				if (cdrstat.Type == 0xff)
 					cdr.Stat = DiskError;
 
 				// case now open
-				else if (stat.Status & STATUS_SHELLOPEN)
+				else if (cdrstat.Status & STATUS_SHELLOPEN)
 				{
 					// Vib Ribbon: pre-CD swap
 					StopCdda();
@@ -662,7 +663,7 @@ void cdrPlayInterrupt_Autopause()
 	}
 	
 
-	if( CDR_getStatus(&stat) == -1) return;
+	if( CDR_getStatus(&cdrstat) == -1) return;
 
 	subq = (struct SubQ *)CDR_getBufferSub();
 
@@ -753,7 +754,7 @@ void cdrPlayInterrupt_Repplay()
 	
 	
 	memset( cdr.Result, 0, 8 );
-	if( CDR_getStatus(&stat) == -1) return;
+	if( CDR_getStatus(&cdrstat) == -1) return;
 
 	cdr.Result[0] = cdr.StatP;
 
@@ -997,10 +998,10 @@ void cdrInterrupt() {
 				if( cdr.FastBackward ) cdr.FastBackward--;
 
 				if( cdr.FastBackward == 0 && cdr.FastForward == 0 ) {
-					if( cdr.Play && CDR_getStatus(&stat) != -1 ) {
-						cdr.SetSectorPlay[0] = stat.Time[0];
-						cdr.SetSectorPlay[1] = stat.Time[1];
-						cdr.SetSectorPlay[2] = stat.Time[2];
+					if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+						cdr.SetSectorPlay[0] = cdrstat.Time[0];
+						cdr.SetSectorPlay[1] = cdrstat.Time[1];
+						cdr.SetSectorPlay[2] = cdrstat.Time[2];
 					}
 				}
 			}
@@ -1229,7 +1230,7 @@ void cdrInterrupt() {
 
 
 				// subQ integrity check - data only (skip audio)
-				if( subq->TrackNumber == 1 && stat.Type == 0x01 ) {
+				if( subq->TrackNumber == 1 && cdrstat.Type == 0x01 ) {
 					if (calcCrc((u8 *)subq + 12, 10) != (((u16)subq->CRC[0] << 8) | subq->CRC[1])) {
 						memset(cdr.Result + 2, 0, 3 + 3); // CRC wrong, wipe out time data
 					}
@@ -1388,12 +1389,12 @@ void cdrInterrupt() {
 		case CdlID + 0x20:
 			SetResultSize(8);
 
-			if (CDR_getStatus(&stat) == -1) {
+			if (CDR_getStatus(&cdrstat) == -1) {
 				cdr.Result[0] = 0x00; // 0x08 and cdr.Result[1]|0x10 : audio cd, enters cd player
 				cdr.Result[1] = 0x80; // 0x80 leads to the menu in the bios, else loads CD
 			}
 			else {
-				if (stat.Type == 2) {
+				if (cdrstat.Type == 2) {
 					// Music CD
 					cdr.Result[0] = 0x08;
 					cdr.Result[1] = 0x10;
@@ -1861,10 +1862,10 @@ void cdrWrite1(unsigned char rt) {
 
     	case CdlStop:
 				// GameShark CD Player: Reset CDDA to track start
-				if( cdr.Play && CDR_getStatus(&stat) != -1 ) {
-					cdr.SetSectorPlay[0] = stat.Time[0];
-					cdr.SetSectorPlay[1] = stat.Time[1];
-					cdr.SetSectorPlay[2] = stat.Time[2];
+				if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+					cdr.SetSectorPlay[0] = cdrstat.Time[0];
+					cdr.SetSectorPlay[1] = cdrstat.Time[1];
+					cdr.SetSectorPlay[2] = cdrstat.Time[2];
 
 					Find_CurTrack();
 
@@ -1892,10 +1893,10 @@ void cdrWrite1(unsigned char rt) {
 				Twisted Metal - World Tour: don't save times for DATA reads
 				- Only get 1 chance to do this right
 				*/
-				if( cdr.Play && CDR_getStatus(&stat) != -1 ) {
-					cdr.SetSectorPlay[0] = stat.Time[0];
-					cdr.SetSectorPlay[1] = stat.Time[1];
-					cdr.SetSectorPlay[2] = stat.Time[2];
+				if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+					cdr.SetSectorPlay[0] = cdrstat.Time[0];
+					cdr.SetSectorPlay[1] = cdrstat.Time[1];
+					cdr.SetSectorPlay[2] = cdrstat.Time[2];
 				}
 
 				StopCdda();
