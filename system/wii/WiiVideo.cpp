@@ -166,7 +166,7 @@ void					WiiVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea, Area(0, 0, 4, 4), aColor);
 }
 
-void					WiiVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					WiiVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	((WiiTexture*)aTexture)->Apply(aViewPort.Right(), aViewPort.Bottom());
 
