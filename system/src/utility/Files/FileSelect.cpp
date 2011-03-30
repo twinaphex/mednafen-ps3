@@ -1,5 +1,16 @@
 #include <es_system.h>
 
+namespace
+{
+	bool								AlphaSortDirectory					(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
+	{
+		if(a->IntProperties["DIRECTORY"] == 1 && b->IntProperties["DIRECTORY"] == 0)		return true;
+		if(a->IntProperties["DIRECTORY"] == 0 && b->IntProperties["DIRECTORY"] == 1)		return false;
+		return a->GetText() < b->GetText();
+	}
+}
+
+
 										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
 	List(boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
@@ -125,7 +136,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 			List->AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/'));
 		}
 
-		List->Sort();
+		List->Sort(AlphaSortDirectory);
 	}
 }
 
