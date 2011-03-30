@@ -17,7 +17,7 @@ class								WiiVideo : public ESVideo
 		
 		void						PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor);
 		void						FillRectangle			(const Area& aArea, uint32_t aColor);
-		void						PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine);
+		void						PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine);
 		
 	private:
 		static void					HandleRetrace			(uint32_t unused);

@@ -64,7 +64,7 @@ class	MednafenEmu
 		//Setting cache
 		static bool						RewindSetting;
 		static bool						DisplayFPSSetting;
-		static bool						FullFrameSetting;
+		static int32_t					AspectSetting;
 		static int32_t					UnderscanSetting;
 		static bool						FilterSetting;
 		static int32_t					ScalerSetting;

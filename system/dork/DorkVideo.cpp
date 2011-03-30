@@ -138,7 +138,7 @@ void					DorkVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
 
-void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, bool aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 

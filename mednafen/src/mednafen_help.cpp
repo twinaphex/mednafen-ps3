@@ -31,6 +31,15 @@ namespace
 		{0, 0, 0, 0}
 	};
 
+	const MDFNSetting_EnumList	AspectEnumList[] =
+	{
+		{"auto", 0, "Autodetect (Broken)", ""},
+		{"pillarbox", -1, "Pillarbox", ""},
+		{"fullframe", 1, "No Correction", ""},
+		{0, 0, 0, 0}
+	};
+
+
 	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".es." + b).c_str())
 
 	MDFNSetting SystemSettings[] = 
@@ -43,7 +52,7 @@ namespace
 		{"undertuneright", MDFNSF_NOFLAGS, "Fine tune underscan at right of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"filter", MDFNSF_NOFLAGS, "Use bilinear filter for display", NULL, MDFNST_BOOL, "0"},
-		{"fullframe", MDFNSF_NOFLAGS, "Ignore screen aspect ratio", NULL, MDFNST_BOOL, "0"},
+		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
 	};
@@ -312,7 +321,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 			//TODO: Filter it
 		}
 
-		es_video->PresentFrame(Buffer.get(), output, FullFrameSetting, UnderscanSetting, UndertuneSetting);
+		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 	}
 
 
@@ -535,7 +544,7 @@ void						MednafenEmu::ReadSettings		()
 	{
 		RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("displayfps"));
-		FullFrameSetting = MDFN_GetSettingB(SETTINGNAME("fullframe"));
+		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
 		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
 		FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
 		ScalerSetting = MDFN_GetSettingI(SETTINGNAME("scaler"));
@@ -589,7 +598,7 @@ uint32_t					MednafenEmu::SkipCount = 0;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
-bool						MednafenEmu::FullFrameSetting = false;
+int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
 bool						MednafenEmu::FilterSetting = false;
 int32_t						MednafenEmu::ScalerSetting = 0;
