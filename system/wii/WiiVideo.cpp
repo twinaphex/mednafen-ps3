@@ -97,11 +97,11 @@ GXColor bgc[2] = {{0, 0, 0, 0xFF}, {0xFF, 0, 0, 0xFF}};
 	delete FillerTexture;
 }
 
-void					WiiVideo::SetClip				(Area aClip)
+void					WiiVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);
 
-	Area clap = GetClip();
+	const Area& clap = GetClip();
 	GX_SetScissor(clap.X, clap.Y, clap.Width, clap.Height);
 }
 
@@ -170,7 +170,7 @@ void					WiiVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 {
 	((WiiTexture*)aTexture)->Apply(aViewPort.Right(), aViewPort.Bottom());
 
-	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
+	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
 	GX_SetBlendMode(GX_BM_NONE, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
 	GX_Begin(GX_QUADS, GX_VTXFMT0, 4);

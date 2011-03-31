@@ -12,6 +12,7 @@ CXX			:= $(PREFIX)g++
 LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
 NM			:= $(PREFIX)nm
+MAKE_SELF_GH:= make_self_npdrm
 
 ifeq ($(strip $(FREETYPECONFIG)),)
 	FREETYPECFLAGS := -I$(CELL_SDK)/target/ppu/include/freetype2
@@ -33,30 +34,5 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 include $(TOP)/Makefile.common
 ###
 
-signpkg: $(BUILD)-dork
-	@echo Creating signed PKG...
-	@$(STRIP) $(OUTPUT).elf
-	@$(SPRX) $(OUTPUT).elf
-	@make_self_npdrm $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
-	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
-	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
-	@cp $(OUTPUT).pkg $(OUTPUT)-dongle.pkg
-	@package_finalize $(OUTPUT).pkg
-	@mv $(OUTPUT).pkg $(OUTPUT)-cfw.pkg
-
-
-pkg: $(BUILD)-dork
-	@echo Creating PKG...
-	@$(STRIP) $(OUTPUT).elf
-	@$(SPRX) $(OUTPUT).elf
-	@$(FSELF) -n $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN
-	@$(SFO) --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
-	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
-
-%.vpo: %.vcg
-	@echo $(notdir $<)
-	@$(CGCOMP) -v $^ $@
-	
-%.fpo: %.fcg
-	@echo $(notdir $<)
-	@$(CGCOMP) -f $^ $@
+eboot: $(BUILD)-dork
+	@$(MAKE_SELF_GH) $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000	

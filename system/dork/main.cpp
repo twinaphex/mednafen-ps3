@@ -6,24 +6,19 @@ namespace
 {
 	volatile bool	want_to_die = false;
 	volatile bool	want_to_sleep = false;
-};
 
-static void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
-{
-	(void)param;
-	(void)userdata;
-
-	switch (status)
+	void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
 	{
-		case CELL_SYSUTIL_REQUEST_EXITGAME:	want_to_die = true; break;
-//TODO:
-//		case SYSUTIL_MENU_OPEN:				want_to_sleep = true; break; 
-//		case SYSUTIL_MENU_CLOSE: 			want_to_sleep = false; break;
+		switch (status)
+		{
+			case CELL_SYSUTIL_REQUEST_EXITGAME:	want_to_die = true; break;
+			case CELL_SYSUTIL_SYSTEM_MENU_OPEN:	want_to_sleep = true; break; 
+			case CELL_SYSUTIL_SYSTEM_MENU_CLOSE:want_to_sleep = false; break;
+		}
+
+		return;
 	}
-
-	return;
-}
-
+};
 
 void				ESSUB_Init				()
 {
@@ -41,14 +36,14 @@ void				ESSUB_Init				()
 		}
 	}
 
-	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);		
+//	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);		
 	cellSysmoduleLoadModule(CELL_SYSMODULE_NET);
 }
 
 void				ESSUB_Quit				()
 {
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);	
+//	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);	
 
 	cellSysutilUnregisterCallback(0);
 }

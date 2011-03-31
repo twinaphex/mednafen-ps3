@@ -16,6 +16,11 @@ class							Area
 			Height = aHeight;
 		};
 
+		bool					Valid					(uint32_t aWidth, uint32_t aHeight) const
+		{
+			return (X >= 0) && (Y >= 0) && (Width > 0) && (Height > 0) && (Right() <= aWidth) && (Bottom() <= aHeight);
+		}
+
 		bool					operator==				(const Area& aB) const
 		{
 			return (X == aB.X && Y == aB.Y && Width == aB.Width && Height == aB.Height);
@@ -39,8 +44,8 @@ class								ESVideo
 		virtual uint32_t			GetScreenHeight						() const {return esScreenHeight;}
 		virtual bool				IsWideScreen						() const {return esWideScreen;}
 	
-		virtual inline void			SetClip								(Area aClip); //Defined Below
-		virtual Area				GetClip								() const {return esClip;}
+		virtual inline void			SetClip								(const Area& aClip); //Defined Below
+		virtual const Area&			GetClip								() const {return esClip;}
 	
 		virtual void				Flip								() = 0; //Pure Virtual
 		
@@ -49,7 +54,7 @@ class								ESVideo
 		virtual void				PresentFrame						(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0; //Pure Virtual
 
 	public: //Helpers
-		inline Area					CalculatePresentArea				(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine); //Defined below
+		inline const Area&			CalculatePresentArea				(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine); //Defined below
 
 	protected:
 		Area						esClip;
@@ -65,19 +70,12 @@ class								ESVideo
 };
 
 //---Inlines
-void								ESVideo::SetClip					(Area aClip)
+void								ESVideo::SetClip					(const Area& aClip)
 {
-	if(aClip.Right() > GetScreenWidth() || aClip.Bottom() > GetScreenHeight() || aClip.Width == 0 || aClip.Height == 0)
-	{
-		esClip = Area(0, 0, GetScreenWidth(), GetScreenHeight());
-	}
-	else
-	{
-		esClip = aClip;
-	}
+	esClip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
-Area								ESVideo::CalculatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+const Area&							ESVideo::CalculatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	if(aAspectOverride != LastAspect || LastUnderscan != aUnderscan || aUnderscanFine != LastUnderscanFine)
 	{
