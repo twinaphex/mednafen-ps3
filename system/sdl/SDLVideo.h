@@ -8,7 +8,7 @@ class								SDLVideo : public ESVideo
 	
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic) {return new SDLTexture(aWidth, aHeight);};
 	
-		virtual void				SetClip					(Area aClip);
+		virtual void				SetClip					(const Area& aClip);
 	
 		void						Flip					();
 		

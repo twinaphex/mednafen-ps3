@@ -11,7 +11,7 @@ class								WiiVideo : public ESVideo
 	
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new WiiTexture(aWidth, aHeight);};
 	
-		virtual void				SetClip					(Area aClip);
+		virtual void				SetClip					(const Area& aClip);
 	
 		void						Flip					();
 		

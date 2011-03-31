@@ -19,7 +19,6 @@
 	cellAudioSetNotifyEventQueue(QueueKey);
 	sys_event_queue_drain(QueueID);
 
-//TODO: Fix this
 	cellAudioPortStart(Port);
 	
 	Mutex = es_threads->MakeMutex();

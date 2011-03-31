@@ -35,7 +35,7 @@
 	delete FillerTexture;
 }
 
-void					SDLVideo::SetClip				(Area aClip)
+void					SDLVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);
 
@@ -116,7 +116,7 @@ void					SDLVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
 
 void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
-	Area output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
+	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();

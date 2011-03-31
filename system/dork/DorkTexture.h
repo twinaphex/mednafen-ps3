@@ -2,8 +2,6 @@
 
 class								DorkTexture : public Texture
 {
-	friend class					SDLVideo;
-
 	public:
 									DorkTexture				(uint32_t aWidth, uint32_t aHeight);
 		virtual						~DorkTexture			();

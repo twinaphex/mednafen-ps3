@@ -321,6 +321,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 			//TODO: Filter it
 		}
 
+		Buffer->SetFilter(FilterSetting);
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 	}
 
