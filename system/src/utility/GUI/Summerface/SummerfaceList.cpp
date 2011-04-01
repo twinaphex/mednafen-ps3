@@ -141,10 +141,10 @@ bool										GridListView::Input									()
 		return true;
 	}
 
-/*	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
 	{
 		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
-	}*/
+	}
 
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
@@ -161,12 +161,6 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 	SummerfaceList_Ptr List = WeakList.lock();
 
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
-	
-	//TODO: Make this work!
-	if(Utility::FileExists(aItem->Properties["THUMB"]))
-	{
-		image = ImageManager::LoadImage(aItem->Properties["THUMB"], aItem->Properties["THUMB"]);
-	}
 	
 	if(image && aWidth && aHeight)
 	{
