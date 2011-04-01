@@ -16,6 +16,14 @@ class							Area
 			Height = aHeight;
 		};
 
+		void					Inflate					(int32_t aAmount)
+		{
+			X -= aAmount;
+			Y -= aAmount;
+			Width += aAmount * 2;
+			Height += aAmount * 2;
+		}
+
 		bool					Valid					(uint32_t aWidth, uint32_t aHeight) const
 		{
 			return (X >= 0) && (Y >= 0) && (Width > 0) && (Height > 0) && (Right() <= aWidth) && (Bottom() <= aHeight);
