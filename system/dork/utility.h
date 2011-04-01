@@ -44,13 +44,55 @@ class				Utility
 			return "";
 		}
 
+		static std::string				GetDirectory				(const std::string& aPath)
+		{
+			if(aPath.find("/") != std::string::npos)
+			{
+				return aPath.substr(0, aPath.rfind("/") + 1);
+			}
+
+			return "";
+		}
+
+		static std::string				GetFileName					(const std::string& aPath)
+		{
+			std::string out = aPath;
+
+			if(aPath.find("/") != std::string::npos)
+			{
+				out = aPath.substr(aPath.rfind("/") + 1);
+			}
+
+			if(out.find(".") != std::string::npos)
+			{
+				out = out.substr(0, out.rfind("."));
+			}
+
+			return out;
+		}
+
+
 		static bool						FileExists					(const std::string& aPath)
 		{
 			struct stat statbuf;
 
 			if(0 == stat(aPath.c_str(), &statbuf))
 			{
-				return statbuf.st_mode & S_IFREG;
+				return (statbuf.st_mode & S_IFREG);
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		static bool						DirectoryExists				(const std::string& aPath)
+		{
+			struct stat statbuf;
+
+			if(0 == stat(aPath.c_str(), &statbuf))
+			{
+				return (statbuf.st_mode & S_IFDIR);
 			}
 			else
 			{

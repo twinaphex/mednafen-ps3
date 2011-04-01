@@ -19,7 +19,6 @@ namespace
 	BookMarks(aBookMarks)
 {
 	Interface->SetHook(aInputHook);
-	List->SetView(boost::make_shared<AnchoredListView>(List, true));
 	List->SetInputConduit(boost::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
 
 	Paths.push(aPath);
@@ -99,6 +98,15 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	List->ClearItems();
 	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
+	if(Utility::DirectoryExists(aPath + "/__images"))
+	{
+		List->SetView(boost::make_shared<GridListView>(List, 4, 3, true, false));
+	}
+	else
+	{
+		List->SetView(boost::make_shared<AnchoredListView>(List, true));
+	}
+
 	if(aPath.empty())
 	{
 		List->AddItem(MakeItem("Local Files", "/", true, false));
@@ -149,7 +157,7 @@ SummerfaceItem_Ptr					FileSelect::MakeItem						(const std::string& aName, cons
 	item->IntProperties["FILE"] = aFile;
 	item->IntProperties["BOOKMARK"] = std::find(BookMarks.begin(), BookMarks.end(), aPath) != BookMarks.end();
 	item->Properties["PATH"] = aPath;
-	item->Properties["THUMB"] = aPath + ".tbn";
+	item->Properties["THUMB"] = Utility::GetDirectory(aPath) + "/__images/" + Utility::GetFileName(aPath) + ".png";
 
 	if(item->IntProperties["BOOKMARK"])
 	{

@@ -57,7 +57,7 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 
 		for(int j = 0; j != copyWidth; j ++)
 		{
-			uint32_t a = PNG_COLOR_TYPE_RGB_ALPHA ? *source++ : 0xFF;
+			uint32_t a = (info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA) ? *source++ : 0xFF;
 			uint32_t r = *source ++;
 			uint32_t g = *source ++;
 			uint32_t b = *source ++;
@@ -78,7 +78,16 @@ void										ImageManager::Purge									()
 	
 Texture*									ImageManager::LoadImage								(const std::string& aName, const std::string& aPath)
 {
-	ErrorCheck(Utility::FileExists(aPath), "ImageManager: File not found. [Path: %s, Name: %s]", aPath.c_str(), aName.c_str());
+	if(!Utility::FileExists(aPath))
+	{
+		return 0;
+	}
+
+//HACK: Don't allow more than 100 images, make a less nuclear pruning routine!
+	if(Images.size() >= 100)
+	{
+		Purge();
+	}
 
 	if(Images.find(aName) == Images.end())
 	{
