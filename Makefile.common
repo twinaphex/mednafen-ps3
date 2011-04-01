@@ -1,3 +1,8 @@
+ifeq ($(strip $(BOOST_PATH)),)
+$(error Set BOOST_PATH in environment)
+endif
+
+
 #RULES FOR COMPILE
 %.o: %.c
 	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul

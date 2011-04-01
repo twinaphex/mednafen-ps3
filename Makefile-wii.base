@@ -1,4 +1,6 @@
 export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+export PORTLIBS := $(DEVKITPRO)/portlibs/ppc/
+export PATH := $(DEVKITPPC)/bin:$(PORTLIBS)/ppc/bin:$(PATH)
 
 .SUFFIXES:
 
@@ -16,21 +18,21 @@ LD			:= $(CXX)
 STRIP		:= $(PREFIX)strip
 NM			:= $(PREFIX)nm
 
-ifeq ($(strip $(SDLCONFIG)),)
-	SDLCONFIG=sdl-config
-endif
-
 ifeq ($(strip $(FREETYPECONFIG)),)
-	FREETYPECONFIG=freetype-config
+	FREETYPECFLAGS	:= -I$(PORTLIBS)/include/freetype2
+	FREETYPELIBS	:= -lfreetype
+else
+	FREETYPECFLAGS	:= `$(FREETYPECONFIG) --cflags`
+	FREETYPELIBS	:= `$(FREETYPECONFIG) --libs`
 endif
 
 MACHDEP		:= -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
 CXXNCFLAGS	:= -DMDWII -g -O3 -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -DC_CORE $(MACHDEP)
-CXXNCFLAGS	+= `$(FREETYPECONFIG) --cflags` -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/portlibs/ppc/lib 
+CXXNCFLAGS	+= $(FREETYPECFLAGS) -I$(DEVKITPRO)/libogc/include -I$(PORTLIBS)/include
 
 CFLAGS		+= $(CXXNCFLAGS) -std=gnu99
 CXXFLAGS	+= $(CXXNCFLAGS)
-LDFLAGS		+= -g $(MACHDEP) -L$(DEVKITPRO)/libogc/lib/wii -L$(DEVKITPRO)/portlibs/ppc/lib -L$(DEVKITPRO)/portlibs/ppc/lib/wii -lpng -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard `$(FREETYPECONFIG) --libs`
+LDFLAGS		+= -g $(MACHDEP) -L$(DEVKITPRO)/libogc/lib/wii -L$(PORTLIBS)/lib -lz -lpng -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard $(FREETYPELIBS)
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 

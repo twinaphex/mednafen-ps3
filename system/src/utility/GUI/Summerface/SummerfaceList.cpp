@@ -100,33 +100,31 @@ bool										GridListView::Input									()
 	YSelection += es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
 	YSelection -= es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
 
-	while(YSelection < 0)
+	if((FirstItem + (YSelection * Width + XSelection)) < List->GetItemCount())
 	{
-		YSelection ++;
-		FirstItem -= Width;
-	}	
+		while(YSelection < 0)
+		{
+			YSelection ++;
+			FirstItem -= Width;
+		}	
+			
+		while(YSelection >= Height)
+		{
+			YSelection --;
+			FirstItem += Width;
+		}
 		
-	while(YSelection >= Height)
-	{
-		YSelection --;
-		FirstItem += Width;
-	}
-	
-	while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->GetItemCount() + Width))
-	{
-		FirstItem -= Width;
-	}
+		while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->GetItemCount() + Width))
+		{
+			FirstItem -= Width;
+		}
 
-	while(FirstItem < 0)
-	{
-		FirstItem += Width;
-	}
-	
+		while(FirstItem < 0)
+		{
+			FirstItem += Width;
+		}
 
-	List->SetSelection(FirstItem + (YSelection * Width + XSelection));
-	if(List->GetSelection() >= List->GetItemCount())
-	{
-		List->SetSelection(oldIndex);
+		List->SetSelection(FirstItem + (YSelection * Width + XSelection));
 	}
 
 	if(DrawHeader && (oldIndex != List->GetSelection() || RefreshHeader))
@@ -143,10 +141,10 @@ bool										GridListView::Input									()
 		return true;
 	}
 
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+/*	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
 	{
 		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
-	}
+	}*/
 
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
@@ -165,20 +163,14 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 	
 	//TODO: Make this work!
-//	if(Utility::FileExists(aItem->Properties["THUMB"]))
-//	{
-//		image = ImageManager::GetImage("SCRATCH%0");
-//		ImageManager::FillScratch(0, aItem->Properties["THUMB"]);
-//	}
+	if(Utility::FileExists(aItem->Properties["THUMB"]))
+	{
+		image = ImageManager::LoadImage(aItem->Properties["THUMB"], aItem->Properties["THUMB"]);
+	}
 	
-	Area ImageArea(0, 0, 0, 0);
-
 	if(image && aWidth && aHeight)
 	{
-		if(ImageArea.Width == 0)
-		{
-			ImageArea = Area(0, 0, image->GetWidth(), image->GetHeight());
-		}
+		Area ImageArea(0, 0, image->GetWidth(), image->GetHeight());
 
 		if(DrawLabels)
 		{

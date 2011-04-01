@@ -1,5 +1,4 @@
-#ifndef SYSTEM__IMAGEMANAGER_H
-#define SYSTEM__IMAGEMANAGER_H
+#pragma once
 
 class													ImageManager
 {
@@ -29,6 +28,4 @@ class													ImageManager
 
 		static std::map<std::string, Texture*>			Images;
 };
-
-#endif
 
