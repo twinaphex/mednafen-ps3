@@ -13,7 +13,7 @@ namespace
 class									FlowListView : public ListView
 {
 	public:
-										FlowListView					(SummerfaceList_WeakPtr aWeakList) : WeakList(aWeakList), FirstItem(0) {}
+										FlowListView					(SummerfaceList_WeakPtr aWeakList) : WeakList(aWeakList) {}
 		virtual							~FlowListView					() {}
 	
 		virtual bool					Input							();
@@ -22,46 +22,50 @@ class									FlowListView : public ListView
 
 	private:
 		SummerfaceList_WeakPtr			WeakList;
-
-		int32_t							FirstItem;
+		static const int				Columns = 5;
+		static const int				Rows = 2;
 };
 
 bool									FlowListView::Input				()
 {
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	int32_t oldIndex = List->GetSelection();
-	if(List->GetItemCount() != 0)
+	if(!WeakList.expired())
 	{
-		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 2 : 0);
-		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? 2 : 0);
-		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
-		List->SetSelection(oldIndex);
+		SummerfaceList_Ptr List = WeakList.lock();
+
+		int32_t oldIndex = List->GetSelection();
+		if(List->GetItemCount() != 0)
+		{
+			oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+			oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+			oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? Rows : 0);
+			oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? Rows : 0);
+			oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
+			List->SetSelection(oldIndex);
+		}
+
+		if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+		{
+			List->SetCanceled(true);
+			return true;
+		}
+
+		if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+		{
+			List->SetCanceled(false);
+			return true;
+		}
+		
+		return false;
 	}
-
-	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	else
 	{
-		List->SetCanceled(true);
 		return true;
-	}
-
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		List->SetCanceled(false);
-		return true;
-	}
-	
-	return false;
+	}	
 }
 
 bool									FlowListView::DrawItem			(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
-	SummerfaceList_Ptr List = WeakList.lock();
-
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
-	
 	if(Utility::FileExists(aItem->Properties["THUMB"]))
 	{
 		image = ImageManager::LoadImage(aItem->Properties["THUMB"], aItem->Properties["THUMB"]);
@@ -75,45 +79,66 @@ bool									FlowListView::DrawItem			(SummerfaceItem_Ptr aItem, uint32_t aX, ui
 		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
 		es_video->PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
 	}
-	
-	if(aSelected)
-	{
-		es_video->FillRectangle(Area(aX, aY, 4, aHeight), 0x80000080);
-		es_video->FillRectangle(Area(aX + aWidth, aY, 4, aHeight), 0x80000080);
-		es_video->FillRectangle(Area(aX, aY, aWidth, 4), 0x80000080);
-		es_video->FillRectangle(Area(aX, aY + aHeight, aWidth, 4), 0x80000080);
-
-	}
 }
 
 bool							FlowListView::Draw						()
 {
-	es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
-	es_video->FillRectangle(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), 0x000080FF);
+//	es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
+//	es_video->FillRectangle(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), 0x000080FF);
 
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	uint32_t iconWidth = es_video->GetClip().Width / 5;
-	uint32_t iconHeight = es_video->GetClip().Height / 2;
-
-	int onitem = (List->GetSelection() & (~1)) - 4;
-
-	for(int i = 0; i != 5; i ++)
+	if(!WeakList.expired())
 	{
-		for(int j = 0; j != 2; j ++)
-		{
-			if(onitem < 0 || onitem >= List->GetItemCount())
-			{
-				onitem ++;
-				continue;
-			}
+		SummerfaceList_Ptr List = WeakList.lock();
 
-			DrawItem(List->GetItem(onitem), i * iconWidth, j * iconHeight, iconWidth, iconHeight, List->GetSelection() == onitem);
-			onitem ++;
+		List->SetHeader("");
+
+		uint32_t iconWidth = es_video->GetClip().Width / Columns;
+		uint32_t iconHeight = es_video->GetClip().Height / Rows;
+		uint32_t expandWidth = es_video->GetClip().Width / 16;
+		uint32_t expandHeight = es_video->GetClip().Height / 16;
+
+		int onitem = (List->GetSelection() - (List->GetSelection() % Rows)) - (Rows * (Columns / 2));
+		int selection = -1, selectionx = 0, selectiony = 0;
+
+		for(int i = 0; i != Columns; i ++)
+		{
+			for(int j = 0; j != Rows; j ++)
+			{
+				if(onitem < 0 || onitem >= List->GetItemCount())
+				{
+					onitem ++;
+					continue;
+				}
+
+				DrawItem(List->GetItem(onitem), i * iconWidth, j * iconHeight, iconWidth, iconHeight, List->GetSelection() == onitem);
+
+				if(List->GetSelection() == onitem)
+				{
+					selection = onitem;
+					selectionx = i;
+					selectiony = j;
+				}
+				onitem ++;
+			}
 		}
+		
+		if(selection >= 0)
+		{
+			Area clipp = es_video->GetClip();
+
+			uint32_t textY = (clipp.Y + ((selectiony * iconHeight) - expandHeight) < es_video->GetScreenHeight() / 3) ? es_video->GetClip().Height - FontManager::GetBigFont()->GetHeight() - 16 : 16;
+			FontManager::GetBigFont()->PutString(List->GetSelected()->GetText().c_str(), 32, textY, 0x000000FF);
+
+			es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
+			DrawItem(List->GetItem(selection), (clipp.X + selectionx * iconWidth) - expandWidth, (clipp.Y + selectiony * iconHeight) - expandHeight, iconWidth + expandWidth * 2, iconHeight + expandHeight * 2, true);
+		}
+
+		return false;
 	}
-	
-	return false;
+	else
+	{
+		return true;
+	}
 }
 
 
