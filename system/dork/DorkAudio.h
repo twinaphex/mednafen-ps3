@@ -8,7 +8,7 @@ class								DorkAudio : public ESAudio
 									DorkAudio				();
 									~DorkAudio				();
 
-		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount);
+		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount) {RingBuffer.WriteData(aSamples, aCount);};
 
 		volatile int32_t			GetBufferFree			() const {return RingBuffer.GetBufferFree();};
 		volatile int32_t			GetBufferAmount			() const {return RingBuffer.GetBufferAmount();};
