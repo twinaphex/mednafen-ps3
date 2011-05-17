@@ -19,7 +19,7 @@ class								DorkAudio : public ESAudio
 		static const int			BlockCount = 16;
 
 		ESThread*					Thread;
-		ESMutex*					Mutex;
+		ESSemaphore*				Semaphore;
 		volatile bool				ThreadDie;
 
 		sys_event_queue_t			QueueID;

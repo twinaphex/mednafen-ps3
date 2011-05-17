@@ -2,7 +2,7 @@
 
 						DorkAudio::DorkAudio			() : 
 	Thread(0),
-	Mutex(0),
+	Semaphore(0),
 	ThreadDie(false),
 	QueueID(0),
 	QueueKey(0),
@@ -21,8 +21,8 @@
 
 	cellAudioPortStart(Port);
 	
-	Mutex = es_threads->MakeMutex();
 	Thread = es_threads->MakeThread(ProcessAudioThread, this);
+	Semaphore = es_threads->MakeSemaphore(1);
 }
 
 
@@ -32,7 +32,7 @@
 
 	ThreadDie = true;
 	delete Thread;
-	delete Mutex;
+	delete Semaphore;
 
 	cellAudioPortClose(Port);
 	cellAudioRemoveNotifyEventQueue(QueueKey);
@@ -42,9 +42,12 @@
 
 void					DorkAudio::AddSamples			(const uint32_t* aSamples, uint32_t aCount)
 {
-	Mutex->Lock();
+	while(RingBuffer.GetBufferFree() < aCount)
+	{
+		Semaphore->Wait();
+	}
+
 	RingBuffer.WriteData(aSamples, aCount);
-	Mutex->Unlock();
 }
 
 int						DorkAudio::ProcessAudioThread	(void* aAudio)
@@ -63,9 +66,12 @@ int						DorkAudio::ProcessAudioThread	(void* aAudio)
 			break;
 		}
 
-		audio->Mutex->Lock();
 		audio->RingBuffer.ReadDataSilentUnderrun((uint32_t*)samples, 256);
-		audio->Mutex->Unlock();
+
+		if(!audio->Semaphore->GetValue())
+		{
+			audio->Semaphore->Post();
+		}
 
 		for(uint32_t i = 0; i != 256 * 2; i ++)
 		{
