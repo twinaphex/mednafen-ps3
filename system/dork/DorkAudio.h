@@ -15,15 +15,17 @@ class								DorkAudio : public ESAudio
 
 	protected:
 		static int					ProcessAudioThread		(void* aAudio);
+		static void					MultiStreamCallback		(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize);
 	
 		static const int			BlockCount = 16;
 
 		ESThread*					Thread;
-		ESSemaphore*				Semaphore;
 		volatile bool				ThreadDie;
 
-		sys_event_queue_t			QueueID;
-		sys_ipc_key_t				QueueKey;
+		int32_t						MSChannel;
+		void*						MSMemory;
+		void*						MSBuffers[2];
+		volatile bool				StreamDead;
 
 		uint32_t					Port;
 		CellAudioPortConfig			Config;
