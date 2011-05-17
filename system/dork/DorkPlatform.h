@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <cell/mstream.h>
 
 #include <unistd.h>
 #include <assert.h>
