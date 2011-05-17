@@ -3,34 +3,6 @@
 
 namespace
 {
-	uint32_t		CurrentFilter = 0;
-	Filter_Ptr		BuildFilter			(uint32_t aIndex)
-	{
-		CurrentFilter = aIndex;
-
-		if(aIndex == 0)	return boost::make_shared<Identity>();
-		if(aIndex == 1)	return boost::make_shared<Identity2x>();
-		if(aIndex == 2) return boost::make_shared<Kreed_2xSaI>();
-		if(aIndex == 3)	return boost::make_shared<MaxSt_Hq2x>();
-		if(aIndex == 4)	return boost::make_shared<MaxSt_Hq3x>();	
-		if(aIndex == 5)	return boost::make_shared<Catrom2x>();	
-		if(aIndex == 6)	return boost::make_shared<Catrom3x>();		
-
-		return boost::make_shared<Identity>();
-	};
-
-	const MDFNSetting_EnumList	FilterEnumList[] =
-	{
-		{"none", 0, "none", ""},
-		{"int2x", 1, "int2x", ""},
-		{"k2xSaI", 2, "k2xSaI", ""},
-		{"hq2x", 3, "Hq2x", ""},
-		{"hq3x", 4, "Hq3x", ""},
-		{"catrom2x", 5, "Catrom2x", ""},
-		{"catrom3x", 6, "Catrom3x", ""},
-		{0, 0, 0, 0}
-	};
-
 	const MDFNSetting_EnumList	AspectEnumList[] =
 	{
 		{"auto", 0, "Autodetect (Broken)", ""},
@@ -44,7 +16,6 @@ namespace
 
 	MDFNSetting SystemSettings[] = 
 	{
-		{"scaler", MDFNSF_NOFLAGS, "Special filter for screen scaling.", NULL, MDFNST_ENUM, "none", NULL, NULL, NULL, NULL, FilterEnumList },	
 		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "-50", "50" },
 		{"undertunetop", MDFNSF_NOFLAGS, "Fine tune underscan at top of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertunebottom", MDFNSF_NOFLAGS, "Fine tune underscan at bottom of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
@@ -197,7 +168,6 @@ void						MednafenEmu::CloseGame			()
 		MDFND_Rumble(0, 0);
 		
 		Inputs.reset();
-		Scaler.reset();
 		Buffer.reset();
 		Surface.reset();
 
@@ -305,88 +275,19 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 			output = Area(0, 0, aWidth, aHeight);
 		}
 
-		if(1)//if(CurrentFilter == 0)
-		{
-			uint32_t* pix = Buffer->GetPixels();
-			uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
-			uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
+		uint32_t* pix = Buffer->GetPixels();
+		uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
+		uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
 
-			for(int i = output.Y; i != output.Bottom(); i ++)
-			{
-				memcpy(&pix[i * Buffer->GetPitch() + output.X], &srcpix[i * srcpitch + output.X], output.Width * 4);
-			}
-		}
-		else
+		for(int i = output.Y; i != output.Bottom(); i ++)
 		{
-			//TODO: Filter it
+			memcpy(&pix[i * Buffer->GetPitch() + output.X], &srcpix[i * srcpitch + output.X], output.Width * 4);
 		}
+
 
 		Buffer->SetFilter(FilterSetting);
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 	}
-
-
-	
-/*
-	if(IsInitialized && (aPixels || IsLoaded))
-	{
-		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-
-		if(aPixels)
-		{
-			output = Area(0, 0, aWidth, aHeight);
-		}
-
-		if(Scaler && CurrentFilter != MDFN_GetSettingUI(SETTINGNAME("scaler")))
-		{
-			delete Scaler;
-			Scaler = 0;
-		}
-
-		Buffer->SetFilter(MDFN_GetSettingB(SETTINGNAME("filter")));
-
-		if(!Scaler)
-		{
-			Scaler = BuildFilter(MDFN_GetSettingUI(SETTINGNAME("scaler")));
-			Scaler->init(output.Width, output.Height);
-		}
-
-		if(output.Width != Scaler->getWidth() || output.Height != Scaler->getHeight())
-		{
-			Scaler->init(output.Width, output.Height);
-		}
-
-		uint32_t* scaleIn = Scaler->inBuffer();
-		uint32_t scaleInP = Scaler->inPitch();
-
-		uint32_t* scaleOut = Scaler->outBuffer();
-		uint32_t scaleOutP = Scaler->outPitch();
-
-		uint32_t* bufferPix = Buffer->GetPixels();
-		uint32_t bufferP = Buffer->GetWidth();
-
-		uint32_t finalWidth = output.Width * Scaler->info().outWidth;
-		uint32_t finalHeight = output.Height * Scaler->info().outHeight;
-
-		uint32_t* pixels = aPixels ? aPixels : Surface->pixels;
-		uint32_t pitch = aPixels ? aPitch : Surface->pitchinpix;
-
-		for(int i = 0; i != output.Height; i ++)
-		{
-			memcpy(&scaleIn[i * scaleInP], &pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
-		}
-
-		Scaler->filter();
-	
-		for(int i = 0; i != finalHeight; i ++)
-		{
-			memcpy(&bufferPix[i * bufferP], &scaleOut[i * scaleOutP], finalWidth * 4);	
-		}
-
-		Area underscanfine();
-
-		es_video->PresentFrame(Buffer, Area(0, 0, finalWidth, finalHeight), MDFN_GetSettingB(SETTINGNAME("fullframe")), MDFN_GetSettingI(SETTINGNAME("underscan")), underscanfine);
-	}*/
 }
 
 void						MednafenEmu::DoCommands			()
@@ -531,8 +432,6 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 		
 		Inputs->ReadSettings();
-		Scaler.reset();
-
 		return true;
 	}
 
@@ -548,7 +447,6 @@ void						MednafenEmu::ReadSettings		()
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
 		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
 		FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
-		ScalerSetting = MDFN_GetSettingI(SETTINGNAME("scaler"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 	}
 }
@@ -579,7 +477,6 @@ bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
 InputHandler_Ptr			MednafenEmu::Inputs;
-Filter_Ptr					MednafenEmu::Scaler;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
 
@@ -602,5 +499,5 @@ bool						MednafenEmu::DisplayFPSSetting = false;
 int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
 bool						MednafenEmu::FilterSetting = false;
-int32_t						MednafenEmu::ScalerSetting = 0;
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
+

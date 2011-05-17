@@ -43,7 +43,6 @@ class	MednafenEmu
 
 		static MDFNGI*					GameInfo;
 		static InputHandler_Ptr			Inputs;		
-		static Filter_Ptr				Scaler;
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
 		
