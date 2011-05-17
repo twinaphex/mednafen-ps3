@@ -32,10 +32,26 @@ class								DorkMutex : public ESMutex
 		sys_mutex_t					Mutex;
 };
 
+class								DorkSemaphore : public ESSemaphore
+{
+	public:
+									DorkSemaphore		(uint32_t aValue); //External
+		virtual						~DorkSemaphore		(); //External
+
+		virtual uint32_t			GetValue			(); //External
+		virtual void				Post				(); //External
+		virtual void				Wait				(); //External
+
+	private:
+		sys_semaphore_t				Semaphore;
+};
+
+
 class								DorkThreads : public ESThreads
 {
 	public:
 		virtual ESThread*			MakeThread			(ThreadFunction aThreadFunction, void* aUserData) {return new DorkThread(aThreadFunction, aUserData);};
 		virtual ESMutex*			MakeMutex			() {return new DorkMutex();};
+		virtual ESSemaphore*		MakeSemaphore		(uint32_t aValue) {return new DorkSemaphore(aValue);};
 };
 

@@ -66,3 +66,4 @@ class						AudioBuffer
 		uint32_t			ReadCount;
 		uint32_t			WriteCount;
 };
+
