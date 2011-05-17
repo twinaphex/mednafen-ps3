@@ -20,7 +20,10 @@ class						AudioBuffer
 		{
 			int i;
 
-			for(i = 0; i != aLength && GetBufferFree() != 0; i ++, WriteCount ++)
+			uint32_t free = GetBufferFree();
+			aLength = (aLength > free) ? free : aLength;
+
+			for(i = 0; i != aLength; i ++, WriteCount ++)
 			{
 				RingBuffer[WriteCount % Length] = aData[i];
 			}
@@ -32,7 +35,10 @@ class						AudioBuffer
 		{
 			int i;
 
-			for(i = 0; i != aLength && GetBufferAmount() != 0; i ++, ReadCount ++)
+			uint32_t available = GetBufferAmount();
+			aLength = (aLength > available) ? available : aLength;
+
+			for(i = 0; i != aLength; i ++, ReadCount ++)
 			{
 				aData[i] = RingBuffer[ReadCount % Length];
 			}

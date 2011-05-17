@@ -78,11 +78,6 @@
 	cellAudioQuit();
 }
 
-void					DorkAudio::AddSamples			(const uint32_t* aSamples, uint32_t aCount)
-{
-	RingBuffer.WriteData(aSamples, aCount);
-}
-
 void					DorkAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
 {
 	DorkAudio* audio = (DorkAudio*)userData;
@@ -119,35 +114,3 @@ int						DorkAudio::ProcessAudioThread	(void* aAudio)
 	return 0;
 }
 
-/*	DorkAudio* audio = (DorkAudio*)aAudio;
-
-	int16_t samples[1024];
-	float outbuffer[512];
-
-	sys_event_t event;
-
-	while(!audio->ThreadDie)
-	{
-		if(0 != sys_event_queue_receive(audio->QueueID, &event, 100 * 1000))
-		{
-			break;
-		}
-
-		audio->RingBuffer.ReadDataSilentUnderrun((uint32_t*)samples, 256);
-
-		if(!audio->Semaphore->GetValue())
-		{
-			audio->Semaphore->Post();
-		}
-
-		for(uint32_t i = 0; i != 256 * 2; i ++)
-		{
-			outbuffer[i] = ((float)samples[i]) / 32768.0f;
-		}
-
-		cellAudioAddData(audio->Port, outbuffer, 256, 1);
-	}
-	
-	audio->ThreadDie = false;
-	return 0;
-}*/
