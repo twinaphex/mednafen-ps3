@@ -185,6 +185,11 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 
 		/* Update vertex buffer */
 		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+
+		if(Next)
+		{
+			Next->Set(aOutput, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
+		}
 	}
 }
 
