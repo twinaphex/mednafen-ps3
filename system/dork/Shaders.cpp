@@ -182,29 +182,32 @@ void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, f
 void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
 {
 	/* Copy settings */
-	Output = aOutput;
-	InWidth = aInWidth;
-	InHeight = aInHeight;
-
-	/* Update smoothing */
-	glBindTexture(GL_TEXTURE_2D, TextureID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	/* Update texture */
-	if(Next)
+	if(Output != aOutput || InWidth != aInWidth || InHeight != aInHeight)
 	{
-		Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-	}
-	else
-	{
-		/* Delete the texture ? */
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-	}
+		Output = aOutput;
+		InWidth = aInWidth;
+		InHeight = aInHeight;
 
-	/* Update vertex buffer */
-	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+		/* Update smoothing */
+		glBindTexture(GL_TEXTURE_2D, TextureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		/* Update texture */
+		if(Next)
+		{
+			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+		}
+		else
+		{
+			/* Delete the texture ? */
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+		}
+
+		/* Update vertex buffer */
+		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+	}
 
 	if(Next)
 	{
