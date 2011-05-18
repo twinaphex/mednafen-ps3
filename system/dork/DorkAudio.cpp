@@ -53,6 +53,9 @@
 	cellMSCoreSetVolume1(MSChannel, CELL_MS_DRY, CELL_MS_SPEAKER_FL, CELL_MS_CHANNEL_0, 1.0f);
 	cellMSCoreSetVolume1(MSChannel, CELL_MS_DRY, CELL_MS_SPEAKER_FR, CELL_MS_CHANNEL_1, 1.0f);
 	cellMSStreamPlay(MSChannel);
+
+	/* Custom sounds: thanks snes9x */
+	cellSysutilEnableBgmPlayback();
 }
 
 

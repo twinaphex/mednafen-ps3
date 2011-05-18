@@ -8,6 +8,7 @@
 #include <cell/sysmodule.h>
 #include <sys/spu_initialize.h>
 #include <sysutil/sysutil_sysparam.h>
+#include <sysutil/sysutil_bgmplayback.h>
 #include <sys/process.h>
 #include <sys/event.h>
 #include <sys/ppu_thread.h>
