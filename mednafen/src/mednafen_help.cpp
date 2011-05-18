@@ -22,7 +22,7 @@ namespace
 		{"undertuneleft", MDFNSF_NOFLAGS, "Fine tune underscan at left of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertuneright", MDFNSF_NOFLAGS, "Fine tune underscan at right of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"filter", MDFNSF_NOFLAGS, "Use bilinear filter for display", NULL, MDFNST_BOOL, "0"},
+		{"shader", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "0"},
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
@@ -123,7 +123,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Create the helpers for this game
 		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
-		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
+		Surface = boost::make_shared<MDFN_Surface>(Buffer->GetPixels(), GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 		Inputs = boost::make_shared<InputHandler>(GameInfo);
 
 		//Load automatic state
@@ -266,26 +266,14 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch, bool aDummy)
 {
+	//HACK: Don't draw pixel arrays for now
+	if(aPixels) return;
+
 	if(IsInitialized && (aPixels || IsLoaded))
 	{
 		//Get the output area
 		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-		if(aPixels)
-		{
-			output = Area(0, 0, aWidth, aHeight);
-		}
-
-		uint32_t* pix = Buffer->GetPixels();
-		uint32_t* srcpix = aPixels ? aPixels : Surface->pixels;
-		uint32_t srcpitch = aPixels ? aPitch : Surface->pitchinpix;
-
-		for(int i = output.Y; i != output.Bottom(); i ++)
-		{
-			memcpy(&pix[i * Buffer->GetPitch() + output.X], &srcpix[i * srcpitch + output.X], output.Width * 4);
-		}
-
-
-		Buffer->SetFilter(FilterSetting);
+		Buffer->Invalidate();
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 	}
 }
@@ -347,7 +335,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
-		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}
+		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do(); ReadSettings();}
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
@@ -446,8 +434,13 @@ void						MednafenEmu::ReadSettings		()
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("displayfps"));
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
 		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
-		FilterSetting = MDFN_GetSettingB(SETTINGNAME("filter"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
+
+		if(ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader")))
+		{
+			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader"));
+			es_video->SetFilter(ShaderSetting);
+		}
 	}
 }
 
@@ -498,6 +491,6 @@ bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
 int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
-bool						MednafenEmu::FilterSetting = false;
+std::string					MednafenEmu::ShaderSetting = "";
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 

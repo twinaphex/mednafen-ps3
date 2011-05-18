@@ -63,7 +63,7 @@ class								ESVideo
 		virtual void				PresentFrame						(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0; //Pure Virtual
 
 		virtual const ESFilterList&	GetFilters							() const {return esFilters;}
-		virtual void				SetFilter							(std::string aName) {};
+		virtual void				SetFilter							(const std::string& aName) {};
 
 	public: //Helpers
 		inline const Area&			CalculatePresentArea				(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine); //Defined below
