@@ -122,8 +122,7 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 
 	if(!stal)
 	{
-		stal = new DorkShader(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/2xSaI.cg");
-		stal->SetNext(new DorkShader(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/4xSoft.cg"));
+		stal = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/lanczos-16-plus-4xsoft-variation-1.conf");
 	}
 
 	//Enter present state
@@ -131,8 +130,8 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 
-	stal->Set(output, aViewPort.Width, aViewPort.Height, 2, false);
-	stal->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2, 1, false);
+	stal->Set(output, aViewPort.Width, aViewPort.Height);
+	stal->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2);
 	((DorkTexture*)aTexture)->Apply();
 	stal->Present(((DorkTexture*)aTexture)->ID);
 

@@ -2,12 +2,12 @@
 
 namespace
 {
-	inline void						SetVertex					(GLfloat* aBase, float aX, float aY, float aU, float aV)
+	inline void						SetVertex							(GLfloat* aBase, float aX, float aY, float aU, float aV)
 	{
 		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f; *aBase++ = aU; *aBase++ = aV;
 	}
 
-	void							MakeVertexRectangle			(GLfloat* aBuffer, uint32_t aVerticalFlip)
+	void							MakeVertexRectangle					(GLfloat* aBuffer, uint32_t aVerticalFlip)
 	{
 		SetVertex(aBuffer + 0,  0.0f,	0.0f,	0.0f, aVerticalFlip ? 1.0f : 0.0f);
 		SetVertex(aBuffer + 5,  1.0f,	0.0f,	1.0f, aVerticalFlip ? 1.0f : 0.0f);
@@ -17,7 +17,7 @@ namespace
 }
 
 
-									DorkShader::DorkShader		(CGcontext& aContext, const std::string& aFileName) :
+									DorkShader::DorkShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
 	Context(aContext),
 	Next(0),
 	Output(0, 0, 0, 0),
@@ -25,8 +25,8 @@ namespace
 	InHeight(0),
 	TextureID(0),
 	FrameBufferID(0),
-	ScaleFactor(0),
-	Smooth(false),
+	ScaleFactor(aScaleFactor),
+	Smooth(aSmooth),
 	VertexProgram(0),
 	FragmentProgram(0),
 	Projection(0),
@@ -60,7 +60,7 @@ namespace
 	VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
 }
 
-									DorkShader::~DorkShader		()
+									DorkShader::~DorkShader				()
 {
 	//TODO: Kill shader objects
 
@@ -68,7 +68,7 @@ namespace
 	glDeleteFramebuffersOES(1, &FrameBufferID);
 }
 
-void								DorkShader::Present			(GLuint aSourceTexture)
+void								DorkShader::Present					(GLuint aSourceTexture)
 {
 	Apply();
 
@@ -120,7 +120,7 @@ void								DorkShader::Present			(GLuint aSourceTexture)
 	}
 }
 
-void								DorkShader::Apply			()
+void								DorkShader::Apply					()
 {
 	if(FragmentProgram && VertexProgram)
 	{
@@ -132,7 +132,7 @@ void								DorkShader::Apply			()
 	}
 }
 
-void								DorkShader::Set				(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aScaleFactor, bool aSmooth)
+void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
 {
 	if(FragmentProgram && VertexProgram)
 	{
@@ -140,8 +140,6 @@ void								DorkShader::Set				(const Area& aOutput, uint32_t aInWidth, uint32_t
 		Output = aOutput;
 		InWidth = aInWidth;
 		InHeight = aInHeight;
-		ScaleFactor = aScaleFactor;
-		Smooth = aSmooth;
 
 		/* Update smoothing */
 		glBindTexture(GL_TEXTURE_2D, TextureID);
@@ -151,7 +149,7 @@ void								DorkShader::Set				(const Area& aOutput, uint32_t aInWidth, uint32_t
 		/* Update texture */
 		if(Next)
 		{
-			Output = Area(0, 0, aInWidth * aScaleFactor, aInHeight * aScaleFactor);
+			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
 		}
 		else
@@ -172,4 +170,19 @@ void								DorkShader::Set				(const Area& aOutput, uint32_t aInWidth, uint32_t
 		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, Output.Width, Output.Height);
 	}
 }
+
+//
+#include "SimpleIni.h"
+
+DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile)
+{
+	CSimpleIniA ini;
+	ini.LoadFile(aFile.c_str());
+
+	DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+	output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+	
+	return output;
+}
+
 
