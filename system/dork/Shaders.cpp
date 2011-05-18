@@ -137,6 +137,14 @@ void								DorkShader::Apply					()
 
 		cgGLBindProgram(VertexProgram);
 		cgGLBindProgram(FragmentProgram);
+
+		/* Update shader params */
+		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, InWidth, InHeight);
+		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, InWidth, InHeight);
+		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, Output.Width, Output.Height);
+		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, InWidth, InHeight);
+		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, InWidth, InHeight);
+		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, Output.Width, Output.Height);
 	}
 }
 
@@ -177,14 +185,6 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 
 		/* Update vertex buffer */
 		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
-
-		/* Update shader params */
-		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, aInWidth, aInHeight);
-		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, aInWidth, aInHeight);
-		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, Output.Width, Output.Height);
-		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, aInWidth, aInHeight);
-		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aInWidth, aInHeight);
-		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, Output.Width, Output.Height);
 	}
 }
 
