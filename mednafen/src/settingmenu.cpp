@@ -175,6 +175,7 @@ bool							SettingLineView::Input							()
 		if(result.length() != 0)
 		{
 			MDFNI_SetSetting(Setting.name, result.c_str());
+			MednafenEmu::ReadSettings();
 		}
 
 		return false;

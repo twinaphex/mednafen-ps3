@@ -335,7 +335,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator();
-		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do(); ReadSettings();}
+		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}
 		if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 		if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 		if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
