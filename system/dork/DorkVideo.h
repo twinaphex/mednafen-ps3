@@ -3,15 +3,18 @@
 class								DorkShader
 {
 	public:
-									DorkShader				(CGcontext& aContext, const std::string& aFileName);
+									DorkShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor);
 									~DorkShader				();
 
 		void						Apply					();
-		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aScaleFactor, bool aSmooth);
+		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight);
 		void						Present					(GLuint aSourceTexture);
 
 		void						SetNext					(DorkShader* aNext) {Next = aNext;}
 		DorkShader*					GetNext					() {return Next;}
+
+	public:
+		static DorkShader*			MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile);
 
 	private:
 		CGcontext&					Context;
