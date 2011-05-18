@@ -7,12 +7,12 @@ namespace
 		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f; *aBase++ = aU; *aBase++ = aV;
 	}
 
-	void							MakeVertexRectangle					(GLfloat* aBuffer, uint32_t aVerticalFlip)
+	void							MakeVertexRectangle					(GLfloat* aBuffer, uint32_t aVerticalFlip, float aLeft, float aRight, float aTop, float aBottom)
 	{
-		SetVertex(aBuffer + 0,  0.0f,	0.0f,	0.0f, aVerticalFlip ? 1.0f : 0.0f);
-		SetVertex(aBuffer + 5,  1.0f,	0.0f,	1.0f, aVerticalFlip ? 1.0f : 0.0f);
-		SetVertex(aBuffer + 10, 1.0f,	1.0f,	1.0f, aVerticalFlip ? 0.0f : 1.0f);
-		SetVertex(aBuffer + 15, 0.0f,	1.0f,	0.0f, aVerticalFlip ? 0.0f : 1.0f);
+		SetVertex(aBuffer + 0,  0.0f,	0.0f,	aLeft, aVerticalFlip ? aBottom : aTop);
+		SetVertex(aBuffer + 5,  1.0f,	0.0f,	aRight, aVerticalFlip ? aBottom : aTop);
+		SetVertex(aBuffer + 10, 1.0f,	1.0f,	aRight, aVerticalFlip ? aTop : aBottom);
+		SetVertex(aBuffer + 15, 0.0f,	1.0f,	aLeft, aVerticalFlip ? aTop : aBottom);
 	}
 }
 
@@ -38,6 +38,11 @@ namespace
 	VertexOutputSize(0)	
 {
 	static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
+
+	Viewport[0] = 0.0f;
+	Viewport[1] = 1.0f;
+	Viewport[2] = 0.0f;
+	Viewport[3] = 1.0f;
 
 	glGenTextures(1, &TextureID);
 	glGenFramebuffersOES(1, &FrameBufferID);
@@ -135,6 +140,15 @@ void								DorkShader::Apply					()
 	}
 }
 
+void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
+{
+	Viewport[0] = aLeft;
+	Viewport[1] = aRight;
+	Viewport[2] = aTop;
+	Viewport[3] = aBottom;
+	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+}
+
 void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
 {
 	if(FragmentProgram && VertexProgram)
@@ -162,7 +176,7 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 		}
 
 		/* Update vertex buffer */
-		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0);
+		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 
 		/* Update shader params */
 		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, aInWidth, aInHeight);
