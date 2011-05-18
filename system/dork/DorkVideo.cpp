@@ -5,28 +5,20 @@ namespace
 	inline void SetVertex(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV)
 	{
 		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f;
-		*aBase++ = aR; *aBase++ = aG; *aBase++ = aB; *aBase++ = aA;
 		*aBase++ = aU; *aBase++ = aV;
+		*aBase++ = aR; *aBase++ = aG; *aBase++ = aB; *aBase++ = aA;
 	}
 }
 
 						DorkVideo::DorkVideo			() :
 	Device(0),
 	Context(0),
+	ShaderContext(0),
+	VertexBuffer(0),
 	FillerTexture(0)
 {
-	PSGLinitOptions initOpts = 
-	{
-		enable: PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE,
-		maxSPUs: 1, 
-		initializeSPUs: false,
-		persistentMemorySize: 0,
-		transientMemorySize: 0,
-		errorConsole: 0,
-		fifoSize: 0,  
-		hostMemorySize: 128 * 1024 * 1024
-	};
-	
+	//Init PSGL
+	PSGLinitOptions initOpts = {PSGL_INIT_MAX_SPUS | PSGL_INIT_HOST_MEMORY_SIZE, 1, false, 0, 0, 0, 0, 32 * 1024 * 1024};
 	psglInit(&initOpts);
 	
 	Device = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
@@ -34,34 +26,34 @@ namespace
 	psglMakeCurrent(Context, Device);
     psglResetCurrentContext();
 
+	//Get Screen Info
 	psglGetRenderBufferDimensions(Device, &esScreenWidth, &esScreenHeight);
 	esWideScreen = psglGetDeviceAspectRatio(Device) > 1.5f;
-
 	glViewport(0, 0, GetScreenWidth(), GetScreenHeight());
+
+	//Some settings
 	glEnable(GL_SCISSOR_TEST);
-
-
-	VertexBuffer = (GLfloat*)memalign(128, VertexBufferCount * VertexSize * sizeof(GLfloat));
-
 	glEnable(GL_VSYNC_SCE);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	glVertexPointer(3, GL_FLOAT, VertexSize * sizeof(GLfloat), &VertexBuffer[0]);
-	glTexCoordPointer(2, GL_FLOAT, VertexSize * sizeof(GLfloat), &VertexBuffer[7]);
-	glColorPointer(4, GL_FLOAT, VertexSize * sizeof(GLfloat), &VertexBuffer[3]);
-
 	glClearColor(0, 0, 0, 0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrthof(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
-	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Setup vertex buffer
+	VertexBuffer = (GLfloat*)memalign(128, VertexBufferCount * VertexSize * sizeof(GLfloat));
+	ApplyVertexBuffer(VertexBuffer, true);
+
+	//Setup Projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrthof(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
+
+	//Texture for FillRectangle
 	FillerTexture = new DorkTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
+
+	//Init shaders
+	cgRTCgcInit();
+	ShaderContext = cgCreateContext();
 }
 
 						DorkVideo::~DorkVideo			()
@@ -117,6 +109,8 @@ void					DorkVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
 	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
 
+static DorkShader* stal;
+
 void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
@@ -126,15 +120,32 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
 
-	((DorkTexture*)aTexture)->Apply();
+	if(!stal)
+	{
+		stal = new DorkShader(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/2xSaI.cg");
+		stal->SetNext(new DorkShader(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/4xSoft.cg"));
+	}
+
+	//Enter present state
+	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
+	glDisable(GL_SCISSOR_TEST);
 
-	SetVertex(&VertexBuffer[0 * VertexSize], output.X, output.Y, 1.0f, 1.0f, 1.0f, 1.0f, xl, yl);
-	SetVertex(&VertexBuffer[1 * VertexSize], output.Right(), output.Y, 1.0f, 1.0f, 1.0f, 1.0f, xr, yl);
-	SetVertex(&VertexBuffer[2 * VertexSize], output.Right(), output.Bottom(), 1.0f, 1.0f, 1.0f, 1.0f, xr, yr);
-	SetVertex(&VertexBuffer[3 * VertexSize], output.X, output.Bottom(), 1.0f, 1.0f, 1.0f, 1.0f, xl, yr);
+	stal->Set(output, aViewPort.Width, aViewPort.Height, 2, false);
+	stal->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2, 1, false);
+	((DorkTexture*)aTexture)->Apply();
+	stal->Present(((DorkTexture*)aTexture)->ID);
 
-	glDrawArrays(GL_QUADS, 0, 4);
-
+	//Exit present state
 	glEnable(GL_BLEND);
+	glEnable(GL_SCISSOR_TEST);
+	glColor4f(0, 0, 0, 0);
+
+	/* Turn off shading */
+	cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
+	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
+
+	/* Reset vertex buffer */
+	ApplyVertexBuffer(VertexBuffer, true);
 }
+

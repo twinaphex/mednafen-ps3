@@ -40,6 +40,7 @@ class							Area
 		}	
 };
 
+typedef std::list<std::string>		ESFilterList;
 class								ESVideo
 {
 	public:	
@@ -61,6 +62,9 @@ class								ESVideo
 		virtual void				FillRectangle						(const Area& aArea, uint32_t aColor) = 0; //Pure Virtual
 		virtual void				PresentFrame						(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0; //Pure Virtual
 
+		virtual const ESFilterList&	GetFilters							() const {return esFilters;}
+		virtual void				SetFilter							(std::string aName) {};
+
 	public: //Helpers
 		inline const Area&			CalculatePresentArea				(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine); //Defined below
 
@@ -69,6 +73,8 @@ class								ESVideo
 		uint32_t					esScreenWidth;
 		uint32_t					esScreenHeight;
 		bool						esWideScreen;
+
+		ESFilterList				esFilters;
 
 	private:
 		int32_t						LastAspect;
@@ -112,3 +118,4 @@ const Area&							ESVideo::CalculatePresentArea		(int32_t aAspectOverride, int32
 
 	return PresentArea;
 }
+
