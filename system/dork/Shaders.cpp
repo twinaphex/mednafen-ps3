@@ -58,6 +58,9 @@ namespace
 	VertexVideoSize = cgGetNamedParameter(VertexProgram, "IN.video_size");
 	VertexTextureSize = cgGetNamedParameter(VertexProgram, "IN.texture_size");
 	VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
+
+	cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
+	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
 }
 
 									DorkShader::~DorkShader				()
@@ -181,7 +184,7 @@ DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const s
 
 	DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
 	output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-	
+
 	return output;
 }
 
