@@ -1,5 +1,33 @@
 #pragma once
 
+class	DorkShaderProgram;
+typedef std::map<std::string, DorkShaderProgram*>	ShaderMap;
+class								DorkShaderProgram
+{
+	public:
+									DorkShaderProgram		(CGcontext& aContext, const std::string& aFileName);
+		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight);
+
+	public:
+		static DorkShaderProgram*	Get						(CGcontext& aContext, const std::string& aFileName);
+
+	private:
+		static ShaderMap			Shaders;
+
+		CGcontext&					Context;
+
+		CGprogram					VertexProgram;
+		CGprogram					FragmentProgram;
+
+		CGparameter					Projection;
+		CGparameter					FragmentVideoSize;
+		CGparameter					FragmentTextureSize;
+		CGparameter					FragmentOutputSize;
+		CGparameter					VertexVideoSize;
+		CGparameter					VertexTextureSize;
+		CGparameter					VertexOutputSize;
+};
+
 class								DorkShader
 {
 	public:
@@ -20,6 +48,7 @@ class								DorkShader
 	private:
 		CGcontext&					Context;
 		DorkShader*					Next;
+		DorkShaderProgram*			Program;
 
 		Area						Output;
 
@@ -34,17 +63,6 @@ class								DorkShader
 		bool						Smooth;
 
 		float						Viewport[4];
-
-		CGprogram					VertexProgram;
-		CGprogram					FragmentProgram;
-
-		CGparameter					Projection;
-		CGparameter					FragmentVideoSize;
-		CGparameter					FragmentTextureSize;
-		CGparameter					FragmentOutputSize;
-		CGparameter					VertexVideoSize;
-		CGparameter					VertexTextureSize;
-		CGparameter					VertexOutputSize;
 };
 
 class								DorkVideo : public ESVideo
