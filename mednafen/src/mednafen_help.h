@@ -65,8 +65,7 @@ class	MednafenEmu
 		static bool						DisplayFPSSetting;
 		static int32_t					AspectSetting;
 		static int32_t					UnderscanSetting;
-		static bool						FilterSetting;
-		static int32_t					ScalerSetting;
+		static std::string				ShaderSetting;
 		static Area						UndertuneSetting;
 };
 
