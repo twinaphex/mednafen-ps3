@@ -15,7 +15,8 @@ namespace
 	Context(0),
 	ShaderContext(0),
 	VertexBuffer(0),
-	FillerTexture(0)
+	FillerTexture(0),
+	Presenter(0)
 {
 	//Init PSGL
 	PSGLinitOptions initOpts = {PSGL_INIT_MAX_SPUS | PSGL_INIT_HOST_MEMORY_SIZE, 1, false, 0, 0, 0, 0, 32 * 1024 * 1024};
@@ -54,10 +55,13 @@ namespace
 	//Init shaders
 	cgRTCgcInit();
 	ShaderContext = cgCreateContext();
+	Presenter = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf");
 }
 
 						DorkVideo::~DorkVideo			()
 {
+	//TODO: Kill the presenter and shaders
+
 	delete FillerTexture;
 
 	psglDestroyContext(Context);
@@ -120,20 +124,15 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
 
-	if(!stal)
-	{
-		stal = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/lanczos-16-plus-4xsoft-variation-1.conf");
-	}
-
 	//Enter present state
 	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 
-	stal->Set(output, aViewPort.Width, aViewPort.Height);
-	stal->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2);
+	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
+	Presenter->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2);
 	((DorkTexture*)aTexture)->Apply();
-	stal->Present(((DorkTexture*)aTexture)->ID);
+	Presenter->Present(((DorkTexture*)aTexture)->ID);
 
 	//Exit present state
 	glEnable(GL_BLEND);
