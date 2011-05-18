@@ -17,8 +17,8 @@ class								DorkTexture : public Texture
 		
 	public: //Helper, do not call directly
 		void						Apply					();
+		uint32_t					ID;
 
 	private:
 		uint32_t*					Pixels;
-		uint32_t					ID;
 };
