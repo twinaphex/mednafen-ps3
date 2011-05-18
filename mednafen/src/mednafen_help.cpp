@@ -22,7 +22,7 @@ namespace
 		{"undertuneleft", MDFNSF_NOFLAGS, "Fine tune underscan at left of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertuneright", MDFNSF_NOFLAGS, "Fine tune underscan at right of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"shader", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "0"},
+		{"shader", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf"},
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
