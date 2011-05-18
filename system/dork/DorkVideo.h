@@ -7,6 +7,7 @@ class								DorkShader
 									~DorkShader				();
 
 		void						Apply					();
+		void						SetViewport				(float aLeft, float aRight, float aTop, float aBottom);
 		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight);
 		void						Present					(GLuint aSourceTexture);
 
@@ -31,6 +32,8 @@ class								DorkShader
 
 		uint32_t					ScaleFactor;
 		bool						Smooth;
+
+		float						Viewport[4];
 
 		CGprogram					VertexProgram;
 		CGprogram					FragmentProgram;
@@ -60,7 +63,7 @@ class								DorkVideo : public ESVideo
 		virtual void				FillRectangle			(const Area& aArea, uint32_t aColor); //External
 		virtual void				PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
 		
-		virtual void				SetFilter				(const std::string& aName) {Presenter = DorkShader::MakeChainFromPreset(ShaderContext, aName);};
+		virtual void				SetFilter				(const std::string& aName) {delete Presenter; Presenter = DorkShader::MakeChainFromPreset(ShaderContext, aName);};
 
 	public:
 		inline static void			ApplyVertexBuffer		(GLfloat* aBuffer, bool aColors); //Implemented below

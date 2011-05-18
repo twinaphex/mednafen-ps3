@@ -60,9 +60,10 @@ namespace
 
 						DorkVideo::~DorkVideo			()
 {
-	//TODO: Kill the presenter and shaders
-
 	delete FillerTexture;
+	delete Presenter;
+
+	//Destory ShaderContext
 
 	psglDestroyContext(Context);
 	psglDestroyDevice(Device);
@@ -123,6 +124,7 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
+	Presenter->SetViewport(xl, xr, yl, yr);
 
 	//Enter present state
 	glColor4f(1, 1, 1, 1);
