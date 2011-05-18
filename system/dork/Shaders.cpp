@@ -70,6 +70,12 @@ namespace
 
 									DorkShader::~DorkShader				()
 {
+	//Eat children (ungrateful bastards)
+	if(Next)
+	{
+		delete Next;
+	}
+
 	//TODO: Kill shader objects
 
 	glDeleteTextures(1, &TextureID);

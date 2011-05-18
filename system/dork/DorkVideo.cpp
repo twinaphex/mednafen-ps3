@@ -132,7 +132,6 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	glDisable(GL_SCISSOR_TEST);
 
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
-	Presenter->GetNext()->Set(output, aViewPort.Width * 2, aViewPort.Height * 2);
 	((DorkTexture*)aTexture)->Apply();
 	Presenter->Present(((DorkTexture*)aTexture)->ID);
 
