@@ -16,17 +16,10 @@ namespace
 	}
 }
 
+ShaderMap DorkShaderProgram::Shaders;
 
-									DorkShader::DorkShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
+									DorkShaderProgram::DorkShaderProgram	(CGcontext& aContext, const std::string& aFileName) :
 	Context(aContext),
-	Next(0),
-	Output(0, 0, 0, 0),
-	InWidth(0),
-	InHeight(0),
-	TextureID(0),
-	FrameBufferID(0),
-	ScaleFactor(aScaleFactor),
-	Smooth(aSmooth),
 	VertexProgram(0),
 	FragmentProgram(0),
 	Projection(0),
@@ -38,14 +31,6 @@ namespace
 	VertexOutputSize(0)	
 {
 	static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
-
-	Viewport[0] = 0.0f;
-	Viewport[1] = 1.0f;
-	Viewport[2] = 0.0f;
-	Viewport[3] = 1.0f;
-
-	glGenTextures(1, &TextureID);
-	glGenFramebuffersOES(1, &FrameBufferID);
 
 	VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_VP_RSX, "main_vertex", args);
 	FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_FP_RSX, "main_fragment", args);
@@ -68,6 +53,59 @@ namespace
 	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
 }
 
+void								DorkShaderProgram::Apply			(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight)
+{
+	if(FragmentProgram && VertexProgram)
+	{
+		cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
+		cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
+
+		cgGLBindProgram(VertexProgram);
+		cgGLBindProgram(FragmentProgram);
+
+		/* Update shader params */
+		if(Projection)			cgGLSetStateMatrixParameter(Projection, CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
+		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, aInWidth, aInHeight);
+		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, aInWidth, aInHeight);
+		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, aOutWidth, aOutHeight);
+		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, aInWidth, aInHeight);
+		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aInWidth, aInHeight);
+		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, aOutWidth, aOutHeight);
+	}
+}
+
+DorkShaderProgram*					DorkShaderProgram::Get				(CGcontext& aContext, const std::string& aFileName)
+{
+	if(Shaders.find(aFileName) == Shaders.end())
+	{
+		Shaders[aFileName] = new DorkShaderProgram(aContext, aFileName);
+	}
+
+	return Shaders[aFileName];
+}
+
+
+									DorkShader::DorkShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
+	Context(aContext),
+	Next(0),
+	Program(DorkShaderProgram::Get(aContext, aFileName)),
+	Output(0, 0, 0, 0),
+	InWidth(0),
+	InHeight(0),
+	TextureID(0),
+	FrameBufferID(0),
+	ScaleFactor(aScaleFactor),
+	Smooth(aSmooth)
+{
+	Viewport[0] = 0.0f;
+	Viewport[1] = 1.0f;
+	Viewport[2] = 0.0f;
+	Viewport[3] = 1.0f;
+
+	glGenTextures(1, &TextureID);
+	glGenFramebuffersOES(1, &FrameBufferID);
+}
+
 									DorkShader::~DorkShader				()
 {
 	//Eat children (ungrateful bastards)
@@ -76,16 +114,12 @@ namespace
 		delete Next;
 	}
 
-	//TODO: Kill shader objects
-
 	glDeleteTextures(1, &TextureID);
 	glDeleteFramebuffersOES(1, &FrameBufferID);
 }
 
 void								DorkShader::Present					(GLuint aSourceTexture)
 {
-	Apply();
-
 	if(Next)
 	{
 		glBindFramebufferOES(GL_FRAMEBUFFER_OES, FrameBufferID);
@@ -99,12 +133,9 @@ void								DorkShader::Present					(GLuint aSourceTexture)
 	glLoadIdentity();
 	glOrthof(0, 1, 1, 0, -1, 1);
 
-	if(Projection)
-	{
-		cgGLSetStateMatrixParameter(Projection, CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
-	}
 
-	//Apply vertex buffer
+	//Apply state buffer
+	Apply();
 	DorkVideo::ApplyVertexBuffer(VertexBuffer, false);
 
 	//Prep texture
@@ -136,22 +167,7 @@ void								DorkShader::Present					(GLuint aSourceTexture)
 
 void								DorkShader::Apply					()
 {
-	if(FragmentProgram && VertexProgram)
-	{
-		cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
-		cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
-
-		cgGLBindProgram(VertexProgram);
-		cgGLBindProgram(FragmentProgram);
-
-		/* Update shader params */
-		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, InWidth, InHeight);
-		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, InWidth, InHeight);
-		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, Output.Width, Output.Height);
-		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, InWidth, InHeight);
-		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, InWidth, InHeight);
-		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, Output.Width, Output.Height);
-	}
+	Program->Apply(InWidth, InHeight, Output.Width, Output.Height);
 }
 
 void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
@@ -165,37 +181,34 @@ void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, f
 
 void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
 {
-	if(FragmentProgram && VertexProgram)
+	/* Copy settings */
+	Output = aOutput;
+	InWidth = aInWidth;
+	InHeight = aInHeight;
+
+	/* Update smoothing */
+	glBindTexture(GL_TEXTURE_2D, TextureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	/* Update texture */
+	if(Next)
 	{
-		/* Copy settings */
-		Output = aOutput;
-		InWidth = aInWidth;
-		InHeight = aInHeight;
+		Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+	}
+	else
+	{
+		/* Delete the texture ? */
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+	}
 
-		/* Update smoothing */
-		glBindTexture(GL_TEXTURE_2D, TextureID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	/* Update vertex buffer */
+	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 
-		/* Update texture */
-		if(Next)
-		{
-			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-		}
-		else
-		{
-			/* Delete the texture ? */
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-		}
-
-		/* Update vertex buffer */
-		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
-
-		if(Next)
-		{
-			Next->Set(aOutput, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
-		}
+	if(Next)
+	{
+		Next->Set(aOutput, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
 	}
 }
 
