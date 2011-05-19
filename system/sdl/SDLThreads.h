@@ -32,5 +32,6 @@ class								SDLThreads : public ESThreads
 	public:
 		virtual ESThread*			MakeThread			(ThreadFunction aThreadFunction, void* aUserData) {return new SDLThread(aThreadFunction, aUserData);};
 		virtual ESMutex*			MakeMutex			() {return new SDLMutex();};
+		virtual ESSemaphore*			MakeSemaphore			(uint32_t aValue) {return 0;};
 };
 
