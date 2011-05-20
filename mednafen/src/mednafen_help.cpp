@@ -22,7 +22,8 @@ namespace
 		{"undertuneleft", MDFNSF_NOFLAGS, "Fine tune underscan at left of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertuneright", MDFNSF_NOFLAGS, "Fine tune underscan at right of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"displayfps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"shader", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf"},
+		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf"},
+		{"shader.prescale", MDFNSF_NOFLAGS, "Integer scale factor to apply before passing to shader", NULL, MDFNST_INT, "1", "1", "4" },
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
@@ -42,6 +43,8 @@ namespace
 //TODO: Find this a new home
 extern bool					NetplayOn;
 
+extern "C" MDFNGI* GetEmulator();
+
 void						MednafenEmu::Init				()
 {
 	if(!IsInitialized)
@@ -57,7 +60,7 @@ void						MednafenEmu::Init				()
 //		externalSystems.push_back(nestGetEmulator());
 //		externalSystems.push_back(gmbtGetEmulator());
 //		externalSystems.push_back(vbamGetEmulator());
-//		externalSystems.push_back(pcsxGetEmulator());
+//		externalSystems.push_back(GetEmulator());
 		MDFNI_InitializeModules(externalSystems);
 
 		//Make settings for each system
@@ -436,10 +439,11 @@ void						MednafenEmu::ReadSettings		()
 		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 
-		if(ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader")))
+		if(ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset")) || ShaderPrescaleSetting != MDFN_GetSettingI(SETTINGNAME("shader.prescale")))
 		{
-			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader"));
-			es_video->SetFilter(ShaderSetting);
+			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
+			ShaderPrescaleSetting = MDFN_GetSettingI(SETTINGNAME("shader.prescale"));
+			es_video->SetFilter(ShaderSetting, ShaderPrescaleSetting);
 		}
 	}
 }
@@ -492,5 +496,6 @@ bool						MednafenEmu::DisplayFPSSetting = false;
 int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
 std::string					MednafenEmu::ShaderSetting = "";
+uint32_t					MednafenEmu::ShaderPrescaleSetting = 1;
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 

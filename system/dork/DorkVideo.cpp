@@ -25,7 +25,7 @@ namespace
 	Device = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
 	Context = psglCreateContext();
 	psglMakeCurrent(Context, Device);
-    psglResetCurrentContext();
+	psglResetCurrentContext();
 
 	//Get Screen Info
 	psglGetRenderBufferDimensions(Device, &esScreenWidth, &esScreenHeight);
@@ -55,7 +55,7 @@ namespace
 	//Init shaders
 	cgRTCgcInit();
 	ShaderContext = cgCreateContext();
-	Presenter = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf");
+	Presenter = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf", 1);
 }
 
 						DorkVideo::~DorkVideo			()
@@ -113,8 +113,6 @@ void					DorkVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
 {
 	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
-
-static DorkShader* stal;
 
 void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {

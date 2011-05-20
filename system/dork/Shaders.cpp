@@ -218,15 +218,24 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 //
 #include "SimpleIni.h"
 
-DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile)
+DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
 {
 	CSimpleIniA ini;
 	ini.LoadFile(aFile.c_str());
 
-	DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-	output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-
-	return output;
+	if(aPrescale > 1)
+	{
+		DorkShader* output = new DorkShader(aContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/stock.cg", 0, aPrescale);
+		output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
+		output->GetNext()->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+		return output;
+	}
+	else
+	{
+		DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+		output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+		return output;
+	}
 }
 
 
