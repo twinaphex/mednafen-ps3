@@ -2,6 +2,7 @@
 
 						DorkAudio::DorkAudio			() : 
 	Thread(0),
+	Semaphore(0),
 	ThreadDie(false),
 	MSChannel(-1),
 	MSMemory(0),
@@ -34,6 +35,7 @@
 
 	/* Create thread */
 	Thread = es_threads->MakeThread(ProcessAudioThread, this);
+	Semaphore = es_threads->MakeSemaphore(1);
 
 	/* Setup audio stream */
 	for(int i = 0; i != 2; i ++)
@@ -72,6 +74,7 @@
 	/* Kill thread */
 	ThreadDie = true;
 	delete Thread;
+	delete Semaphore;
 
 	/* Stop Multistream */
 	cellMSSystemClose();
@@ -88,6 +91,11 @@ void					DorkAudio::MultiStreamCallback	(int streamNumber, void* userData, int c
 	if((cType == CELL_MS_CALLBACK_MOREDATA))
 	{
 		audio->RingBuffer.ReadDataSilentUnderrun((uint32_t*)pWriteBuffer, nBufferSize / 4);
+
+		if(!audio->Semaphore->GetValue())
+		{
+			audio->Semaphore->Post();
+		}
 	}
 	else if(cType == CELL_MS_CALLBACK_FINISHSTREAM)
 	{
