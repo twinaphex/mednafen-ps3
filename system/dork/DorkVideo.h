@@ -43,7 +43,7 @@ class								DorkShader
 		DorkShader*					GetNext					() {return Next;}
 
 	public:
-		static DorkShader*			MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile);
+		static DorkShader*			MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale);
 
 	private:
 		CGcontext&					Context;
@@ -81,7 +81,7 @@ class								DorkVideo : public ESVideo
 		virtual void				FillRectangle			(const Area& aArea, uint32_t aColor); //External
 		virtual void				PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
 		
-		virtual void				SetFilter				(const std::string& aName) {delete Presenter; Presenter = DorkShader::MakeChainFromPreset(ShaderContext, aName);};
+		virtual void				SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = DorkShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
 
 	public:
 		inline static void			ApplyVertexBuffer		(GLfloat* aBuffer, bool aColors); //Implemented below
