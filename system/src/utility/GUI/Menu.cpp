@@ -18,16 +18,16 @@ void						Menu::SetInputDelay			(uint32_t aDelay)
 
 void						Menu::Do					()
 {
-	uint32_t ticks = InputDelay;
+	uint32_t lasthit = 0;
 
 	while(!WantToDie())
 	{
-		if(ticks ++ == InputDelay)
+		uint32_t now = Utility::GetTicks();
+
+		if(now > lasthit + (20 * InputDelay))
 		{
 			es_input->Refresh();
 
-			ticks = 0;
-		
 			if(Hook && Hook->Input())
 			{
 				break;
@@ -37,13 +37,15 @@ void						Menu::Do					()
 			{
 				break;
 			}
+
+			lasthit = now;
 		}
 		
 		if(Draw())
 		{
 			break;
 		}
-				
+
 		es_video->Flip();
 	}
 	
