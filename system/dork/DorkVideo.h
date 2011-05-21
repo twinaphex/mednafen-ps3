@@ -40,6 +40,7 @@ class								DorkShader
 		void						Present					(GLuint aSourceTexture);
 
 		void						SetNext					(DorkShader* aNext) {Next = aNext;}
+		void						AttachNext				(DorkShader* aNext) {if(Next) Next->AttachNext(aNext); else Next = aNext;};
 		DorkShader*					GetNext					() {return Next;}
 
 	public:
@@ -103,20 +104,19 @@ class								DorkVideo : public ESVideo
 //Inlines
 inline void					DorkVideo::ApplyVertexBuffer	(GLfloat* aBuffer, bool aColors)
 {
-	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]);
-		glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]);
+	glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]);
 
-		if(aColors)
-		{
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]);
-		}
-		else
-		{
-			glDisableClientState(GL_COLOR_ARRAY);
-		}
+	if(aColors)
+	{
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]);
+	}
+	else
+	{
+		glDisableClientState(GL_COLOR_ARRAY);
 	}
 }
+
