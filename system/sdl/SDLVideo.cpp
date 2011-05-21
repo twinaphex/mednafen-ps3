@@ -1,5 +1,16 @@
 #include <es_system.h>
 
+namespace
+{
+	inline void SetVertex(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV)
+	{
+		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f;
+		*aBase++ = aU; *aBase++ = aV;
+		*aBase++ = aR; *aBase++ = aG; *aBase++ = aB; *aBase++ = aA;
+	}
+}
+
+
 						SDLVideo::SDLVideo				()
 {
 	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
@@ -7,7 +18,9 @@
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
@@ -25,22 +38,41 @@
 	esScreenWidth = dispinfo->current_w;
 	esScreenHeight = dispinfo->current_h;
 	esWideScreen = false;
-		
+
+	//Some settings
+	glEnable(GL_SCISSOR_TEST);
+	glClearColor(0, 0, 0, 0);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Setup vertex buffer
+	VertexBuffer = (GLfloat*)malloc(VertexBufferCount * VertexSize * sizeof(GLfloat));
+	ApplyVertexBuffer(VertexBuffer, true);
+
+	//Setup Projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
+
+	//Texture for FillRectangle
 	FillerTexture = new SDLTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
+
+	//Init shaders
+	ShaderContext = cgCreateContext();
+	Presenter = SDLShader::MakeChainFromPreset(ShaderContext, "", 1);
 }
 
 						SDLVideo::~SDLVideo				()
 {
 	delete FillerTexture;
+	free(VertexBuffer);
 }
 
 void					SDLVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);
-
-	Area clap = GetClip();
-	glScissor(clap.X, GetScreenHeight() - clap.Bottom(), clap.Width, clap.Height);
+	glScissor(esClip.X, GetScreenHeight() - esClip.Bottom(), esClip.Width, esClip.Height);
 }
 
 void					SetExit							();
@@ -63,20 +95,9 @@ void					SDLVideo::Flip					()
 		SetExit();
 	}
 //TODO: Done with event loop
-	
-	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
-	
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_SCISSOR_TEST);
+	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
@@ -93,20 +114,12 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, 
 	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
 	((SDLTexture*)aTexture)->Apply();
-	glBegin(GL_QUADS);
-		glColor4f(r,g,b,a);
-		glTexCoord2f(xl, yl);
-		glVertex3f(esClip.X + aDestination.X, esClip.Y + aDestination.Y, 0);
-		glColor4f(r,g,b,a);
-		glTexCoord2f(xr, yl);
-		glVertex3f(esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, 0);
-		glColor4f(r,g,b,a);		
-		glTexCoord2f(xr, yr);		
-		glVertex3f(esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), 0);
-		glColor4f(r,g,b,a);		
-		glTexCoord2f(xl, yr);		
-		glVertex3f(esClip.X + aDestination.X, esClip.Y + aDestination.Bottom(), 0);
-	glEnd();
+	SetVertex(&VertexBuffer[0 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Y, r, g, b, a, xl, yl);
+	SetVertex(&VertexBuffer[1 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, r, g, b, a, xr, yl);
+	SetVertex(&VertexBuffer[2 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
+	SetVertex(&VertexBuffer[3 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
+
+	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 void					SDLVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
@@ -122,22 +135,27 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
 	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
 	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
+	Presenter->SetViewport(xl, xr, yl, yr);
 
-	((SDLTexture*)aTexture)->Apply();
+	//Enter present state
+	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
-	glBegin(GL_QUADS);
-		glColor4f(1,1,1,1);	
-		glTexCoord2f(xl, yl);
-		glVertex3f(output.X, output.Y, 0);
-		glColor4f(1,1,1,1);	
-		glTexCoord2f(xr, yl);		
-		glVertex3f(output.X + output.Width, output.Y, 0);
-		glColor4f(1,1,1,1);	
-		glTexCoord2f(xr, yr);
-		glVertex3f(output.X + output.Width, output.Y + output.Height, 0);
-		glColor4f(1,1,1,1);	
-		glTexCoord2f(xl, yr);		
-		glVertex3f(output.X, output.Y + output.Height, 0);
-	glEnd();
+	glDisable(GL_SCISSOR_TEST);
+
+	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
+	((SDLTexture*)aTexture)->Apply();
+	Presenter->Present(((SDLTexture*)aTexture)->ID);
+
+	//Exit present state
 	glEnable(GL_BLEND);
+	glEnable(GL_SCISSOR_TEST);
+	glColor4f(0, 0, 0, 0);
+
+	/* Turn off shading */
+	cgGLDisableProfile(cgGLGetLatestProfile(CG_GL_VERTEX));
+	cgGLDisableProfile(cgGLGetLatestProfile(CG_GL_FRAGMENT));
+
+	/* Reset vertex buffer */
+	ApplyVertexBuffer(VertexBuffer, true);
 }
+
