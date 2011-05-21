@@ -55,7 +55,7 @@ namespace
 	//Init shaders
 	cgRTCgcInit();
 	ShaderContext = cgCreateContext();
-	Presenter = DorkShader::MakeChainFromPreset(ShaderContext, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf", 1);
+	Presenter = new DorkShader(ShaderContext, "", false, 1);
 }
 
 						DorkVideo::~DorkVideo			()

@@ -32,25 +32,32 @@ ShaderMap DorkShaderProgram::Shaders;
 {
 	static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
 
-	VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_VP_RSX, "main_vertex", args);
-	FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_FP_RSX, "main_fragment", args);
+	if(!aFileName.empty() && Utility::FileExists(aFileName))
+	{
+		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_VP_RSX, "main_vertex", args);
+		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_FP_RSX, "main_fragment", args);
 
-	cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
-	cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
+		cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
+		cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
 
-	cgGLBindProgram(VertexProgram);
-	cgGLBindProgram(FragmentProgram);
+		cgGLBindProgram(VertexProgram);
+		cgGLBindProgram(FragmentProgram);
 
-	Projection = cgGetNamedParameter(VertexProgram, "modelViewProj");
-	FragmentVideoSize = cgGetNamedParameter(FragmentProgram, "IN.video_size");
-	FragmentTextureSize = cgGetNamedParameter(FragmentProgram, "IN.texture_size");
-	FragmentOutputSize = cgGetNamedParameter(FragmentProgram, "IN.output_size");
-	VertexVideoSize = cgGetNamedParameter(VertexProgram, "IN.video_size");
-	VertexTextureSize = cgGetNamedParameter(VertexProgram, "IN.texture_size");
-	VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
+		Projection = cgGetNamedParameter(VertexProgram, "modelViewProj");
+		FragmentVideoSize = cgGetNamedParameter(FragmentProgram, "IN.video_size");
+		FragmentTextureSize = cgGetNamedParameter(FragmentProgram, "IN.texture_size");
+		FragmentOutputSize = cgGetNamedParameter(FragmentProgram, "IN.output_size");
+		VertexVideoSize = cgGetNamedParameter(VertexProgram, "IN.video_size");
+		VertexTextureSize = cgGetNamedParameter(VertexProgram, "IN.texture_size");
+		VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
 
-	cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
-	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
+		cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
+		cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
+	}
+	else if(!aFileName.empty())
+	{
+		es_log->Log("Shader file not found [File: %s]", aFileName.c_str());
+	}
 }
 
 void								DorkShaderProgram::Apply			(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight)
@@ -71,6 +78,11 @@ void								DorkShaderProgram::Apply			(uint32_t aInWidth, uint32_t aInHeight, u
 		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, aInWidth, aInHeight);
 		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aInWidth, aInHeight);
 		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, aOutWidth, aOutHeight);
+	}
+	else
+	{
+		cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
+		cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
 	}
 }
 
@@ -220,22 +232,32 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 
 DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
 {
-	CSimpleIniA ini;
-	ini.LoadFile(aFile.c_str());
-
-	if(aPrescale > 1)
+	if(!aFile.empty() && Utility::FileExists(aFile))
 	{
-		DorkShader* output = new DorkShader(aContext, "/dev_hdd0/game/SNES90000/USRDIR/shaders/stock.cg", 0, aPrescale);
-		output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
-		output->GetNext()->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-		return output;
+		CSimpleIniA ini;
+		ini.LoadFile(aFile.c_str());
+
+		if(aPrescale > 1)
+		{
+			DorkShader* output = new DorkShader(aContext, "", 0, aPrescale);
+			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
+			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+			return output;
+		}
+		else
+		{
+			DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+			return output;
+		}
 	}
 	else
 	{
-		DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-		output->SetNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-		return output;
+		if(!aFile.empty())
+		{
+			es_log->Log("Shader preset not found [File: %s]", aFile.c_str());
+		}
+		return new DorkShader(aContext, "", 0, 1);
 	}
 }
-
 
