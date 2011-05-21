@@ -8,6 +8,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_net.h>
+#include <Cg/cg.h>
+#include <Cg/cgGL.h>
 #include "SDLInputConfig.h"
 
 #ifdef __WIN32__
