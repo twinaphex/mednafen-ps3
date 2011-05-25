@@ -12,7 +12,7 @@
 #include "mednafen_help.h"
 #include "settingmenu.h"
 
-void							ReloadEmulator			();
+void							ReloadEmulator			(const std::string& aFileName);
 void							Exit					();
 extern "C" MDFNGI*				nestGetEmulator			();
 extern "C" MDFNGI*				gmbtGetEmulator			();

@@ -52,9 +52,9 @@ std::string			GetFile					()
 	return result;
 }
 
-void				ReloadEmulator			()
+void				ReloadEmulator			(const std::string& aFileName)
 {
-	std::string filename = GetFile();
+	std::string filename = aFileName.empty() ? GetFile() : aFileName;
 
 	if(filename.empty() && !MednafenEmu::IsGameLoaded())
 	{
@@ -86,7 +86,7 @@ void				ReloadEmulator			()
 			if(archive->WasCanceled())
 			{
 				//HACK: If we do this too much we will get a stack overflow, but oh well. Beats a goto anyway
-				ReloadEmulator();
+				ReloadEmulator("");
 				return;
 			}
 		}
@@ -123,7 +123,7 @@ void				ReloadEmulator			()
 		else
 		{
 			ESSUB_Error("File is larger than 64MB. Not supported, if this is a CD game you must load it through a cue file.");
-			ReloadEmulator();
+			ReloadEmulator("");
 		}
 	}
 }
@@ -149,7 +149,7 @@ int					main					(int argc, char* argv[])
 		Summerface::SetDrawBackground(SummerfaceBackground);
 
 		//Run the menu
-		ReloadEmulator();
+		ReloadEmulator((argc > 1) ? argv[1] : "");
 
 		//Loop
 		while(!WantToDie())
