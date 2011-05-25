@@ -62,6 +62,35 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 	}
 }
 
+void					Font::PutStringCenter		(const char* aString, const Area& aRegion, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
+{
+	int32_t x = (aRegion.Width - MeasureString(aString)) / 2;
+	PutString(aString, aRegion.X + x, aRegion.Y, aColor, aDropShadow, aShadowColor, aShadowXOffset, aShadowYOffset);
+}
+
+
+uint32_t				Font::MeasureString			(const char* aString)
+{
+	uint32_t width = 0;
+	utf8_decode_init(aString, strlen(aString));
+
+	for(int thischar = utf8_decode_next(); thischar != UTF8_END; thischar = utf8_decode_next())
+	{
+		if(thischar >= 32 || thischar == 9)
+		{
+			//TODO: Support real tab stops
+			FontCharacter* chara = CacheCharacter(thischar == 9 ? 32 : thischar);
+			
+			if(chara)
+			{
+				width += chara->Advance;
+			}
+		}
+	}
+
+	return width;
+}
+
 FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 {
 	if(Cache[aCharacter] == 0)
