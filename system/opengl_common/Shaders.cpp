@@ -54,13 +54,13 @@ ShaderMap GLShaderProgram::Shaders;
 #ifndef __CELLOS_LV2__
 		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_VERTEX));
 		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_FRAGMENT));
-#else
-		static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
-#endif
-
 		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), VERT_PROFILE, "main_vertex", 0);
 		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), FRAG_PROFILE, "main_fragment", 0);
-
+#else
+		static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
+		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), VERT_PROFILE, "main_vertex", args);
+		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), FRAG_PROFILE, "main_fragment", args);
+#endif
 		cgGLLoadProgram(VertexProgram);
 		cgGLLoadProgram(FragmentProgram);
 
@@ -157,13 +157,22 @@ GLShaderProgram*					GLShaderProgram::Get				(CGcontext& aContext, const std::st
 	glDeleteFramebuffersES(1, &FrameBufferID);
 }
 
-void								GLShader::Present					(GLuint aSourceTexture)
+void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 {
 	if(Next)
 	{
-		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebufferES(GL_FRAMEBUFFER_ES, FrameBufferID);
 		glFramebufferTexture2DES(GL_FRAMEBUFFER_ES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, TextureID, 0);
+	}
+	else
+	{
+		if(aBorderTexture)
+		{
+			glActiveTexture(GL_TEXTURE1);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, aBorderTexture);
+			glActiveTexture(GL_TEXTURE0);
+		}
 	}
 
 	//Update projection
@@ -174,8 +183,8 @@ void								GLShader::Present					(GLuint aSourceTexture)
 	glOrtho(0, 1, 1, 0, -1, 1);
 
 	//Apply state buffer
+	GLShader::ApplyVertexBuffer(VertexBuffer, false, ((Next == 0) && aBorderTexture) ? 1 : 0);
 	Apply();
-//	GLVideo::ApplyVertexBuffer(VertexBuffer, false);
 
 	//Prep texture
 	glBindTexture(GL_TEXTURE_2D, aSourceTexture);
@@ -195,10 +204,21 @@ void								GLShader::Present					(GLuint aSourceTexture)
 	{
 		//Call next shader
 		glBindFramebufferES(GL_FRAMEBUFFER_ES, 0);
-		Next->Present(TextureID);
+		Next->Present(TextureID, aBorderTexture);
 	}
 	else
 	{
+		cgGLDisableProfile(VERT_PROFILE);
+		cgGLDisableProfile(FRAG_PROFILE);
+
+		if(aBorderTexture)
+		{
+			glActiveTexture(GL_TEXTURE1);	
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDisable(GL_TEXTURE_2D);
+			glActiveTexture(GL_TEXTURE0);
+		}
+
 		//Restore viewport
 		glViewport(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight());
 	}
@@ -236,12 +256,20 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 		if(Next)
 		{
 			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
+#ifndef __CELLOS_LV2__
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, Output.Width, Output.Height, 0, GL_RGB, GL_INT, 0);
+#else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+#endif
 		}
 		else
 		{
 			/* Delete the texture ? */
+#ifndef __CELLOS_LV2__
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, 1, 1, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, 0);
+#else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+#endif
 		}
 
 		/* Update vertex buffer */

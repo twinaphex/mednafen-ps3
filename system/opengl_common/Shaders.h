@@ -37,7 +37,7 @@ class								GLShader
 		void						Apply					();
 		void						SetViewport				(float aLeft, float aRight, float aTop, float aBottom);
 		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight);
-		void						Present					(GLuint aSourceTexture);
+		void						Present					(GLuint aSourceTexture, GLuint aBorderTexture = 0);
 
 		void						SetNext					(GLShader* aNext) {Next = aNext;}
 		void						AttachNext				(GLShader* aNext) {if(Next) Next->AttachNext(aNext); else Next = aNext;};
