@@ -137,6 +137,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Display emulator name	
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
+
+		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
 	}
 }
 
