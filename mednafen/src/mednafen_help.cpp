@@ -26,6 +26,7 @@ namespace
 		{"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" },
 		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, "/dev_hdd0/game/SNES90000/USRDIR/presets/stock.conf"},
 		{"shader.prescale", MDFNSF_NOFLAGS, "Integer scale factor to apply before passing to shader", NULL, MDFNST_INT, "1", "1", "4" },
+		{"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" },
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
@@ -111,6 +112,9 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 
+		//HACK: Attach a default border
+		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
+
 		//Reset states
 		MDFND_NetworkClose();
 		SkipCount = 0;
@@ -137,8 +141,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Display emulator name	
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
-
-		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
 	}
 }
 
@@ -447,6 +449,17 @@ void						MednafenEmu::ReadSettings		()
 			es_video->EnableVsync(VsyncSetting);
 		}
 
+		if(BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border")))
+		{
+			BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
+			if(Utility::FileExists(BorderSetting))
+			{
+				ImageManager::Purge();
+				ImageManager::LoadImage("GameBorderCustom", BorderSetting);
+				es_video->AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+			}
+		}
+
 		if(ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset")) || ShaderPrescaleSetting != MDFN_GetSettingI(SETTINGNAME("shader.prescale")))
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
@@ -507,4 +520,5 @@ std::string					MednafenEmu::ShaderSetting = "";
 uint32_t					MednafenEmu::ShaderPrescaleSetting = 1;
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 bool						MednafenEmu::VsyncSetting = true;
+std::string					MednafenEmu::BorderSetting = "";
 
