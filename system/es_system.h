@@ -38,7 +38,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #elif defined(MDDORK)
 # include "dork/DorkPlatform.h"
 # include "dork/DorkThreads.h"
-# include "dork/DorkTexture.h"
+# include "opengl_common/Texture.h"
 # include "dork/DorkVideo.h"
 # include "dork/DorkAudio.h"
 # include "dork/DorkInput.h"
@@ -54,7 +54,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #else
 # include "sdl/SDLPlatform.h"
 # include "sdl/SDLThreads.h"
-# include "sdl/SDLTexture.h"
+# include "opengl_common/Texture.h"
 # include "sdl/SDLVideo.h"
 # include "sdl/SDLAudio.h"
 # include "sdl/SDLInput.h"

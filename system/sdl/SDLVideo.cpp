@@ -55,7 +55,7 @@ namespace
 	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
 
 	//Texture for FillRectangle
-	FillerTexture = new SDLTexture(2, 2);
+	FillerTexture = new GLTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
 
 	//Init shaders
@@ -119,7 +119,7 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, 
 	yl = (float)aSource.Y / (float)aTexture->GetHeight();
 	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
-	((SDLTexture*)aTexture)->Apply();
+	((GLTexture*)aTexture)->Apply();
 	SetVertex(&VertexBuffer[0 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Y, r, g, b, a, xl, yl);
 	SetVertex(&VertexBuffer[1 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, r, g, b, a, xr, yl);
 	SetVertex(&VertexBuffer[2 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
@@ -149,16 +149,16 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	glDisable(GL_SCISSOR_TEST);
 
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
-	((SDLTexture*)aTexture)->Apply();
+	((GLTexture*)aTexture)->Apply();
 
 	GLuint borderTexture = 0;
 	if(esBorder)
 	{
-		((SDLTexture*)esBorder)->Apply();
-		borderTexture = esBorder ? ((SDLTexture*)esBorder)->ID : 0;
+		((GLTexture*)esBorder)->Apply();
+		borderTexture = esBorder ? ((GLTexture*)esBorder)->GetID() : 0;
 	}
 
-	Presenter->Present(((SDLTexture*)aTexture)->ID, borderTexture);
+	Presenter->Present(((GLTexture*)aTexture)->GetID(), borderTexture);
 
 	//Exit present state
 	glEnable(GL_BLEND);
