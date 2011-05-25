@@ -21,12 +21,12 @@ class													Summerface : public Menu, public boost::enable_shared_from_thi
 		SummerfaceWindow_Ptr							GetWindow						(const std::string& aName);
 		void											SetActiveWindow					(const std::string& aName);
 
-		static void										SetDrawBackground				(void (*aCallback)()) {BackgroundCallback = aCallback;};
+		static void										SetDrawBackground				(bool (*aCallback)()) {BackgroundCallback = aCallback;};
 		
 	private:
 		std::map<std::string, SummerfaceWindow_Ptr>		Windows;
 		std::string										ActiveWindow;
 
-		static void										(*BackgroundCallback)			();
+		static bool										(*BackgroundCallback)			();
 };
 

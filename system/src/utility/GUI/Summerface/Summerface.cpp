@@ -22,13 +22,31 @@ bool										Summerface::Draw									()
 
 	es_video->SetClip(Area(0, 0, screenW, screenH));
 
-	if(BackgroundCallback)
+	if(BackgroundCallback && BackgroundCallback())
 	{
-		BackgroundCallback();
+		Texture* tex = ImageManager::GetImage("GUIOverlay");
+
+		if(!tex)
+		{
+			es_video->FillRectangle(Area(0, 0, screenW, screenH), 0x00000080);		
+		}
+		else
+		{
+			es_video->PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFF80);
+		}
 	}
 	else
 	{
-		es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);
+		Texture* tex = ImageManager::GetImage("GUIBackground");
+
+		if(!tex)
+		{
+			es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);		
+		}
+		else
+		{
+			es_video->PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
+		}
 	}
 
 	for(std::map<std::string, SummerfaceWindow_Ptr>::iterator i = Windows.begin(); i != Windows.end(); i ++)
@@ -80,5 +98,5 @@ void										Summerface::SetActiveWindow							(const std::string& aName)
 	ActiveWindow = aName;
 }
 
-void										(*Summerface::BackgroundCallback)					() = 0;
+bool										(*Summerface::BackgroundCallback)					() = 0;
 

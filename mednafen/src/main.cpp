@@ -128,12 +128,9 @@ void				ReloadEmulator			(const std::string& aFileName)
 	}
 }
 
-static void			SummerfaceBackground	()
+static bool			SummerfaceBackground	()
 {
-	if(MednafenEmu::DummyFrame())
-	{
-		es_video->FillRectangle(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), 0x00000080);
-	}
+	return MednafenEmu::DummyFrame();
 }
 
 int					main					(int argc, char* argv[])
@@ -187,3 +184,4 @@ int					main					(int argc, char* argv[])
 		abort();
 	}
 }
+
