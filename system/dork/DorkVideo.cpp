@@ -143,16 +143,20 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
 	((DorkTexture*)aTexture)->Apply();
-	Presenter->Present(((DorkTexture*)aTexture)->ID);
+
+	GLuint borderTexture = 0;
+	if(esBorder)
+	{
+		((DorkTexture*)esBorder)->Apply();
+		borderTexture = esBorder ? ((DorkTexture*)esBorder)->ID : 0;
+	}
+
+	Presenter->Present(((DorkTexture*)aTexture)->ID, borderTexture);
 
 	//Exit present state
 	glEnable(GL_BLEND);
 	glEnable(GL_SCISSOR_TEST);
 	glColor4f(0, 0, 0, 0);
-
-	/* Turn off shading */
-	cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
-	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
 
 	/* Reset vertex buffer */
 	GLShader::ApplyVertexBuffer(VertexBuffer, true);
