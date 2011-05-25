@@ -557,12 +557,11 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
 	 return(MDFNI_LoadCD(force_module, name));
 	}
 
-//ROBO: Stupid sony SDK
+//ROBO: Can't load a CD this way
 //	if(!stat(name, &stat_buf) && !S_ISREG(stat_buf.st_mode))
-	if(!data && (!stat(name, &stat_buf) && (stat_buf.st_mode & S_IFREG)))
-	{
-	 return(MDFNI_LoadCD(force_module, name));
-	}
+//	{
+//	 return(MDFNI_LoadCD(force_module, name));
+//	}
 
 	MDFNI_CloseGame();
 
