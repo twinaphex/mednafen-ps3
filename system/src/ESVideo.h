@@ -46,6 +46,8 @@ class								ESVideo
 	public:	
 									ESVideo								() : LastAspect(0), LastUnderscan(0), LastUnderscanFine(0, 0, 0, 0), PresentArea(0, 0, 0, 0) {};
 		virtual						~ESVideo							() {};
+
+		virtual void				EnableVsync							(bool aOn) {};
 	
 		virtual Texture*			CreateTexture						(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) = 0; //Pure Virtual
 	

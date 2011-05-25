@@ -73,6 +73,18 @@ namespace
 	free(VertexBuffer);
 }
 
+void					DorkVideo::EnableVsync			(bool aOn)
+{
+	if(aOn)
+	{
+		glEnable(GL_VSYNC_SCE);
+	}
+	else
+	{
+		glDisable(GL_VSYNC_SCE);
+	}
+}
+
 void					DorkVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);

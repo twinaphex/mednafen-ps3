@@ -71,6 +71,8 @@ class								SDLVideo : public ESVideo
 	public:	
 									SDLVideo				();
 									~SDLVideo				();
+
+		void						EnableVsync				(bool aOn);
 	
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic) {return new SDLTexture(aWidth, aHeight);};
 	
