@@ -6,7 +6,7 @@ class								GLShaderProgram
 {
 	public:
 									GLShaderProgram			(CGcontext& aContext, const std::string& aFileName);
-		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight);
+		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount);
 
 	public:
 		static GLShaderProgram*		Get						(CGcontext& aContext, const std::string& aFileName);
@@ -23,9 +23,11 @@ class								GLShaderProgram
 		CGparameter					FragmentVideoSize;
 		CGparameter					FragmentTextureSize;
 		CGparameter					FragmentOutputSize;
+		CGparameter					FragmentFrameCount;
 		CGparameter					VertexVideoSize;
 		CGparameter					VertexTextureSize;
 		CGparameter					VertexOutputSize;
+		CGparameter					VertexFrameCount;
 };
 
 class								GLShader
@@ -56,6 +58,7 @@ class								GLShader
 
 		uint32_t					InWidth;
 		uint32_t					InHeight;
+		uint32_t					FrameCount;
 
 		GLuint						TextureID;
 		GLuint						FrameBufferID;

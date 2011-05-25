@@ -74,9 +74,11 @@ ShaderMap GLShaderProgram::Shaders;
 		FragmentVideoSize = cgGetNamedParameter(FragmentProgram, "IN.video_size");
 		FragmentTextureSize = cgGetNamedParameter(FragmentProgram, "IN.texture_size");
 		FragmentOutputSize = cgGetNamedParameter(FragmentProgram, "IN.output_size");
+		FragmentFrameCount = cgGetNamedParameter(FragmentProgram, "IN.frame_count");
 		VertexVideoSize = cgGetNamedParameter(VertexProgram, "IN.video_size");
 		VertexTextureSize = cgGetNamedParameter(VertexProgram, "IN.texture_size");
 		VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
+		VertexFrameCount = cgGetNamedParameter(VertexProgram, "IN.frame_count");
 
 		cgGLDisableProfile(VERT_PROFILE);
 		cgGLDisableProfile(FRAG_PROFILE);
@@ -87,7 +89,7 @@ ShaderMap GLShaderProgram::Shaders;
 	}
 }
 
-void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight)
+void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount)
 {
 	if(FragmentProgram && VertexProgram)
 	{
@@ -102,9 +104,11 @@ void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, ui
 		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, aInWidth, aInHeight);
 		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, aInWidth, aInHeight);
 		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, aOutWidth, aOutHeight);
+		if(FragmentFrameCount)	cgGLSetParameter1f(FragmentFrameCount, aFrameCount);
 		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, aInWidth, aInHeight);
 		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aInWidth, aInHeight);
 		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, aOutWidth, aOutHeight);
+		if(VertexFrameCount)	cgGLSetParameter1f(VertexFrameCount, aFrameCount);
 	}
 	else
 	{
@@ -196,6 +200,9 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 	//Draw
 	glDrawArrays(GL_QUADS, 0, 4);
 
+	//Update count
+	FrameCount ++;
+
 	//Clean up projection
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -226,7 +233,7 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 
 void								GLShader::Apply						()
 {
-	Program->Apply(InWidth, InHeight, Output.Width, Output.Height);
+	Program->Apply(InWidth, InHeight, Output.Width, Output.Height, FrameCount);
 }
 
 void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
