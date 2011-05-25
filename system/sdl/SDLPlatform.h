@@ -18,3 +18,18 @@
 #include <shlobj.h>
 #endif
 
+class				PlatformHelpers
+{
+	public:
+		static uint32_t					GetTicks					()
+		{
+			return SDL_GetTicks();
+		}
+
+		static void						Sleep						(uint32_t aMilliseconds)
+		{
+			SDL_Delay(aMilliseconds);
+		}
+};
+
+

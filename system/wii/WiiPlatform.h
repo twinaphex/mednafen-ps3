@@ -14,3 +14,19 @@
 #include <ogc/audio.h>
 #include <ogc/lwp_watchdog.h>
 
+class	PlatformHelpers
+{
+		static uint32_t					GetTicks					()
+		{
+			//Stolen from SDL wii
+			const uint64_t ticks      = gettime();
+			const uint64_t ms         = ticks / TB_TIMER_CLOCK;
+			return ms;
+		}
+
+		static void						Sleep						(uint32_t aMilliseconds)
+		{
+			usleep(aMilliseconds * 1000);
+		}
+};
+
