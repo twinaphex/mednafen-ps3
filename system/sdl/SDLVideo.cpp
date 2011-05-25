@@ -69,6 +69,12 @@ namespace
 	free(VertexBuffer);
 }
 
+void					SDLVideo::EnableVsync			(bool aOn)
+{
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
+	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
+}
+
 void					SDLVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);

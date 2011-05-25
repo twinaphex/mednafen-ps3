@@ -72,6 +72,8 @@ class								DorkVideo : public ESVideo
 									DorkVideo				();
 									~DorkVideo				();
 	
+		void						EnableVsync				(bool aOn);
+
 		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic) {return new DorkTexture(aWidth, aHeight);};
 	
 		virtual void				SetClip					(const Area& aClip);
