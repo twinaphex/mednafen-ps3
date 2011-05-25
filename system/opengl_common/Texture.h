@@ -1,12 +1,10 @@
 #pragma once
 
-class								SDLTexture : public Texture
+class								GLTexture : public Texture
 {
-	friend class					SDLVideo;
-
 	public:
-									SDLTexture				(uint32_t aWidth, uint32_t aHeight);
-		virtual						~SDLTexture				();
+									GLTexture				(uint32_t aWidth, uint32_t aHeight);
+		virtual						~GLTexture				();
 		
 		void						Clear					(uint32_t aColor);
 		uint32_t*					GetPixels				();
@@ -19,6 +17,7 @@ class								SDLTexture : public Texture
 		
 	public: //Helper, do not call directly
 		void						Apply					();
+		uint32_t					GetID					() const {return ID;}
 
 	private:
 		uint32_t*					Pixels;

@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-						SDLTexture::SDLTexture				(uint32_t aWidth, uint32_t aHeight) :
+						GLTexture::GLTexture				(uint32_t aWidth, uint32_t aHeight) :
 	Texture(aWidth, aHeight, aWidth),
 	Pixels(0),
 	ID(0)
@@ -11,13 +11,13 @@
 	glGenTextures(1, &ID);
 }
 						
-						SDLTexture::~SDLTexture				()
+						GLTexture::~GLTexture				()
 {
 	glDeleteTextures(1, &ID);
 	delete[] Pixels;
 }
 
-void					SDLTexture::Clear					(uint32_t aColor)
+void					GLTexture::Clear					(uint32_t aColor)
 {
 	for(int i = 0; i != esWidth * esHeight; i ++)
 	{
@@ -27,13 +27,13 @@ void					SDLTexture::Clear					(uint32_t aColor)
 	esValid = false;
 }	
 
-uint32_t*				SDLTexture::GetPixels				()
+uint32_t*				GLTexture::GetPixels				()
 {
 	esValid = false;
 	return Pixels;
 }
 
-void					SDLTexture::Apply					()
+void					GLTexture::Apply					()
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, ID);
@@ -42,7 +42,11 @@ void					SDLTexture::Apply					()
 	{
 		esValid = true;
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#ifndef __CELLOS_LV2__
 		glTexImage2D(GL_TEXTURE_2D, 0, 4, esWidth, esHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, (void*)Pixels);
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, esWidth, esHeight, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)Pixels);
+#endif
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, esFilter ? GL_LINEAR : GL_NEAREST);
@@ -50,3 +54,4 @@ void					SDLTexture::Apply					()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
+

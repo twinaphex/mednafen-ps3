@@ -49,7 +49,7 @@ namespace
 	glOrthof(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
 
 	//Texture for FillRectangle
-	FillerTexture = new DorkTexture(2, 2);
+	FillerTexture = new GLTexture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
 
 	//Init shaders
@@ -112,7 +112,7 @@ void					DorkVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination,
 	yl = (float)aSource.Y / (float)aTexture->GetHeight();
 	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
-	((DorkTexture*)aTexture)->Apply();
+	((GLTexture*)aTexture)->Apply();
 	SetVertex(&VertexBuffer[0 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Y, r, g, b, a, xl, yl);
 	SetVertex(&VertexBuffer[1 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, r, g, b, a, xr, yl);
 	SetVertex(&VertexBuffer[2 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
@@ -142,16 +142,16 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	glDisable(GL_SCISSOR_TEST);
 
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
-	((DorkTexture*)aTexture)->Apply();
+	((GLTexture*)aTexture)->Apply();
 
 	GLuint borderTexture = 0;
 	if(esBorder)
 	{
-		((DorkTexture*)esBorder)->Apply();
-		borderTexture = esBorder ? ((DorkTexture*)esBorder)->ID : 0;
+		((GLTexture*)esBorder)->Apply();
+		borderTexture = esBorder ? ((GLTexture*)esBorder)->GetID() : 0;
 	}
 
-	Presenter->Present(((DorkTexture*)aTexture)->ID, borderTexture);
+	Presenter->Present(((GLTexture*)aTexture)->GetID(), borderTexture);
 
 	//Exit present state
 	glEnable(GL_BLEND);
