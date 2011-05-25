@@ -24,3 +24,4 @@ class								SDLTexture : public Texture
 		uint32_t*					Pixels;
 		uint32_t					ID;
 };
+

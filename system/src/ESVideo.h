@@ -44,7 +44,7 @@ typedef std::list<std::string>		ESFilterList;
 class								ESVideo
 {
 	public:	
-									ESVideo								() : LastAspect(0), LastUnderscan(0), LastUnderscanFine(0, 0, 0, 0), PresentArea(0, 0, 0, 0) {};
+									ESVideo								() : esBorder(0), LastAspect(0), LastUnderscan(0), LastUnderscanFine(0, 0, 0, 0), PresentArea(0, 0, 0, 0) {};
 		virtual						~ESVideo							() {};
 
 		virtual void				EnableVsync							(bool aOn) {};
@@ -62,6 +62,7 @@ class								ESVideo
 		
 		virtual void				PlaceTexture						(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor) = 0; //Pure Virtual
 		virtual void				FillRectangle						(const Area& aArea, uint32_t aColor) = 0; //Pure Virtual
+		virtual void				AttachBorder						(Texture* aTexture) {esBorder = aTexture;};
 		virtual void				PresentFrame						(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0; //Pure Virtual
 
 		virtual const ESFilterList&	GetFilters							() const {return esFilters;}
@@ -77,6 +78,8 @@ class								ESVideo
 		bool						esWideScreen;
 
 		ESFilterList				esFilters;
+
+		Texture*					esBorder;
 
 	private:
 		int32_t						LastAspect;
