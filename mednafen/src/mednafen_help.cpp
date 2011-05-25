@@ -126,7 +126,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
-		ReadSettings();
+		ReadSettings(true);
 
 		//Create the helpers for this game
 		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
@@ -433,7 +433,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	return false;
 }
 
-void						MednafenEmu::ReadSettings		()
+void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
 	if(IsGameLoaded())
 	{
@@ -443,13 +443,13 @@ void						MednafenEmu::ReadSettings		()
 		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 
-		if(VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync")))
+		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{
 			VsyncSetting = MDFN_GetSettingB(SETTINGNAME("display.vsync"));
 			es_video->EnableVsync(VsyncSetting);
 		}
 
-		if(BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border")))
+		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
 		{
 			BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
 			if(Utility::FileExists(BorderSetting))
@@ -460,7 +460,7 @@ void						MednafenEmu::ReadSettings		()
 			}
 		}
 
-		if(ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset")) || ShaderPrescaleSetting != MDFN_GetSettingI(SETTINGNAME("shader.prescale")))
+		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset")) || ShaderPrescaleSetting != MDFN_GetSettingI(SETTINGNAME("shader.prescale"))))
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
 			ShaderPrescaleSetting = MDFN_GetSettingI(SETTINGNAME("shader.prescale"));
