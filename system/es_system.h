@@ -35,7 +35,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "l1ght/L1ghtAudio.h"
 # include "l1ght/L1ghtInput.h"
 # include "l1ght/L1ghtNetwork.h"
-# include "l1ght/utility.h"
 #elif defined(MDDORK)
 # include "dork/DorkPlatform.h"
 # include "dork/DorkThreads.h"
@@ -44,7 +43,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "dork/DorkAudio.h"
 # include "dork/DorkInput.h"
 # include "dork/DorkNetwork.h"
-# include "dork/utility.h"
 #elif defined(MDWII)
 # include "wii/WiiPlatform.h"
 # include "wii/WiiThreads.h"
@@ -53,7 +51,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "wii/WiiAudio.h"
 # include "wii/WiiInput.h"
 # include "wii/WiiNetwork.h"
-# include "wii/utility.h"
 #else
 # include "sdl/SDLPlatform.h"
 # include "sdl/SDLThreads.h"
@@ -62,11 +59,11 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "sdl/SDLAudio.h"
 # include "sdl/SDLInput.h"
 # include "sdl/SDLNetwork.h"
-# include "sdl/utility.h"
 #endif
 
 #include "src/fex/fex/fex.h"
 
+#include "src/Helpers.h"
 #include "src/utility/FastCounter.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"

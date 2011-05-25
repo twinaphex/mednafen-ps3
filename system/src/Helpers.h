@@ -1,5 +1,6 @@
 #pragma once
 
+
 class				Colors
 {
 	public:
@@ -74,6 +75,7 @@ class				Utility
 
 		static bool						FileExists					(const std::string& aPath)
 		{
+#ifndef NO_STAT
 			struct stat statbuf;
 
 			if(0 == stat(aPath.c_str(), &statbuf))
@@ -84,10 +86,14 @@ class				Utility
 			{
 				return false;
 			}
+#else
+			return PlatformHelpers::FileExists(aPath);
+#endif
 		}
 
 		static bool						DirectoryExists				(const std::string& aPath)
 		{
+#ifndef NO_STAT
 			struct stat statbuf;
 
 			if(0 == stat(aPath.c_str(), &statbuf))
@@ -98,10 +104,14 @@ class				Utility
 			{
 				return false;
 			}
+#else
+			return PlatformHelpers::FileExists(aPath);
+#endif
 		}
-	
+
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
+#ifndef NO_READDIR
 			DIR* dirhandle;
 			struct dirent* item;
 			
@@ -128,16 +138,19 @@ class				Utility
 			{
 				return false;
 			}
+#else
+			return PlatformHelpers::ListDirectory(aPath, aOutput);
+#endif
 		}
 	
 		static uint32_t					GetTicks					()
 		{
-			return sys_time_get_system_time() / 1000;
+			return PlatformHelpers::GetTicks();
 		}
 
 		static void						Sleep						(uint32_t aMilliseconds)
 		{
-			sys_timer_usleep(aMilliseconds * 1000);
+			return PlatformHelpers::Sleep(aMilliseconds);
 		}
 
 		static std::vector<std::string>	StringToVector				(const std::string& aString, char aSeparate)
@@ -178,8 +191,8 @@ class				Utility
 			if(aValue > aMax)		return aMax;
 			return aValue;
 		}
+		
 };
-
 class				PathBuild
 {
 	public:
@@ -190,4 +203,5 @@ class				PathBuild
 	protected:
 		std::string					Base;
 };
+
 
