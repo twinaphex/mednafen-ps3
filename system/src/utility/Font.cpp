@@ -33,8 +33,13 @@ extern "C"
 	FT_Done_Face(FontFace);
 }
 
-void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor)
+void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
 {
+	if(aDropShadow)
+	{
+		PutString(aString, aX + aShadowXOffset, aY + aShadowYOffset, 0x00000080, false);
+	}
+
 	utf8_decode_init(aString, strlen(aString));
 
 	for(int thischar = utf8_decode_next(); thischar != UTF8_END; thischar = utf8_decode_next())

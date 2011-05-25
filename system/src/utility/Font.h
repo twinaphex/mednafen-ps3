@@ -19,7 +19,7 @@ class										Font
 											Font						(uint32_t aPixelSize, bool aFixed);
 											~Font						();
 								
-		void								PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor);
+		void								PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow = false, uint32_t aShadowColor = 0x00000080, int32_t aShadowXOffset = 1, int32_t aShadowYOffset = 1);
 
 		uint32_t							GetWidth					() const {return Width;};
 		uint32_t							GetHeight					() const {return Height;};
