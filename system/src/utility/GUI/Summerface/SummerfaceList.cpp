@@ -330,3 +330,77 @@ bool										AnchoredListView::Input								()
 	
 	return false;
 }
+
+											CleanListView::CleanListView						(SummerfaceList_WeakPtr aList) :
+	WeakList(aList)
+{
+	SummerfaceList_Ptr List = WeakList.lock();
+	List->SetBorder(false);
+}
+
+bool										CleanListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
+{
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+	List->GetFont()->PutStringCenter(aItem->GetText().c_str(), Area(aX, aY, es_video->GetClip().Width, 0), aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+
+	return false;
+}
+
+bool										CleanListView::Draw									()
+{
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
+	if(List->GetItemCount() != 0)
+	{
+		uint32_t itemheight = List->GetFont()->GetHeight();
+
+		for(int i = 0; i != List->GetItemCount(); i ++)
+		{
+			DrawItem(List->GetItem(i), 0, (i * itemheight), i == List->GetSelection());
+		}
+	}
+
+	return false;
+}
+
+bool										CleanListView::Input								()
+{
+//TODO: Error check
+	SummerfaceList_Ptr List = WeakList.lock();
+
+	int32_t oldIndex = List->GetSelection();
+	if(List->GetItemCount() != 0)
+	{
+		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+		oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
+		oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
+
+		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
+		List->SetSelection(oldIndex);
+	}
+
+//TODO: Handle conduits better!
+
+	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	{
+		List->SetCanceled(true);
+		return true;
+	}
+
+	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
+	{
+		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
+	}
+
+	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	{
+		List->SetCanceled(false);
+		return true;
+	}
+
+	return false;
+}
+

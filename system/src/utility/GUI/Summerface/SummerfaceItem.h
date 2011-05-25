@@ -4,7 +4,7 @@
 class													SummerfaceItem
 {
 	public:
-														SummerfaceItem					(const std::string& aText, const std::string& aImage);
+														SummerfaceItem					(const std::string& aText, const std::string& aImage, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight);
 		virtual											~SummerfaceItem					();
 
 		virtual void									SetText							(const std::string& aText);
