@@ -24,8 +24,7 @@ namespace
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
-//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
+	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
 	if(!Screen)
 	{
 		printf("SDL Couldn't set video mode: %s\n", SDL_GetError());
@@ -71,8 +70,9 @@ namespace
 
 void					SDLVideo::EnableVsync			(bool aOn)
 {
+	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
-	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
+	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
 }
 
 void					SDLVideo::SetClip				(const Area& aClip)
