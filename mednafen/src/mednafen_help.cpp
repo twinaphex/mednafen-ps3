@@ -1,6 +1,7 @@
 #include <mednafen_includes.h>
 #include "savestates.h"
 
+
 namespace
 {
 	const MDFNSetting_EnumList	AspectEnumList[] =
