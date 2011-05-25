@@ -41,7 +41,7 @@ namespace
 
 	// Setup vertex buffer
 	VertexBuffer = (GLfloat*)memalign(128, VertexBufferCount * VertexSize * sizeof(GLfloat));
-	ApplyVertexBuffer(VertexBuffer, true);
+	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 
 	//Setup Projection
 	glMatrixMode(GL_PROJECTION);
@@ -55,7 +55,7 @@ namespace
 	//Init shaders
 	cgRTCgcInit();
 	ShaderContext = cgCreateContext();
-	Presenter = new DorkShader(ShaderContext, "", false, 1);
+	Presenter = new GLShader(ShaderContext, "", false, 1);
 }
 
 						DorkVideo::~DorkVideo			()
@@ -155,6 +155,6 @@ void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, in
 	cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
 
 	/* Reset vertex buffer */
-	ApplyVertexBuffer(VertexBuffer, true);
+	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 }
 

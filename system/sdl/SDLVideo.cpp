@@ -47,7 +47,7 @@ namespace
 
 	// Setup vertex buffer
 	VertexBuffer = (GLfloat*)malloc(VertexBufferCount * VertexSize * sizeof(GLfloat));
-	ApplyVertexBuffer(VertexBuffer, true);
+	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 
 	//Setup Projection
 	glMatrixMode(GL_PROJECTION);
@@ -60,7 +60,8 @@ namespace
 
 	//Init shaders
 	ShaderContext = cgCreateContext();
-	Presenter = SDLShader::MakeChainFromPreset(ShaderContext, "", 1);
+	Presenter = new GLShader(ShaderContext, "/home/jason/Downloads/snes9x-ps3/pkg/USRDIR/shaders/Borders/Border-Centered/border-centered-fbo-scale-1x.cg", false, 1);
+//	Presenter->AttachNext(
 }
 
 						SDLVideo::~SDLVideo				()
@@ -148,9 +149,25 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 
+	//Add border
+	if(esBorder)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		((SDLTexture*)esBorder)->Apply();
+		glActiveTexture(GL_TEXTURE0);
+	}
+
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
 	((SDLTexture*)aTexture)->Apply();
 	Presenter->Present(((SDLTexture*)aTexture)->ID);
+
+	//Ditch border
+	if(esBorder)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+	}
 
 	//Exit present state
 	glEnable(GL_BLEND);
@@ -162,6 +179,6 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	cgGLDisableProfile(cgGLGetLatestProfile(CG_GL_FRAGMENT));
 
 	/* Reset vertex buffer */
-	ApplyVertexBuffer(VertexBuffer, true);
+	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 }
 

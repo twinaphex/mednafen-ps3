@@ -1,5 +1,24 @@
 #include <es_system.h>
 
+#ifndef __CELLOS_LV2__
+# define	FRAG_PROFILE				cgGLGetLatestProfile(CG_GL_FRAGMENT)
+# define	VERT_PROFILE				cgGLGetLatestProfile(CG_GL_VERTEX)
+# define	glGenFramebuffersES			glGenFramebuffersEXT
+# define	glDeleteFramebuffersES		glDeleteFramebuffersEXT
+# define	glBindFramebufferES			glBindFramebufferEXT
+# define	glFramebufferTexture2DES	glFramebufferTexture2DEXT
+# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_EXT
+#else
+# define	FRAG_PROFILE				CG_PROFILE_SCE_FP_RSX
+# define	VERT_PROFILE				CG_PROFILE_SCE_VP_RSX
+# define	glGenFramebuffersES			glGenFramebuffersOES
+# define	glDeleteFramebuffersES		glDeleteFramebuffersOES
+# define	glBindFramebufferES			glBindFramebufferOES
+# define	glFramebufferTexture2DES	glFramebufferTexture2DOES
+# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_OES
+# define	glOrtho						glOrthof
+#endif
+
 namespace
 {
 	inline void						SetVertex							(GLfloat* aBase, float aX, float aY, float aU, float aV)
@@ -16,9 +35,9 @@ namespace
 	}
 }
 
-ShaderMap DorkShaderProgram::Shaders;
+ShaderMap GLShaderProgram::Shaders;
 
-									DorkShaderProgram::DorkShaderProgram	(CGcontext& aContext, const std::string& aFileName) :
+									GLShaderProgram::GLShaderProgram	(CGcontext& aContext, const std::string& aFileName) :
 	Context(aContext),
 	VertexProgram(0),
 	FragmentProgram(0),
@@ -30,15 +49,23 @@ ShaderMap DorkShaderProgram::Shaders;
 	VertexTextureSize(0),
 	VertexOutputSize(0)	
 {
-	static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
-
 	if(!aFileName.empty() && Utility::FileExists(aFileName))
 	{
-		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_VP_RSX, "main_vertex", args);
-		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), CG_PROFILE_SCE_FP_RSX, "main_fragment", args);
+#ifndef __CELLOS_LV2__
+		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_VERTEX));
+		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_FRAGMENT));
+#else
+		static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
+#endif
 
-		cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
-		cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
+		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), VERT_PROFILE, "main_vertex", 0);
+		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), FRAG_PROFILE, "main_fragment", 0);
+
+		cgGLLoadProgram(VertexProgram);
+		cgGLLoadProgram(FragmentProgram);
+
+		cgGLEnableProfile(VERT_PROFILE);
+		cgGLEnableProfile(FRAG_PROFILE);
 
 		cgGLBindProgram(VertexProgram);
 		cgGLBindProgram(FragmentProgram);
@@ -51,8 +78,8 @@ ShaderMap DorkShaderProgram::Shaders;
 		VertexTextureSize = cgGetNamedParameter(VertexProgram, "IN.texture_size");
 		VertexOutputSize = cgGetNamedParameter(VertexProgram, "IN.output_size");
 
-		cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
-		cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
+		cgGLDisableProfile(VERT_PROFILE);
+		cgGLDisableProfile(FRAG_PROFILE);
 	}
 	else if(!aFileName.empty())
 	{
@@ -60,12 +87,12 @@ ShaderMap DorkShaderProgram::Shaders;
 	}
 }
 
-void								DorkShaderProgram::Apply			(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight)
+void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight)
 {
 	if(FragmentProgram && VertexProgram)
 	{
-		cgGLEnableProfile(CG_PROFILE_SCE_VP_RSX);
-		cgGLEnableProfile(CG_PROFILE_SCE_FP_RSX);
+		cgGLEnableProfile(VERT_PROFILE);
+		cgGLEnableProfile(FRAG_PROFILE);
 
 		cgGLBindProgram(VertexProgram);
 		cgGLBindProgram(FragmentProgram);
@@ -81,26 +108,26 @@ void								DorkShaderProgram::Apply			(uint32_t aInWidth, uint32_t aInHeight, u
 	}
 	else
 	{
-		cgGLDisableProfile(CG_PROFILE_SCE_VP_RSX);
-		cgGLDisableProfile(CG_PROFILE_SCE_FP_RSX);
+		cgGLDisableProfile(VERT_PROFILE);
+		cgGLDisableProfile(FRAG_PROFILE);
 	}
 }
 
-DorkShaderProgram*					DorkShaderProgram::Get				(CGcontext& aContext, const std::string& aFileName)
+GLShaderProgram*					GLShaderProgram::Get				(CGcontext& aContext, const std::string& aFileName)
 {
 	if(Shaders.find(aFileName) == Shaders.end())
 	{
-		Shaders[aFileName] = new DorkShaderProgram(aContext, aFileName);
+		Shaders[aFileName] = new GLShaderProgram(aContext, aFileName);
 	}
 
 	return Shaders[aFileName];
 }
 
 
-									DorkShader::DorkShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
+									GLShader::GLShader					(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
 	Context(aContext),
 	Next(0),
-	Program(DorkShaderProgram::Get(aContext, aFileName)),
+	Program(GLShaderProgram::Get(aContext, aFileName)),
 	Output(0, 0, 0, 0),
 	InWidth(0),
 	InHeight(0),
@@ -115,10 +142,10 @@ DorkShaderProgram*					DorkShaderProgram::Get				(CGcontext& aContext, const std
 	Viewport[3] = 1.0f;
 
 	glGenTextures(1, &TextureID);
-	glGenFramebuffersOES(1, &FrameBufferID);
+	glGenFramebuffersES(1, &FrameBufferID);
 }
 
-									DorkShader::~DorkShader				()
+									GLShader::~GLShader					()
 {
 	//Eat children (ungrateful bastards)
 	if(Next)
@@ -127,15 +154,16 @@ DorkShaderProgram*					DorkShaderProgram::Get				(CGcontext& aContext, const std
 	}
 
 	glDeleteTextures(1, &TextureID);
-	glDeleteFramebuffersOES(1, &FrameBufferID);
+	glDeleteFramebuffersES(1, &FrameBufferID);
 }
 
-void								DorkShader::Present					(GLuint aSourceTexture)
+void								GLShader::Present					(GLuint aSourceTexture)
 {
 	if(Next)
 	{
-		glBindFramebufferOES(GL_FRAMEBUFFER_OES, FrameBufferID);
-		glFramebufferTexture2DOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, TextureID, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebufferES(GL_FRAMEBUFFER_ES, FrameBufferID);
+		glFramebufferTexture2DES(GL_FRAMEBUFFER_ES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, TextureID, 0);
 	}
 
 	//Update projection
@@ -143,12 +171,11 @@ void								DorkShader::Present					(GLuint aSourceTexture)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrthof(0, 1, 1, 0, -1, 1);
-
+	glOrtho(0, 1, 1, 0, -1, 1);
 
 	//Apply state buffer
 	Apply();
-	DorkVideo::ApplyVertexBuffer(VertexBuffer, false);
+//	GLVideo::ApplyVertexBuffer(VertexBuffer, false);
 
 	//Prep texture
 	glBindTexture(GL_TEXTURE_2D, aSourceTexture);
@@ -167,7 +194,7 @@ void								DorkShader::Present					(GLuint aSourceTexture)
 	if(Next)
 	{
 		//Call next shader
-		glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
+		glBindFramebufferES(GL_FRAMEBUFFER_ES, 0);
 		Next->Present(TextureID);
 	}
 	else
@@ -177,12 +204,12 @@ void								DorkShader::Present					(GLuint aSourceTexture)
 	}
 }
 
-void								DorkShader::Apply					()
+void								GLShader::Apply						()
 {
 	Program->Apply(InWidth, InHeight, Output.Width, Output.Height);
 }
 
-void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
+void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
 {
 	Viewport[0] = aLeft;
 	Viewport[1] = aRight;
@@ -191,7 +218,7 @@ void								DorkShader::SetViewport				(float aLeft, float aRight, float aTop, f
 	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 }
 
-void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
+void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
 {
 	/* Copy settings */
 	if(Output != aOutput || InWidth != aInWidth || InHeight != aInHeight)
@@ -209,12 +236,12 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 		if(Next)
 		{
 			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, Output.Width, Output.Height, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, Output.Width, Output.Height, 0, GL_RGB, GL_INT, 0);
 		}
 		else
 		{
 			/* Delete the texture ? */
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 1, 1, 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, 1, 1, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, 0);
 		}
 
 		/* Update vertex buffer */
@@ -230,7 +257,7 @@ void								DorkShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32
 //
 #include "SimpleIni.h"
 
-DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
+GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
 {
 	if(!aFile.empty() && Utility::FileExists(aFile))
 	{
@@ -239,15 +266,15 @@ DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const s
 
 		if(aPrescale > 1)
 		{
-			DorkShader* output = new DorkShader(aContext, "", 0, aPrescale);
-			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
-			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+			GLShader* output = new GLShader(aContext, "", 0, aPrescale);
+			output->AttachNext(new GLShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
+			output->AttachNext(new GLShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
 			return output;
 		}
 		else
 		{
-			DorkShader* output = new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-			output->AttachNext(new DorkShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+			GLShader* output = new GLShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader", ""), ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+			output->AttachNext(new GLShader(aContext, ini.GetValue("PS3General", "PS3CurrentShader2", ""), ini.GetLongValue("PS3General", "Smooth2", 0), 1));
 			return output;
 		}
 	}
@@ -257,7 +284,7 @@ DorkShader*							DorkShader::MakeChainFromPreset		(CGcontext& aContext, const s
 		{
 			es_log->Log("Shader preset not found [File: %s]", aFile.c_str());
 		}
-		return new DorkShader(aContext, "", 0, 1);
+		return new GLShader(aContext, "", 0, 1);
 	}
 }
 
