@@ -8,7 +8,7 @@ class	Summerface;
 class													SummerfaceWindow
 {
 	public:
-														SummerfaceWindow				(const Area& aRegion);
+														SummerfaceWindow				(const Area& aRegion, bool aBorder = true);
 		virtual											~SummerfaceWindow				() {};
 
 		virtual bool									PrepareDraw						(); //External
@@ -28,6 +28,8 @@ class													SummerfaceWindow
 		virtual void									SetInputConduit					(SummerfaceInputConduit_Ptr aInputConduit) {InputHandler = aInputConduit;}
 		virtual SummerfaceInputConduit_Ptr				GetInputConduit					() const {return InputHandler;};
 
+		virtual bool									SetBorder						(bool aEnable) {UseBorder = aEnable;}
+
 	private:
 		static const uint32_t							BorderWidth = 4;
 
@@ -38,6 +40,8 @@ class													SummerfaceWindow
 		std::string										Header;
 		Area											Region;
 		Area											Client;
+
+		bool											UseBorder;
 };
 
 

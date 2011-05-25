@@ -8,9 +8,10 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 }
 
 
-											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion) :
+											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion, bool aBorder) :
 	Interface(Summerface_WeakPtr()),
-	InputHandler(SummerfaceInputConduit_Ptr())
+	InputHandler(SummerfaceInputConduit_Ptr()),
+	UseBorder(aBorder)
 {
 	Region = Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));;
 	Client = Area(Region.X + BorderWidth, Region.Y + BorderWidth, Region.Width - BorderWidth * 2, Region.Height - BorderWidth * 2);
@@ -19,24 +20,32 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 //Draw the border and background, leave clip set to the windows client area
 bool										SummerfaceWindow::PrepareDraw						()
 {
-	es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
-
-//TODO: Make border color
-	es_video->FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
-	es_video->FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
-
-	es_video->FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
-	es_video->FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
-
-	es_video->FillRectangle(Client, Colors::BackGround);
-	es_video->SetClip(Client);
-
-	std::string header = GetHeader();
-	if(!header.empty())
+	if(UseBorder)
 	{
-		FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal);
-		es_video->FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
-		es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
+		es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
+
+	//TODO: Make border color
+		es_video->FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
+		es_video->FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
+
+		es_video->FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+		es_video->FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+
+		es_video->FillRectangle(Client, Colors::BackGround);
+
+		es_video->SetClip(Client);
+
+		std::string header = GetHeader();
+		if(!header.empty())
+		{
+			FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal);
+			es_video->FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
+			es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
+		}
+	}
+	else
+	{
+		es_video->SetClip(Region);
 	}
 
 	return Draw();
