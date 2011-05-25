@@ -69,6 +69,7 @@ class	MednafenEmu
 		static uint32_t					ShaderPrescaleSetting;
 		static Area						UndertuneSetting;
 		static bool						VsyncSetting;
+		static std::string				BorderSetting;
 };
 
 #endif
