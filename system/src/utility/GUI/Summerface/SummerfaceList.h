@@ -11,6 +11,22 @@ class													ListView
 		virtual bool									Draw							() {return false;};
 };
 
+class													CleanListView : public ListView
+{
+	public:
+														CleanListView					(SummerfaceList_WeakPtr aList); //External
+														~CleanListView					() {};
+														
+		virtual bool									DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
+														
+		virtual bool									Input							(); //External
+		virtual bool									Draw							(); //External
+
+	protected:
+		SummerfaceList_WeakPtr							WeakList;
+};
+
+
 class													AnchoredListView : public ListView
 {
 	public:

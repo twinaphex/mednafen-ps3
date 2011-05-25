@@ -2,12 +2,12 @@
 #include "SummerfaceItem.h"
 
 
-											SummerfaceItem::SummerfaceItem						(const std::string& aText, const std::string& aImage)
+											SummerfaceItem::SummerfaceItem						(const std::string& aText, const std::string& aImage, uint32_t aNormalColor, uint32_t aHighLightColor)
 {
 	SetText(aText);
 	SetImage(aImage);
 
-	SetColors(Colors::Normal, Colors::HighLight);
+	SetColors(aNormalColor, aHighLightColor);
 }
 
 											SummerfaceItem::~SummerfaceItem						()
