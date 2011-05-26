@@ -2,8 +2,6 @@
 #define PS3_SYSTEM_H____
 
 #include "src/stdheaders.h"
-
-
 #include "src/ESException.h"
 inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 {
@@ -27,6 +25,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/ESInput.h"
 #include "src/ESNetwork.h"
 #include "src/main.h"
+#include "src/luascripter.h"
 
 #ifdef L1GHT
 # include "l1ght/L1ghtPlatform.h"
