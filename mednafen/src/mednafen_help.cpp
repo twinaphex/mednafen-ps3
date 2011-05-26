@@ -115,6 +115,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//HACK: Attach a default border
 		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
 
+		Inputs = boost::make_shared<InputHandler>(GameInfo);
+
 		//Reset states
 		MDFND_NetworkClose();
 		SkipCount = 0;
@@ -131,7 +133,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//Create the helpers for this game
 		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
 		Surface = boost::make_shared<MDFN_Surface>(Buffer->GetPixels(), GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
-		Inputs = boost::make_shared<InputHandler>(GameInfo);
 
 		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
