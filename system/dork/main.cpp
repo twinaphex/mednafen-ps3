@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-SYS_PROCESS_PARAM(1001, 0x10000);
+SYS_PROCESS_PARAM(1001, 1024 * 1024);
 
 namespace
 {

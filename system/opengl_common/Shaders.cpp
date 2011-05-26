@@ -21,6 +21,42 @@
 
 namespace
 {
+	const char*						StockShaderSource = 
+		"void main_vertex"
+		"("
+		"	float4 position	: POSITION,"
+		"	float4 color	: COLOR,"
+		"	float2 texCoord : TEXCOORD0,"
+
+		"    uniform float4x4 modelViewProj,"
+
+		"	out float4 oPosition : POSITION,"
+		"	out float4 oColor    : COLOR,"
+		"	out float2 otexCoord : TEXCOORD"
+		")"
+		"{"
+		"	oPosition = mul(modelViewProj, position);"
+		"	oColor = color;"
+		"	otexCoord = texCoord;"
+		"}"
+		"struct output"
+		"{"
+		"  float4 color    : COLOR;"
+		"};"
+		"struct input"
+		"{"
+		"  float2 video_size;"
+		"  float2 texture_size;"
+		"  float2 output_size;"
+		"};"
+		"output main_fragment(float2 texCoord : TEXCOORD0, uniform sampler2D decal : TEXUNIT0, uniform input IN)"
+		"{"
+		"   output OUT;"
+		"   OUT.color = tex2D(decal, texCoord);"
+		"   return OUT;"
+		"}"
+	;
+
 	inline void						SetVertex							(GLfloat* aBase, float aX, float aY, float aU, float aV)
 	{
 		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f; *aBase++ = aU; *aBase++ = aV;
@@ -61,6 +97,23 @@ ShaderMap GLShaderProgram::Shaders;
 		VertexProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), VERT_PROFILE, "main_vertex", args);
 		FragmentProgram = cgCreateProgramFromFile(Context, CG_SOURCE, aFileName.c_str(), FRAG_PROFILE, "main_fragment", args);
 #endif
+	}
+	else
+	{
+#ifndef __CELLOS_LV2__
+		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_VERTEX));
+		cgGLSetOptimalOptions(cgGLGetLatestProfile(CG_GL_FRAGMENT));
+		VertexProgram = cgCreateProgram(Context, CG_SOURCE, StockShaderSource, VERT_PROFILE, "main_vertex", 0);
+		FragmentProgram = cgCreateProgram(Context, CG_SOURCE, StockShaderSource, FRAG_PROFILE, "main_fragment", 0);
+#else
+		static const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
+		VertexProgram = cgCreateProgram(Context, CG_SOURCE, StockShaderSource, VERT_PROFILE, "main_vertex", args);
+		FragmentProgram = cgCreateProgram(Context, CG_SOURCE, StockShaderSource, FRAG_PROFILE, "main_fragment", args);
+#endif
+	}
+
+	if(FragmentProgram && VertexProgram)
+	{
 		cgGLLoadProgram(VertexProgram);
 		cgGLLoadProgram(FragmentProgram);
 
@@ -82,10 +135,6 @@ ShaderMap GLShaderProgram::Shaders;
 
 		cgGLDisableProfile(VERT_PROFILE);
 		cgGLDisableProfile(FRAG_PROFILE);
-	}
-	else if(!aFileName.empty())
-	{
-		es_log->Log("Shader file not found [File: %s]", aFileName.c_str());
 	}
 }
 
