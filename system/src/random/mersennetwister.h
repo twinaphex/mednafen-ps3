@@ -67,6 +67,10 @@
 #include <ctime>
 #include <cmath>
 
+#ifdef __CELLOS_LV2__ //Need using namespace std;
+using namespace std;
+#endif
+
 class MTRand {
 // Data
 public:
