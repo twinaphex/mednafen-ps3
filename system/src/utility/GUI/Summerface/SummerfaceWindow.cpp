@@ -26,9 +26,11 @@ bool										SummerfaceWindow::PrepareDraw						()
 
 	//TODO: Make border color
 		es_video->FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
+		es_video->FillRectangle(Area(Region.X + BorderWidth, Region.Bottom(), Region.Width, BorderWidth), 0x00000080);
 		es_video->FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
 
 		es_video->FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+		es_video->FillRectangle(Area(Region.Right(), Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth), 0x00000080);
 		es_video->FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
 
 		es_video->FillRectangle(Client, Colors::BackGround);
@@ -38,7 +40,7 @@ bool										SummerfaceWindow::PrepareDraw						()
 		std::string header = GetHeader();
 		if(!header.empty())
 		{
-			FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal);
+			FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal, true);
 			es_video->FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
 			es_video->SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
 		}

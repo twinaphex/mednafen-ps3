@@ -25,7 +25,7 @@
 
 bool										SummerfaceLabel::Draw								()
 {
-	FontManager::GetBigFont()->PutString(GetMessage().c_str(), 2, 2, Colors::Normal);	
+	FontManager::GetBigFont()->PutString(GetMessage().c_str(), 2, 2, Colors::Normal, true);	
 	return false;
 }
 

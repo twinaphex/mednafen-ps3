@@ -178,7 +178,7 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 
 		if(DrawLabels)
 		{
-			List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor());
+			List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor(), true);
 		}
 	}
 	
@@ -241,7 +241,7 @@ bool										AnchoredListView::DrawItem							(SummerfaceItem_Ptr aItem, uint32
 		aX += width;
 	}
 
-	List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+	List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 
 	return false;
 }
