@@ -41,7 +41,7 @@ bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX
 
 //HACK: Use real font
 	  //  List->LabelFont->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
-		FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+		FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 
 	}
 	return false;
