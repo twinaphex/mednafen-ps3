@@ -2553,6 +2553,7 @@ static uint8 Peek(uint32 addr)
  {
    return gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF];
  }
+ return 0;
 }
 
 static void Poke(uint32 addr, uint8_t value)
