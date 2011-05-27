@@ -158,17 +158,25 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//HACK: Setup lua
 #ifdef LUA_TEST_HACK
-		Lua = new LuaScripter();
-		Lua->RegisterLibrary("emu", emulib);
-		Lua->RegisterLibrary("rom", romlib);
-		Lua->RegisterLibrary("joy", joypadlib);
-		Lua->RegisterLibrary("gui", guilib);
-		Lua->RegisterLibrary("memory", memorylib);
+		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
+		if(Utility::FileExists(luafile))
+		{
+			Lua = new LuaScripter();
+			Lua->RegisterLibrary("emu", emulib);
+			Lua->RegisterLibrary("rom", romlib);
+			Lua->RegisterLibrary("joy", joypadlib);
+			Lua->RegisterLibrary("gui", guilib);
+			Lua->RegisterLibrary("memory", memorylib);
 
-		lua_State *thread = lua_newthread(Lua->LuaState);
-		Lua->LoadScript("./test.lua");
-		lua_xmove(Lua->LuaState, thread, 1);
-		lua_setfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+			lua_State *thread = lua_newthread(Lua->LuaState);
+			Lua->LoadScript(luafile);
+			lua_xmove(Lua->LuaState, thread, 1);
+			lua_setfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+		}
+		else
+		{
+			Lua = 0;
+		}
 #endif
 
 		//Load automatic state
@@ -216,6 +224,10 @@ void						MednafenEmu::CloseGame			()
 		Buffer.reset();
 		Surface.reset();
 
+#ifdef LUA_TEST_HACK
+		delete Lua;
+#endif
+
 		free(ROMData);
 		ROMData = 0;
 		ROMSize = 0;
@@ -259,12 +271,15 @@ bool						MednafenEmu::Frame				()
 
 //HACK
 #ifdef LUA_TEST_HACK
-			lua_settop(Lua->LuaState, 0);
-			lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
-			lua_State *thread = lua_tothread(Lua->LuaState, 1);
-			if(LUA_YIELD != lua_resume(thread, 0))
+			if(Lua)
 			{
-				//TODO: ERROR
+				lua_settop(Lua->LuaState, 0);
+				lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+				lua_State *thread = lua_tothread(Lua->LuaState, 1);
+				if(LUA_YIELD != lua_resume(thread, 0))
+				{
+					//TODO: ERROR
+				}
 			}
 #endif
 
@@ -333,12 +348,15 @@ bool						MednafenEmu::Frame				()
 
 //HACK:
 #ifdef LUA_TEST_HACK
-			lua_settop(Lua->LuaState, 0);
-			lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
-			lua_State *thread = lua_tothread(Lua->LuaState, 1);
-			if(LUA_YIELD != lua_resume(thread, 0))
+			if(Lua)
 			{
-				//TODO: ERROR
+				lua_settop(Lua->LuaState, 0);
+				lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+				lua_State *thread = lua_tothread(Lua->LuaState, 1);
+				if(LUA_YIELD != lua_resume(thread, 0))
+				{
+					//TODO: ERROR
+				}
 			}
 #endif
 
@@ -383,9 +401,12 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
 #ifdef LUA_TEST_HACK
-		static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
-		memcpy(tex->GetPixels(), gui_array, 1024 * 768 * 4);
-		es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
+		if(Lua)
+		{
+			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
+			memcpy(tex->GetPixels(), gui_array, 1024 * 768 * 4);
+			es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
+		}
 #endif
 	}
 }
