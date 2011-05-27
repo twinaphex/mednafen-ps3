@@ -2553,6 +2553,17 @@ static uint8 Peek(uint32 addr)
  {
    return gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF];
  }
+ else if(addr < 0x20000)
+ {
+  if(gbCgbMode)
+  {
+    return gbWram[(addr - 0x10000) & 0x7FFF];
+  }
+  else
+  {
+    return gbWram[(addr - 0x10000) & 0x1FFF];
+  }
+ }
  return 0;
 }
 
@@ -2561,6 +2572,17 @@ static void Poke(uint32 addr, uint8_t value)
  if(addr >= 0xC000 && addr < 0xE000 && gbMemoryMap[(addr >> 12) & 0xF])
  {
   gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF] = value;
+ }
+ else if(addr < 0x20000)
+ {
+  if(gbCgbMode)
+  {
+    gbWram[(addr - 0x10000) & 0x7FFF] = value;
+  }
+  else
+  {
+    gbWram[(addr - 0x10000) & 0x1FFF] = value;
+  }
  }
 }
 
