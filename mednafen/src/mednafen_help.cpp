@@ -2,8 +2,6 @@
 #include "savestates.h"
 
 //HACK
-//#define LUA_TEST_HACK
-#ifdef LUA_TEST_HACK
 extern "C"
 {
 	#include <src/lua/lua.h>
@@ -17,7 +15,6 @@ extern luaL_reg joypadlib[];
 extern luaL_reg guilib[];
 extern luaL_reg memorylib[];
 extern uint32_t gui_array[1024 * 768];
-#endif
 
 namespace
 {
@@ -199,14 +196,13 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Surface = boost::make_shared<MDFN_Surface>(Buffer->GetPixels(), GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		//HACK: Setup lua
-#ifdef LUA_TEST_HACK
 		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
 		if(Utility::FileExists(luafile))
 		{
 			Lua = new LuaScripter();
 			Lua->RegisterLibrary("emu", emulib);
 			Lua->RegisterLibrary("rom", romlib);
-			Lua->RegisterLibrary("joy", joypadlib);
+			Lua->RegisterLibrary("joypad", joypadlib);
 			Lua->RegisterLibrary("gui", guilib);
 			Lua->RegisterLibrary("memory", memorylib);
 
@@ -219,7 +215,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		{
 			Lua = 0;
 		}
-#endif
 
 		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
@@ -266,9 +261,7 @@ void						MednafenEmu::CloseGame			()
 		Buffer.reset();
 		Surface.reset();
 
-#ifdef LUA_TEST_HACK
 		delete Lua;
-#endif
 
 		free(ROMData);
 		ROMData = 0;
@@ -312,7 +305,6 @@ bool						MednafenEmu::Frame				()
 			FrameCount ++;
 
 //HACK
-#ifdef LUA_TEST_HACK
 			if(Lua)
 			{
 				lua_settop(Lua->LuaState, 0);
@@ -320,10 +312,13 @@ bool						MednafenEmu::Frame				()
 				lua_State *thread = lua_tothread(Lua->LuaState, 1);
 				if(LUA_YIELD != lua_resume(thread, 0))
 				{
-					//TODO: ERROR
+					char buffer[1024];
+					snprintf(buffer, 1024, "Lua Error: %s", lua_tostring(thread, -1));
+					MDFND_DispMessage((UTF8*)buffer);
+					delete Lua;
+					Lua = 0;
 				}
 			}
-#endif
 
 			//Handle inputs
 			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
@@ -389,7 +384,6 @@ bool						MednafenEmu::Frame				()
 			Inputs->Process();
 
 //HACK:
-#ifdef LUA_TEST_HACK
 			if(Lua)
 			{
 				lua_settop(Lua->LuaState, 0);
@@ -397,10 +391,13 @@ bool						MednafenEmu::Frame				()
 				lua_State *thread = lua_tothread(Lua->LuaState, 1);
 				if(LUA_YIELD != lua_resume(thread, 0))
 				{
-					//TODO: ERROR
+					char buffer[1024];
+					snprintf(buffer, 1024, "Lua Error: %s", lua_tostring(thread, -1));
+					MDFND_DispMessage((UTF8*)buffer);
+					delete Lua;
+					Lua = 0;
 				}
 			}
-#endif
 
 			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 			{
@@ -442,14 +439,13 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		Buffer->Invalidate();
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
-#ifdef LUA_TEST_HACK
 		if(Lua)
 		{
 			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
 			memcpy(tex->GetPixels(), gui_array, 1024 * 768 * 4);
+			memset(gui_array, 0, sizeof(gui_array));
 			es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
 		}
-#endif
 	}
 }
 
