@@ -267,7 +267,7 @@ int								emu_getscreenpixel					(lua_State *L)
 {
 	int x = luaL_checkinteger(L, 1);
 	int y = luaL_checkinteger(L, 2);
-//TODO: What does this do?
+//TODO: What does getemuscreen do?
 //TODO: Support palette? Probably neccisary
 //	bool getemuscreen = (lua_toboolean(L,3) == 1);
 
@@ -362,16 +362,14 @@ luaL_reg emulib[] =
 /* ROM LIBRARY */
 int								rom_readbyte						(lua_State *L)
 {
-//	lua_pushinteger(L, FCEU_ReadRomByte(luaL_checkinteger(L,1)));
-//	return 1;
-	return 0;
+	lua_pushinteger(L, MednafenEmu::ReadROM(luaL_checkinteger(L,1)));
+	return 1;
 }
 
 int								rom_readbytesigned					(lua_State *L)
 {
-//	lua_pushinteger(L, (signed char)FCEU_ReadRomByte(luaL_checkinteger(L,1)));
-//	return 1;
-	return 0;
+	lua_pushinteger(L, (int8_t)MednafenEmu::ReadROM(luaL_checkinteger(L,1)));
+	return 1;
 }
 
 int								rom_gethash							(lua_State *L)
@@ -440,7 +438,112 @@ int								memory_readbyterange				(lua_State *L)
 }
 
 
-/* EMU STATE FUNCTIONS */
+/* JOYPAD LIB */
+static int						joy_get_internal					(lua_State *L, bool reportUp, bool reportDown)
+{
+	const InputHandler* inputs = MednafenEmu::GetInputs();
+
+	if(inputs)
+	{
+		int which = luaL_checkinteger(L,1);
+	
+		if (which < 1 || which > inputs->GetPadCount() + 1)
+		{
+			luaL_error(L,"Invalid input port (valid range 1-4, specified %d)", which);
+		}
+
+		which --;
+	
+		lua_newtable(L);
+	
+		for(int i = 0; i < inputs->GetButtonCount(which); i++)
+		{
+			bool pressed = inputs->GetButtonState(which, i);
+
+			if((pressed && reportDown) || (!pressed && reportUp))
+			{
+				lua_pushboolean(L, pressed ? 1 : 0);
+				lua_setfield(L, -2, inputs->GetButtonName(which, i));
+			}
+		}
+	
+		return 1;
+	}
+//TODO: Handle this how ?
+	else
+	{
+		return 0;
+	}
+}
+
+int								joypad_get							(lua_State *L)
+{
+	return joy_get_internal(L, true, true);
+}
+
+int								joypad_getdown						(lua_State *L)
+{
+	return joy_get_internal(L, false, true);
+}
+
+int								joypad_getup						(lua_State *L)
+{
+	return joy_get_internal(L, true, false);
+}
+
+/*static int joypad_set(lua_State *L) {
+
+	// Which joypad we're tampering with
+	int which = luaL_checkinteger(L,1);
+	if (which < 1 || which > 4) {
+		luaL_error(L,"Invalid output port (valid range 1-4, specified %d)", which);
+
+	}
+
+	// And the table of buttons.
+	luaL_checktype(L,2,LUA_TTABLE);
+
+	// Set up for taking control of the indicated controller
+	luajoypads1[which-1] = 0xFF; // .1  Reset right bit
+	luajoypads2[which-1] = 0x00; // 0.  Reset left bit
+
+	int i;
+	for (i=0; i < 8; i++) {
+		lua_getfield(L, 2, button_mappings[i]);
+		
+		//Button is not nil, so find out if it is true/false
+		if (!lua_isnil(L,-1))	
+		{
+			if (lua_toboolean(L,-1))							//True or string
+				luajoypads2[which-1] |= 1 << i;
+			if (lua_toboolean(L,-1) == 0 || lua_isstring(L,-1))	//False or string
+				luajoypads1[which-1] &= ~(1 << i);
+		}
+
+		else
+		{
+
+		}
+		lua_pop(L,1);
+	}
+	
+	return 0;
+}*/
+
+luaL_reg joypadlib[] =
+{
+	{"get", joypad_get},
+	{"getdown", joypad_getdown},
+	{"getup", joypad_getup},
+//	{"set", joypad_set},
+	// alternative names
+	{"read", joypad_get},
+//	{"write", joypad_set},
+	{"readdown", joypad_getdown},
+	{"readup", joypad_getup},
+	{NULL,NULL}
+};
+
 
 
 

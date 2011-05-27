@@ -29,6 +29,8 @@ class	MednafenEmu
 		static bool						IsGamePaused		() {return IsPaused;}
 		static const MDFNGI*			GetGameInfo			() {return GameInfo;}
 		static uint32_t					GetFrameCount		() {return FrameCount;}
+		static uint8_t					ReadROM				(uint32_t aOffset) {return (ROMData && (ROMSize > aOffset)) ? ROMData[aOffset] : 0;};
+		static const InputHandler*		GetInputs			() {return Inputs ? Inputs.get() : 0;}
 
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
@@ -48,6 +50,8 @@ class	MednafenEmu
 		static bool						SuspendDraw;
 
 		static MDFNGI*					GameInfo;
+		static uint8_t*					ROMData;
+		static uint32_t					ROMSize;
 		static InputHandler_Ptr			Inputs;		
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
