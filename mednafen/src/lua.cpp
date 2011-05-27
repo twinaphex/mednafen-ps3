@@ -47,6 +47,20 @@ int								emu_softreset						(lua_State *L)
 
 	return 0;
 }
+//SPEEDMODE
+
+int								emu_frameadvance					(lua_State *L)
+{
+	// We're going to sleep for a frame-advance. Take notes.
+
+//	if (frameAdvanceWaiting) 
+//		return luaL_error(L, "can't call emu.frameadvance() from here");
+
+//	frameAdvanceWaiting = TRUE;
+
+	return lua_yield(L, 0);
+}
+
 
 int								emu_pause							(lua_State *L)
 {
@@ -336,7 +350,7 @@ luaL_reg emulib[] =
 	{"poweron", emu_poweron},
 	{"softreset", emu_softreset},
 //	{"speedmode", emu_speedmode},
-//	{"frameadvance", emu_frameadvance},
+	{"frameadvance", emu_frameadvance},
 	{"pause", emu_pause},
 	{"unpause", emu_unpause},
 //	{"exec_count", emu_exec_count},
@@ -544,7 +558,114 @@ luaL_reg joypadlib[] =
 	{NULL,NULL}
 };
 
+/* GUI LIB */
+uint32_t gui_array[1024 * 768];
 
+// gui.pixel(x,y,colour)
+int								gui_pixel							(lua_State *L)
+{
+	int x = luaL_checkinteger(L, 1);
+	int y = luaL_checkinteger(L, 2);
+	uint32 colour = luaL_checkinteger(L, 3);  //?
+
+	//TODO: CHECK BOUNDS
+
+	gui_array[y * 1024 + x] = colour;
+
+	return 0;
+}
+
+int								gui_getpixel						(lua_State *L)
+{
+	int x = luaL_checkinteger(L, 1);
+	int y = luaL_checkinteger(L, 2);
+
+	int r, g, b, a;
+
+	//TODO: CHECK BOUNDS
+	//TODO: Colors aren't correct
+	uint32_t colour = gui_array[y * 1024 + x];
+	lua_pushinteger(L, colour & 0xFF);
+	lua_pushinteger(L, (colour >> 8) & 0xFF);
+	lua_pushinteger(L, (colour >> 16) & 0xFF);
+	lua_pushinteger(L, (colour >> 24) & 0xFF);
+	return 4;
+}
+
+int								gui_line							(lua_State *L)
+{
+	//TODO: 
+	return 0;
+}
+
+int								gui_box								(lua_State *L)
+{
+	int x1, y1, x2, y2;
+	uint32 fillcolor;
+	uint32 outlinecolor;
+
+	x1 = luaL_checkinteger(L,1);
+	y1 = luaL_checkinteger(L,2);
+	x2 = luaL_checkinteger(L,3);
+	y2 = luaL_checkinteger(L,4);
+//	fillcolor = gui_optcolour(L,5,LUA_BUILD_PIXEL(63, 255, 255, 255));
+//	outlinecolor = gui_optcolour(L,6,LUA_BUILD_PIXEL(255, LUA_PIXEL_R(fillcolor), LUA_PIXEL_G(fillcolor), LUA_PIXEL_B(fillcolor)));
+	fillcolor = 0xFF0000FF;
+	outlinecolor = 0xFFFFFFFF;
+
+
+	if (x1 > x2) 
+	{
+		std::swap(x1, x2);
+	}
+
+	if (y1 > y2) 
+	{
+		std::swap(y1, y2);
+	}
+
+	for(int i = y1; i != y2; i ++)
+	{
+		for(int j = x1; j != x2; j ++)
+		{
+			gui_array[i * 1024 + j] = (i == y1 || i == (y2 - 1) || j == x1 || j == (x2 - 1)) ? outlinecolor : fillcolor;
+		}
+	}
+
+	return 0;
+}
+
+luaL_reg guilib[] =
+{
+	{"pixel", gui_pixel},
+	{"getpixel", gui_getpixel},
+	{"line", gui_line},
+	{"box", gui_box},
+//	{"text", gui_text},
+
+//	{"savescreenshot",   gui_savescreenshot},
+//	{"savescreenshotas", gui_savescreenshotas},
+//	{"gdscreenshot", gui_gdscreenshot},
+//	{"gdoverlay", gui_gdoverlay},
+//	{"opacity", gui_setopacity},
+//	{"transparency", gui_transparency},
+
+//	{"register", gui_register},
+
+//	{"popup", gui_popup},
+	// alternative names
+//	{"drawtext", gui_text},
+	{"drawbox", gui_box},
+	{"drawline", gui_line},
+	{"drawpixel", gui_pixel},
+	{"setpixel", gui_pixel},
+	{"writepixel", gui_pixel},
+	{"rect", gui_box},
+	{"drawrect", gui_box},
+//	{"drawimage", gui_gdoverlay},
+//	{"image", gui_gdoverlay},
+	{NULL,NULL}
+};
 
 
 
@@ -590,25 +711,6 @@ luaL_reg joypadlib[] =
 }*/
 
 
-/*
-// emu.frameadvance()
-//
-//  Executes a frame advance. Occurs by yielding the coroutine, then re-running
-//  when we break out.
-int emu_frameadvance(lua_State *L) {
-	// We're going to sleep for a frame-advance. Take notes.
-
-	if (frameAdvanceWaiting) 
-		return luaL_error(L, "can't call emu.frameadvance() from here");
-
-	frameAdvanceWaiting = TRUE;
-
-	// Now we can yield to the main 
-	return lua_yield(L, 0);
-
-
-	// It's actually rather disappointing...
-}*/
 
 
 

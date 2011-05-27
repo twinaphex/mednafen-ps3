@@ -14,6 +14,8 @@ extern "C"
 extern luaL_reg emulib[];
 extern luaL_reg romlib[];
 extern luaL_reg joypadlib[];
+extern luaL_reg guilib[];
+extern uint32_t gui_array[1024 * 768];
 #endif
 
 namespace
@@ -159,7 +161,12 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Lua->RegisterLibrary("emu", emulib);
 		Lua->RegisterLibrary("rom", romlib);
 		Lua->RegisterLibrary("joy", joypadlib);
+		Lua->RegisterLibrary("gui", guilib);
+
+		lua_State *thread = lua_newthread(Lua->LuaState);
 		Lua->LoadScript("./test.lua");
+		lua_xmove(Lua->LuaState, thread, 1);
+		lua_setfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
 #endif
 
 		//Load automatic state
@@ -250,7 +257,13 @@ bool						MednafenEmu::Frame				()
 
 //HACK
 #ifdef LUA_TEST_HACK
-			Lua->Call("testFn");
+			lua_settop(Lua->LuaState, 0);
+			lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+			lua_State *thread = lua_tothread(Lua->LuaState, 1);
+			if(LUA_YIELD != lua_resume(thread, 0))
+			{
+				//TODO: ERROR
+			}
 #endif
 
 			//Handle inputs
@@ -318,7 +331,13 @@ bool						MednafenEmu::Frame				()
 
 //HACK:
 #ifdef LUA_TEST_HACK
-			Lua->Call("testFn");
+			lua_settop(Lua->LuaState, 0);
+			lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
+			lua_State *thread = lua_tothread(Lua->LuaState, 1);
+			if(LUA_YIELD != lua_resume(thread, 0))
+			{
+				//TODO: ERROR
+			}
 #endif
 
 			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
@@ -360,6 +379,12 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
 		Buffer->Invalidate();
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
+
+#ifdef LUA_TEST_HACK
+		static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
+		memcpy(tex->GetPixels(), gui_array, 1024 * 768 * 4);
+		es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
+#endif
 	}
 }
 
