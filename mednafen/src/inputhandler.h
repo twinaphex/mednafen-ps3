@@ -12,7 +12,14 @@ class												InputHandler
 		void										Configure						();
 		void										ReadSettings					();
 		static void									GenerateSettings				(std::vector<MDFNSetting>& aSettings);
-		
+
+	public: //Inlines
+		//TODO: FIXME: These will crash if given bad values
+		uint32_t									GetPadCount						() const {return GameInfo->InputInfo->InputPorts;}
+		uint32_t									GetButtonCount					(uint32_t aPad) const {return Inputs.size();}
+		bool										GetButtonState					(uint32_t aPad, uint32_t aButton) const {return ControllerBits[aPad][Inputs[aButton].BitOffset / 8] & (1 << (Inputs[aButton].BitOffset % 8));}
+		const char*									GetButtonName					(uint32_t aPad, uint32_t aButton) const {return Inputs[aButton].Data->SettingName;}
+
 		struct										InputInfo
 		{
 			uint32_t								BitOffset;

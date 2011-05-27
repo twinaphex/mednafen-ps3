@@ -2,6 +2,7 @@
 #include "savestates.h"
 
 //HACK
+//#define LUA_TEST_HACK
 #ifdef LUA_TEST_HACK
 extern "C"
 {
@@ -12,6 +13,7 @@ extern "C"
 
 extern luaL_reg emulib[];
 extern luaL_reg romlib[];
+extern luaL_reg joypadlib[];
 #endif
 
 namespace
@@ -124,6 +126,9 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 
+		ROMData = (uint8_t*)aData;
+		ROMSize = aSize;
+
 		//HACK: Attach a default border
 		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
 
@@ -153,6 +158,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Lua = new LuaScripter();
 		Lua->RegisterLibrary("emu", emulib);
 		Lua->RegisterLibrary("rom", romlib);
+		Lua->RegisterLibrary("joy", joypadlib);
 		Lua->LoadScript("./test.lua");
 #endif
 
@@ -200,6 +206,10 @@ void						MednafenEmu::CloseGame			()
 		Inputs.reset();
 		Buffer.reset();
 		Surface.reset();
+
+		free(ROMData);
+		ROMData = 0;
+		ROMSize = 0;
 
 		IsLoaded = false;
 	}
@@ -589,6 +599,8 @@ MDFN_Surface_Ptr			MednafenEmu::Surface ;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
+uint8_t*					MednafenEmu::ROMData = 0;
+uint32_t					MednafenEmu::ROMSize = 0;
 InputHandler_Ptr			MednafenEmu::Inputs;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
