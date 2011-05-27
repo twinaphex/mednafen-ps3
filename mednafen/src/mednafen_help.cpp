@@ -15,6 +15,7 @@ extern luaL_reg emulib[];
 extern luaL_reg romlib[];
 extern luaL_reg joypadlib[];
 extern luaL_reg guilib[];
+extern luaL_reg memorylib[];
 extern uint32_t gui_array[1024 * 768];
 #endif
 
@@ -162,6 +163,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Lua->RegisterLibrary("rom", romlib);
 		Lua->RegisterLibrary("joy", joypadlib);
 		Lua->RegisterLibrary("gui", guilib);
+		Lua->RegisterLibrary("memory", memorylib);
 
 		lua_State *thread = lua_newthread(Lua->LuaState);
 		Lua->LoadScript("./test.lua");
