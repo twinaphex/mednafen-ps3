@@ -3281,6 +3281,34 @@ static void DoSimpleCommand(int cmd)
  }
 }
 
+//ROBO: Peek + Poke
+static uint8 Peek(uint32 addr)
+{
+ if(addr >= 0x2000000 && addr < 0x2040000)
+ {
+  return workRAM[addr & 0x3FFFF];
+ }
+ else if(addr >= 0x3000000 && addr < 0x3008000)
+ {
+  return internalRAM[addr & 0x7FFF];
+ }
+
+ return 0;
+}
+
+static void Poke(uint32 addr, uint8_t value)
+{
+ if(addr >= 0x2000000 && addr < 0x2040000)
+ {
+  workRAM[addr & 0x3FFFF] = value;
+ }
+ else if(addr >= 0x3000000 && addr < 0x3008000)
+ {
+  internalRAM[addr & 0x7FFF] = value;
+ }
+}
+
+
 static MDFNSetting GBASettings[] =
 {
  { "gba.bios", 	MDFNSF_EMU_STATE,	gettext_noop("Path to optional GBA BIOS ROM image."), NULL, MDFNST_STRING, "" },
@@ -3379,5 +3407,8 @@ MDFNGI EmulatedGBA =
  160,	// Framebuffer height
 
  2,	// Number of output sound channels
+//ROBO: Peek+Poke
+ Peek,
+ Poke
 };
 
