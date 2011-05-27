@@ -57,6 +57,12 @@ namespace
 	lua_close(LuaState);
 }
 
+void						LuaScripter::RegisterLibrary				(const std::string& aName, const luaL_Reg* aLibrary)
+{
+	luaL_register(LuaState, aName.c_str(), aLibrary);
+	lua_pop(LuaState, 1);
+}
+
 void						LuaScripter::RegisterFunction				(const std::string& aName, LuaFunction aFunction)
 {
 	lua_register(LuaState, aName.c_str(), aFunction);
