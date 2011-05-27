@@ -26,7 +26,7 @@ class								LuaScripter
 //		const TiXmlNode*			InsertData						(uint32_t aID, const std::string& aFileName, const std::string& aName);
 //		void						DeleteData						(uint32_t aID);
 
-	private:
+	public: //HACK
 
 		lua_State*					LuaState;
 };

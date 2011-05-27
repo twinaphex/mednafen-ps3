@@ -70,7 +70,7 @@ void						LuaScripter::RegisterFunction				(const std::string& aName, LuaFunctio
 
 void						LuaScripter::LoadScript						(const std::string& aFileName)
 {
-	ErrorCheck(0 == luaL_dofile(LuaState, aFileName.c_str()), "Lua Scripter: Failed to load script file [File: %s]", aFileName.c_str());
+	ErrorCheck(0 == luaL_loadfile(LuaState, aFileName.c_str()), "Lua Scripter: Failed to load script file [File: %s, Error: %s]", aFileName.c_str(), lua_tostring(LuaState, -1));
 }
 
 bool						LuaScripter::IsFunction						(const std::string& aFunction)
