@@ -20,10 +20,13 @@ class	MednafenEmu
 
 		static void						DoCommands			();
 		static bool						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow);
+		static void						SetPause			(bool aPause);
 
 	public:		//Inlines
 		static bool						IsGameLoaded		() {return IsInitialized && IsLoaded;}
 		static bool						IsEmuInitialized	() {return IsInitialized;}
+		static bool						IsGamePaused		() {return IsPaused;}
+		static const MDFNGI*			GetGameInfo			() {return GameInfo;}
 
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
@@ -36,6 +39,7 @@ class	MednafenEmu
 	protected:
 		static bool						IsInitialized;
 		static bool						IsLoaded;
+		static bool						IsPaused;
 	
 		static Texture_Ptr				Buffer;
 		static MDFN_Surface_Ptr			Surface;
@@ -45,6 +49,7 @@ class	MednafenEmu
 		static InputHandler_Ptr			Inputs;		
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
+		static LuaScripter*				Lua; //TODO: Make shared_ptr
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;

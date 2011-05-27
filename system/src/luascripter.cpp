@@ -9,33 +9,36 @@ extern "C"
 	#include <lualib.h>
 }
 
-static int							luaDisplayMessage					(lua_State* L)
+namespace
 {
-	ErrorCheck(lua_gettop(L) == 1 && lua_isstring(L, 1), "Lua: luaDisplayMessage argument error");
+	int						luaDisplayMessage							(lua_State* L)
+	{
+		ErrorCheck(lua_gettop(L) == 1 && lua_isstring(L, 1), "Lua: luaDisplayMessage argument error");
 
-	ESSUB_Error(lua_tostring(L, 1));
-	return 0;
-}
+		ESSUB_Error(lua_tostring(L, 1));
+		return 0;
+	}
 
-static int							luaLogMessage						(lua_State* L)
-{
-	ErrorCheck(lua_gettop(L) == 1 && lua_isstring(L, 1), "Lua: luaLogMessage argument error");
+	int						luaLogMessage								(lua_State* L)
+	{
+		ErrorCheck(lua_gettop(L) == 1 && lua_isstring(L, 1), "Lua: luaLogMessage argument error");
 
-	es_log->Log(lua_tostring(L, 1));
-	return 0;
-}
+		es_log->Log(lua_tostring(L, 1));
+		return 0;
+	}
 
-static int							luaRandom							(lua_State* L)
-{
-	static MTRand mtrng(time(0));
+	int						luaRandom									(lua_State* L)
+	{
+		static MTRand mtrng(time(0));
 
-	ErrorCheck(lua_gettop(L) == 2 && lua_isnumber(L, 1) && lua_isnumber(L, 2), "Lua: luaRandom argument error");
+		ErrorCheck(lua_gettop(L) == 2 && lua_isnumber(L, 1) && lua_isnumber(L, 2), "Lua: luaRandom argument error");
 
-	int result = mtrng.randInt(lua_tonumber(L, 2));
-	result += lua_tonumber(L, 1);
-	lua_pushnumber(L, result);
+		int result = mtrng.randInt(lua_tonumber(L, 2));
+		result += lua_tonumber(L, 1);
+		lua_pushnumber(L, result);
 
-	return 1;
+		return 1;
+	}
 }
 
 							LuaScripter::LuaScripter					()
@@ -54,6 +57,16 @@ static int							luaRandom							(lua_State* L)
 	lua_close(LuaState);
 }
 
+void						LuaScripter::RegisterFunction				(const std::string& aName, LuaFunction aFunction)
+{
+	lua_register(LuaState, aName.c_str(), aFunction);
+}
+
+void						LuaScripter::LoadScript						(const std::string& aFileName)
+{
+	ErrorCheck(0 == luaL_dofile(LuaState, aFileName.c_str()), "Lua Scripter: Failed to load script file [File: %s]", aFileName.c_str());
+}
+
 bool						LuaScripter::IsFunction						(const std::string& aFunction)
 {
 	lua_getglobal(LuaState, aFunction.c_str());
@@ -61,11 +74,6 @@ bool						LuaScripter::IsFunction						(const std::string& aFunction)
 	lua_pop(LuaState, 1);
 	return result;
 
-}
-
-void						LuaScripter::LoadScript						(const std::string& aFileName)
-{
-	ErrorCheck(0 == luaL_dofile(LuaState, aFileName.c_str()), "Lua Scripter: Failed to load script file [File: %s]", aFileName.c_str());
 }
 
 uint32_t					LuaScripter::Call							(const std::string& aFunction)
