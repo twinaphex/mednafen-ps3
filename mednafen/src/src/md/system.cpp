@@ -458,6 +458,29 @@ static int StateAction(StateMem *sm, int load, int data_only)
  return(ret);
 }
 
+//ROBO: Peek + Poke
+static uint8 Peek(uint32 addr)
+{
+//  SFARRAY(work_ram, 65536),
+//  SFARRAY(zram, 8192),
+
+ if(addr >= 0xFF0000 && addr < 0x1000000)
+ {
+  return work_ram[addr & 0xFFFF];
+ }
+
+ return 0;
+}
+
+static void Poke(uint32 addr, uint8_t value)
+{
+ if(addr >= 0xFF0000 && addr < 0x1000000)
+ {
+  work_ram[addr & 0xFFFF] = value;
+ }
+}
+
+
 static const MDFNSetting_EnumList RegionList[] =
 {
  { "game", REGION_GAME, gettext_noop("Match game's header."), gettext_noop("Emulate the region that the game indicates it expects to run in via data in the header(or in an internal database for a few games that may have bad header data).") },
@@ -561,5 +584,9 @@ MDFNGI EmulatedMD =
  512,	// Framebuffer height
 
  2,     // Number of output sound channels
+//ROBO: Peek+Poke
+ Peek,
+ Poke
+ 
 };
 
