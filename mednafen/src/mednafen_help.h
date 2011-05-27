@@ -21,12 +21,14 @@ class	MednafenEmu
 		static void						DoCommands			();
 		static bool						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow);
 		static void						SetPause			(bool aPause);
+		static uint32_t					GetPixel			(uint32_t aX, uint32_t aY);
 
 	public:		//Inlines
 		static bool						IsGameLoaded		() {return IsInitialized && IsLoaded;}
 		static bool						IsEmuInitialized	() {return IsInitialized;}
 		static bool						IsGamePaused		() {return IsPaused;}
 		static const MDFNGI*			GetGameInfo			() {return GameInfo;}
+		static uint32_t					GetFrameCount		() {return FrameCount;}
 
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
@@ -64,6 +66,7 @@ class	MednafenEmu
 		static int16_t					SamplesUp[48000];
 		static bool						SkipNext;
 		static uint32_t					SkipCount;
+		static uint32_t					FrameCount;
 
 		//Setting cache
 		static bool						RewindSetting;

@@ -1,6 +1,7 @@
 #pragma once
 
 struct lua_State;
+struct luaL_Reg;
 
 typedef int (*LuaFunction)(lua_State* L);
 class								LuaScripter
@@ -9,6 +10,7 @@ class								LuaScripter
 									LuaScripter						();
 									~LuaScripter					();
 
+		void						RegisterLibrary					(const std::string& aName, const luaL_Reg* aLibrary);
 		void						RegisterFunction				(const std::string& aName, LuaFunction aFunction);
 
 		void						LoadScript						(const std::string& aFileName);

@@ -2,19 +2,17 @@
 #include "savestates.h"
 
 //HACK
-/*extern "C"
+#ifdef LUA_TEST_HACK
+extern "C"
 {
 	#include <src/lua/lua.h>
 	#include <src/lua/lauxlib.h>
 	#include <src/lua/lualib.h>
 }
 
-extern int emu_setrenderplanes(lua_State *L);
-extern int emu_poweron(lua_State *L);
-extern int emu_softreset(lua_State *L);
-extern int emu_pause(lua_State *L);
-extern int emu_unpause(lua_State *L);
-extern int emu_message(lua_State *L);*/
+extern luaL_reg emulib[];
+extern luaL_reg romlib[];
+#endif
 
 namespace
 {
@@ -134,6 +132,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//Reset states
 		MDFND_NetworkClose();
 		SkipCount = 0;
+		FrameCount = 0;
 		SkipNext = false;
 		IsLoaded = true;
 		IsPaused = false;
@@ -150,15 +149,12 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Surface = boost::make_shared<MDFN_Surface>(Buffer->GetPixels(), GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		//HACK: Setup lua
-/*		Lua = new LuaScripter();
-		Lua->RegisterFunction("ToggleLayers", emu_setrenderplanes);
-		Lua->RegisterFunction("poweron", emu_poweron);
-		Lua->RegisterFunction("softreset", emu_softreset);
-		Lua->RegisterFunction("pause", emu_pause);
-		Lua->RegisterFunction("unpause", emu_unpause);
-		Lua->RegisterFunction("message", emu_message);
-		Lua->LoadScript("./test.lua");*/
-		
+#ifdef LUA_TEST_HACK
+		Lua = new LuaScripter();
+		Lua->RegisterLibrary("emu", emulib);
+		Lua->RegisterLibrary("rom", romlib);
+		Lua->LoadScript("./test.lua");
+#endif
 
 		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
@@ -240,9 +236,12 @@ bool						MednafenEmu::Frame				()
 
 			Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
 			Counter.Tick(EmulatorSpec.skip);
+			FrameCount ++;
 
 //HACK
-//			Lua->Call("testFn");
+#ifdef LUA_TEST_HACK
+			Lua->Call("testFn");
+#endif
 
 			//Handle inputs
 			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
@@ -308,7 +307,9 @@ bool						MednafenEmu::Frame				()
 			Inputs->Process();
 
 //HACK:
-//			Lua->Call("testFn");
+#ifdef LUA_TEST_HACK
+			Lua->Call("testFn");
+#endif
 
 			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 			{
@@ -514,6 +515,18 @@ void						MednafenEmu::SetPause			(bool aPause)
 	}
 }
 
+uint32_t					MednafenEmu::GetPixel			(uint32_t aX, uint32_t aY)
+{
+	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+	if(aX < output.Width && aY < output.Height)
+	{
+		return Surface->pixels[aY * Surface->pitchinpix + aX];
+	}
+
+	//?
+	return 0xFF00FF00;
+}
+
 void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
 	if(IsGameLoaded())
@@ -594,6 +607,7 @@ int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
+uint32_t					MednafenEmu::FrameCount = 0;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
