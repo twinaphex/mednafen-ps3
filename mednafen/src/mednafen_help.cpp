@@ -29,6 +29,48 @@ namespace
 		{0, 0, 0, 0}
 	};
 
+	MDFNSetting_EnumList*		BuildShaderEnum					()
+	{
+		static MDFNSetting_EnumList* results = 0;
+		int onresult = 1;
+
+		if(results == 0)
+		{
+			std::vector<std::string> shaders;
+			if(Utility::ListDirectory(es_paths->Build("assets/presets"), shaders))
+			{
+				std::sort(shaders.begin(), shaders.end());
+
+				results = new MDFNSetting_EnumList[shaders.size() + 2];
+				results[0].string = "Standard";
+				results[0].number = -1;
+				results[0].description = "Standard";
+				results[0].description_extra = "";
+
+				for(std::vector<std::string>::iterator i = shaders.begin(); i != shaders.end(); i ++)
+				{
+					results[onresult].string = strdup(i->c_str());
+					results[onresult].number = onresult;
+					results[onresult].description = results[onresult].string;
+					results[onresult++].description_extra = 0;
+				}
+
+				memset(&results[onresult], 0, sizeof(results[0]));
+			}
+			else
+			{
+				results = new MDFNSetting_EnumList[2];
+				results[0].string = "Standard";
+				results[0].number = -1;
+				results[0].description = "Standard";
+				results[0].description_extra = "";
+				memset(&results[1], 0, sizeof(results[1]));
+			}
+		}
+
+		return results;
+	}
+
 
 	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".es." + b).c_str())
 
@@ -41,7 +83,7 @@ namespace
 		{"undertuneright", MDFNSF_NOFLAGS, "Fine tune underscan at right of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" },
-		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_STRING, ""},
+		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 },
 		{"shader.prescale", MDFNSF_NOFLAGS, "Integer scale factor to apply before passing to shader", NULL, MDFNST_INT, "1", "1", "4" },
 		{"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" },
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
@@ -616,7 +658,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
 			ShaderPrescaleSetting = MDFN_GetSettingI(SETTINGNAME("shader.prescale"));
-			es_video->SetFilter(ShaderSetting, ShaderPrescaleSetting);
+			es_video->SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), ShaderPrescaleSetting);
 		}
 	}
 }
@@ -631,6 +673,10 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 	
 			MDFNSetting thisone;
 			memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));
+			if(strcmp(thisone.name, "shader.preset") == 0)
+			{
+				thisone.enum_list = BuildShaderEnum();
+			}
 			//TODO: This strdup will not be freed
 			thisone.name = strdup(myname.c_str());
 			aSettings.push_back(thisone);
