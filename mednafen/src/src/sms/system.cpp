@@ -384,16 +384,15 @@ static bool ToggleLayer(int which)
 //ROBO: Peek + Poke
 static uint8 Peek(uint32 addr)
 {
- if(addr <= 0xC000)
+ if(addr >= 0xC000 && addr < 0x10000)
  {
-  return 0;
+  return sms.wram[addr & 0x1FFF];
  }
- return sms.wram[addr & 0x1FFF];
 }
 
 static void Poke(uint32 addr, uint8_t value)
 {
- if(addr >= 0xC000)
+ if(addr >= 0xC000 && addr < 0x10000)
  {
   sms.wram[addr & 0x1FFF] = value;
  }

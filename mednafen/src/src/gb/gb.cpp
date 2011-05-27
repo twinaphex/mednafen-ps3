@@ -2546,6 +2546,23 @@ static void DoSimpleCommand(int cmd)
  }
 }
 
+//ROBO: Peek + Poke
+static uint8 Peek(uint32 addr)
+{
+ if(addr < 0x10000 && gbMemoryMap[(addr >> 12) & 0xF])
+ {
+   return gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF];
+ }
+}
+
+static void Poke(uint32 addr, uint8_t value)
+{
+ if(addr >= 0xC000 && addr < 0xE000 && gbMemoryMap[(addr >> 12) & 0xF])
+ {
+  gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF] = value;
+ }
+}
+
 static MDFNSetting GBSettings[] =
 {
  { NULL }
@@ -2638,4 +2655,8 @@ MDFNGI EmulatedGB =
  144,	// Framebuffer height
 
  2,     // Number of output sound channels
+//ROBO: Peek+poke
+ Peek,
+ Poke
 };
+
