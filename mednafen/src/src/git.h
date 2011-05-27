@@ -341,6 +341,9 @@ typedef struct
 
  int soundchan; 	// Number of output sound channels.
 
+ uint8 (*Peek)(uint32 addr);
+ void (*Poke)(uint32 addr, uint8_t value);
+
 
  int rotated;
 

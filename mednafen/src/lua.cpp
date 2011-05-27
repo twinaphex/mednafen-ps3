@@ -422,14 +422,43 @@ luaL_reg romlib[] =
 /* MEMORY FUNCTIONS */
 int								memory_readbyte						(lua_State *L)
 {
-//	lua_pushinteger(L, FCEU_CheatGetByte(luaL_checkinteger(L,1)));
-//	return 1;
-	return 0;
+	const MDFNGI* info = MednafenEmu::GetGameInfo();
+	if(info && info->Peek)
+	{
+		lua_pushinteger(L, info->Peek(luaL_checkinteger(L, 1)));
+	}
+	else
+	{
+		lua_pushinteger(L, 0);
+	}
+
+	return 1;
+}
+
+int								memory_readbytesigned				(lua_State *L)
+{
+	const MDFNGI* info = MednafenEmu::GetGameInfo();
+	if(info && info->Peek)
+	{
+		int32_t value = (int8_t)info->Peek(luaL_checkinteger(L, 1));
+		lua_pushinteger(L, value);
+	}
+	else
+	{
+		lua_pushinteger(L, 0);
+	}
+
+	return 1;
 }
 
 int								memory_writebyte					(lua_State *L)
 {
-//	FCEU_CheatSetByte(luaL_checkinteger(L,1), luaL_checkinteger(L,2));
+	const MDFNGI* info = MednafenEmu::GetGameInfo();
+	if(info && info->Poke)
+	{
+		info->Poke(luaL_checkinteger(L,1), luaL_checkinteger(L,2));
+	}
+
 	return 0;
 }
 
@@ -450,6 +479,29 @@ int								memory_readbyterange				(lua_State *L)
 	
 	return 1;*/
 }
+
+luaL_reg memorylib [] = {
+
+	{"readbyte", memory_readbyte},
+//	{"readbyterange", memory_readbyterange},
+	{"readbytesigned", memory_readbytesigned},
+	// alternate naming scheme for unsigned
+	{"readbyteunsigned", memory_readbyte},
+	{"writebyte", memory_writebyte},
+//	{"getregister", memory_getregister},
+//	{"setregister", memory_setregister},
+	
+	// memory hooks
+//	{"registerwrite", memory_registerwrite},
+	//{"registerread", memory_registerread}, TODO
+//	{"registerexec", memory_registerexec},
+	// alternate names
+//	{"register", memory_registerwrite},
+//	{"registerrun", memory_registerexec},
+//	{"registerexecute", memory_registerexec},
+
+	{NULL,NULL}
+};
 
 
 /* JOYPAD LIB */
