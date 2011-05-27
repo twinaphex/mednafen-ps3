@@ -2,11 +2,14 @@
 
 struct lua_State;
 
+typedef int (*LuaFunction)(lua_State* L);
 class								LuaScripter
 {
 	public:
 									LuaScripter						();
 									~LuaScripter					();
+
+		void						RegisterFunction				(const std::string& aName, LuaFunction aFunction);
 
 		void						LoadScript						(const std::string& aFileName);
 
