@@ -381,6 +381,24 @@ static bool ToggleLayer(int which)
  return(TRUE);
 }
 
+//ROBO: Peek + Poke
+static uint8 Peek(uint32 addr)
+{
+ if(addr <= 0xC000)
+ {
+  return 0;
+ }
+ return sms.wram[addr & 0x1FFF];
+}
+
+static void Poke(uint32 addr, uint8_t value)
+{
+ if(addr >= 0xC000)
+ {
+  sms.wram[addr & 0x1FFF] = value;
+ }
+}
+
 static MDFNSetting_EnumList Territory_List[] =
 {
  { "domestic", TERRITORY_DOMESTIC, gettext_noop("Domestic(Japanese)") },
@@ -451,6 +469,9 @@ MDFNGI EmulatedSMS =
  256,	// Framebuffer height
 
  2,     // Number of output sound channels
+//ROBO: Peek+poke
+ Peek,
+ Poke
 };
 
 MDFNGI EmulatedGG =
@@ -492,5 +513,8 @@ MDFNGI EmulatedGG =
  256,	// Framebuffer height 
 
  2,     // Number of output sound channels
+//ROBO: Peek+poke
+ Peek,
+ Poke
 };
 
