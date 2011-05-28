@@ -6,7 +6,7 @@ class								GLShaderProgram
 {
 	public:
 									GLShaderProgram			(CGcontext& aContext, const std::string& aFileName);
-		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount);
+		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount);
 
 	public:
 		static GLShaderProgram*		Get						(CGcontext& aContext, const std::string& aFileName);
@@ -38,7 +38,7 @@ class								GLShader
 
 		void						Apply					();
 		void						SetViewport				(float aLeft, float aRight, float aTop, float aBottom);
-		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight);
+		void						Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight);
 		void						Present					(GLuint aSourceTexture, GLuint aBorderTexture = 0);
 
 		void						SetNext					(GLShader* aNext) {Next = aNext;}
@@ -58,6 +58,8 @@ class								GLShader
 
 		uint32_t					InWidth;
 		uint32_t					InHeight;
+		uint32_t					TextureWidth;
+		uint32_t					TextureHeight;
 		uint32_t					FrameCount;
 
 		GLuint						TextureID;

@@ -138,7 +138,7 @@ ShaderMap GLShaderProgram::Shaders;
 	}
 }
 
-void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount)
+void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount)
 {
 	if(FragmentProgram && VertexProgram)
 	{
@@ -151,11 +151,11 @@ void								GLShaderProgram::Apply				(uint32_t aInWidth, uint32_t aInHeight, ui
 		/* Update shader params */
 		if(Projection)			cgGLSetStateMatrixParameter(Projection, CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
 		if(FragmentVideoSize)	cgGLSetParameter2f(FragmentVideoSize, aInWidth, aInHeight);
-		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, aInWidth, aInHeight);
+		if(FragmentTextureSize)	cgGLSetParameter2f(FragmentTextureSize, aTextureWidth, aTextureHeight);
 		if(FragmentOutputSize)	cgGLSetParameter2f(FragmentOutputSize, aOutWidth, aOutHeight);
 		if(FragmentFrameCount)	cgGLSetParameter1f(FragmentFrameCount, aFrameCount);
 		if(VertexVideoSize)		cgGLSetParameter2f(VertexVideoSize, aInWidth, aInHeight);
-		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aInWidth, aInHeight);
+		if(VertexTextureSize)	cgGLSetParameter2f(VertexTextureSize, aTextureWidth, aTextureHeight);
 		if(VertexOutputSize)	cgGLSetParameter2f(VertexOutputSize, aOutWidth, aOutHeight);
 		if(VertexFrameCount)	cgGLSetParameter1f(VertexFrameCount, aFrameCount);
 	}
@@ -282,7 +282,7 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 
 void								GLShader::Apply						()
 {
-	Program->Apply(InWidth, InHeight, Output.Width, Output.Height, FrameCount);
+	Program->Apply(InWidth, InHeight, TextureWidth, TextureHeight, Output.Width, Output.Height, FrameCount);
 }
 
 void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
@@ -294,14 +294,16 @@ void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, flo
 	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 }
 
-void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight)
+void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight)
 {
 	/* Copy settings */
-	if(Output != aOutput || InWidth != aInWidth || InHeight != aInHeight)
+	if(Output != aOutput || InWidth != aInWidth || InHeight != aInHeight || TextureWidth != aTextureWidth || TextureHeight != aTextureHeight)
 	{
 		Output = aOutput;
 		InWidth = aInWidth;
 		InHeight = aInHeight;
+		TextureWidth = aTextureWidth;
+		TextureHeight = aTextureHeight;
 
 		/* Update smoothing */
 		glBindTexture(GL_TEXTURE_2D, TextureID);
@@ -334,7 +336,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 
 	if(Next)
 	{
-		Next->Set(aOutput, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
+		Next->Set(aOutput, aInWidth * ScaleFactor, aInHeight * ScaleFactor, Output.Width, Output.Height);
 	}
 }
 
