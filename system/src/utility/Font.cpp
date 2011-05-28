@@ -116,7 +116,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 			character->TextureArea = Area(0, 0, character->CharTexture->GetWidth(), character->CharTexture->GetHeight());
 			character->CharTexture->Clear(0);
 		
-			uint32_t* pixels = character->CharTexture->GetPixels();
+			uint32_t* pixels = character->CharTexture->Map();
 			uint32_t pitch = character->CharTexture->GetPitch();
 	
 			for(int y = 0; y != FontFace->glyph->bitmap.rows; y ++)
@@ -128,6 +128,8 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 					pixels[y * pitch + x] = character->CharTexture->ConvertPixel(0xFF, 0xFF, 0xFF, row[x]);
 				}
 			}
+
+			character->CharTexture->Unmap();
 		}
 		else
 		{

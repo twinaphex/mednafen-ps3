@@ -12,7 +12,8 @@ class								Texture
 		virtual						~Texture				() {};
 
 		virtual void				Clear					(uint32_t aColor) = 0; //Pure Virtual
-		virtual uint32_t*			GetPixels				() = 0; //Pure Virtual
+		virtual uint32_t*			Map						() = 0; //Pure Virtual
+		virtual void				Unmap					() = 0;
 
 		virtual void				Invalidate				() {esValid = false;}
 
