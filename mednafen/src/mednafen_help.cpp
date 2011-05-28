@@ -46,10 +46,13 @@ namespace
 
 				for(std::vector<std::string>::iterator i = shaders.begin(); i != shaders.end(); i ++)
 				{
-					results[onresult].string = strdup(i->c_str());
-					results[onresult].number = onresult;
-					results[onresult].description = results[onresult].string;
-					results[onresult++].description_extra = 0;
+					if((*i) != "." && (*i) != "..")
+					{
+						results[onresult].string = strdup(i->c_str());
+						results[onresult].number = onresult;
+						results[onresult].description = results[onresult].string;
+						results[onresult++].description_extra = 0;
+					}
 				}
 
 				memset(&results[onresult], 0, sizeof(results[0]));
