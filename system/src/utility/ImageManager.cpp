@@ -50,9 +50,11 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 	uint32_t copyWidth = std::min(Width, aTexture->GetWidth());
 	uint32_t copyHeight = std::min(Height, aTexture->GetHeight());
 
+	uint32_t* texPixels = aTexture->Map();
+
 	for(int i = 0; i != copyHeight; i ++)
 	{
-		uint32_t* dest = aTexture->GetPixels() + (aTexture->GetPitch() * i);
+		uint32_t* dest = texPixels + (aTexture->GetPitch() * i);
 		uint8_t* source = row_pointers[i];
 
 		for(int j = 0; j != copyWidth; j ++)
@@ -64,6 +66,8 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 			*dest++ = aTexture->ConvertPixel(r, g, b, a);
 		}
 	}
+
+	aTexture->Unmap();
 }
 
 void										ImageManager::Purge									()

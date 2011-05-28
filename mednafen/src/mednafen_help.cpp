@@ -196,7 +196,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Create the helpers for this game
 		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
-		Surface = boost::make_shared<MDFN_Surface>(Buffer->GetPixels(), GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
+		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		//HACK: Setup lua
 		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
@@ -349,9 +349,16 @@ bool						MednafenEmu::Frame				()
 					if(DisplayFPSSetting)
 					{
 						char buffer[128];
+
+#if defined(__CELLOS_LV2__) && defined(CELL_MEM_WATCH)
+						sys_memory_info_t mit;
+						sys_memory_get_user_memory_size(&mit);
+						snprintf(buffer, 128, "%d/%d", mit.available_user_memory / 1024 / 1024, mit.total_user_memory / 1024 / 1024);
+#else
 						uint32_t fps, skip;
 						fps = Counter.GetFPS(&skip);
 						snprintf(buffer, 128, "%d (%d)", fps, skip);
+#endif
 						FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
 					}
 
@@ -439,14 +446,25 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 	{
 		//Get the output area
 		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-		Buffer->Invalidate();
+
+		uint32_t* pixels = Buffer->Map();
+
+		for(int i = 0; i != output.Height; i ++)
+		{
+			memcpy(&pixels[(output.Y + i) * Buffer->GetPitch() + output.X], &Surface->pixels[(output.Y + i) * Buffer->GetPitch() + output.X], output.Width * 4);
+		}
+
+		Buffer->Unmap();
+
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
 		if(Lua)
 		{
 			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
-			memcpy(tex->GetPixels(), gui_array, 1024 * 768 * 4);
+			uint32_t pix = tex->Map();
+			memcpy(pix, gui_array, 1024 * 768 * 4);
 			memset(gui_array, 0, sizeof(gui_array));
+			tex->Unmap();
 			es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
 		}
 	}

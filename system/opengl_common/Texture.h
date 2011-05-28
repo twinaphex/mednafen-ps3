@@ -7,7 +7,8 @@ class								GLTexture : public Texture
 		virtual						~GLTexture				();
 		
 		void						Clear					(uint32_t aColor);
-		uint32_t*					GetPixels				();
+		uint32_t*					Map						();
+		void						Unmap					();
 		
 		uint32_t					GetFlags				() const {return 0;};
 		uint32_t					GetRedShift				() const {return 16;};
@@ -20,7 +21,9 @@ class								GLTexture : public Texture
 		uint32_t					GetID					() const {return ID;}
 
 	private:
-		uint32_t*					Pixels;
+		uint32_t					BufferID;
 		uint32_t					ID;
+		uint32_t					MapCount;
+		uint32_t*					Pixels;
 };
 
