@@ -156,8 +156,31 @@ bool							SettingLineView::Input							()
 
 	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
-		MDFNI_SetSetting(Setting.name, result.c_str());
+		if(Setting.desc->type == MDFNST_ENUM)
+		{
+			SummerfaceList_Ptr list = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+			list->SetView(boost::make_shared<AnchoredListView>(list));
+			const MDFNSetting_EnumList* enumitem = Setting.desc->enum_list;
+			while(enumitem->string)
+			{
+				SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(enumitem->string, "");
+				list->AddItem(item);
+				enumitem ++;
+			}
+
+			Summerface::Create("List", list)->Do();
+
+			if(!list->WasCanceled())
+			{
+				MDFNI_SetSetting(Setting.name, list->GetSelected()->GetText().c_str());
+				MednafenEmu::ReadSettings();
+			}
+		}
+		else
+		{
+			std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
+			MDFNI_SetSetting(Setting.name, result.c_str());
+		}
 		return false;
 	}
 	else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))
@@ -311,3 +334,4 @@ std::string						SettingMenu::TranslateCategory					(const char* aCategoryName)
 
 	return aCategoryName;
 }
+
