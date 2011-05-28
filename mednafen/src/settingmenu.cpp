@@ -17,7 +17,7 @@ static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr 
 
 void							SettingLineView::DoHeaderRefresh				()
 {
-	if(RefreshHeader)
+	if(!WeakList.expired() && RefreshHeader)
 	{
 		RefreshHeader = false;
 
@@ -49,62 +49,67 @@ bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX
 
 bool							SettingLineView::HandleBool						(const MDFNCS& aSetting)
 {
-	if(es_input->ButtonDown(0, ES_BUTTON_LEFT) || es_input->ButtonDown(0, ES_BUTTON_RIGHT))
+	if(es_input->ButtonDown(0, ES_BUTTON_LEFT) || es_input->ButtonDown(0, ES_BUTTON_RIGHT) || es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		MDFNI_SetSettingB(aSetting.name, MDFN_GetSettingB(aSetting.name) == 0);
 		MednafenEmu::ReadSettings();
 		return true;
 	}
 
-	return false;
+	return es_input->ButtonDown(0, ES_BUTTON_TAB); //Using file browser for a bool is nonsense;
 }
 
 bool							SettingLineView::HandleEnum						(const MDFNCS& aSetting)
 {
-	int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
-	value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+	const MDFNSetting_EnumList* values = aSetting.desc->enum_list;
 
-	if(value != 0)
+	if(es_input->ButtonPressed(0, ES_BUTTON_LEFT) || es_input->ButtonPressed(0, ES_BUTTON_RIGHT)) //Cycle values
 	{
+		int32_t value = es_input->ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
+		value = es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
 		std::string oldvalue = MDFN_GetSettingS(aSetting.name);
-		uint32_t oldvaluei = 0;
-				
-		while(1)
-		{
-			if(aSetting.desc->enum_list[oldvaluei].string == 0)
-			{
-				return true;
-			}
 
-			if(strcasecmp(aSetting.desc->enum_list[oldvaluei].string, oldvalue.c_str()) == 0)
-			{
-				break;
-			}
-						
-			oldvaluei ++;
-		}
-		
-		int32_t newvalue = oldvaluei + value;
-				
-		if(newvalue < 0)
+		while(values && values->string && strcmp(values->string, oldvalue.c_str()))
 		{
-			return true;
+			values ++;
 		}
-				
-		for(int i = 0; i != newvalue + 1; i ++)
+
+		if(values && values->string && !(values == aSetting.desc->enum_list && value < 0))
 		{
-			if(aSetting.desc->enum_list[i].string == 0)
+			values += value;
+
+			if(values->string)
 			{
+				MDFNI_SetSetting(aSetting.name, values->string);
+				MednafenEmu::ReadSettings();
+
 				return true;
 			}
 		}
-				
-		MDFNI_SetSetting(aSetting.name, aSetting.desc->enum_list[newvalue].string);
-		MednafenEmu::ReadSettings();
+	}
+	else if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT)) //Choose from list
+	{
+		SummerfaceList_Ptr list = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+		list->SetView(boost::make_shared<AnchoredListView>(list));
+		while(values && values->string)
+		{
+			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(values->string, "");
+			list->AddItem(item);
+			values ++;
+		}
+
+		Summerface::Create("List", list)->Do();
+
+		if(!list->WasCanceled())
+		{
+			MDFNI_SetSetting(aSetting.name, list->GetSelected()->GetText().c_str());
+			MednafenEmu::ReadSettings();
+		}
+
 		return true;
 	}
 
-	return false;
+	return es_input->ButtonDown(0, ES_BUTTON_TAB); //Using file browser for an enumeration is nonsense
 }
 
 bool							SettingLineView::HandleInt						(const MDFNCS& aSetting)
@@ -129,97 +134,76 @@ bool							SettingLineView::HandleInt						(const MDFNCS& aSetting)
 		return true;
 	}
 
-	return false;
+	return es_input->ButtonDown(0, ES_BUTTON_TAB); //Using file browser for an int is nonsense
 }
 
 bool							SettingLineView::Input							()
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
-
-	DoHeaderRefresh();
-
-	if(Setting.desc->type == MDFNST_BOOL && HandleBool(Setting))
+	if(!WeakList.expired())
 	{
-		return false;
-	}
-	else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(Setting))
-	{
-		return false;
-	}
-	else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(Setting))
-	{
-		return false;
-	}
+		SummerfaceList_Ptr List = WeakList.lock();
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		if(Setting.desc->type == MDFNST_ENUM)
+		const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
+
+		DoHeaderRefresh();
+
+		if(Setting.desc->type == MDFNST_BOOL && HandleBool(Setting))
 		{
-			SummerfaceList_Ptr list = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
-			list->SetView(boost::make_shared<AnchoredListView>(list));
-			const MDFNSetting_EnumList* enumitem = Setting.desc->enum_list;
-			while(enumitem->string)
-			{
-				SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(enumitem->string, "");
-				list->AddItem(item);
-				enumitem ++;
-			}
-
-			Summerface::Create("List", list)->Do();
-
-			if(!list->WasCanceled())
-			{
-				MDFNI_SetSetting(Setting.name, list->GetSelected()->GetText().c_str());
-				MednafenEmu::ReadSettings();
-			}
+			return false;
 		}
-		else
+		else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(Setting))
+		{
+			return false;
+		}
+		else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(Setting))
+		{
+			return false;
+		}
+
+		if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT)) //Use Keyboard
 		{
 			std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
 			MDFNI_SetSetting(Setting.name, result.c_str());
+			return false;
 		}
-		return false;
-	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))
-	{
-		MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
-		return false;
-	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_TAB))
-	{
-		std::vector<std::string> nomarks;
-		FileSelect browse("Select File", nomarks, "");
-			
-		std::string result = browse.GetFile();
-			
-		if(result.length() != 0)
+		else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT)) //Reset to default
 		{
-			MDFNI_SetSetting(Setting.name, result.c_str());
-			MednafenEmu::ReadSettings();
+			MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
+			return false;
 		}
-
-		return false;
-	}
-
-	if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT))
-	{
-		SummerfaceItem_Ptr selected = List->GetSelected();
-		bool output = AnchoredListView::Input();
-
-		if(selected != List->GetSelected())
+		else if(es_input->ButtonDown(0, ES_BUTTON_TAB)) //Select from file browser
 		{
-			RefreshHeader = true;
-			DoHeaderRefresh();
+			std::vector<std::string> nomarks;
+			FileSelect browse("Select File", nomarks, "");
+			
+			std::string result = browse.GetFile();
+			
+			if(result.length() != 0)
+			{
+				MDFNI_SetSetting(Setting.name, result.c_str());
+				MednafenEmu::ReadSettings();
+			}
+
+			return false;
 		}
 
-		return output;
-	}
-	else
-	{
-		return false;
+		if(!es_input->ButtonPressed(0, ES_BUTTON_LEFT) && !es_input->ButtonPressed(0, ES_BUTTON_RIGHT)) //Don't allow underlying list view to use left and right
+		{
+			SummerfaceItem_Ptr selected = List->GetSelected();
+			bool output = AnchoredListView::Input();
+
+			if(selected != List->GetSelected())
+			{
+				RefreshHeader = true;
+				DoHeaderRefresh();
+			}
+
+			return output;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 
