@@ -158,9 +158,13 @@ INLINE void MixXA(void)
 
 unsigned long timeGetTime_spu()
 {
+#ifndef __CELLOS_LV2__
  struct timeval tv;
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
+#else
+ return sys_time_get_system_time() / 1000;
+#endif
 }
 
 #endif
@@ -460,7 +464,11 @@ INLINE void FeedCDDA(unsigned char *pcm, int nBytes)
     if (!iUseTimer) Sleep(1);
     else return;
 #else
+#ifndef __CELLOS_LV2__
     if (!iUseTimer) usleep(1000);
+#else
+    if (!iUseTimer) sys_timer_usleep(1000);
+#endif
     else return;
 #endif
    }

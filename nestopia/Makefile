@@ -9,7 +9,7 @@ else
 TYPE		:=	a
 endif
 SONAME		:=	libnestopia
-SYMPREFIX	:=	nest
+#SYMPREFIX	:=	nest
 BUILD		:=	build
 SOURCE		:=	src src/core src/core/api src/core/board src/core/input src/core/vssystem
 INCLUDE		:=	../mednafen/src

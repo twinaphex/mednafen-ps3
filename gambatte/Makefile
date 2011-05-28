@@ -9,7 +9,7 @@ else
 TYPE		:=	a
 endif
 SONAME		:=	libgambatte
-SYMPREFIX	:=	gmbt
+#SYMPREFIX	:=	gmbt
 BUILD		:=	build
 SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample
 INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system
