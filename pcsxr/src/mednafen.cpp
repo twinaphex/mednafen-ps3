@@ -261,22 +261,26 @@ MDFNGI	PcsxrInfo =
 };
 
 #ifdef MLDLL
+#define VERSION_FUNC GetVersion
+#define GETEMU_FUNC GetEmulator
 #ifdef __WIN32__
 #define DLL_PUBLIC __attribute__((dllexport))
 #else
 #define DLL_PUBLIC __attribute__ ((visibility("default")))
 #endif
 #else
+#define VERSION_FUNC pcsxGetVersion
+#define GETEMU_FUNC pcsxGetEmulator
 #define	DLL_PUBLIC
 #endif
 
-extern "C" DLL_PUBLIC	uint32_t		GetVersion()
+extern "C" DLL_PUBLIC	uint32_t		VERSION_FUNC()
 {
 	return 0x916;
 //	return MEDNAFEN_VERSION_NUMERIC;
 }
 	
-extern "C" DLL_PUBLIC	MDFNGI*			GetEmulator()
+extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC()
 {
 	return &PcsxrInfo;
 }
