@@ -148,7 +148,7 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 
-	Presenter->Set(output, aViewPort.Width, aViewPort.Height);
+	Presenter->Set(output, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
 	((GLTexture*)aTexture)->Apply();
 
 	GLuint borderTexture = 0;
