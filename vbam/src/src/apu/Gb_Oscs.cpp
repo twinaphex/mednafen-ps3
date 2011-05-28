@@ -1,3 +1,4 @@
+namespace VBAM{
 // Gb_Snd_Emu 0.2.0. http://www.slack.net/~ant/
 
 #include "Gb_Apu.h"
@@ -662,4 +663,5 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 		this->phase = ph ^ swap_banks; // undo swapped banks
 	}
 	delay = time - end_time;
+}
 }

@@ -5,7 +5,11 @@
 #define BLIP_BUFFER_H
 
 	// internal
+}
 	#include <limits.h>
+
+namespace VBAM
+{
 	#if INT_MAX < 0x7FFFFFFF || LONG_MAX == 0x7FFFFFFF
 		typedef long blip_long;
 		typedef unsigned long blip_ulong;
@@ -383,7 +387,9 @@ struct blip_buffer_state_t
 // End of public interface
 
 #ifndef assert
+}
 	#include <assert.h>
+namespace VBAM {
 #endif
 
 template<int quality,int range>

@@ -1,12 +1,16 @@
 // Blip_Buffer 0.4.1. http://www.slack.net/~ant/
 
+namespace VBAM{
 #include "Blip_Buffer.h"
+}
 
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+
+namespace VBAM{
 
 /* Copyright (C) 2003-2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -462,4 +466,5 @@ void Blip_Buffer::load_state( blip_buffer_state_t const& in )
 	offset_       = in.offset_;
 	reader_accum_ = in.reader_accum_;
 	memcpy( buffer_, in.buf, sizeof in.buf );
+}
 }

@@ -1,3 +1,4 @@
+namespace VBAM{
 /**     Code adapted from Exult source code by Forgotten
  **	Scale.cc - Trying to scale with bilinear interpolation.
  **
@@ -412,3 +413,4 @@ void BilinearPlus32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
   }
 }
 
+}

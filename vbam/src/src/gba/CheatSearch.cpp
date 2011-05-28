@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
+namespace VBAM{
 #include "CheatSearch.h"
 
 CheatSearchBlock cheatSearchBlocks[4];
@@ -309,3 +310,4 @@ void cheatSearchUpdateValues(const CheatSearchData *cs)
   }
 }
 
+}

@@ -1,3 +1,4 @@
+namespace VBAM{
 /*
  * This file is part of the Advance project.
  *
@@ -601,4 +602,5 @@ void lq2x32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 void hq2x_init(unsigned bits_per_pixel)
 {
   interp_set(bits_per_pixel);
+}
 }

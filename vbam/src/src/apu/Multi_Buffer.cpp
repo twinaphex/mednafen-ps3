@@ -1,3 +1,4 @@
+namespace VBAM{
 // Blip_Buffer 0.4.1. http://www.slack.net/~ant/
 
 #include "Multi_Buffer.h"
@@ -278,4 +279,5 @@ void Stereo_Mixer::mix_stereo( blip_sample_t* out_, int count )
 		BLIP_READER_END( center, *bufs [2] );
 		break;
 	}
+}
 }

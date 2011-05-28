@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 
 extern int RGB_LOW_BITS_MASK;
@@ -1276,3 +1277,4 @@ void Scale_2xSaI (u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
   }
 }
 
+}

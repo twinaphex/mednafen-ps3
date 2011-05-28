@@ -3,6 +3,7 @@
 /************************************************************************/
 #include <stdio.h>
 
+namespace VBAM{
 #include "../System.h"
 #include "../common/Port.h"
 #include "GBA.h"
@@ -721,4 +722,5 @@ int disThumb(u32 offset, char *dest, int flags){
   }
   *dest++ = 0;
   return ret;
+}
 }

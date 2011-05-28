@@ -1,6 +1,10 @@
+namespace VBAM{
 #include "gbafilter.h"
+}
 
 #include <math.h>
+
+namespace VBAM{
 
 extern int systemColorDepth;
 extern int systemRedShift;
@@ -225,3 +229,4 @@ void UpdateSystemColorMaps(int lcd)
   }
 }
 */
+}

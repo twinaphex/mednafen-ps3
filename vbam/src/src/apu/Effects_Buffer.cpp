@@ -1,6 +1,8 @@
 // Game_Music_Emu $vers. http://www.slack.net/~ant/
 
+namespace VBAM{
 #include "Effects_Buffer.h"
+}
 
 #include <string.h>
 
@@ -15,6 +17,7 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
+namespace VBAM{
 #include "blargg_source.h"
 
 int const fixed_shift = 12;
@@ -635,4 +638,5 @@ void Effects_Buffer::mix_effects( blip_sample_t* out_, int pair_count )
 		}
 		while ( remain );
 	}
+}
 }

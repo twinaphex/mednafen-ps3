@@ -4,12 +4,13 @@
 // Gb_Snd_Emu 0.2.0
 #ifndef BLARGG_COMMON_H
 #define BLARGG_COMMON_H
-
+}
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
 
+namespace VBAM{
 #undef BLARGG_COMMON_H
 // allow blargg_config.h to #include blargg_common.h
 #include "blargg_config.h"
@@ -146,12 +147,16 @@ public:
 
 // HAVE_STDINT_H: If defined, use <stdint.h> for int8_t etc.
 #if defined (HAVE_STDINT_H)
+}
 	#include <stdint.h>
+namespace VBAM{
 	#define BOOST
 
 // HAVE_INTTYPES_H: If defined, use <stdint.h> for int8_t etc.
 #elif defined (HAVE_INTTYPES_H)
+}
 	#include <inttypes.h>
+namespace VBAM{
 	#define BOOST
 
 #else

@@ -48,7 +48,7 @@ LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr
 
 CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lpcsxr-$(PLATFORM) #  -lvbam-$(PLATFORM)
+LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lpcsxr-$(PLATFORM) -lvbam-$(PLATFORM)
 
 ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
