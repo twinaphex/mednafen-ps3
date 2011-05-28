@@ -17,7 +17,9 @@ unprefixed names. */
 // in MY code.
 //
 // void assert( bool expr );
+}
 #include <assert.h>
+namespace VBAM{
 
 // If expr is false, prints file and line number, then aborts program. Meant for
 // checking caller-supplied parameters and operations that are outside the control

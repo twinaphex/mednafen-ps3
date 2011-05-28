@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 #include <stdlib.h>
 #include <memory.h>
@@ -560,4 +561,5 @@ void MotionBlurIB32(u8 *srcPtr, u32 srcPitch, int width, int height)
       src1[pos] = color;
       pos++;
     }
+}
 }

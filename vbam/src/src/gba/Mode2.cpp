@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "GBA.h"
 #include "Globals.h"
 #include "GBAGfx.h"
@@ -440,4 +441,5 @@ void mode2RenderLineAll()
   gfxBG2Changed = 0;
   gfxBG3Changed = 0;
   gfxLastVCOUNT = VCOUNT;
+}
 }

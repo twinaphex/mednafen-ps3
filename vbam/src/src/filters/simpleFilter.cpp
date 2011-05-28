@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 
 void Simple2x16(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
@@ -282,4 +283,5 @@ void Simple4x32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 	}
 #undef magnification
 #undef colorBytes
+}
 }

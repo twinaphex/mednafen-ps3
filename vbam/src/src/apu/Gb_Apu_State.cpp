@@ -1,9 +1,11 @@
 // Gb_Snd_Emu $vers. http://www.slack.net/~ant/
-
+namespace VBAM{
 #include "Gb_Apu.h"
+}
 
 #include <string.h>
 
+namespace VBAM{
 /* Copyright (C) 2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -117,3 +119,4 @@ blargg_err_t Gb_Apu::load_state( gb_apu_state_t const& in )
 	return 0;
 }
 
+}

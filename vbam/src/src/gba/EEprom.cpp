@@ -1,4 +1,6 @@
 #include <memory.h>
+
+namespace VBAM{
 #include "GBA.h"
 #include "EEprom.h"
 #include "../Util.h"
@@ -184,4 +186,5 @@ void eepromWrite(u32 /* address */, u8 value)
     }
     break;
   }
+}
 }

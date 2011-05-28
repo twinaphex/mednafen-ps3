@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+namespace VBAM{
 #include "GBA.h"
 #include "../common/Port.h"
 #include "elf.h"
@@ -2980,4 +2981,5 @@ void elfCleanUp()
     free(elfFileData);
     elfFileData = NULL;
   }
+}
 }

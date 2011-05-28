@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 
 extern int RGB_LOW_BITS_MASK;
@@ -129,4 +130,5 @@ void Pixelate32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
     nextLine += dstPitch << 1;
   }
   while (--height);
+}
 }

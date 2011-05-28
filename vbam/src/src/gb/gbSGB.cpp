@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
+namespace VBAM{
 #include "../System.h"
 #include "../common/Port.h"
 #include "../Util.h"
@@ -904,4 +905,5 @@ void gbSgbReadGame(gzFile gzFile, int version)
   utilGzRead(gzFile, gbSgbSCPPalette, 4 * 512 * sizeof(u16));
   utilGzRead(gzFile, gbSgbATF, 20 * 18);
   utilGzRead(gzFile, gbSgbATFList, 45 * 20 * 18);
+}
 }

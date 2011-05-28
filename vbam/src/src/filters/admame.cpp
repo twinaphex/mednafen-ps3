@@ -1,3 +1,4 @@
+namespace VBAM{
 /*
  * This file is part of the Advance project.
  *
@@ -1007,4 +1008,5 @@ void AdMame2x32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 #ifdef MMX
   }
 #endif
+}
 }

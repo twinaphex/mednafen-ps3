@@ -18,7 +18,11 @@
 #ifndef __VBA_TYPES_H__
 #define __VBA_TYPES_H__
 
+}
+
 #include <stdint.h>
+
+namespace VBAM{
 
 typedef uint8_t u8;
 typedef uint16_t u16;

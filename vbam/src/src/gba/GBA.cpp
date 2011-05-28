@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <stdarg.h>
 #include <string.h>
+namespace VBAM{
 #include "GBA.h"
 #include "GBAcpu.h"
 #include "GBAinline.h"
@@ -4078,3 +4079,4 @@ struct EmulatedSystem GBASystem = {
   5000
 #endif
 };
+}

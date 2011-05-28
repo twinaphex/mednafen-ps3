@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <stdlib.h>
 
+namespace VBAM{
 #include "GBA.h"
 #include "bios.h"
 #include "GBAinline.h"
@@ -1144,4 +1145,5 @@ void BIOS_SndDriverJmpTableCopy()
     CPUWriteMemory(reg[0].I, 0x9c);
     reg[0].I += 4;
   }
+}
 }

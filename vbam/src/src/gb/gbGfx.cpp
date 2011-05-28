@@ -1,5 +1,6 @@
 #include <memory.h>
 
+namespace VBAM{
 #include "../common/Types.h"
 #include "../Util.h"
 #include "gbGlobals.h"
@@ -583,4 +584,5 @@ void gbDrawSprites(bool draw)
     }
   }
   return;
+}
 }

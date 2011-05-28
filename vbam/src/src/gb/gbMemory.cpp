@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 #include "../common/Port.h"
 #include "gbGlobals.h"
@@ -1700,4 +1701,5 @@ void memoryUpdateMapGS3()
   // GS can only change a half ROM bank
   gbMemoryMap[0x04] = &gbRom[tmpAddress];
   gbMemoryMap[0x05] = &gbRom[tmpAddress + 0x1000];
+}
 }

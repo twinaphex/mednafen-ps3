@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+namespace VBAM{
 #include "GBA.h"
 #include "Globals.h"
 #include "../common/Port.h"
@@ -77,4 +78,5 @@ void agbPrintFlush()
       break;
   }
   debuggerWriteHalfWord(0x9fe20fc, get);
+}
 }

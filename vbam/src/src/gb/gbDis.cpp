@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+namespace VBAM{
 #include "../System.h"
 #include "gbGlobals.h"
 
@@ -228,4 +229,5 @@ int gbDis(char *buffer, u16 address)
   }
   *p = 0;
   return instr;
+}
 }

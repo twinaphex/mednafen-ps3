@@ -1,4 +1,5 @@
 #include <cstdlib>
+namespace VBAM{
 #include "../common/Types.h"
 
 u8 *gbMemoryMap[16];
@@ -38,3 +39,4 @@ int gbBorderColumnSkip = 0;
 int gbDmaTicks = 0;
 
 u8 (*gbSerialFunction)(u8) = NULL;
+}

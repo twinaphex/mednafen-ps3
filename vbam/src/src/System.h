@@ -3,7 +3,9 @@
 
 #include "common/Types.h"
 
+}
 #include <zlib.h>
+namespace VBAM{
 
 class SoundDriver;
 

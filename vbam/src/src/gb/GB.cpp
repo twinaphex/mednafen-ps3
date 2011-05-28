@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <assert.h>
 
+namespace VBAM{
 #include "../System.h"
 #include "../NLS.h"
 #include "gb.h"
@@ -5465,3 +5466,4 @@ struct EmulatedSystem GBSystem = {
   1000,
 #endif
 };
+}

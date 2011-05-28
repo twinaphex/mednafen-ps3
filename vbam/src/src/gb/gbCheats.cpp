@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+namespace VBAM{
 #include "../System.h"
 #include "../NLS.h"
 #include "../Util.h"
@@ -530,4 +531,5 @@ void gbCheatWrite(bool reboot)
       }
     }
   }
+}
 }

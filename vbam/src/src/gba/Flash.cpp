@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <memory.h>
+namespace VBAM{
 #include "GBA.h"
 #include "Globals.h"
 #include "Flash.h"
@@ -254,4 +255,5 @@ void flashWrite(u32 address, u8 byte)
     flashReadState = FLASH_READ_ARRAY;
     break;
   }
+}
 }

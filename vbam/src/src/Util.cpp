@@ -9,6 +9,7 @@ extern "C" {
 }
 #endif
 
+namespace VBAM{
 #include "System.h"
 #include "NLS.h"
 #include "Util.h"
@@ -17,13 +18,16 @@ extern "C" {
 #include "gba/Globals.h"
 #include "gba/RTC.h"
 #include "common/Port.h"
-
+}
 //ROBO: This will really use fex linked into system-l1ght
 #include "fex/fex.h"
+
 
 extern "C" {
 #include "common/memgzio.h"
 }
+
+namespace VBAM{
 
 #include "gba/gbafilter.h"
 #include "gb/gbGlobals.h"
@@ -672,4 +676,5 @@ bool utilFileExists( const char *filename )
 		fclose( f );
 		return true;
 	}
+}
 }

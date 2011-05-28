@@ -1,3 +1,4 @@
+namespace VBAM{
 #include "../System.h"
 
 int coeff[32] = {
@@ -23,3 +24,4 @@ int gfxBG2Y = 0;
 int gfxBG3X = 0;
 int gfxBG3Y = 0;
 int gfxLastVCOUNT = 0;
+}

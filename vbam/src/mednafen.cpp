@@ -3,6 +3,9 @@
 #include <src/driver.h>
 #include <src/general.h>
 
+namespace VBAM{
+using namespace VBAM;
+
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
@@ -282,22 +285,30 @@ static MDFNGI	VbamInfo =
 
 
 #ifdef MLDLL
+#define VERSION_FUNC GetVersion
+#define GETEMU_FUNC GetEmulator
 #ifdef __WIN32__
 #define DLL_PUBLIC __attribute__((dllexport))
 #else
 #define DLL_PUBLIC __attribute__ ((visibility("default")))
 #endif
 #else
+#define VERSION_FUNC vbamGetVersion
+#define GETEMU_FUNC vbamGetEmulator
 #define	DLL_PUBLIC
 #endif
 
-extern "C" DLL_PUBLIC	uint32_t		GetVersion()
+}
+
+using namespace VBAM;
+
+extern "C" DLL_PUBLIC	uint32_t		VERSION_FUNC()
 {
 	return 0x916;
 //	return MEDNAFEN_VERSION_NUMERIC;
 }
 	
-extern "C" DLL_PUBLIC	MDFNGI*			GetEmulator()
+extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC()
 {
 	return &VbamInfo;
 }

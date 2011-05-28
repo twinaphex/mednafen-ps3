@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <memory.h>
+
+namespace VBAM{
 #include "../System.h"
 
 u8 gbPrinterStatus = 0;
@@ -208,4 +210,5 @@ u8 gbPrinterSend(u8 b)
     break;
   }
   return gbPrinterResult;
+}
 }

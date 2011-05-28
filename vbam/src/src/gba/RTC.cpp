@@ -1,12 +1,16 @@
+namespace VBAM{
 #include "../System.h"
 #include "GBA.h"
 #include "Globals.h"
 #include "../common/Port.h"
 #include "../Util.h"
 #include "../NLS.h"
+}
 
 #include <time.h>
 #include <memory.h>
+
+namespace VBAM{
 
 enum RTCSTATE { IDLE, COMMAND, DATA, READDATA };
 
@@ -225,4 +229,5 @@ void rtcSaveGame(gzFile gzFile)
 void rtcReadGame(gzFile gzFile)
 {
   utilGzRead(gzFile, &rtcClockData, sizeof(rtcClockData));
+}
 }

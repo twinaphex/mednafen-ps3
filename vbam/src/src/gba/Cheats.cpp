@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+namespace VBAM{
 #include "GBA.h"
 #include "GBAinline.h"
 #include "Cheats.h"
@@ -2895,4 +2896,5 @@ void cheatsWriteByte(u32, u8)
   }
 #endif
 #endif
+}
 }

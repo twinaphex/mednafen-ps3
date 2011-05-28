@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 
+namespace VBAM{
 #include "GBA.h"
 #include "GBAcpu.h"
 #include "GBAinline.h"
@@ -2947,4 +2948,5 @@ int armExecute()
     } while (cpuTotalTicks<cpuNextEvent && armState && !holdState && !SWITicks);
 
     return 1;
+}
 }
