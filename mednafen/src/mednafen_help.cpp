@@ -461,7 +461,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		if(Lua)
 		{
 			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
-			uint32_t pix = tex->Map();
+			uint32_t* pix = tex->Map();
 			memcpy(pix, gui_array, 1024 * 768 * 4);
 			memset(gui_array, 0, sizeof(gui_array));
 			tex->Unmap();
@@ -637,6 +637,7 @@ uint32_t					MednafenEmu::GetPixel			(uint32_t aX, uint32_t aY)
 	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
 	if(aX < output.Width && aY < output.Height)
 	{
+		//TODO: This can't possibly be correct, the offsets from the output area should be included?
 		return Surface->pixels[aY * Surface->pitchinpix + aX];
 	}
 

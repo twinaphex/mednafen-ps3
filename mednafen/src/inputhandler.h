@@ -5,7 +5,7 @@ class												InputHandler
 {
 	public:
 													InputHandler					(MDFNGI* aGameInfo);
-		virtual										~InputHandler					();
+		virtual										~InputHandler					() {};
 								
 		void										Process							();
 		
@@ -38,7 +38,7 @@ class												InputHandler
 		std::string									PadType;
 		uint8_t										ControllerBits[16][256];
 		std::vector<InputInfo>						Inputs;
-		bool										RapidOn;
+		uint32_t									RapidCount;
 };
 
 #endif
