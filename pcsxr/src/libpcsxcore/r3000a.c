@@ -113,7 +113,8 @@ void psxBranchTest() {
 			u32 opcode;
 
 			// Crash Bandicoot 2: Don't run exceptions when GTE in pipeline
-			opcode = SWAP32(*Read_ICache(psxRegs.pc, TRUE));
+//ROBO			opcode = SWAP32(*Read_ICache(psxRegs.pc, TRUE));
+			opcode = GETLE32(Read_ICache(psxRegs.pc, TRUE));
 			if( ((opcode >> 24) & 0xfe) != 0x4a ) {
 #ifdef PSXCPU_LOG
 				PSXCPU_LOG("Interrupt: %x %x\n", psxHu32(0x1070), psxHu32(0x1074));
@@ -126,7 +127,7 @@ void psxBranchTest() {
 	if ((psxRegs.cycle - psxNextsCounter) >= psxNextCounter)
 		psxRcntUpdate();
 
-	if (psxRegs.interrupt) {
+	if (UNLIKELY(psxRegs.interrupt)) {
 		if ((psxRegs.interrupt & (1 << PSXINT_SIO)) && !Config.Sio) { // sio
 			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SIO].sCycle) >= psxRegs.intCycle[PSXINT_SIO].cycle) {
 				psxRegs.interrupt &= ~(1 << PSXINT_SIO);
