@@ -928,11 +928,8 @@ static void intReset() {
 	psxRegs.ICache_valid = FALSE;
 }
 
-//ROBO: Leave on command
-int wanna_leave = 0;
-static void intExecute() {
-	wanna_leave = 0;
-	while(LIKELY(!wanna_leave))
+void intExecute() {
+	for(;;)
 	{
 		execI();
 	}
