@@ -194,7 +194,9 @@ u16 psxMemRead16(u32 mem) {
 //ROBO: No Debug
 //			if (Config.Debug)
 //				DebugCheckBP((mem & 0xffffff) | 0x80000000, R2);
-			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
+//ROBO: GETLE
+//			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
+			return GETLE16((u16 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
 			PSXMEM_LOG("err lh %8.8lx\n", mem);
@@ -224,7 +226,9 @@ u32 psxMemRead32(u32 mem) {
 //ROBO: No Debug
 //			if (Config.Debug)
 //				DebugCheckBP((mem & 0xffffff) | 0x80000000, R4);
-			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
+//ROBO: Get LE
+//			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
+			return GETLE32((u32 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
 			if (writeok) { PSXMEM_LOG("err lw %8.8lx\n", mem); }

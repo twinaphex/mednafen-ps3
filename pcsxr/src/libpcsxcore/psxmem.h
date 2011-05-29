@@ -24,6 +24,34 @@
 extern "C" {
 #endif
 
+//ROBO:
+#ifdef STUPID_SPEED_TEST
+#define __inline__ inline
+#include <stdint.h>
+static __inline__ uint16_t GETLE16(uint16_t *ptr) {
+    uint16_t ret; __asm__ ("lhbrx %0, 0, %1" : "=r" (ret) : "r" (ptr));
+    return ret;
+}
+static __inline__ uint32_t GETLE32(uint32_t *ptr) {
+    uint32_t ret;
+    __asm__ ("lwbrx %0, 0, %1" : "=r" (ret) : "r" (ptr));
+    return ret;
+}
+static __inline__ uint32_t GETLE16D(uint32_t *ptr) {
+    uint32_t ret;
+    __asm__ ("lwbrx %0, 0, %1\n"
+             "rlwinm %0, %0, 16, 0, 31" : "=r" (ret) : "r" (ptr));
+    return ret;
+}
+
+static __inline__ void PUTLE16(uint16_t *ptr, uint16_t val) {
+    __asm__ ("sthbrx %0, 0, %1" : : "r" (val), "r" (ptr) : "memory");
+}
+static __inline__ void PUTLE32(uint32_t *ptr, uint32_t val) {
+    __asm__ ("stwbrx %0, 0, %1" : : "r" (val), "r" (ptr) : "memory");
+}
+#endif
+
 #include "psxcommon.h"
 
 #if defined(__BIGENDIAN__)
@@ -50,77 +78,57 @@ extern "C" {
 #endif
 
 extern s8 *psxM;
-#define psxMs8(mem)		psxM[(mem) & 0x1fffff]
-#define psxMs16(mem)	(SWAP16(*(s16 *)&psxM[(mem) & 0x1fffff]))
-#define psxMs32(mem)	(SWAP32(*(s32 *)&psxM[(mem) & 0x1fffff]))
+//ROBO: psxMs gone
 #define psxMu8(mem)		(*(u8 *)&psxM[(mem) & 0x1fffff])
-#define psxMu16(mem)	(SWAP16(*(u16 *)&psxM[(mem) & 0x1fffff]))
-#define psxMu32(mem)	(SWAP32(*(u32 *)&psxM[(mem) & 0x1fffff]))
-
-#define psxMs8ref(mem)	psxM[(mem) & 0x1fffff]
-#define psxMs16ref(mem)	(*(s16 *)&psxM[(mem) & 0x1fffff])
-#define psxMs32ref(mem)	(*(s32 *)&psxM[(mem) & 0x1fffff])
+#define psxMu16(mem)	(GETLE16((u16*)&psxM[(mem) & 0x1fffff]))
+#define psxMu32(mem)	(GETLE32((u32*)&psxM[(mem) & 0x1fffff]))
 #define psxMu8ref(mem)	(*(u8 *)&psxM[(mem) & 0x1fffff])
 #define psxMu16ref(mem)	(*(u16 *)&psxM[(mem) & 0x1fffff])
 #define psxMu32ref(mem)	(*(u32 *)&psxM[(mem) & 0x1fffff])
 
+//ROBO: psxPs gone
 extern s8 *psxP;
-#define psxPs8(mem)	    psxP[(mem) & 0xffff]
-#define psxPs16(mem)	(SWAP16(*(s16 *)&psxP[(mem) & 0xffff]))
-#define psxPs32(mem)	(SWAP32(*(s32 *)&psxP[(mem) & 0xffff]))
 #define psxPu8(mem)		(*(u8 *)&psxP[(mem) & 0xffff])
-#define psxPu16(mem)	(SWAP16(*(u16 *)&psxP[(mem) & 0xffff]))
-#define psxPu32(mem)	(SWAP32(*(u32 *)&psxP[(mem) & 0xffff]))
-
-#define psxPs8ref(mem)	psxP[(mem) & 0xffff]
-#define psxPs16ref(mem)	(*(s16 *)&psxP[(mem) & 0xffff])
-#define psxPs32ref(mem)	(*(s32 *)&psxP[(mem) & 0xffff])
+#define psxPu16(mem)	(GETLE16((u16*)&psxP[(mem) & 0xffff]))
+#define psxPu32(mem)	(GETLE32((u32*)&psxP[(mem) & 0xffff]))
 #define psxPu8ref(mem)	(*(u8 *)&psxP[(mem) & 0xffff])
 #define psxPu16ref(mem)	(*(u16 *)&psxP[(mem) & 0xffff])
 #define psxPu32ref(mem)	(*(u32 *)&psxP[(mem) & 0xffff])
 
+//ROBO: psxRs* gone
 extern s8 *psxR;
-#define psxRs8(mem)		psxR[(mem) & 0x7ffff]
-#define psxRs16(mem)	(SWAP16(*(s16 *)&psxR[(mem) & 0x7ffff]))
-#define psxRs32(mem)	(SWAP32(*(s32 *)&psxR[(mem) & 0x7ffff]))
 #define psxRu8(mem)		(*(u8* )&psxR[(mem) & 0x7ffff])
-#define psxRu16(mem)	(SWAP16(*(u16 *)&psxR[(mem) & 0x7ffff]))
-#define psxRu32(mem)	(SWAP32(*(u32 *)&psxR[(mem) & 0x7ffff]))
-
-#define psxRs8ref(mem)	psxR[(mem) & 0x7ffff]
-#define psxRs16ref(mem)	(*(s16*)&psxR[(mem) & 0x7ffff])
-#define psxRs32ref(mem)	(*(s32*)&psxR[(mem) & 0x7ffff])
+#define psxRu16(mem)	(GETLE16((u16*)&psxR[(mem) & 0x7ffff]))
+#define psxRu32(mem)	(GETLE32((u32*)&psxR[(mem) & 0x7ffff]))
 #define psxRu8ref(mem)	(*(u8 *)&psxR[(mem) & 0x7ffff])
 #define psxRu16ref(mem)	(*(u16*)&psxR[(mem) & 0x7ffff])
 #define psxRu32ref(mem)	(*(u32*)&psxR[(mem) & 0x7ffff])
 
+//ROBO: psxHs* gone
 extern s8 *psxH;
-#define psxHs8(mem)		psxH[(mem) & 0xffff]
-#define psxHs16(mem)	(SWAP16(*(s16 *)&psxH[(mem) & 0xffff]))
-#define psxHs32(mem)	(SWAP32(*(s32 *)&psxH[(mem) & 0xffff]))
 #define psxHu8(mem)		(*(u8 *)&psxH[(mem) & 0xffff])
-#define psxHu16(mem)	(SWAP16(*(u16 *)&psxH[(mem) & 0xffff]))
-#define psxHu32(mem)	(SWAP32(*(u32 *)&psxH[(mem) & 0xffff]))
-
-#define psxHs8ref(mem)	psxH[(mem) & 0xffff]
-#define psxHs16ref(mem)	(*(s16 *)&psxH[(mem) & 0xffff])
-#define psxHs32ref(mem)	(*(s32 *)&psxH[(mem) & 0xffff])
+#define psxHu16(mem)	(GETLE16((u16 *)&psxH[(mem) & 0xffff]))
+#define psxHu32(mem)	(GETLE32((u32 *)&psxH[(mem) & 0xffff]))
 #define psxHu8ref(mem)	(*(u8 *)&psxH[(mem) & 0xffff])
 #define psxHu16ref(mem)	(*(u16 *)&psxH[(mem) & 0xffff])
 #define psxHu32ref(mem)	(*(u32 *)&psxH[(mem) & 0xffff])
 
+
 extern u8 **psxMemWLUT;
 extern u8 **psxMemRLUT;
 
+//ROBO: PSXMs* gone
 #define PSXM(mem)		(psxMemRLUT[(mem) >> 16] == 0 ? NULL : (u8*)(psxMemRLUT[(mem) >> 16] + ((mem) & 0xffff)))
-#define PSXMs8(mem)		(*(s8 *)PSXM(mem))
-#define PSXMs16(mem)	(SWAP16(*(s16 *)PSXM(mem)))
-#define PSXMs32(mem)	(SWAP32(*(s32 *)PSXM(mem)))
 #define PSXMu8(mem)		(*(u8 *)PSXM(mem))
-#define PSXMu16(mem)	(SWAP16(*(u16 *)PSXM(mem)))
-#define PSXMu32(mem)	(SWAP32(*(u32 *)PSXM(mem)))
-
+#define PSXMu16(mem)	(GETLE16((u16 *)PSXM(mem)))
+#define PSXMu32(mem)	(GETLE32(*(u32 *)PSXM(mem)))
 #define PSXMu32ref(mem)	(*(u32 *)PSXM(mem))
+
+//ROBO
+#ifdef STUPID_SPEED_TEST
+#define PSXMfast(mem)	((u8*)(psxMemRLUT[(mem) >> 16] + ((mem) & 0xffff)))
+#endif
+
 
 #if !defined(PSXREC) && (defined(__x86_64__) || defined(__i386__) || defined(__ppc__)) && !defined(NOPSXREC)
 #define PSXREC
@@ -142,3 +150,4 @@ void *psxMemPointer(u32 mem);
 }
 #endif
 #endif
+

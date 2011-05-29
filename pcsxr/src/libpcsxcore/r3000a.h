@@ -24,6 +24,15 @@
 extern "C" {
 #endif
 
+#ifdef STUPID_SPEED_TEST
+#define LIKELY(x) __builtin_expect(!!(x),1)
+#define UNLIKELY(x) __builtin_expect(!!(x),0)
+#else
+#define LIKELY(x) x
+#define UNLIKELY(x) x
+#endif
+
+
 #include "psxcommon.h"
 #include "psxmem.h"
 #include "psxcounters.h"
@@ -189,6 +198,7 @@ TODO:
 */
 
 static inline u32 *Read_ICache(u32 pc, boolean isolate) {
+#ifndef STUPID_SPEED_TEST
 	u32 pc_bank, pc_offset, pc_cache;
 	u8 *IAddr, *ICode;
 
@@ -250,6 +260,9 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 
 	// default
 	return (u32 *)PSXM(pc);
+#else
+	return (u32 *)PSXMfast(pc);
+#endif
 }
 
 #if defined(__BIGENDIAN__)
