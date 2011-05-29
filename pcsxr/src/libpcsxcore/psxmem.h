@@ -28,6 +28,7 @@ extern "C" {
 #include <stdint.h>
 #define	TOTAL_INLINE __attribute__((always_inline))
 
+#ifdef __BIGENDIAN__
 static TOTAL_INLINE uint16_t GETLE16(uint16_t *ptr)
 {
     uint16_t ret;
@@ -58,6 +59,12 @@ static TOTAL_INLINE void PUTLE32(uint32_t *ptr, uint32_t val)
 {
     __asm__ ("stwbrx %0, 0, %1" : : "r" (val), "r" (ptr) : "memory");
 }
+#else
+#define GETLE16(X) (*(uint16_t *)X)
+#define GETLE32(X) (*(uint32_t *)X)
+#define PUTLE16(X, Y) *((uint16_t *)X)=((uint16_t)Y)
+#define PUTLE32(X, Y) *((uint32_t *)X)=((uint32_t)Y)
+#endif
 
 #include "psxcommon.h"
 
