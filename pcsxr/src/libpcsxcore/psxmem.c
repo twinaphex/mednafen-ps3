@@ -24,12 +24,6 @@
 #include "psxmem.h"
 #include "r3000a.h"
 #include "psxhw.h"
-//ROBO: We don't have this
-//#include <sys/mman.h>
-
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
-#endif
 
 s8 *psxM = NULL; // Kernel & User Memory (2 Meg)
 s8 *psxP = NULL; // Parallel Port (64K)
@@ -66,9 +60,6 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-//ROBO: No mman
-//	psxM = mmap(0, 0x00220000,
-//		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	psxM = malloc(0x00220000);
 
 	psxP = &psxM[0x200000];
@@ -144,226 +135,148 @@ void psxMemShutdown() {
 
 static int writeok = 1;
 
-u8 psxMemRead8(u32 mem) {
-	char *p;
-	u32 t;
-
-
+u8 psxMemRead8(u32 mem)
+{
 	psxRegs.cycle += 0;
 
-
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			return psxHu8(mem);
-		else
-			return psxHwRead8(mem);
-	} else {
-		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R1);
-			return *(u8 *)(p + (mem & 0xffff));
-		} else {
-#ifdef PSXMEM_LOG
-			PSXMEM_LOG("err lb %8.8lx\n", mem);
-#endif
-			return 0;
-		}
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		return (mem < 0x1F801000) ? psxHu8(mem) : psxHwRead8(mem);
+	}
+	else
+	{
+		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		return p ? (*(u8*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-u16 psxMemRead16(u32 mem) {
-	char *p;
-	u32 t;
-
-
+u16 psxMemRead16(u32 mem)
+{
 	psxRegs.cycle += 1;
 
-	
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			return psxHu16(mem);
-		else
-			return psxHwRead16(mem);
-	} else {
-		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R2);
-//ROBO: GETLE
-//			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
-			return GETLE16((u16 *)(p + (mem & 0xffff)));
-		} else {
-#ifdef PSXMEM_LOG
-			PSXMEM_LOG("err lh %8.8lx\n", mem);
-#endif
-			return 0;
-		}
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		return (mem < 0x1F801000) ? psxHu16(mem) : psxHwRead16(mem);
+	}
+	else
+	{
+		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		return p ? GETLE16((u16*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-u32 psxMemRead32(u32 mem) {
-	char *p;
-	u32 t;
-
-
+u32 psxMemRead32(u32 mem)
+{
 	psxRegs.cycle += 1;
 
-	
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			return psxHu32(mem);
-		else
-			return psxHwRead32(mem);
-	} else {
-		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, R4);
-//ROBO: Get LE
-//			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
-			return GETLE32((u32 *)(p + (mem & 0xffff)));
-		} else {
-#ifdef PSXMEM_LOG
-			if (writeok) { PSXMEM_LOG("err lw %8.8lx\n", mem); }
-#endif
-			return 0;
-		}
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		return (mem < 0x1F801000) ? psxHu32(mem) : psxHwRead32(mem);
+	}
+	else
+	{
+		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		return p ? GETLE32((u32*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-void psxMemWrite8(u32 mem, u8 value) {
-	char *p;
-	u32 t;
-
-
+void psxMemWrite8(u32 mem, u8 value)
+{
 	psxRegs.cycle += 1;
-	
-	
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
+
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		if(mem < 0x1F801000)
+		{
 			psxHu8(mem) = value;
+		}
 		else
+		{
 			psxHwWrite8(mem, value);
-	} else {
-		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
-			*(u8 *)(p + (mem & 0xffff)) = value;
-#ifdef PSXREC
-			psxCpu->Clear((mem & (~3)), 1);
-#endif
-		} else {
-#ifdef PSXMEM_LOG
-			PSXMEM_LOG("err sb %8.8lx\n", mem);
-#endif
+		}
+	}
+	else
+	{
+		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		if(p)
+		{
+			*(p + (mem & 0xFFFF)) = value;
 		}
 	}
 }
 
-void psxMemWrite16(u32 mem, u16 value) {
-	char *p;
-	u32 t;
-
-
+void psxMemWrite16(u32 mem, u16 value)
+{
 	psxRegs.cycle += 1;
 
-		
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			psxHu16ref(mem) = SWAPu16(value);
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		if(mem < 0x1F801000)
+		{
+			PUTLE16(psxHu16adr(mem), value);
+		}
 		else
+		{
 			psxHwWrite16(mem, value);
-	} else {
-		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
-			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
-#ifdef PSXREC
-			psxCpu->Clear((mem & (~3)), 1);
-#endif
-		} else {
-#ifdef PSXMEM_LOG
-			PSXMEM_LOG("err sh %8.8lx\n", mem);
-#endif
+		}
+	}
+	else
+	{
+		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		if(p)
+		{
+			PUTLE16((u16*)(p + (mem & 0xFFFF)), value);
 		}
 	}
 }
 
-void psxMemWrite32(u32 mem, u32 value) {
-	char *p;
-	u32 t;
-
-	
+void psxMemWrite32(u32 mem, u32 value)
+{
 	psxRegs.cycle += 1;
 
-
-	//	if ((mem&0x1fffff) == 0x71E18 || value == 0x48088800) SysPrintf("t2fix!!\n");
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			psxHu32ref(mem) = SWAPu32(value);
+	if((mem & 0xFFFF0000) == 0x1F800000)
+	{
+		if(mem < 0x1F801000)
+		{
+			PUTLE32(psxHu32adr(mem), value);
+		}
 		else
+		{
 			psxHwWrite32(mem, value);
-	} else {
-		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
-			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
-#ifdef PSXREC
-			psxCpu->Clear(mem, 1);
-#endif
-		} else {
-			if (mem != 0xfffe0130) {
-#ifdef PSXREC
-				if (!writeok)
-					psxCpu->Clear(mem, 1);
-#endif
+		}
+	}
+	else
+	{
+		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		if(p)
+		{
+			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
+		}
+		else if(mem == 0xFFFE0130)
+		{
+			int i;
 
-#ifdef PSXMEM_LOG
-				if (writeok) { PSXMEM_LOG("err sw %8.8lx\n", mem); }
-#endif
-			} else {
-				int i;
+			// a0-44: used for cache flushing
+			switch (value)
+			{
+				case 0x800: case 0x804:
+					if (writeok == 0) break;
+					writeok = 0;
+					memset(psxMemWLUT + 0x0000, 0, 0x80 * sizeof(void *));
+					memset(psxMemWLUT + 0x8000, 0, 0x80 * sizeof(void *));
+					memset(psxMemWLUT + 0xa000, 0, 0x80 * sizeof(void *));
 
-				// a0-44: used for cache flushing
-				switch (value) {
-					case 0x800: case 0x804:
-						if (writeok == 0) break;
-						writeok = 0;
-						memset(psxMemWLUT + 0x0000, 0, 0x80 * sizeof(void *));
-						memset(psxMemWLUT + 0x8000, 0, 0x80 * sizeof(void *));
-						memset(psxMemWLUT + 0xa000, 0, 0x80 * sizeof(void *));
-
-						psxRegs.ICache_valid = 0;
-						break;
-					case 0x00: case 0x1e988:
-						if (writeok == 1) break;
-						writeok = 1;
-						for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (void *)&psxM[(i & 0x1f) << 16];
-						memcpy(psxMemWLUT + 0x8000, psxMemWLUT, 0x80 * sizeof(void *));
-						memcpy(psxMemWLUT + 0xa000, psxMemWLUT, 0x80 * sizeof(void *));
-						break;
-					default:
-#ifdef PSXMEM_LOG
-						PSXMEM_LOG("unk %8.8lx = %x\n", mem, value);
-#endif
-						break;
-				}
+					psxRegs.ICache_valid = 0;
+					break;
+				case 0x00: case 0x1e988:
+					if (writeok == 1) break;
+					writeok = 1;
+					for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (void *)&psxM[(i & 0x1f) << 16];
+					memcpy(psxMemWLUT + 0x8000, psxMemWLUT, 0x80 * sizeof(void *));
+					memcpy(psxMemWLUT + 0xa000, psxMemWLUT, 0x80 * sizeof(void *));
+					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -387,3 +300,4 @@ void *psxMemPointer(u32 mem) {
 		return NULL;
 	}
 }
+
