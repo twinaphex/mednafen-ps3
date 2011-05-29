@@ -198,6 +198,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
 		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
+		Buffer->Clear(0);
+
 		//HACK: Setup lua
 		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
 		if(Utility::FileExists(luafile))
@@ -439,26 +441,30 @@ bool						MednafenEmu::Frame				()
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch, bool aDummy)
 {
-	//HACK: Don't draw pixel arrays for now
-	if(aPixels) return;
-
 	if(IsInitialized && (aPixels || IsLoaded))
 	{
 		//Get the output area
 		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-
 		uint32_t* pixels = Buffer->Map();
+		uint32_t pitch = Buffer->GetPitch();
+
+		if(aPixels)
+		{
+			output = Area(0, 0, aWidth, aHeight);
+			pixels = aPixels;
+			pitch = aPitch;
+		}
 
 		for(int i = 0; i != output.Height; i ++)
 		{
-			memcpy(&pixels[(output.Y + i) * Buffer->GetPitch() + output.X], &Surface->pixels[(output.Y + i) * Buffer->GetPitch() + output.X], output.Width * 4);
+			memcpy(&pixels[(output.Y + i) * pitch + output.X], &Surface->pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
 		}
 
 		Buffer->Unmap();
 
 		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
-		if(Lua)
+		if(!aPixels && Lua)
 		{
 			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
 			uint32_t* pix = tex->Map();

@@ -125,11 +125,6 @@ void				ReloadEmulator			(const std::string& aFileName)
 	}
 }
 
-static bool			SummerfaceBackground	()
-{
-	return MednafenEmu::DummyFrame();
-}
-
 int					main					(int argc, char* argv[])
 {
 	try
@@ -140,7 +135,7 @@ int					main					(int argc, char* argv[])
 		MednafenEmu::Init();
 
 		//Set the Summerface background
-		Summerface::SetDrawBackground(SummerfaceBackground);
+		Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
 
 		//Run the menu
 		ReloadEmulator((argc > 1) ? argv[1] : "");
