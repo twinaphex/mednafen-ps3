@@ -25,32 +25,39 @@ extern "C" {
 #endif
 
 //ROBO:
-#ifdef STUPID_SPEED_TEST
-#define __inline__ inline
 #include <stdint.h>
-static __inline__ uint16_t GETLE16(uint16_t *ptr) {
-    uint16_t ret; __asm__ ("lhbrx %0, 0, %1" : "=r" (ret) : "r" (ptr));
+#define	TOTAL_INLINE __attribute__((always_inline))
+
+static TOTAL_INLINE uint16_t GETLE16(uint16_t *ptr)
+{
+    uint16_t ret;
+	__asm__ ("lhbrx %0, 0, %1" : "=r" (ret) : "r" (ptr));
     return ret;
 }
-static __inline__ uint32_t GETLE32(uint32_t *ptr) {
+
+static TOTAL_INLINE uint32_t GETLE32(uint32_t *ptr)
+{
     uint32_t ret;
     __asm__ ("lwbrx %0, 0, %1" : "=r" (ret) : "r" (ptr));
     return ret;
 }
-static __inline__ uint32_t GETLE16D(uint32_t *ptr) {
+
+static TOTAL_INLINE uint32_t GETLE16D(uint32_t *ptr)
+{
     uint32_t ret;
-    __asm__ ("lwbrx %0, 0, %1\n"
-             "rlwinm %0, %0, 16, 0, 31" : "=r" (ret) : "r" (ptr));
+    __asm__ ("lwbrx %0, 0, %1\n" "rlwinm %0, %0, 16, 0, 31" : "=r" (ret) : "r" (ptr));
     return ret;
 }
 
-static __inline__ void PUTLE16(uint16_t *ptr, uint16_t val) {
+static TOTAL_INLINE void PUTLE16(uint16_t *ptr, uint16_t val)
+{
     __asm__ ("sthbrx %0, 0, %1" : : "r" (val), "r" (ptr) : "memory");
 }
-static __inline__ void PUTLE32(uint32_t *ptr, uint32_t val) {
+
+static TOTAL_INLINE void PUTLE32(uint32_t *ptr, uint32_t val)
+{
     __asm__ ("stwbrx %0, 0, %1" : : "r" (val), "r" (ptr) : "memory");
 }
-#endif
 
 #include "psxcommon.h"
 
