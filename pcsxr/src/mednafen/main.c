@@ -2,15 +2,17 @@
 #include "plugins.h"
 #include "video_plugin/globals.h"
 #include "input_plugin/pad.h"
+#include <src/snes/src/lib/libco/libco.h>
+
+static cothread_t	MainThread;
+static cothread_t	EmuThread;
 
 //Plugins functions, from plugins.c
 int					OpenPlugins		();
 void				ClosePlugins	();
 
 //System functions, needed by libpcsxcore
-//Setting wanna_leave to 1 causes the cpu emu to return, but this is a patch by me
-extern int			wanna_leave;
-void				SysUpdate		()		{wanna_leave = 1;}
+void				SysUpdate		()		{co_switch(MainThread);}
 void				SysRunGui		()		{/* Nothing */}
 void				SysReset		()		{EmuReset();}
 
@@ -69,19 +71,12 @@ void				SetBIOS			(const char* aPath)
 	}
 }
 
-//Recompiler
-static uint32_t		EnableRecompiler = 0;
-void				SetRecompiler	(uint32_t aEnable)
-{
-	EnableRecompiler = aEnable;
-}
-
 //Main functions for running emu
+extern void intExecute();
 int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
-    Config.Cpu = EnableRecompiler ? CPU_DYNAREC : CPU_INTERPRETER;
     strcpy(Config.PluginsDir, "builtin");
     strcpy(Config.Gpu, "builtin");
     strcpy(Config.Spu, "builtin");
@@ -92,6 +87,11 @@ int					SysLoad			()
     strcpy(Config.Bios, BIOSPath);
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
+
+	MainThread = co_active();
+
+	//TODO: MAKE SURE THIS IS DELETED LATER
+	EmuThread = co_create(65536 * sizeof(void*), intExecute);
 
 	EmuInit();
 
@@ -120,7 +120,7 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 	g.PadState[0].KeyStatus = ~aKeys;
 
 	//Run frame
-	psxCpu->Execute();
+	co_switch(EmuThread);
 
 	//Grab the frame
 	int x = 0, y = 0, w = 320, h = 240;
