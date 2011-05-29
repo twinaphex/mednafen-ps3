@@ -282,22 +282,4 @@ void psxMemWrite32(u32 mem, u32 value)
 	}
 }
 
-void *psxMemPointer(u32 mem) {
-	char *p;
-	u32 t;
-
-	t = mem >> 16;
-	if (t == 0x1f80) {
-		if (mem < 0x1f801000)
-			return (void *)&psxH[mem];
-		else
-			return NULL;
-	} else {
-		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
-			return (void *)(p + (mem & 0xffff));
-		}
-		return NULL;
-	}
-}
 
