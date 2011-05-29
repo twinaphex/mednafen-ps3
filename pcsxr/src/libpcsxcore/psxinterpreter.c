@@ -25,6 +25,9 @@
 #include "gte.h"
 #include "psxhle.h"
 
+//void runI();
+#define runI() psxBSC[psxRegs.code >> 26]();
+
 static int branch = 0;
 static int branch2 = 0;
 static u32 branchPC;
@@ -53,7 +56,8 @@ static void delayRead(int reg, u32 bpc) {
 //	SysPrintf("delayRead at %x!\n", psxRegs.pc);
 
 	rold = psxRegs.GPR.r[reg];
-	psxBSC[psxRegs.code >> 26](); // branch delay load
+//	psxBSC[psxRegs.code >> 26](); // branch delay load
+	runI();
 	rnew = psxRegs.GPR.r[reg];
 
 	psxRegs.pc = bpc;
@@ -76,7 +80,8 @@ static void delayWrite(int reg, u32 bpc) {
 
 	// no changes from normal behavior
 
-	psxBSC[psxRegs.code >> 26]();
+//	psxBSC[psxRegs.code >> 26]();
+	runI();
 
 	branch = 0;
 	psxRegs.pc = bpc;
@@ -279,7 +284,8 @@ void psxDelayTest(int reg, u32 bpc) {
 		case 3:
 			delayWrite(reg, bpc); return;
 	}
-	psxBSC[psxRegs.code >> 26]();
+//	psxBSC[psxRegs.code >> 26]();
+	runI();
 
 	branch = 0;
 	psxRegs.pc = bpc;
@@ -339,7 +345,8 @@ __inline void doBranch(u32 tar) {
 			break;
 	}
 
-	psxBSC[psxRegs.code >> 26]();
+//	psxBSC[psxRegs.code >> 26]();
+	runI();
 
 	branch = 0;
 	psxRegs.pc = branchPC;
@@ -352,12 +359,12 @@ __inline void doBranch(u32 tar) {
 * Format:  OP rt, rs, immediate                          *
 *********************************************************/
 void psxADDI() 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) + _Imm_ ; }		// Rt = Rs + Im 	(Exception on Integer Overflow)
-void psxADDIU() { if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) + _Imm_ ; }		// Rt = Rs + Im
+void psxADDIU()  { if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) + _Imm_ ; }		// Rt = Rs + Im
 void psxANDI() 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) & _ImmU_; }		// Rt = Rs And Im
 void psxORI() 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) | _ImmU_; }		// Rt = Rs Or  Im
 void psxXORI() 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) ^ _ImmU_; }		// Rt = Rs Xor Im
 void psxSLTI() 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _i32(_rRs_) < _Imm_ ; }		// Rt = Rs < Im		(Signed)
-void psxSLTIU() { if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) < ((u32)_Imm_); }		// Rt = Rs < Im		(Unsigned)
+void psxSLTIU()  { if (UNLIKELY(!_Rt_)) return; _rRt_ = _u32(_rRs_) < ((u32)_Imm_); }		// Rt = Rs < Im		(Unsigned)
 
 /*********************************************************
 * Register arithmetic                                    *
@@ -851,33 +858,17 @@ void psxNULL() {
 #endif
 }
 
-void psxSPECIAL() {
-	psxSPC[_Funct_]();
-}
+void psxSPECIAL()	{psxSPC[_Funct_]();}
+void psxREGIMM()		{psxREG[_Rt_]();}
+void psxCOP0()		{psxCP0[_Rs_]();}
+void psxCOP2()		{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_]();}
+void	psxBASIC()		{psxCP2BSC[_Rs_]();}
 
-void psxREGIMM() {
-	psxREG[_Rt_]();
-}
-
-void psxCOP0() {
-	psxCP0[_Rs_]();
-}
-
-void psxCOP2() {
-	if ((psxRegs.CP0.n.Status & 0x40000000) == 0 )
-		return;
-
-	psxCP2[_Funct_]();
-}
-
-void psxBASIC() {
-	psxCP2BSC[_Rs_]();
-}
-
-void psxHLE() {
+void psxHLE() {psxHLEt[psxRegs.code & 0x07]();}
+//void psxHLE() {
 //	psxHLEt[psxRegs.code & 0xffff]();
-	psxHLEt[psxRegs.code & 0x07]();		// HDHOSHY experimental patch
-}
+//	psxHLEt[psxRegs.code & 0x07]();		// HDHOSHY experimental patch
+//}
 
 void (*psxBSC[64])() = {
 	psxSPECIAL, psxREGIMM, psxJ   , psxJAL  , psxBEQ , psxBNE , psxBLEZ, psxBGTZ,
@@ -950,7 +941,9 @@ int wanna_leave = 0;
 static void intExecute() {
 	wanna_leave = 0;
 	while(LIKELY(!wanna_leave))
+	{
 		execI();
+	}
 }
 
 static void intExecuteBlock() {
@@ -964,21 +957,91 @@ static void intClear(u32 Addr, u32 Size) {
 static void intShutdown() {
 }
 
+/*void runI() {
+#define psxNULLsw()
+	switch(psxRegs.code >> 26)
+	{
+		case	0:	psxSPECIAL(); return;
+		case	1:	psxREGIMM(); return;
+		case	2:	psxJ(); return;
+		case	3:	psxJAL(); return;
+		case	4:	psxBEQ(); return;
+		case	5:	psxBNE(); return;
+		case	6:	psxBLEZ(); return;
+		case	7:	psxBGTZ(); return;
+		case	8:	psxADDI(); return;
+		case	9:	psxADDIU(); return;
+		case	10:	psxSLTI(); return;
+		case	11:	psxSLTIU(); return;
+		case	12:	psxANDI(); return;
+		case	13:	psxORI(); return;
+		case	14:	psxXORI(); return;
+		case	15:	psxLUI(); return;
+		case	16:	psxCOP0(); return;
+		case	17:	psxNULLsw(); return;
+		case	18:	psxCOP2(); return;
+		case	19:	psxNULLsw(); return;
+		case	20:	psxNULLsw(); return;
+		case	21:	psxNULLsw(); return;
+		case	22:	psxNULLsw(); return;
+		case	23:	psxNULLsw(); return;
+		case	24:	psxNULLsw(); return;
+		case	25:	psxNULLsw(); return;
+		case	26:	psxNULLsw(); return;
+		case	27:	psxNULLsw(); return;
+		case	28:	psxNULLsw(); return;
+		case	29:	psxNULLsw(); return;
+		case	30:	psxNULLsw(); return;
+		case	31:	psxNULLsw(); return;
+		case	32:	psxLB(); return;
+		case	33:	psxLH(); return;
+		case	34:	psxLWL(); return;
+		case	35:	psxLW(); return;
+		case	36:	psxLBU(); return;
+		case	37:	psxLHU(); return;
+		case	38:	psxLWR(); return;
+		case	39:	psxNULLsw(); return;
+		case	40:	psxSB(); return;
+		case	41:	psxSH(); return;
+		case	42:	psxSWL(); return;
+		case	43:	psxSW(); return;
+		case	44:	psxNULLsw(); return;
+		case	45:	psxNULLsw(); return;
+		case	46:	psxSWR(); return;
+		case	47:	psxNULLsw(); return; 
+		case	48:	psxNULLsw(); return;
+		case	49:	psxNULLsw(); return;
+		case	50:	gteLWC2(); return;
+		case	51:	psxNULLsw(); return;
+		case	52:	psxNULLsw(); return;
+		case	53:	psxNULLsw(); return;
+		case	54:	psxNULLsw(); return;
+		case	55:	psxNULLsw(); return;
+		case	56:	psxNULLsw(); return;
+		case	57:	psxNULLsw(); return;
+		case	58:	gteSWC2(); return;
+		case	59:	psxHLE(); return;
+		case	60:	psxNULLsw(); return;
+		case	61:	psxNULLsw(); return;
+		case	62:	psxNULLsw(); return;
+		case	63:	psxNULLsw(); return;
+	}
+}*/
+
 // interpreter execution
 inline void execI() { 
-	u32 *code = Read_ICache(psxRegs.pc, FALSE);
-//ROBO	psxRegs.code = ((code == NULL) ? 0 : SWAP32(*code));
-	psxRegs.code = ((code == NULL) ? 0 : GETLE32(code));
-
-	debugI();
+//ROBO: This will go crashy crashy if you try to execute garbage addresses !
+	psxRegs.code = GETLE32(Read_ICache(psxRegs.pc, FALSE));
 
 //ROBO: No debug
+//	debugI();
 //	if (Config.Debug) ProcessDebug();
 
 	psxRegs.pc += 4;
 	psxRegs.cycle += BIAS;
 
-	psxBSC[psxRegs.code >> 26]();
+//	psxBSC[psxRegs.code >> 26]();
+	runI();
 }
 
 R3000Acpu psxInt = {
@@ -989,3 +1052,4 @@ R3000Acpu psxInt = {
 	intClear,
 	intShutdown
 };
+
