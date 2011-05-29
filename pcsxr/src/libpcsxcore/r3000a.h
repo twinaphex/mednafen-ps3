@@ -64,6 +64,11 @@ typedef union {
 } PAIR;
 
 typedef union {
+	u32	uns;
+	s32 sign;
+} HappyRegister;
+
+typedef union {
 	struct {
 		u32   r0, at, v0, v1, a0, a1, a2, a3,
 						t0, t1, t2, t3, t4, t5, t6, t7,
@@ -71,6 +76,7 @@ typedef union {
 						t8, t9, k0, k1, gp, sp, s8, ra, lo, hi;
 	} n;
 	u32 r[34]; /* Lo, Hi in r[32] and r[33] */
+	HappyRegister h[34];
 	PAIR p[34];
 } psxGPRRegs;
 
@@ -316,6 +322,12 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 #define _rRd_   psxRegs.GPR.r[_Rd_]   // Rd register
 #define _rSa_   psxRegs.GPR.r[_Sa_]   // Sa register
 #define _rFs_   psxRegs.CP0.r[_Rd_]   // Fs register
+
+#define _rRsS_   psxRegs.GPR.h[_Rs_].sign   // Rs register
+#define _rRtS_   psxRegs.GPR.h[_Rt_].sign   // Rt register
+#define _rRdS_   psxRegs.GPR.h[_Rd_].sign   // Rd register
+#define _rSaS_   psxRegs.GPR.h[_Sa_].sign   // Sa register
+#define _rFsS_   psxRegs.CP0.h[_Rd_].sign   // Fs register
 
 #define _c2dRs_ psxRegs.CP2D.r[_Rs_]  // Rs cop2 data register
 #define _c2dRt_ psxRegs.CP2D.r[_Rt_]  // Rt cop2 data register
