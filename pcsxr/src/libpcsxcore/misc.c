@@ -668,12 +668,7 @@ int RecvPcsxInfo() {
 	NET_recvData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
 	if (tmp != Config.Cpu) {
 		psxCpu->Shutdown();
-#ifdef PSXREC
-		if (Config.Cpu == CPU_INTERPRETER) psxCpu = &psxInt;
-		else psxCpu = &psxRec;
-#else
 		psxCpu = &psxInt;
-#endif
 		if (psxCpu->Init() == -1) {
 			SysClose(); return -1;
 		}

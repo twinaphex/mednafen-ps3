@@ -21,7 +21,6 @@
 #include "r3000a.h"
 #include "psxbios.h"
 
-#include "cheat.h"
 #include "ppf.h"
 
 PcsxConfig Config;
@@ -35,17 +34,10 @@ int EmuInit() {
 }
 
 void EmuReset() {
-	FreeCheatSearchResults();
-	FreeCheatSearchMem();
-
 	psxReset();
 }
 
 void EmuShutdown() {
-	ClearAllCheats();
-	FreeCheatSearchResults();
-	FreeCheatSearchMem();
-
 	FreePPFCache();
 
 	psxShutdown();
@@ -55,8 +47,6 @@ void EmuUpdate() {
 	// Do not allow hotkeys inside a softcall from HLE BIOS
 	if (!Config.HLE || !hleSoftCall)
 		SysUpdate();
-
-	ApplyCheats();
 }
 
 void __Log(char *fmt, ...) {

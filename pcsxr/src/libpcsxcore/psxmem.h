@@ -140,11 +140,6 @@ extern u8 **psxMemRLUT;
 #define PSXMfast(mem)	((u8*)(psxMemRLUT[(mem) >> 16] + ((mem) & 0xffff)))
 #endif
 
-
-#if !defined(PSXREC) && (defined(__x86_64__) || defined(__i386__) || defined(__ppc__)) && !defined(NOPSXREC)
-#define PSXREC
-#endif
-
 int psxMemInit();
 void psxMemReset();
 void psxMemShutdown();
