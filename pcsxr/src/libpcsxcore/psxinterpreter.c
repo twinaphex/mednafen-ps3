@@ -34,12 +34,6 @@ static u32 branchPC;
 
 // These macros are used to assemble the repassembler functions
 
-#ifdef PSXCPU_LOG
-#define debugI() PSXCPU_LOG("%s\n", disR3000AF(psxRegs.code, psxRegs.pc)); 
-#else
-#define debugI()
-#endif
-
 inline void execI();
 
 // Subsets
@@ -305,8 +299,6 @@ __inline void doBranch(u32 tar) {
 
 //	psxRegs.code = ((code == NULL) ? 0 : SWAP32(*code));
 	psxRegs.code = ((code == NULL) ? 0 : GETLE32(code));
-
-	debugI();
 
 	psxRegs.pc += 4;
 	psxRegs.cycle += BIAS;
@@ -1032,10 +1024,6 @@ static void intShutdown() {
 inline void execI() { 
 //ROBO: This will go crashy crashy if you try to execute garbage addresses !
 	psxRegs.code = GETLE32(Read_ICache(psxRegs.pc, FALSE));
-
-//ROBO: No debug
-//	debugI();
-//	if (Config.Debug) ProcessDebug();
 
 	psxRegs.pc += 4;
 	psxRegs.cycle += BIAS;
