@@ -243,8 +243,8 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 	glBindTexture(GL_TEXTURE_2D, aSourceTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Smooth ? GL_LINEAR : GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Smooth ? GL_LINEAR : GL_NEAREST);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	//Draw
 	glDrawArrays(GL_QUADS, 0, 4);
@@ -313,6 +313,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 		/* Update texture */
 		if(Next)
 		{
+//TODO: Round size up to next power of two
 			Output = Area(0, 0, aInWidth * ScaleFactor, aInHeight * ScaleFactor);
 #ifndef __CELLOS_LV2__
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, Output.Width, Output.Height, 0, GL_RGB, GL_INT, 0);
