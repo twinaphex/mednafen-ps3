@@ -119,6 +119,10 @@ extern s8 *psxH;
 #define psxHu8ref(mem)	(*(u8 *)&psxH[(mem) & 0xffff])
 #define psxHu16ref(mem)	(*(u16 *)&psxH[(mem) & 0xffff])
 #define psxHu32ref(mem)	(*(u32 *)&psxH[(mem) & 0xffff])
+#define psxHu8adr(mem)	((u8 *)&psxH[(mem) & 0xffff])
+#define psxHu16adr(mem)	((u16 *)&psxH[(mem) & 0xffff])
+#define psxHu32adr(mem)	((u32 *)&psxH[(mem) & 0xffff])
+
 
 
 extern u8 **psxMemWLUT;

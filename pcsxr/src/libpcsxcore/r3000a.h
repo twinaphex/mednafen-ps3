@@ -32,7 +32,6 @@ extern "C" {
 #define UNLIKELY(x) x
 #endif
 
-
 #include "psxcommon.h"
 #include "psxmem.h"
 #include "psxcounters.h"
