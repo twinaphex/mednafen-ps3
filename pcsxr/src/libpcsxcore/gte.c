@@ -341,35 +341,35 @@ static inline void CTC2(u32 value, int reg) {
 	psxRegs.CP2C.r[reg] = value;
 }
 
-void gteMFC2() {
+void gteMFC2(uint32_t aCode) {
 	if (!_Rt_) return;
 	psxRegs.GPR.r[_Rt_] = MFC2(_Rd_);
 }
 
-void gteCFC2() {
+void gteCFC2(uint32_t aCode) {
 	if (!_Rt_) return;
 	psxRegs.GPR.r[_Rt_] = psxRegs.CP2C.r[_Rd_];
 }
 
-void gteMTC2() {
+void gteMTC2(uint32_t aCode) {
 	MTC2(psxRegs.GPR.r[_Rt_], _Rd_);
 }
 
-void gteCTC2() {
+void gteCTC2(uint32_t aCode) {
 	CTC2(psxRegs.GPR.r[_Rt_], _Rd_);
 }
 
 #define _oB_ (psxRegs.GPR.r[_Rs_] + _Imm_)
 
-void gteLWC2() {
+void gteLWC2(uint32_t aCode) {
 	MTC2(psxMemRead32(_oB_), _Rt_);
 }
 
-void gteSWC2() {
+void gteSWC2(uint32_t aCode) {
 	psxMemWrite32(_oB_, MFC2(_Rt_));
 }
 
-void gteRTPS() {
+void gteRTPS(uint32_t aCode) {
 	int quotient;
 
 #ifdef GTE_LOG
@@ -397,7 +397,7 @@ void gteRTPS() {
 	gteIR0 = limH(gteMAC0);
 }
 
-void gteRTPT() {
+void gteRTPT(uint32_t aCode) {
 	int quotient;
 	int v;
 	s32 vx, vy, vz;
@@ -427,7 +427,7 @@ void gteRTPT() {
 	gteIR0 = limH(gteMAC0);
 }
 
-void gteMVMVA() {
+void gteMVMVA(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 	int mx = GTE_MX(gteop);
 	int v = GTE_V(gteop);
@@ -451,7 +451,7 @@ void gteMVMVA() {
 	gteIR3 = limB3(gteMAC3, lm);
 }
 
-void gteNCLIP() {
+void gteNCLIP(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE NCLIP\n");
 #endif
@@ -462,7 +462,7 @@ void gteNCLIP() {
 				gteSX2 * (gteSY0 - gteSY1));
 }
 
-void gteAVSZ3() {
+void gteAVSZ3(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE AVSZ3\n");
 #endif
@@ -472,7 +472,7 @@ void gteAVSZ3() {
 	gteOTZ = limD(gteMAC0 >> 12);
 }
 
-void gteAVSZ4() {
+void gteAVSZ4(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE AVSZ4\n");
 #endif
@@ -482,7 +482,7 @@ void gteAVSZ4() {
 	gteOTZ = limD(gteMAC0 >> 12);
 }
 
-void gteSQR() {
+void gteSQR(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 	int lm = GTE_LM(gteop);
 
@@ -499,7 +499,7 @@ void gteSQR() {
 	gteIR3 = limB3(gteMAC3, lm);
 }
 
-void gteNCCS() {
+void gteNCCS(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE NCCS\n");
 #endif
@@ -532,7 +532,7 @@ void gteNCCS() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteNCCT() {
+void gteNCCT(uint32_t aCode) {
 	int v;
 	s32 vx, vy, vz;
 
@@ -573,7 +573,7 @@ void gteNCCT() {
 	gteIR3 = limB3(gteMAC3, 1);
 }
 
-void gteNCDS() {
+void gteNCDS(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE NCDS\n");
 #endif
@@ -606,7 +606,7 @@ void gteNCDS() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteNCDT() {
+void gteNCDT(uint32_t aCode) {
 	int v;
 	s32 vx, vy, vz;
 
@@ -647,7 +647,7 @@ void gteNCDT() {
 	gteIR3 = limB3(gteMAC3, 1);
 }
 
-void gteOP() {
+void gteOP(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 	int lm = GTE_LM(gteop);
 
@@ -664,7 +664,7 @@ void gteOP() {
 	gteIR3 = limB3(gteMAC3, lm);
 }
 
-void gteDCPL() {
+void gteDCPL(uint32_t aCode) {
 	int lm = GTE_LM(gteop);
 
 	s64 RIR1 = ((s64)gteR * gteIR1) >> 8;
@@ -692,7 +692,7 @@ void gteDCPL() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteGPF() {
+void gteGPF(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 
 #ifdef GTE_LOG
@@ -715,7 +715,7 @@ void gteGPF() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteGPL() {
+void gteGPL(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 
 #ifdef GTE_LOG
@@ -738,7 +738,7 @@ void gteGPL() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteDPCS() {
+void gteDPCS(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 
 #ifdef GTE_LOG
@@ -761,7 +761,7 @@ void gteDPCS() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteDPCT() {
+void gteDPCT(uint32_t aCode) {
 	int v;
 
 #ifdef GTE_LOG
@@ -786,7 +786,7 @@ void gteDPCT() {
 	gteIR3 = limB3(gteMAC3, 0);
 }
 
-void gteNCS() {
+void gteNCS(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE NCS\n");
 #endif
@@ -813,7 +813,7 @@ void gteNCS() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteNCT() {
+void gteNCT(uint32_t aCode) {
 	int v;
 	s32 vx, vy, vz;
 
@@ -847,7 +847,7 @@ void gteNCT() {
 	gteIR3 = limB3(gteMAC3, 1);
 }
 
-void gteCC() {
+void gteCC(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE CC\n");
 #endif
@@ -874,7 +874,7 @@ void gteCC() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteINTPL() {
+void gteINTPL(uint32_t aCode) {
 	int shift = 12 * GTE_SF(gteop);
 	int lm = GTE_LM(gteop);
 
@@ -897,7 +897,7 @@ void gteINTPL() {
 	gteB2 = limC3(gteMAC3 >> 4);
 }
 
-void gteCDP() {
+void gteCDP(uint32_t aCode) {
 #ifdef GTE_LOG
 	GTE_LOG("GTE CDP\n");
 #endif

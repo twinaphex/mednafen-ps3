@@ -29,35 +29,35 @@ extern "C" {
 #include "psxcommon.h"
 #include "r3000a.h"
 
-void gteMFC2();
-void gteCFC2();
-void gteMTC2();
-void gteCTC2();
-void gteLWC2();
-void gteSWC2();
+void gteMFC2(uint32_t aCode);
+void gteCFC2(uint32_t aCode);
+void gteMTC2(uint32_t aCode);
+void gteCTC2(uint32_t aCode);
+void gteLWC2(uint32_t aCode);
+void gteSWC2(uint32_t aCode);
 
-void gteRTPS();
-void gteOP();
-void gteNCLIP();
-void gteDPCS();
-void gteINTPL();
-void gteMVMVA();
-void gteNCDS();
-void gteNCDT();
-void gteCDP();
-void gteNCCS();
-void gteCC();
-void gteNCS();
-void gteNCT();
-void gteSQR();
-void gteDCPL();
-void gteDPCT();
-void gteAVSZ3();
-void gteAVSZ4();
-void gteRTPT();
-void gteGPF();
-void gteGPL();
-void gteNCCT();
+void gteRTPS(uint32_t aCode);
+void gteOP(uint32_t aCode);
+void gteNCLIP(uint32_t aCode);
+void gteDPCS(uint32_t aCode);
+void gteINTPL(uint32_t aCode);
+void gteMVMVA(uint32_t aCode);
+void gteNCDS(uint32_t aCode);
+void gteNCDT(uint32_t aCode);
+void gteCDP(uint32_t aCode);
+void gteNCCS(uint32_t aCode);
+void gteCC(uint32_t aCode);
+void gteNCS(uint32_t aCode);
+void gteNCT(uint32_t aCode);
+void gteSQR(uint32_t aCode);
+void gteDCPL(uint32_t aCode);
+void gteDPCT(uint32_t aCode);
+void gteAVSZ3(uint32_t aCode);
+void gteAVSZ4(uint32_t aCode);
+void gteRTPT(uint32_t aCode);
+void gteGPF(uint32_t aCode);
+void gteGPL(uint32_t aCode);
+void gteNCCT(uint32_t aCode);
 
 #ifdef __cplusplus
 }
