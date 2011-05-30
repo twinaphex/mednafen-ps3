@@ -107,7 +107,6 @@ void psxBranchTest() {
 			u32 opcode;
 
 			// Crash Bandicoot 2: Don't run exceptions when GTE in pipeline
-//ROBO			opcode = SWAP32(*Read_ICache(psxRegs.pc, TRUE));
 			opcode = GETLE32(Read_ICache(psxRegs.pc, TRUE));
 			if( ((opcode >> 24) & 0xfe) != 0x4a ) {
 #ifdef PSXCPU_LOG
@@ -121,89 +120,148 @@ void psxBranchTest() {
 	if ((psxRegs.cycle - psxNextsCounter) >= psxNextCounter)
 		psxRcntUpdate();
 
-	if (UNLIKELY(psxRegs.interrupt)) {
-		if ((psxRegs.interrupt & (1 << PSXINT_SIO)) && !Config.Sio) { // sio
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SIO].sCycle) >= psxRegs.intCycle[PSXINT_SIO].cycle) {
-				psxRegs.interrupt &= ~(1 << PSXINT_SIO);
-				sioInterrupt();
-			}
-		}
-		if (psxRegs.interrupt & (1 << PSXINT_CDR)) { // cdr
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDR].sCycle) >= psxRegs.intCycle[PSXINT_CDR].cycle) {
-				psxRegs.interrupt &= ~(1 << PSXINT_CDR);
-				cdrInterrupt();
-			}
-		}
-		if (psxRegs.interrupt & (1 << PSXINT_CDREAD)) { // cdr read
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDREAD].sCycle) >= psxRegs.intCycle[PSXINT_CDREAD].cycle) {
+	//Running tales of destiny until you get drug into the first room the count is
+	//I need to try this again with other games to get a better idea
+	//Taken: 68501038 (68 million) Passed: 349830640 (340 million)
+	//PSXINT_CDREAD:		44062809 (44 million)
+	//PSXINT_SIO:			10885594 (10 million)
+	//PSXINT_CDR:			10397298 (10 million)
+	//PSXINT_GPUDMA:		1892750  (1.8 million)
+	//PSXINT_CDRLID: 		945890   (945 thousand)
+	//PSXINT_CDRDMA: 		112581   (112 thousand)
+	//PSXINT_MDECOUTDMA:	44444	 (44 thousand)
+	//PSXINT_SPUDMA: 		4997	 (4 thousand)
+	//PSXINT_MDECINDMA: 	4		 (4)
+	//PSXINT_GPUBUSY: 		0
+	//PSXINT_GPUOTCDMA: 	0
+	//10: 					0
+	//PSXINT_CDRDBUF: 		0
+	//PSXINT_CDRPLAY: 		0
+
+
+	if (UNLIKELY(psxRegs.interrupt))
+	{
+		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDREAD)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDREAD].sCycle) >= psxRegs.intCycle[PSXINT_CDREAD].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDREAD);
 				cdrReadInterrupt();
 			}
 		}
-		if (psxRegs.interrupt & (1 << PSXINT_GPUDMA)) { // gpu dma
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUDMA].cycle) {
+
+		if((psxRegs.interrupt & (1 << PSXINT_SIO)) && !Config.Sio)
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SIO].sCycle) >= psxRegs.intCycle[PSXINT_SIO].cycle)
+			{
+				psxRegs.interrupt &= ~(1 << PSXINT_SIO);
+				sioInterrupt();
+			}
+		}
+
+		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDR)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDR].sCycle) >= psxRegs.intCycle[PSXINT_CDR].cycle)
+			{
+				psxRegs.interrupt &= ~(1 << PSXINT_CDR);
+				cdrInterrupt();
+			}
+		}
+
+
+		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_GPUDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_GPUDMA);
 				gpuInterrupt();
 			}
 		}
-		if (psxRegs.interrupt & (1 << PSXINT_MDECOUTDMA)) { // mdec out dma
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECOUTDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECOUTDMA].cycle) {
+
+		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDRLID)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRLID].sCycle) >= psxRegs.intCycle[PSXINT_CDRLID].cycle)
+			{
+				psxRegs.interrupt &= ~(1 << PSXINT_CDRLID);
+				cdrLidSeekInterrupt();
+			}
+		}
+
+		//Try to bail now
+		if(LIKELY(psxRegs.interrupt == 0))
+		{
+			return;
+		}
+
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_MDECOUTDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECOUTDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECOUTDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_MDECOUTDMA);
 				mdec1Interrupt();
 			}
 		}
-		if (psxRegs.interrupt & (1 << PSXINT_SPUDMA)) { // spu dma
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_SPUDMA].cycle) {
+
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_SPUDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_SPUDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_SPUDMA);
 				spuInterrupt();
 			}
 		}
-    if (psxRegs.interrupt & (1 << PSXINT_GPUBUSY)) { // gpu busy
-      if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUBUSY].sCycle) >= psxRegs.intCycle[PSXINT_GPUBUSY].cycle) {
-        psxRegs.interrupt &= ~(1 << PSXINT_GPUBUSY);
-        GPU_idle();
-      }
-    }
 
-		if (psxRegs.interrupt & (1 << PSXINT_MDECINDMA)) { // mdec in
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECINDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECINDMA].cycle) {
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_GPUBUSY)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUBUSY].sCycle) >= psxRegs.intCycle[PSXINT_GPUBUSY].cycle)
+			{
+		        psxRegs.interrupt &= ~(1 << PSXINT_GPUBUSY);
+        		GPU_idle();
+			}
+		}
+
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_MDECINDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECINDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECINDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_MDECINDMA);
 				mdec0Interrupt();
 			}
 		}
 
-		if (psxRegs.interrupt & (1 << PSXINT_GPUOTCDMA)) { // gpu otc
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUOTCDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUOTCDMA].cycle) {
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_GPUOTCDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUOTCDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUOTCDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_GPUOTCDMA);
 				gpuotcInterrupt();
 			}
 		}
 
-		if (psxRegs.interrupt & (1 << PSXINT_CDRDMA)) { // cdrom
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle) {
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRDMA);
 				cdrDmaInterrupt();
 			}
 		}
 
-		if (psxRegs.interrupt & (1 << PSXINT_CDRPLAY)) { // cdr play timing
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRPLAY].sCycle) >= psxRegs.intCycle[PSXINT_CDRPLAY].cycle) {
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRPLAY)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRPLAY].sCycle) >= psxRegs.intCycle[PSXINT_CDRPLAY].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRPLAY);
 				cdrPlayInterrupt();
 			}
 		}
 
-		if (psxRegs.interrupt & (1 << PSXINT_CDRDBUF)) { // cdr decoded buffer
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDBUF].sCycle) >= psxRegs.intCycle[PSXINT_CDRDBUF].cycle) {
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDBUF)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDBUF].sCycle) >= psxRegs.intCycle[PSXINT_CDRDBUF].cycle)
+			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRDBUF);
 				cdrDecodedBufferInterrupt();
-			}
-		}
-
-		if (psxRegs.interrupt & (1 << PSXINT_CDRLID)) { // cdr lid states
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRLID].sCycle) >= psxRegs.intCycle[PSXINT_CDRLID].cycle) {
-				psxRegs.interrupt &= ~(1 << PSXINT_CDRLID);
-				cdrLidSeekInterrupt();
 			}
 		}
 	}
