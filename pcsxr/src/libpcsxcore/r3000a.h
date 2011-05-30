@@ -77,7 +77,6 @@ typedef union {
 	} n;
 	u32 r[34]; /* Lo, Hi in r[32] and r[33] */
 	HappyRegister h[34];
-	PAIR p[34];
 } psxGPRRegs;
 
 typedef union {
@@ -266,34 +265,9 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 #endif
 }
 
-#if defined(__BIGENDIAN__)
-
-#define _i32(x) *(s32 *)&x
-#define _u32(x) x
-
-#define _i16(x) (((short *)&x)[1])
-#define _u16(x) (((unsigned short *)&x)[1])
-
-#define _i8(x) (((char *)&x)[3])
-#define _u8(x) (((unsigned char *)&x)[3])
-
-#else
-
-#define _i32(x) *(s32 *)&x
-#define _u32(x) x
-
-#define _i16(x) *(short *)&x
-#define _u16(x) *(unsigned short *)&x
-
-#define _i8(x) *(char *)&x
-#define _u8(x) *(unsigned char *)&x
-
-#endif
-
 /**** R3000A Instruction Macros ****/
 #define _PC_       psxRegs.pc       // The next PC to be executed
 
-#define _fOp_(code)		((code >> 26)       )  // The opcode part of the instruction register 
 #define _fFunct_(code)	((code      ) & 0x3F)  // The funct part of the instruction register 
 #define _fRd_(code)		((code >> 11) & 0x1F)  // The rd part of the instruction register 
 #define _fRt_(code)		((code >> 16) & 0x1F)  // The rt part of the instruction register 
@@ -305,7 +279,6 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 #define _fImm_(code)	((s16)code)            // sign-extended immediate
 #define _fImmU_(code)	(code&0xffff)          // zero-extended immediate
 
-#define _Op_     _fOp_(psxRegs.code)
 #define _Funct_  _fFunct_(psxRegs.code)
 #define _Rd_     _fRd_(psxRegs.code)
 #define _Rt_     _fRt_(psxRegs.code)
@@ -336,11 +309,9 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 
 #define _rHi_   psxRegs.GPR.n.hi   // The HI register
 #define _rLo_   psxRegs.GPR.n.lo   // The LO register
+#define _rHiS_  psxRegs.GPR.h[33].sign   // The HI register
+#define _rLoS_  psxRegs.GPR.h[32].sign   // The LO register
 
-#define _JumpTarget_    ((_Target_ * 4) + (_PC_ & 0xf0000000))   // Calculates the target during a jump instruction
-#define _BranchTarget_  ((s16)_Im_ * 4 + _PC_)                 // Calculates the target during a branch instruction
-
-#define _SetLink(x)     psxRegs.GPR.r[x] = _PC_ + 4;       // Sets the return address in the link register
 
 int  psxInit();
 void psxReset();
@@ -357,3 +328,4 @@ void psxJumpTest();
 }
 #endif
 #endif
+
