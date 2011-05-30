@@ -94,7 +94,27 @@ void psxException(u32 code, u32 bd)
 //	if (Config.HLE) psxBiosException();
 }
 
-int pizza, tacos;
+u64 pizza, tacos;
+u64 pasta[64];
+void psxBranchTestt();
+#include <sys/time_util.h>
+
+//1109586773 / 201937692 = 5.494698696	: Bail Early
+//1117988641 / 208921251 = 5.35124424	: No Early Bail
+//1304846812 - 273684845 = 4.767698453	: No Early Bail, Comment out unused interrupts (I wish)
+//1524149698 / 309169066 = 4.929825994	: All intterupts, no early bail, all inner conditions marked unlikely
+
+/*void psxBranchTest()
+{
+ u64 en, ex;
+ SYS_TIMEBASE_GET(en);
+ psxBranchTestt();
+ SYS_TIMEBASE_GET(ex);
+ tacos ++;
+ pizza += ex - en;
+}*/
+
+
 void psxBranchTest()
 {
 	//Running tales of destiny until you get drug into the first room with the captain
@@ -139,11 +159,27 @@ void psxBranchTest()
 	//10: 					0
 	//PSXINT_CDRDBUF: 		0
 	//PSXINT_CDRPLAY: 		0
+
+	//Tested: 595364289 (595 million)
+	//NAME    TAKEN     PASSED
+	//CDREAD: 2108		61900631
+	//SIO:	  115463    16142379
+	//CDR:    353       10626853
+	//GPUDMA: 6         18786
+	//CDLID   7         2808797
+	//CDRDMA  5         945885
+	//MDECOUT 2245      138318
+	//SPUDMA  855       2002018
+	//GPUBUSY 2         4995
+    //TT6     0			0
+	//TT7	  2		    2
+
+
 	if(UNLIKELY(psxRegs.interrupt != 0))
 	{
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDREAD)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDREAD].sCycle) >= psxRegs.intCycle[PSXINT_CDREAD].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDREAD].sCycle) >= psxRegs.intCycle[PSXINT_CDREAD].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDREAD);
 				cdrReadInterrupt();
@@ -152,7 +188,7 @@ void psxBranchTest()
 
 		if((psxRegs.interrupt & (1 << PSXINT_SIO)) && !Config.Sio)
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SIO].sCycle) >= psxRegs.intCycle[PSXINT_SIO].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_SIO].sCycle) >= psxRegs.intCycle[PSXINT_SIO].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_SIO);
 				sioInterrupt();
@@ -161,7 +197,7 @@ void psxBranchTest()
 
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDR)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDR].sCycle) >= psxRegs.intCycle[PSXINT_CDR].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDR].sCycle) >= psxRegs.intCycle[PSXINT_CDR].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDR);
 				cdrInterrupt();
@@ -170,7 +206,7 @@ void psxBranchTest()
 
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_GPUDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_GPUDMA);
 				gpuInterrupt();
@@ -179,7 +215,7 @@ void psxBranchTest()
 
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDRLID)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRLID].sCycle) >= psxRegs.intCycle[PSXINT_CDRLID].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRLID].sCycle) >= psxRegs.intCycle[PSXINT_CDRLID].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRLID);
 				cdrLidSeekInterrupt();
@@ -188,22 +224,16 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRDMA);
 				cdrDmaInterrupt();
 			}
 		}
 
-		//Try to bail now
-		if(LIKELY(psxRegs.interrupt == 0))
-		{
-			return;
-		}
-
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_MDECOUTDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECOUTDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECOUTDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECOUTDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECOUTDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_MDECOUTDMA);
 				mdec1Interrupt();
@@ -212,7 +242,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_SPUDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_SPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_SPUDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_SPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_SPUDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_SPUDMA);
 				spuInterrupt();
@@ -221,7 +251,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_GPUBUSY)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUBUSY].sCycle) >= psxRegs.intCycle[PSXINT_GPUBUSY].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUBUSY].sCycle) >= psxRegs.intCycle[PSXINT_GPUBUSY].cycle))
 			{
 		        psxRegs.interrupt &= ~(1 << PSXINT_GPUBUSY);
         		GPU_idle();
@@ -230,7 +260,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_MDECINDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECINDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECINDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_MDECINDMA].sCycle) >= psxRegs.intCycle[PSXINT_MDECINDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_MDECINDMA);
 				mdec0Interrupt();
@@ -239,7 +269,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_GPUOTCDMA)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUOTCDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUOTCDMA].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUOTCDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUOTCDMA].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_GPUOTCDMA);
 				gpuotcInterrupt();
@@ -248,7 +278,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRPLAY)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRPLAY].sCycle) >= psxRegs.intCycle[PSXINT_CDRPLAY].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRPLAY].sCycle) >= psxRegs.intCycle[PSXINT_CDRPLAY].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRPLAY);
 				cdrPlayInterrupt();
@@ -257,7 +287,7 @@ void psxBranchTest()
 
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDBUF)) != 0))
 		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDBUF].sCycle) >= psxRegs.intCycle[PSXINT_CDRDBUF].cycle)
+			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDBUF].sCycle) >= psxRegs.intCycle[PSXINT_CDRDBUF].cycle))
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRDBUF);
 				cdrDecodedBufferInterrupt();

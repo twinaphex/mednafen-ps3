@@ -266,6 +266,8 @@ static inline u32 *Read_ICache(u32 pc, boolean isolate) {
 }
 
 /**** R3000A Instruction Macros ****/
+#define OPFUNC(a)	void a(uint32_t aCode)
+
 #define _PC_       psxRegs.pc       // The next PC to be executed
 
 #define _fFunct_(code)	((code      ) & 0x3F)  // The funct part of the instruction register 

@@ -274,7 +274,6 @@ void psxDelayTest(int reg, u32 bpc) {
 	// Don't execute yet - just peek
 	code = Read_ICache(bpc, TRUE);
 
-//ROBO	tmp = ((code == NULL) ? 0 : SWAP32(*code));
 	tmp = ((code == NULL) ? 0 : GETLE32(code));
 	branch = 1;
 
@@ -369,33 +368,33 @@ __inline void doBranch(uint32_t aCode, u32 tar) {
 * Register branch logic                                  *
 * Format:  OP rs, offset                                 *
 *********************************************************/
-void psxBGEZ(uint32_t aCode)		{ RepZBranchi32(>=)											}				// Branch if Rs >= 0
-void psxBGEZAL(uint32_t aCode)		{ RepZBranchLinki32(>=)										}				// Branch if Rs >= 0 and link
-void psxBGTZ(uint32_t aCode)		{ RepZBranchi32(>)											}				// Branch if Rs >  0
-void psxBLEZ(uint32_t aCode)		{ RepZBranchi32(<=)											}				// Branch if Rs <= 0
-void psxBLTZ(uint32_t aCode)		{ RepZBranchi32(<)											}				// Branch if Rs <  0
-void psxBLTZAL(uint32_t aCode)		{ RepZBranchLinki32(<)										}				// Branch if Rs <  0 and link
+OPFUNC(psxBGEZ)				{ RepZBranchi32(>=)											}				// Branch if Rs >= 0
+OPFUNC(psxBGEZAL)			{ RepZBranchLinki32(>=)										}				// Branch if Rs >= 0 and link
+OPFUNC(psxBGTZ)				{ RepZBranchi32(>)											}				// Branch if Rs >  0
+OPFUNC(psxBLEZ)				{ RepZBranchi32(<=)											}				// Branch if Rs <= 0
+OPFUNC(psxBLTZ)				{ RepZBranchi32(<)											}				// Branch if Rs <  0
+OPFUNC(psxBLTZAL)			{ RepZBranchLinki32(<)										}				// Branch if Rs <  0 and link
 
 /*********************************************************
 * Register branch logic                                  *
 * Format:  OP rs, rt, offset                             *
 *********************************************************/
-void psxBEQ(uint32_t aCode)			{ RepBranchi32(==)											}				// Branch if Rs == Rt
-void psxBNE(uint32_t aCode)			{ RepBranchi32(!=)											}				// Branch if Rs != Rt
+OPFUNC(psxBEQ)				{ RepBranchi32(==)											}				// Branch if Rs == Rt
+OPFUNC(psxBNE)				{ RepBranchi32(!=)											}				// Branch if Rs != Rt
 
 /*********************************************************
 * Jump to target                                         *
 * Format:  OP target                                     *
 *********************************************************/
-void psxJ(uint32_t aCode)			{               doBranch(aCode, _JumpTarget_);				}
-void psxJAL(uint32_t aCode)			{ _SetLink(31); doBranch(aCode, _JumpTarget_);				}
+OPFUNC(psxJ)				{               doBranch(aCode, _JumpTarget_);				}
+OPFUNC(psxJAL)				{ _SetLink(31); doBranch(aCode, _JumpTarget_);				}
 
 /*********************************************************
 * Register jump                                          *
 * Format:  OP rs, rd                                     *
 *********************************************************/
-void psxJR(uint32_t aCode)			{doBranch(aCode, _rRs_); psxJumpTest();						}
-void psxJALR(uint32_t aCode)		{u32 temp = _rRs_; if (LIKELY(_Rd_ != 0)) { _SetLink(_Rd_);} doBranch(aCode, temp);}
+OPFUNC(psxJR)				{doBranch(aCode, _rRs_); psxJumpTest();						}
+OPFUNC(psxJALR)				{u32 temp = _rRs_; if (LIKELY(_Rd_ != 0)) { _SetLink(_Rd_);} doBranch(aCode, temp);}
 
 /*********************************************************
 * Shift                                                  *
@@ -404,23 +403,23 @@ void psxJALR(uint32_t aCode)		{u32 temp = _rRs_; if (LIKELY(_Rd_ != 0)) { _SetLi
 * Shift arithmetic with constant shift                   *
 * Format:  OP rd, rt, sa                                 *
 *********************************************************/
-void psxSLL(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ << _Sa_;		}				// Rd = Rt << sa
-void psxSRA(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRdS_ = _rRtS_ >> _Sa_;		}				// Rd = Rt >> sa (arithmetic)
-void psxSRL(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ >> _Sa_;		}				// Rd = Rt >> sa (logical)
+OPFUNC(psxSLL) 				{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ << _Sa_;		}				// Rd = Rt << sa
+OPFUNC(psxSRA) 				{ if (UNLIKELY(!_Rd_)) return; _rRdS_ = _rRtS_ >> _Sa_;		}				// Rd = Rt >> sa (arithmetic)
+OPFUNC(psxSRL) 				{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ >> _Sa_;		}				// Rd = Rt >> sa (logical)
 
 /*********************************************************
 * Shift arithmetic with variant register shift           *
 * Format:  OP rd, rt, rs                                 *
 *********************************************************/
-void psxSLLV(uint32_t aCode) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ << _rRs_;		}				// Rd = Rt << rs
-void psxSRAV(uint32_t aCode) 	{ if (UNLIKELY(!_Rd_)) return; _rRdS_ = _rRtS_ >> _rRs_;	}				// Rd = Rt >> rs (arithmetic)
-void psxSRLV(uint32_t aCode) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ >> _rRs_;		}				// Rd = Rt >> rs (logical)
+OPFUNC(psxSLLV) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ << _rRs_;		}				// Rd = Rt << rs
+OPFUNC(psxSRAV) 	{ if (UNLIKELY(!_Rd_)) return; _rRdS_ = _rRtS_ >> _rRs_;	}				// Rd = Rt >> rs (arithmetic)
+OPFUNC(psxSRLV) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ >> _rRs_;		}				// Rd = Rt >> rs (logical)
 
 /*********************************************************
 * Load higher 16 bits of the first word in GPR with imm  *
 * Format:  OP rt, immediate                              *
 *********************************************************/
-void psxLUI(uint32_t aCode)		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = psxRegs.code << 16;	}				// Upper halfword of Rt = Im
+OPFUNC(psxLUI)		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = psxRegs.code << 16;	}				// Upper halfword of Rt = Im
 
 /*********************************************************
 * ALU                                                    *
@@ -434,34 +433,34 @@ void psxLUI(uint32_t aCode)		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = psxRegs.code
 //(time) 192753295 / (count) 106571978	(1.808667706) Using following code
 //These times were obtained via SYS_TIMEBASE_GET and spread across all of basic ALU ops
 //With less than 2 ticks on average the timinig may very well be off
-void psxADDI(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im 	(Exception on Integer Overflow)
-void psxADDIU(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im
-void psxANDI(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ & _ImmU_;		}				// Rt = Rs And Im
-void psxORI(uint32_t aCode) 		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ | _ImmU_;		}				// Rt = Rs Or  Im
-void psxXORI(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ ^ _ImmU_;		}				// Rt = Rs Xor Im
-void psxSLTI(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRsS_ < _Imm_ ;		}				// Rt = Rs < Im		(Signed)
-void psxSLTIU(uint32_t aCode) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ < ((u32)_Imm_);}				// Rt = Rs < Im		(Unsigned)
+OPFUNC(psxADDI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im 	(Exception on Integer Overflow)
+OPFUNC(psxADDIU) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im
+OPFUNC(psxANDI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ & _ImmU_;		}				// Rt = Rs And Im
+OPFUNC(psxORI) 		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ | _ImmU_;		}				// Rt = Rs Or  Im
+OPFUNC(psxXORI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ ^ _ImmU_;		}				// Rt = Rs Xor Im
+OPFUNC(psxSLTI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRsS_ < _Imm_ ;		}				// Rt = Rs < Im		(Signed)
+OPFUNC(psxSLTIU) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ < ((u32)_Imm_);}				// Rt = Rs < Im		(Unsigned)
 
 /*********************************************************
 * Register arithmetic                                    *
 * Format:  OP rd, rs, rt                                 *
 *********************************************************/
-void psxADD(uint32_t aCode)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-void psxADDU(uint32_t aCode) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
-void psxSUB(uint32_t aCode)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-void psxSUBU(uint32_t aCode) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
-void psxAND(uint32_t aCode)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
-void psxOR(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
-void psxXOR(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
-void psxNOR(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =~(_rRs_ | _rRt_); 	}				// Rd = Rs Nor Rt
-void psxSLT(uint32_t aCode) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRsS_ < _rRtS_;	}				// Rd = Rs < Rt		(Signed)
-void psxSLTU(uint32_t aCode)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxADD)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADDU) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
+OPFUNC(psxSUB)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUBU) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
+OPFUNC(psxAND)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
+OPFUNC(psxOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
+OPFUNC(psxXOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
+OPFUNC(psxNOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =~(_rRs_ | _rRt_); 	}				// Rd = Rs Nor Rt
+OPFUNC(psxSLT) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRsS_ < _rRtS_;	}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLTU)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
 
 /*********************************************************
 * Register mult/div & Register trap logic                *
 * Format:  OP rs, rt                                     *
 *********************************************************/
-void psxDIV(uint32_t aCode)
+OPFUNC(psxDIV)
 {
 	if (LIKELY(_rRtS_ != 0))
 	{
@@ -475,7 +474,7 @@ void psxDIV(uint32_t aCode)
 	}
 }
 
-void psxDIVU(uint32_t aCode)
+OPFUNC(psxDIVU)
 {
 	if (LIKELY(_rRt_ != 0))
 	{
@@ -491,7 +490,7 @@ void psxDIVU(uint32_t aCode)
 
 //TODO: ? Better way to handle sign
 //TODO: Use a union for lo and hi
-void psxMULT(uint32_t aCode)
+OPFUNC(psxMULT)
 {
 	u64 res = (s64)((s64)_rRsS_ * (s64)_rRtS_);
 
@@ -499,7 +498,7 @@ void psxMULT(uint32_t aCode)
 	psxRegs.GPR.n.hi = (u32)((res >> 32) & 0xffffffff);
 }
 
-void psxMULTU(uint32_t aCode)
+OPFUNC(psxMULTU)
 {
 	u64 res = (u64)((u64)_rRs_ * (u64)_rRt_);
 
@@ -512,16 +511,16 @@ void psxMULTU(uint32_t aCode)
 * Special purpose instructions                           *
 * Format:  OP                                            *
 *********************************************************/
-void psxBREAK(uint32_t aCode) {
+OPFUNC(psxBREAK) {
 	// Break exception - psx rom doens't handles this
 }
 
-void psxSYSCALL(uint32_t aCode) {
+OPFUNC(psxSYSCALL) {
 	psxRegs.pc -= 4;
 	psxException(0x20, branch);
 }
 
-void psxRFE(uint32_t aCode) {
+OPFUNC(psxRFE) {
 //	SysPrintf("psxRFE\n");
 	psxRegs.CP0.n.Status = (psxRegs.CP0.n.Status & 0xfffffff0) |
 						  ((psxRegs.CP0.n.Status & 0x3c) >> 2);
@@ -531,15 +530,15 @@ void psxRFE(uint32_t aCode) {
 * Move from HI/LO to GPR                                 *
 * Format:  OP rd                                         *
 *********************************************************/
-void psxMFHI(uint32_t aCode) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rHi_; } // Rd = Hi
-void psxMFLO(uint32_t aCode) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rLo_; } // Rd = Lo
+OPFUNC(psxMFHI) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rHi_; } // Rd = Hi
+OPFUNC(psxMFLO) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rLo_; } // Rd = Lo
 
 /*********************************************************
 * Move to GPR to HI/LO & Register jump                   *
 * Format:  OP rs                                         *
 *********************************************************/
-void psxMTHI(uint32_t aCode) { _rHi_ = _rRs_; } // Hi = Rs
-void psxMTLO(uint32_t aCode) { _rLo_ = _rRs_; } // Lo = Rs
+OPFUNC(psxMTHI) { _rHi_ = _rRs_; } // Hi = Rs
+OPFUNC(psxMTLO) { _rLo_ = _rRs_; } // Lo = Rs
 
 /*********************************************************
 * Load and store for GPR                                 *
@@ -559,7 +558,7 @@ u32 TOTAL_INLINE testBranchDelay(uint32_t aCode)
 }
 
 
-void psxLB(uint32_t aCode)
+OPFUNC(psxLB)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -569,7 +568,7 @@ void psxLB(uint32_t aCode)
 	}
 }
 
-void psxLBU(uint32_t aCode)
+OPFUNC(psxLBU)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -578,7 +577,7 @@ void psxLBU(uint32_t aCode)
 	}
 }
 
-void psxLH(uint32_t aCode)
+OPFUNC(psxLH)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -588,7 +587,7 @@ void psxLH(uint32_t aCode)
 	}
 }
 
-void psxLHU(uint32_t aCode)
+OPFUNC(psxLHU)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -597,7 +596,7 @@ void psxLHU(uint32_t aCode)
 	}
 }
 
-void psxLW(uint32_t aCode)
+OPFUNC(psxLW)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -609,7 +608,7 @@ void psxLW(uint32_t aCode)
 u32 LWL_MASK[4] = { 0xffffff, 0xffff, 0xff, 0 };
 u32 LWL_SHIFT[4] = { 24, 16, 8, 0 };
 
-void psxLWL(uint32_t aCode) {
+OPFUNC(psxLWL) {
 	u32 addr = _oB_;
 	u32 shift = addr & 3;
 	u32 mem = psxMemRead32(addr & ~3);
@@ -636,7 +635,7 @@ void psxLWL(uint32_t aCode) {
 u32 LWR_MASK[4] = { 0, 0xff000000, 0xffff0000, 0xffffff00 };
 u32 LWR_SHIFT[4] = { 0, 8, 16, 24 };
 
-void psxLWR(uint32_t aCode) {
+OPFUNC(psxLWR) {
 	u32 addr = _oB_;
 	u32 shift = addr & 3;
 	u32 mem = psxMemRead32(addr & ~3);
@@ -658,14 +657,14 @@ void psxLWR(uint32_t aCode) {
 	*/
 }
 
-void psxSB(uint32_t aCode) { psxMemWrite8 (_oB_, _rRt_); }
-void psxSH(uint32_t aCode) { psxMemWrite16(_oB_, _rRt_); }
-void psxSW(uint32_t aCode) { psxMemWrite32(_oB_, _rRt_); }
+OPFUNC(psxSB) { psxMemWrite8 (_oB_, _rRt_); }
+OPFUNC(psxSH) { psxMemWrite16(_oB_, _rRt_); }
+OPFUNC(psxSW) { psxMemWrite32(_oB_, _rRt_); }
 
 u32 SWL_MASK[4] = { 0xffffff00, 0xffff0000, 0xff000000, 0 };
 u32 SWL_SHIFT[4] = { 24, 16, 8, 0 };
 
-void psxSWL(uint32_t aCode) {
+OPFUNC(psxSWL) {
 	u32 addr = _oB_;
 	u32 shift = addr & 3;
 	u32 mem = psxMemRead32(addr & ~3);
@@ -685,7 +684,7 @@ void psxSWL(uint32_t aCode) {
 u32 SWR_MASK[4] = { 0, 0xff, 0xffff, 0xffffff };
 u32 SWR_SHIFT[4] = { 0, 8, 16, 24 };
 
-void psxSWR(uint32_t aCode) {
+OPFUNC(psxSWR) {
 	u32 addr = _oB_;
 	u32 shift = addr & 3;
 	u32 mem = psxMemRead32(addr & ~3);
@@ -707,7 +706,7 @@ void psxSWR(uint32_t aCode) {
 * Moves between GPR and COPx                             *
 * Format:  OP rt, fs                                     *
 *********************************************************/
-void psxMFC0(uint32_t aCode)
+OPFUNC(psxMFC0)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -717,7 +716,7 @@ void psxMFC0(uint32_t aCode)
 	}
 }
 
-void psxCFC0(uint32_t aCode)
+OPFUNC(psxCFC0)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -755,12 +754,12 @@ __inline void MTC0(int reg, u32 val) {
 	}
 }
 
-void psxMTC0(uint32_t aCode) { MTC0(_Rd_, _rRt_); }
-void psxCTC0(uint32_t aCode) { MTC0(_Rd_, _rRt_); }
+OPFUNC(psxMTC0) { MTC0(_Rd_, _rRt_); }
+OPFUNC(psxCTC0) { MTC0(_Rd_, _rRt_); }
 
 
 
-void psxMFC2(uint32_t aCode)
+OPFUNC(psxMFC2)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -769,7 +768,7 @@ void psxMFC2(uint32_t aCode)
 }
 
 
-void psxCFC2(uint32_t aCode)
+OPFUNC(psxCFC2)
 {
 	if(LIKELY(testBranchDelay(aCode)))
 	{
@@ -782,13 +781,13 @@ void psxCFC2(uint32_t aCode)
 * Unknow instruction (would generate an exception)       *
 * Format:  ?                                             *
 *********************************************************/
-void psxNULL(uint32_t aCode)		{}
-void psxSPECIAL(uint32_t aCode)	{psxSPC[_Funct_](aCode);}
-void psxREGIMM(uint32_t aCode)	{psxREG[_Rt_](aCode);}
-void psxCOP0(uint32_t aCode)	{psxCP0[_Rs_](aCode);}
-void psxCOP2(uint32_t aCode)	{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_](aCode);}
-void psxBASIC(uint32_t aCode)	{psxCP2BSC[_Rs_](aCode);}
-void psxHLE(uint32_t aCode)		{psxHLEt[psxRegs.code & 0x07]();}
+OPFUNC(psxNULL)		{}
+OPFUNC(psxSPECIAL)	{psxSPC[_Funct_](aCode);}
+OPFUNC(psxREGIMM)	{psxREG[_Rt_](aCode);}
+OPFUNC(psxCOP0)		{psxCP0[_Rs_](aCode);}
+OPFUNC(psxCOP2)		{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_](aCode);}
+OPFUNC(psxBASIC)	{psxCP2BSC[_Rs_](aCode);}
+OPFUNC(psxHLE)		{psxHLEt[psxRegs.code & 0x07]();}
 
 void (*psxBSC[64])(uint32_t aCode) = {
 	psxSPECIAL, psxREGIMM, psxJ   , psxJAL  , psxBEQ , psxBNE , psxBLEZ, psxBGTZ,
