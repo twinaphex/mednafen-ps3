@@ -852,9 +852,11 @@ static void intReset()
 	psxRegs.ICache_valid = FALSE;
 }
 
+int wanna_leave = 0;
 void intExecute()
 {
-	for(;;)
+	wanna_leave = 0;
+	while(LIKELY(wanna_leave == 0))
 	{
 		execI();
 	}

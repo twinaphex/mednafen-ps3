@@ -2,17 +2,14 @@
 #include "plugins.h"
 #include "video_plugin/globals.h"
 #include "input_plugin/pad.h"
-#include <src/snes/src/lib/libco/libco.h>
-
-static cothread_t	MainThread;
-static cothread_t	EmuThread;
 
 //Plugins functions, from plugins.c
 int					OpenPlugins		();
 void				ClosePlugins	();
 
 //System functions, needed by libpcsxcore
-void				SysUpdate		()		{co_switch(MainThread);}
+extern int wanna_leave;
+void				SysUpdate		()		{wanna_leave = 1;}
 void				SysRunGui		()		{/* Nothing */}
 void				SysReset		()		{EmuReset();}
 
@@ -88,11 +85,6 @@ int					SysLoad			()
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
-	MainThread = co_active();
-
-	//TODO: MAKE SURE THIS IS DELETED LATER
-	EmuThread = co_create(65536 * sizeof(void*), intExecute);
-
 	EmuInit();
 
 	OpenPlugins();
@@ -120,7 +112,7 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 	g.PadState[0].KeyStatus = ~aKeys;
 
 	//Run frame
-	co_switch(EmuThread);
+	psxCpu->Execute();
 
 	//Grab the frame
 	int x = 0, y = 0, w = 320, h = 240;
