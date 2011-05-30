@@ -241,6 +241,15 @@ void psxRcntReset( u32 index )
     psxRcntSet();
 }
 
+//CALLS: 2942470 (measured from psxBranchTest)
+//				TAKEN			PASSED
+//rcnt0  		80488			2861982
+//rcnt1  		2456			2940014
+//rcnt2  		80488			2861982
+//rcntbase. 	2457998			484472
+//update spu.	106869			2351129
+//vsync irq		9346			2448652
+//updatelace	9346			2448652
 void psxRcntUpdate()
 {
     u32 cycle;
@@ -248,25 +257,25 @@ void psxRcntUpdate()
     cycle = psxRegs.cycle;
 
     // rcnt 0.
-    if( cycle - rcnts[0].cycleStart >= rcnts[0].cycle )
+    if(UNLIKELY(cycle - rcnts[0].cycleStart >= rcnts[0].cycle))
     {
         psxRcntReset( 0 );
     }
 
     // rcnt 1.
-    if( cycle - rcnts[1].cycleStart >= rcnts[1].cycle )
+    if(UNLIKELY(cycle - rcnts[1].cycleStart >= rcnts[1].cycle))
     {
         psxRcntReset( 1 );
     }
 
     // rcnt 2.
-    if( cycle - rcnts[2].cycleStart >= rcnts[2].cycle )
+    if(UNLIKELY(cycle - rcnts[2].cycleStart >= rcnts[2].cycle))
     {
         psxRcntReset( 2 );
     }
 
     // rcnt base.
-    if( cycle - rcnts[3].cycleStart >= rcnts[3].cycle )
+    if(LIKELY(cycle - rcnts[3].cycleStart >= rcnts[3].cycle))
     {
         psxRcntReset( 3 );
 
@@ -274,7 +283,7 @@ void psxRcntUpdate()
         hSyncCount++;
 
         // Update spu.
-        if( spuSyncCount >= SpuUpdInterval[Config.PsxType] )
+        if(UNLIKELY(spuSyncCount >= SpuUpdInterval[Config.PsxType]))
         {
             spuSyncCount = 0;
 
@@ -285,7 +294,7 @@ void psxRcntUpdate()
         }
         
         // VSync irq.
-        if( hSyncCount == VBlankStart[Config.PsxType] )
+        if(UNLIKELY(hSyncCount == VBlankStart[Config.PsxType]))
         {
             GPU_vBlank( 1 );
             
@@ -294,7 +303,7 @@ void psxRcntUpdate()
         }
         
         // Update lace. (with InuYasha fix)
-        if( hSyncCount >= (Config.VSyncWA ? HSyncTotal[Config.PsxType] / BIAS : HSyncTotal[Config.PsxType]) )
+        if(UNLIKELY(hSyncCount >= (Config.VSyncWA ? HSyncTotal[Config.PsxType] / BIAS : HSyncTotal[Config.PsxType])))
         {
             hSyncCount = 0;
 
@@ -303,11 +312,8 @@ void psxRcntUpdate()
 
             GPU_updateLace();
             EmuUpdate();
-        }
+        };
     }
-
-//ROBO: No Debug
-//    DebugVSync();
 }
 
 /******************************************************************************/

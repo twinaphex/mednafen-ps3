@@ -97,12 +97,14 @@ void psxException(u32 code, u32 bd)
 u64 pizza, tacos;
 u64 pasta[64];
 void psxBranchTestt();
-#include <sys/time_util.h>
+//#include <sys/time_util.h>
 
 //1109586773 / 201937692 = 5.494698696	: Bail Early
 //1117988641 / 208921251 = 5.35124424	: No Early Bail
 //1304846812 - 273684845 = 4.767698453	: No Early Bail, Comment out unused interrupts (I wish)
 //1524149698 / 309169066 = 4.929825994	: All intterupts, no early bail, all inner conditions marked unlikely
+//1369644398 / 188260431 = 7.275264328	: Run as loop :)
+//1373233316 / 277422368 = 4.949973306  : Optimize psxRcntUpdate...
 
 /*void psxBranchTest()
 {
