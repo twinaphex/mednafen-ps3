@@ -394,7 +394,7 @@ void psxJAL()	{ _SetLink(31); doBranch(_JumpTarget_);						}
 * Format:  OP rs, rd                                     *
 *********************************************************/
 void psxJR()	{doBranch(_rRs_); psxJumpTest();							}
-void psxJALR()	{u32 temp = _rRs_; if (LIKELY(_Rd_)) { _SetLink(_Rd_);} doBranch(temp);}
+void psxJALR()	{u32 temp = _rRs_; if (LIKELY(_Rd_ != 0)) { _SetLink(_Rd_);} doBranch(temp);}
 
 /*********************************************************
 * Shift                                                  *

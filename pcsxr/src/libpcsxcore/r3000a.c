@@ -30,21 +30,15 @@
 R3000Acpu *psxCpu = NULL;
 psxRegisters psxRegs;
 
-int psxInit() {
-	SysPrintf(_("Running PCSX Version %s (%s).\n"), PACKAGE_VERSION, __DATE__);
-
+int psxInit()
+{
 	psxCpu = &psxInt;
-
-	Log = 0;
-
-	if (psxMemInit() == -1) return -1;
-
-	return psxCpu->Init();
+	return psxMemInit() ? psxCpu->Init() : -1;
 }
 
-void psxReset() {
+void psxReset()
+{
 	psxCpu->Reset();
-
 	psxMemReset();
 
 	memset(&psxRegs, 0, sizeof(psxRegs));
@@ -57,71 +51,79 @@ void psxReset() {
 	psxHwReset();
 	psxBiosInit();
 
-	if (!Config.HLE)
+	if(!Config.HLE)
+	{
 		psxExecuteBios();
-
-#ifdef EMU_LOG
-	EMU_LOG("*BIOS END*\n");
-#endif
-	Log = 0;
+	}
 }
 
-void psxShutdown() {
+void psxShutdown()
+{
 	psxMemShutdown();
 	psxBiosShutdown();
-
 	psxCpu->Shutdown();
 }
 
-void psxException(u32 code, u32 bd) {
+void psxException(u32 code, u32 bd)
+{
 	// Set the Cause
 	psxRegs.CP0.n.Cause = code;
 
 	// Set the EPC & PC
-	if (bd) {
-#ifdef PSXCPU_LOG
-		PSXCPU_LOG("bd set!!!\n");
-#endif
-		SysPrintf("bd set!!!\n");
+	if (bd)
+	{
 		psxRegs.CP0.n.Cause |= 0x80000000;
 		psxRegs.CP0.n.EPC = (psxRegs.pc - 4);
-	} else
+	}
+	else
+	{
 		psxRegs.CP0.n.EPC = (psxRegs.pc);
+	}
 
 	if (psxRegs.CP0.n.Status & 0x400000)
+	{
 		psxRegs.pc = 0xbfc00180;
+	}
 	else
+	{
 		psxRegs.pc = 0x80000080;
+	}
 
-	// Set the Status
-	psxRegs.CP0.n.Status = (psxRegs.CP0.n.Status &~0x3f) |
-						  ((psxRegs.CP0.n.Status & 0xf) << 2);
+	psxRegs.CP0.n.Status = (psxRegs.CP0.n.Status &~0x3f) | ((psxRegs.CP0.n.Status & 0xf) << 2);
 
-	if (Config.HLE) psxBiosException();
+//	if (Config.HLE) psxBiosException();
 }
 
-void psxBranchTest() {
+int pizza, tacos;
+void psxBranchTest()
+{
+	//Running tales of destiny until you get drug into the first room with the captain
+	//Many different iterations were used so the numbers won't match exactly
+	//I need to try this again with other games to get a better idea
+
 	// GameShark Sampler: Give VSync pin some delay before exception eats it
-	if (psxHu32(0x1070) & psxHu32(0x1074)) {
-		if ((psxRegs.CP0.n.Status & 0x401) == 0x401) {
+	//Taken: 16746366 (16 million) - Pass: 415816281 (415 million)
+	if(UNLIKELY((psxHu32(0x1070) & psxHu32(0x1074)) != 0))
+	{
+		if((psxRegs.CP0.n.Status & 0x401) == 0x401)
+		{
 			u32 opcode;
 
 			// Crash Bandicoot 2: Don't run exceptions when GTE in pipeline
 			opcode = GETLE32(Read_ICache(psxRegs.pc, TRUE));
-			if( ((opcode >> 24) & 0xfe) != 0x4a ) {
-#ifdef PSXCPU_LOG
-				PSXCPU_LOG("Interrupt: %x %x\n", psxHu32(0x1070), psxHu32(0x1074));
-#endif
+			if( ((opcode >> 24) & 0xfe) != 0x4a )
+			{
 				psxException(0x400, 0);
 			}
 		}
 	}
 
-	if ((psxRegs.cycle - psxNextsCounter) >= psxNextCounter)
+	//Taken: 1697770 (1.6 million) - Pass: 408958146 (408 million)
+	if(UNLIKELY((psxRegs.cycle - psxNextsCounter) >= psxNextCounter))
+	{
 		psxRcntUpdate();
+	}
 
-	//Running tales of destiny until you get drug into the first room the count is
-	//I need to try this again with other games to get a better idea
 	//Taken: 68501038 (68 million) Passed: 349830640 (340 million)
 	//PSXINT_CDREAD:		44062809 (44 million)
 	//PSXINT_SIO:			10885594 (10 million)
@@ -137,9 +139,7 @@ void psxBranchTest() {
 	//10: 					0
 	//PSXINT_CDRDBUF: 		0
 	//PSXINT_CDRPLAY: 		0
-
-
-	if (UNLIKELY(psxRegs.interrupt))
+	if(UNLIKELY(psxRegs.interrupt != 0))
 	{
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDREAD)) != 0))
 		{
@@ -168,7 +168,6 @@ void psxBranchTest() {
 			}
 		}
 
-
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_GPUDMA)) != 0))
 		{
 			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUDMA].sCycle) >= psxRegs.intCycle[PSXINT_GPUDMA].cycle)
@@ -184,6 +183,15 @@ void psxBranchTest() {
 			{
 				psxRegs.interrupt &= ~(1 << PSXINT_CDRLID);
 				cdrLidSeekInterrupt();
+			}
+		}
+
+		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDMA)) != 0))
+		{
+			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle)
+			{
+				psxRegs.interrupt &= ~(1 << PSXINT_CDRDMA);
+				cdrDmaInterrupt();
 			}
 		}
 
@@ -238,15 +246,6 @@ void psxBranchTest() {
 			}
 		}
 
-		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRDMA)) != 0))
-		{
-			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRDMA].sCycle) >= psxRegs.intCycle[PSXINT_CDRDMA].cycle)
-			{
-				psxRegs.interrupt &= ~(1 << PSXINT_CDRDMA);
-				cdrDmaInterrupt();
-			}
-		}
-
 		if(UNLIKELY((psxRegs.interrupt & (1 << PSXINT_CDRPLAY)) != 0))
 		{
 			if ((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDRPLAY].sCycle) >= psxRegs.intCycle[PSXINT_CDRPLAY].cycle)
@@ -267,30 +266,22 @@ void psxBranchTest() {
 	}
 }
 
-void psxJumpTest() {
-	if (!Config.HLE && Config.PsxOut) {
+void psxJumpTest()
+{
+	if (!Config.HLE && Config.PsxOut)
+	{
 		u32 call = psxRegs.GPR.n.t1 & 0xff;
-		switch (psxRegs.pc & 0x1fffff) {
+		switch (psxRegs.pc & 0x1fffff)
+		{
 			case 0xa0:
-#ifdef PSXBIOS_LOG
-				if (call != 0x28 && call != 0xe) {
-					PSXBIOS_LOG("Bios call a0: %s (%x) %x,%x,%x,%x\n", biosA0n[call], call, psxRegs.GPR.n.a0, psxRegs.GPR.n.a1, psxRegs.GPR.n.a2, psxRegs.GPR.n.a3); }
-#endif
 				if (biosA0[call])
 					biosA0[call]();
 				break;
 			case 0xb0:
-#ifdef PSXBIOS_LOG
-				if (call != 0x17 && call != 0xb) {
-					PSXBIOS_LOG("Bios call b0: %s (%x) %x,%x,%x,%x\n", biosB0n[call], call, psxRegs.GPR.n.a0, psxRegs.GPR.n.a1, psxRegs.GPR.n.a2, psxRegs.GPR.n.a3); }
-#endif
 				if (biosB0[call])
 					biosB0[call]();
 				break;
 			case 0xc0:
-#ifdef PSXBIOS_LOG
-				PSXBIOS_LOG("Bios call c0: %s (%x) %x,%x,%x,%x\n", biosC0n[call], call, psxRegs.GPR.n.a0, psxRegs.GPR.n.a1, psxRegs.GPR.n.a2, psxRegs.GPR.n.a3);
-#endif
 				if (biosC0[call])
 					biosC0[call]();
 				break;
@@ -298,8 +289,11 @@ void psxJumpTest() {
 	}
 }
 
-void psxExecuteBios() {
+void psxExecuteBios()
+{
 	while (psxRegs.pc != 0x80030000)
+	{
 		psxCpu->ExecuteBlock();
+	}
 }
 

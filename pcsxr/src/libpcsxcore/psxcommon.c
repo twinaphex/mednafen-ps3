@@ -26,41 +26,28 @@
 PcsxConfig Config;
 boolean NetOpened = FALSE;
 
-int Log = 0;
-FILE *emuLog = NULL;
-
-int EmuInit() {
+int EmuInit()
+{
 	return psxInit();
 }
 
-void EmuReset() {
+void EmuReset()
+{
 	psxReset();
 }
 
-void EmuShutdown() {
+void EmuShutdown()
+{
 	FreePPFCache();
-
 	psxShutdown();
 }
 
-void EmuUpdate() {
+void EmuUpdate()
+{
 	// Do not allow hotkeys inside a softcall from HLE BIOS
-	if (!Config.HLE || !hleSoftCall)
+	if(!Config.HLE || !hleSoftCall)
+	{
 		SysUpdate();
+	}
 }
 
-void __Log(char *fmt, ...) {
-	va_list list;
-#ifdef LOG_STDOUT
-	char tmp[1024];
-#endif
-
-	va_start(list, fmt);
-#ifndef LOG_STDOUT
-	vfprintf(emuLog, fmt, list);
-#else
-	vsprintf(tmp, fmt, list);
-	SysPrintf(tmp);
-#endif
-	va_end(list);
-}
