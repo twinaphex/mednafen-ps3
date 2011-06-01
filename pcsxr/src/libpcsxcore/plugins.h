@@ -62,64 +62,19 @@ typedef unsigned long (CALLBACK* PSEgetLibVersion)(void);
 typedef char *(CALLBACK* PSEgetLibName)(void);
 
 // GPU Functions
-typedef long (CALLBACK* GPUinit)(void);
-typedef long (CALLBACK* GPUshutdown)(void);
-typedef long (CALLBACK* GPUclose)(void);
-typedef void (CALLBACK* GPUwriteStatus)(uint32_t);
-typedef void (CALLBACK* GPUwriteData)(uint32_t);
-typedef void (CALLBACK* GPUwriteDataMem)(uint32_t *, int);
-typedef uint32_t (CALLBACK* GPUreadStatus)(void);
-typedef uint32_t (CALLBACK* GPUreadData)(void);
-typedef void (CALLBACK* GPUreadDataMem)(uint32_t *, int);
-typedef long (CALLBACK* GPUdmaChain)(uint32_t *,uint32_t);
-typedef void (CALLBACK* GPUupdateLace)(void);
-typedef long (CALLBACK* GPUconfigure)(void);
-typedef long (CALLBACK* GPUtest)(void);
-typedef void (CALLBACK* GPUabout)(void);
-typedef void (CALLBACK* GPUmakeSnapshot)(void);
-typedef void (CALLBACK* GPUkeypressed)(int);
-typedef void (CALLBACK* GPUdisplayText)(char *);
 typedef struct {
 	uint32_t ulFreezeVersion;
 	uint32_t ulStatus;
 	uint32_t ulControl[256];
 	unsigned char psxVRam[1024*512*2];
 } GPUFreeze_t;
-typedef long (CALLBACK* GPUfreeze)(uint32_t, GPUFreeze_t *);
-typedef long (CALLBACK* GPUgetScreenPic)(unsigned char *);
-typedef long (CALLBACK* GPUshowScreenPic)(unsigned char *);
-typedef void (CALLBACK* GPUclearDynarec)(void (CALLBACK *callback)(void));
-typedef void (CALLBACK* GPUvBlank)(int);
-typedef void (CALLBACK* GPUregisterCallback)(void (CALLBACK *callback)(int));
-typedef void (CALLBACK* GPUidle)(void);
-typedef void (CALLBACK* GPUvisualVibration)(uint32_t, uint32_t);
-typedef void (CALLBACK* GPUcursor)(int, int, int);
-
-// GPU function pointers
 
 // CD-ROM Functions
-typedef long (CALLBACK* CDRinit)(void);
-typedef long (CALLBACK* CDRshutdown)(void);
-typedef long (CALLBACK* CDRopen)(void);
-typedef long (CALLBACK* CDRclose)(void);
-typedef long (CALLBACK* CDRgetTN)(unsigned char *);
-typedef long (CALLBACK* CDRgetTD)(unsigned char, unsigned char *);
-typedef long (CALLBACK* CDRreadTrack)(unsigned char *);
-typedef unsigned char* (CALLBACK* CDRgetBuffer)(void);
-typedef unsigned char* (CALLBACK* CDRgetBufferSub)(void);
-typedef long (CALLBACK* CDRconfigure)(void);
-typedef long (CALLBACK* CDRtest)(void);
-typedef void (CALLBACK* CDRabout)(void);
-typedef long (CALLBACK* CDRplay)(unsigned char *);
-typedef long (CALLBACK* CDRstop)(void);
-typedef long (CALLBACK* CDRsetfilename)(char *);
 struct CdrStat {
 	uint32_t Type;
 	uint32_t Status;
 	unsigned char Time[3];
 };
-typedef long (CALLBACK* CDRgetStatus)(struct CdrStat *);
-typedef char* (CALLBACK* CDRgetDriveLetter)(void);
 struct SubQ {
 	char res0[12];
 	unsigned char ControlAndADR;
@@ -131,29 +86,6 @@ struct SubQ {
 	unsigned char CRC[2];
 	char res1[72];
 };
-typedef long (CALLBACK* CDRreadCDDA)(unsigned char, unsigned char, unsigned char, unsigned char *);
-typedef long (CALLBACK* CDRgetTE)(unsigned char, unsigned char *, unsigned char *, unsigned char *);
-
-// CD-ROM function pointers
-extern CDRinit               CDR_init;
-extern CDRshutdown           CDR_shutdown;
-extern CDRopen               CDR_open;
-extern CDRclose              CDR_close;
-extern CDRtest               CDR_test;
-extern CDRgetTN              CDR_getTN;
-extern CDRgetTD              CDR_getTD;
-extern CDRreadTrack          CDR_readTrack;
-extern CDRgetBuffer          CDR_getBuffer;
-extern CDRgetBufferSub       CDR_getBufferSub;
-extern CDRplay               CDR_play;
-extern CDRstop               CDR_stop;
-extern CDRgetStatus          CDR_getStatus;
-extern CDRgetDriveLetter     CDR_getDriveLetter;
-extern CDRconfigure          CDR_configure;
-extern CDRabout              CDR_about;
-extern CDRsetfilename        CDR_setfilename;
-extern CDRreadCDDA           CDR_readCDDA;
-extern CDRgetTE              CDR_getTE;
 
 // SPU Functions
 typedef struct {
@@ -186,8 +118,6 @@ typedef struct {
 	char CdromID[9];	// ie. 'SCPH12345', no \0 trailing character
 	char CdromLabel[11];
 	void *psxMem;
-	GPUshowScreenPic GPU_showScreenPic;
-	GPUdisplayText GPU_displayText;
 	char GPUpath[256];	// paths must be absolute
 	char SPUpath[256];
 	char CDRpath[256];

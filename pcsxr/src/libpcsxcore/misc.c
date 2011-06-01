@@ -89,8 +89,8 @@ void mmssdd( char *b, char *p )
 	time[0] = itob(time[0]); time[1] = itob(time[1]); time[2] = itob(time[2]);
 
 #define READTRACK() \
-	if (CDR_readTrack(time) == -1) return -1; \
-	buf = CDR_getBuffer(); \
+	if (pkCDRreadTrack(time) == -1) return -1; \
+	buf = pkCDRgetBuffer(); \
 	if (buf == NULL) return -1; else CheckPPFCache(buf, time[0], time[1], time[2]);
 
 #define READDIR(_dir) \
