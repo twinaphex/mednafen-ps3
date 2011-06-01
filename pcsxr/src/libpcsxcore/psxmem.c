@@ -25,13 +25,7 @@
 #include "r3000a.h"
 #include "psxhw.h"
 
-s8 *psxM = NULL; // Kernel & User Memory (2 Meg)
-s8 *psxP = NULL; // Parallel Port (64K)
-s8 *psxR = NULL; // BIOS ROM (512K)
-s8 *psxH = NULL; // Scratch Pad (1K) & Hardware Registers (8K)
-
-u8 **psxMemWLUT = NULL;
-u8 **psxMemRLUT = NULL;
+PSXMEM_MemoryMap			PSXMEM_Memory;
 
 /*  Playstation Memory Map (from Playstation doc by Joshua Walker)
 0x0000_0000-0x0000_ffff		Kernel (64K)
@@ -52,90 +46,99 @@ u8 **psxMemRLUT = NULL;
 0xbfc0_0000-0xbfc7_ffff		BIOS Mirror (512K) Uncached
 */
 
-int psxMemInit() {
-	int i;
 
-	psxMemRLUT = (u8 **)malloc(0x10000 * sizeof(void *));
-	psxMemWLUT = (u8 **)malloc(0x10000 * sizeof(void *));
-	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
-	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
+int							psxMemInit					()
+{
+	memset(&PSXMEM_Memory, 0, sizeof(PSXMEM_MemoryMap));
 
-	psxM = malloc(0x00220000);
+	//Init ops
+	psxOpFunc* opLists[4] = {PSXMEM_Memory.WorkOPS, PSXMEM_Memory.ScratchOPS, PSXMEM_Memory.BIOSOPS, PSXMEM_Memory.ParallelOPS};
+	uint32_t opLens[4] = {2 * 1024 * 1024, 9 * 1024, 512 * 1024, 64 * 1024};
 
-	psxP = &psxM[0x200000];
-	psxH = &psxM[0x210000];
-
-	psxR = (s8 *)malloc(0x00080000);
-
-	if (psxMemRLUT == NULL || psxMemWLUT == NULL || 
-		psxM == NULL || psxP == NULL || psxH == NULL) {
-		SysMessage(_("Error allocating memory!"));
-		return -1;
+	for(int i = 0; i != 4; i ++)
+	{
+		for(int j = 0; j != opLens[i]; j ++)
+		{
+			opLists[i][j] = INT_Resolve;
+		}
 	}
 
-// MemR
-	for (i = 0; i < 0x80; i++) psxMemRLUT[i + 0x0000] = (u8 *)&psxM[(i & 0x1f) << 16];
+	//Init LUTs
+	for(int i = 0; i != 0x80; i ++)
+	{
+		PSXMEM_Memory.ReadTable[i]				=	&PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
+		PSXMEM_Memory.WriteTable[i]				=	&PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
+		PSXMEM_Memory.OPTable[i]				=	&PSXMEM_Memory.WorkOPS[(i & 0x1F) << 16];
+	}
 
-	memcpy(psxMemRLUT + 0x8000, psxMemRLUT, 0x80 * sizeof(void *));
-	memcpy(psxMemRLUT + 0xa000, psxMemRLUT, 0x80 * sizeof(void *));
+	PSXMEM_Memory.ReadTable[0x1F00]				=	PSXMEM_Memory.Parallel;
+	PSXMEM_Memory.ReadTable[0x1F80]				=	PSXMEM_Memory.ScratchRAM;
+	PSXMEM_Memory.OPTable[0x1F00]				=	PSXMEM_Memory.ParallelOPS;
+	PSXMEM_Memory.OPTable[0x1F80]				=	PSXMEM_Memory.ScratchOPS;
+	PSXMEM_Memory.WriteTable[0x1F00]			=	PSXMEM_Memory.Parallel;
+	PSXMEM_Memory.WriteTable[0x1F80]			=	PSXMEM_Memory.ScratchRAM;
 
-	psxMemRLUT[0x1f00] = (u8 *)psxP;
-	psxMemRLUT[0x1f80] = (u8 *)psxH;
+	memcpy(PSXMEM_Memory.ReadTable + 0x8000,	PSXMEM_Memory.ReadTable,			0x80 * sizeof(void *));
+	memcpy(PSXMEM_Memory.ReadTable + 0xA000,	PSXMEM_Memory.ReadTable,			0x80 * sizeof(void *));
+	memcpy(PSXMEM_Memory.OPTable + 0x8000,		PSXMEM_Memory.OPTable,				0x80 * sizeof(void *));
+	memcpy(PSXMEM_Memory.OPTable + 0xA000,		PSXMEM_Memory.OPTable,				0x80 * sizeof(void *));
+	memcpy(PSXMEM_Memory.WriteTable + 0x8000,	PSXMEM_Memory.WriteTable,			0x80 * sizeof(void *));
+	memcpy(PSXMEM_Memory.WriteTable + 0xA000,	PSXMEM_Memory.WriteTable,			0x80 * sizeof(void *));
 
-	for (i = 0; i < 0x08; i++) psxMemRLUT[i + 0x1fc0] = (u8 *)&psxR[i << 16];
+	//Map BIOS
+	for(int i = 0; i != 8; i ++)
+	{
+		PSXMEM_Memory.ReadTable[i + 0x1FC0]		=	&PSXMEM_Memory.BIOS[i << 16];
+		PSXMEM_Memory.OPTable[i + 0x1FC0]		=	&PSXMEM_Memory.BIOSOPS[i << 16];
+	}
 
-	memcpy(psxMemRLUT + 0x9fc0, psxMemRLUT + 0x1fc0, 0x08 * sizeof(void *));
-	memcpy(psxMemRLUT + 0xbfc0, psxMemRLUT + 0x1fc0, 0x08 * sizeof(void *));
-
-// MemW
-	for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (u8 *)&psxM[(i & 0x1f) << 16];
-
-	memcpy(psxMemWLUT + 0x8000, psxMemWLUT, 0x80 * sizeof(void *));
-	memcpy(psxMemWLUT + 0xa000, psxMemWLUT, 0x80 * sizeof(void *));
-
-	psxMemWLUT[0x1f00] = (u8 *)psxP;
-	psxMemWLUT[0x1f80] = (u8 *)psxH;
+	memcpy(PSXMEM_Memory.ReadTable + 0x9FC0,	PSXMEM_Memory.ReadTable + 0x1FC0,	8 * sizeof(void *));
+	memcpy(PSXMEM_Memory.ReadTable + 0xBFC0,	PSXMEM_Memory.ReadTable + 0x1FC0,	8 * sizeof(void *));
+	memcpy(PSXMEM_Memory.OPTable + 0x9FC0,		PSXMEM_Memory.OPTable + 0x1FC0,		8 * sizeof(void *));
+	memcpy(PSXMEM_Memory.OPTable + 0xBFC0,		PSXMEM_Memory.OPTable + 0x1FC0,		8 * sizeof(void *));
 
 	return 0;
 }
 
-void psxMemReset() {
+void						psxMemReset					()
+{
 	FILE *f = NULL;
 	char bios[1024];
 
-	memset(psxM, 0, 0x00200000);
-	memset(psxP, 0, 0x00010000);
+	//Clear memory
+	memset(PSXMEM_Memory.WorkRAM, 0, sizeof(PSXMEM_Memory.WorkRAM));
+	memset(PSXMEM_Memory.Parallel, 0, sizeof(PSXMEM_Memory.Parallel));
 
 	// Load BIOS
-	if (strcmp(Config.Bios, "HLE") != 0) {
+	//TODO: Neaten
+	if(strcmp(Config.Bios, "HLE") != 0)
+	{
 		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
 		f = fopen(bios, "rb");
 
-		if (f == NULL) {
+		if(f == NULL)
+		{
 			SysMessage(_("Could not open BIOS:\"%s\". Enabling HLE Bios!\n"), bios);
-			memset(psxR, 0, 0x80000);
+			memset(PSXMEM_Memory.BIOS, 0, 0x80000);
 			Config.HLE = TRUE;
-		} else {
-			fread(psxR, 1, 0x80000, f);
+		}
+		else
+		{
+			fread(PSXMEM_Memory.BIOS, 1, 0x80000, f);
 			fclose(f);
 			Config.HLE = FALSE;
 		}
 	} else Config.HLE = TRUE;
 }
 
-void psxMemShutdown() {
-//ROBO: No mmap
-//	munmap(psxM, 0x00220000);
-	free(psxM);
-
-	free(psxR);
-	free(psxMemRLUT);
-	free(psxMemWLUT);
+void						psxMemShutdown				()
+{
+	//NOTE: Nothing
 }
 
 static int writeok = 1;
 
-u8 psxMemRead8(u32 mem)
+uint8_t						psxMemRead8					(uint32_t mem)
 {
 	psxRegs.cycle += 0;
 
@@ -145,12 +148,12 @@ u8 psxMemRead8(u32 mem)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.ReadTable[mem >> 16];
 		return p ? (*(u8*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-u16 psxMemRead16(u32 mem)
+uint16_t					psxMemRead16				(uint32_t mem)
 {
 	psxRegs.cycle += 1;
 
@@ -160,12 +163,12 @@ u16 psxMemRead16(u32 mem)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.ReadTable[mem >> 16];
 		return p ? GETLE16((u16*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-u32 psxMemRead32(u32 mem)
+uint32_t					psxMemRead32				(uint32_t mem)
 {
 	psxRegs.cycle += 1;
 
@@ -175,12 +178,12 @@ u32 psxMemRead32(u32 mem)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemRLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.ReadTable[mem >> 16];
 		return p ? GETLE32((u32*)(p + (mem & 0xFFFF))) : 0;
 	}
 }
 
-void psxMemWrite8(u32 mem, u8 value)
+void						psxMemWrite8				(uint32_t mem, uint8_t value)
 {
 	psxRegs.cycle += 1;
 
@@ -197,7 +200,7 @@ void psxMemWrite8(u32 mem, u8 value)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
 		if(p)
 		{
 			*(p + (mem & 0xFFFF)) = value;
@@ -205,7 +208,7 @@ void psxMemWrite8(u32 mem, u8 value)
 	}
 }
 
-void psxMemWrite16(u32 mem, u16 value)
+void						psxMemWrite16				(uint32_t mem, uint16_t value)
 {
 	psxRegs.cycle += 1;
 
@@ -222,7 +225,7 @@ void psxMemWrite16(u32 mem, u16 value)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
 		if(p)
 		{
 			PUTLE16((u16*)(p + (mem & 0xFFFF)), value);
@@ -230,7 +233,7 @@ void psxMemWrite16(u32 mem, u16 value)
 	}
 }
 
-void psxMemWrite32(u32 mem, u32 value)
+void						psxMemWrite32				(uint32_t mem, uint32_t value)
 {
 	psxRegs.cycle += 1;
 
@@ -247,7 +250,7 @@ void psxMemWrite32(u32 mem, u32 value)
 	}
 	else
 	{
-		u8* p = (u8*)psxMemWLUT[mem >> 16];
+		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
 		if(p)
 		{
 			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
@@ -262,18 +265,18 @@ void psxMemWrite32(u32 mem, u32 value)
 				case 0x800: case 0x804:
 					if (writeok == 0) break;
 					writeok = 0;
-					memset(psxMemWLUT + 0x0000, 0, 0x80 * sizeof(void *));
-					memset(psxMemWLUT + 0x8000, 0, 0x80 * sizeof(void *));
-					memset(psxMemWLUT + 0xa000, 0, 0x80 * sizeof(void *));
+					memset(PSXMEM_Memory.WriteTable + 0x0000, 0, 0x80 * sizeof(void *));
+					memset(PSXMEM_Memory.WriteTable + 0x8000, 0, 0x80 * sizeof(void *));
+					memset(PSXMEM_Memory.WriteTable + 0xa000, 0, 0x80 * sizeof(void *));
 
 					psxRegs.ICache_valid = 0;
 					break;
 				case 0x00: case 0x1e988:
 					if (writeok == 1) break;
 					writeok = 1;
-					for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (void *)&psxM[(i & 0x1f) << 16];
-					memcpy(psxMemWLUT + 0x8000, psxMemWLUT, 0x80 * sizeof(void *));
-					memcpy(psxMemWLUT + 0xa000, psxMemWLUT, 0x80 * sizeof(void *));
+					for (i = 0; i < 0x80; i++) PSXMEM_Memory.WriteTable[i + 0x0000] = (void *)&PSXMEM_Memory.WorkRAM[(i & 0x1f) << 16];
+					memcpy(PSXMEM_Memory.WriteTable + 0x8000, PSXMEM_Memory.WriteTable, 0x80 * sizeof(void *));
+					memcpy(PSXMEM_Memory.WriteTable + 0xa000, PSXMEM_Memory.WriteTable, 0x80 * sizeof(void *));
 					break;
 				default:
 					break;

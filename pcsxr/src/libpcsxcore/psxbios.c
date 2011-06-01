@@ -874,7 +874,7 @@ void psxBios_malloc() { // 0x33
 	}
 
 	// return pointer to allocated memory
-	v0 = ((unsigned long)chunk - (unsigned long)psxM) + 4;
+	v0 = ((unsigned long)chunk - (unsigned long)PSXMEM_Memory.WorkRAM) + 4;
 	v0|= 0x80000000;
 	SysPrintf ("malloc %x,%x\n", v0, a0);
 	pc0 = ra;
@@ -933,7 +933,7 @@ void psxBios_InitHeap() { // 0x39
 	heap_end = (u32 *)((u8 *)heap_addr + size);
 	*heap_addr = SWAP32(size | 1);
 
-	SysPrintf("InitHeap %x,%x : %x %x\n",a0,a1, (uptr)heap_addr-(uptr)psxM, size);
+	SysPrintf("InitHeap %x,%x : %x %x\n",a0,a1, (uptr)heap_addr-(uptr)PSXMEM_Memory.WorkRAM, size);
 
 	pc0 = ra;
 }
@@ -2538,7 +2538,7 @@ void psxBiosInit() {
 /**/
 	base = 0x1000;
 	size = sizeof(EvCB) * 32;
-	Event = (void *)&psxR[base]; base += size * 6;
+	Event = (void *)&PSXMEM_Memory.BIOS[base]; base += size * 6;
 	memset(Event, 0, size * 6);
 	HwEV = Event;
 	EvEV = Event + 32;
@@ -2547,10 +2547,10 @@ void psxBiosInit() {
 	SwEV = Event + 32 * 4;
 	ThEV = Event + 32 * 5;
 
-	ptr = (u32 *)&psxM[0x0874]; // b0 table
+	ptr = (u32 *)&PSXMEM_Memory.WorkRAM[0x0874]; // b0 table
 	ptr[0] = SWAPu32(0x4c54 - 0x884);
 
-	ptr = (u32 *)&psxM[0x0674]; // c0 table
+	ptr = (u32 *)&PSXMEM_Memory.WorkRAM[0x0674]; // c0 table
 	ptr[6] = SWAPu32(0xc80);
 
 	memset(SysIntRP, 0, sizeof(SysIntRP));
@@ -2572,7 +2572,7 @@ void psxBiosInit() {
 	psxMu32ref(0x0150) = SWAPu32(0x160);
 	psxMu32ref(0x0154) = SWAPu32(0x320);
 	psxMu32ref(0x0160) = SWAPu32(0x248);
-	strcpy((char *)&psxM[0x248], "bu");
+	strcpy((char *)&PSXMEM_Memory.WorkRAM[0x248], "bu");
 /*	psxMu32ref(0x0ca8) = SWAPu32(0x1f410004);
 	psxMu32ref(0x0cf0) = SWAPu32(0x3c020000);
 	psxMu32ref(0x0cf4) = SWAPu32(0x2442641c);
@@ -2599,9 +2599,9 @@ void psxBiosInit() {
 
 	// fonts
 	len = 0x80000 - 0x66000;
-	uncompress((Bytef *)(psxR + 0x66000), &len, font_8140, sizeof(font_8140));
+	uncompress((Bytef *)(PSXMEM_Memory.BIOS + 0x66000), &len, font_8140, sizeof(font_8140));
 	len = 0x80000 - 0x69d68;
-	uncompress((Bytef *)(psxR + 0x69d68), &len, font_889f, sizeof(font_889f));
+	uncompress((Bytef *)(PSXMEM_Memory.BIOS + 0x69d68), &len, font_889f, sizeof(font_889f));
 
 	// memory size 2 MB
 	psxHu32ref(0x1060) = SWAPu32(0x00000b88);
@@ -2799,8 +2799,8 @@ v0=1;	// HDHOSHY experimental patch: Spongebob, Coldblood, fearEffect, Medievil2
 }
 
 #define bfreeze(ptr, size) { \
-	if (Mode == 1) memcpy(&psxR[base], ptr, size); \
-	if (Mode == 0) memcpy(ptr, &psxR[base], size); \
+	if (Mode == 1) memcpy(&PSXMEM_Memory.BIOS[base], ptr, size); \
+	if (Mode == 0) memcpy(ptr, &PSXMEM_Memory.BIOS[base], size); \
 	base += size; \
 }
 
@@ -2809,10 +2809,10 @@ v0=1;	// HDHOSHY experimental patch: Spongebob, Coldblood, fearEffect, Medievil2
 
 #define bfreezepsxMptr(ptr, type) { \
 	if (Mode == 1) { \
-		if (ptr) psxRu32ref(base) = SWAPu32((s8 *)(ptr) - psxM); \
+		if (ptr) psxRu32ref(base) = SWAPu32((uint8_t *)(ptr) - PSXMEM_Memory.WorkRAM); \
 		else psxRu32ref(base) = 0; \
 	} else { \
-		if (psxRu32(base) != 0) ptr = (type *)(psxM + psxRu32(base)); \
+		if (psxRu32(base) != 0) ptr = (type *)(PSXMEM_Memory.WorkRAM + psxRu32(base)); \
 		else (ptr) = NULL; \
 	} \
 	base += sizeof(u32); \
