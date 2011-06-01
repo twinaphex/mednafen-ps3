@@ -117,30 +117,46 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 		{
 			for(int i = 0; i != h; i++)
 			{
-				int startxy = ((1024) * (i + y)) + x;
-				unsigned char* pD = (unsigned char *)&g_gpu.psx_vram.u16[startxy];
-				uint32_t* destpix = (uint32_t *)(aPixels + (i * aPitch));
-				for(int j = 0; j != w; j++)
+				uint16_t* srcpix = &g_gpu.psx_vram.u16[(1024 * (i + y)) + x];
+				uint32_t* destpix = &aPixels[aPitch * i];
+				for(int j = 0; j != w / 2; j ++)
 				{
-					uint32_t lu = SWAP32(*((uint32_t *)pD));
-					destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
-					pD += 3;
+					uint16_t a = *srcpix++;
+					uint16_t b = *srcpix++;
+					uint16_t c = *srcpix++;
+
+#ifndef WORDS_BIGENDIAN
+					*destpix++ = ((a & 0xFF) << 16) | ((a & 0xFF00)) | ((b & 0xFF));
+					*destpix++ = ((b & 0xFF00) << 8) | ((c & 0xFF00) >> 8) | ((c & 0xFF) << 8);
+#else
+					//Upper 8 bits are ignored on present in mednafen-ps3, may wan't to mask them otherwise...
+					*destpix ++ = (a << 8) | (b >> 8);
+					*destpix ++ = (b << 16) | c;
+#endif
 				}
 			}
 		}
 		else
 		{
+			//TODO: Alitvec could be useful here
 			for(int i = 0; i != h; i++)
 			{
-				int startxy = (1024 * (i + y)) + x;
+				uint16_t* srcpix = &g_gpu.psx_vram.u16[(1024 * (i + y)) + x];
 				uint32_t* destpix = &aPixels[aPitch * i];
-				for(int j = 0; j != w; j++, startxy ++)
+				for(int j = 0; j != w; j++)
 				{
-					int s = SWAP16(g_gpu.psx_vram.u16[startxy]);
-					destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+					uint16_t s = GETLE16(srcpix++);
+					destpix[j] = (((s << 19) & 0xF80000) | ((s << 6) & 0xF800) | ((s >> 7) & 0xF8));
 				}
 			}
 		}
+	}
+	else if(g_gpu.dsp.mode.x)
+	{
+		x = g_gpu.dsp.position.x;
+	    y = g_gpu.dsp.position.y;
+	    w = (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x;
+	    h = (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y;
 	}
 
 	*aWidth = w;

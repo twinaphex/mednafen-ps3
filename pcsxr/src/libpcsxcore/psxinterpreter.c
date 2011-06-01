@@ -499,7 +499,23 @@ OPFUNC(psxJAL)				{ _SetLink(31); doBranch(aCode, _JumpTarget_);				}
 * Format:  OP rs, rd                                     *
 *********************************************************/
 OPFUNC(psxJR)				{doBranch(aCode, _rRs_); psxJumpTest();						}
-OPFUNC(psxJALR)				{u32 temp = _rRs_; if (LIKELY(_Rd_ != 0)) { _SetLink(_Rd_);} doBranch(aCode, temp);}
+
+OPFUNC(psxJALR_a)			{_SetLink(_Rd_); doBranch(aCode, _rRs_);}									//_Rd_ is not Zero, _Rd_ != _Rs_
+OPFUNC(psxJALR_b)			{u32 temp = _rRs_; _SetLink(_Rd_); doBranch(aCode, temp);}					//_Rd_ is not Zero, _Rd_ = _Rs_
+OPFUNC(psxJALR_c)			{doBranch(aCode, _rRs_);}													//_Rd_ is Zero
+OPFUNC(PSXCPU_ResolveJALR)
+{
+	if(_Rd_ == 0)
+	{
+		*aResolve = psxJALR_c;
+	}
+	else
+	{
+		*aResolve = (_Rd_ == _Rs_) ? psxJALR_b : psxJALR_a;
+	}
+
+	PASS_IT_ON;
+}
 
 /*********************************************************
 * Shift                                                  *
@@ -945,7 +961,7 @@ psxOpFunc psxBSC[64] = {
 
 psxOpFunc psxSPC[64] = {
 	PSXCPU_ResolveShift,	psxNULL,				PSXCPU_ResolveShift,	PSXCPU_ResolveShift,	PSXCPU_ResolveShift,	psxNULL,				PSXCPU_ResolveShift,	PSXCPU_ResolveShift,
-	psxJR,					psxJALR,				psxNULL,				psxNULL,				psxSYSCALL,				psxBREAK,				psxNULL,				psxNULL,
+	psxJR,					PSXCPU_ResolveJALR,		psxNULL,				psxNULL,				psxSYSCALL,				psxBREAK,				psxNULL,				psxNULL,
 	PSXCPU_ResolveHILO,		psxMTHI,				PSXCPU_ResolveHILO,		psxMTLO,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxMULT,				psxMULTU,				psxDIV,					psxDIVU,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,
