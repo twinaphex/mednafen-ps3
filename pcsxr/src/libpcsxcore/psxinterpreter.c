@@ -31,12 +31,15 @@ static int branch2 = 0;
 static u32 branchPC;
 
 // Subsets
-void (*psxBSC[64])(uint32_t aCode);
-void (*psxSPC[64])(uint32_t aCode);
-void (*psxREG[32])(uint32_t aCode);
-void (*psxCP0[32])();
-void (*psxCP2[64])();
-void (*psxCP2BSC[32])();
+psxOpFunc psxBSC[64];
+psxOpFunc psxSPC[64];
+psxOpFunc psxREG[32];
+psxOpFunc psxCP0[32];
+psxOpFunc psxCP2[64];
+psxOpFunc psxCP2BSC[32];
+
+OPFUNC(psxADD_a);
+OPFUNC(psxADDI_a);
 
 // Execute one instruction
 void TOTAL_INLINE execI()
@@ -58,7 +61,7 @@ static void delayRead(int reg, u32 bpc) {
 //	SysPrintf("delayRead at %x!\n", psxRegs.pc);
 
 	rold = psxRegs.GPR.r[reg];
-	psxBSC[psxRegs.code >> 26](psxRegs.code); // branch delay load
+//	psxBSC[psxRegs.code >> 26](psxRegs.code); // branch delay load
 	rnew = psxRegs.GPR.r[reg];
 
 	psxRegs.pc = bpc;
@@ -81,7 +84,7 @@ static void delayWrite(int reg, u32 bpc) {
 
 	// no changes from normal behavior
 
-	psxBSC[psxRegs.code >> 26](psxRegs.code);
+//	psxBSC[psxRegs.code >> 26](psxRegs.code);
 
 	branch = 0;
 	psxRegs.pc = bpc;
@@ -268,7 +271,7 @@ int psxTestLoadDelay(int reg, u32 tmp) {
 	return 0;
 }
 
-void psxDelayTest(int reg, u32 bpc) {
+/*void psxDelayTest(int reg, u32 bpc) {
 	u32 *code;
 	u32 tmp;
 
@@ -292,7 +295,7 @@ void psxDelayTest(int reg, u32 bpc) {
 	psxRegs.pc = bpc;
 
 	psxBranchTest();
-}
+}*/
 
 __inline void doBranch(uint32_t aCode, u32 tar) {
 	u32 *code;
@@ -300,9 +303,13 @@ __inline void doBranch(uint32_t aCode, u32 tar) {
 
 	branch2 = branch = 1;
 	branchPC = tar;
+	execI();
+	branch = 0;
+	psxRegs.pc = branchPC;
+
 
 	// branch delay slot
-	code = Read_ICache(psxRegs.pc, TRUE);
+/*	code = Read_ICache(psxRegs.pc, TRUE);
 
 //	psxRegs.code = ((code == NULL) ? 0 : SWAP32(*code));
 	psxRegs.code = ((code == NULL) ? 0 : GETLE32(code));
@@ -349,7 +356,95 @@ __inline void doBranch(uint32_t aCode, u32 tar) {
 	branch = 0;
 	psxRegs.pc = branchPC;
 
+	*/
 	psxBranchTest();
+}
+
+OPFUNC(psxNULL)		{}
+
+/*********************************************************
+* ALU                                                    *
+*********************************************************/
+/*********************************************************
+* Arithmetic with immediate operand                      *
+* Format:  OP rt, rs, immediate                          *
+*********************************************************/
+OPFUNC(psxADDI_a) 	{ _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im 	(Exception on Integer Overflow)
+OPFUNC(psxADDIU_a) 	{ _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im
+OPFUNC(psxANDI_a) 	{ _rRt_ = _rRs_ & _ImmU_;		}				// Rt = Rs And Im
+OPFUNC(psxORI_a) 	{ _rRt_ = _rRs_ | _ImmU_;		}				// Rt = Rs Or  Im
+OPFUNC(psxXORI_a) 	{ _rRt_ = _rRs_ ^ _ImmU_;		}				// Rt = Rs Xor Im
+OPFUNC(psxSLTI_a) 	{ _rRt_ = _rRsS_ < _Imm_ ;		}				// Rt = Rs < Im		(Signed)
+OPFUNC(psxSLTIU_a) 	{ _rRt_ = _rRs_ < ((u32)_Imm_);	}				// Rt = Rs < Im		(Unsigned)
+
+OPFUNC(PSXCPU_ALUIMMResolve)
+{
+	if(_Rt_ == 0)
+	{
+		*aResolve = psxNULL;
+	}
+	else
+	{
+		switch(aCode >> 26)
+		{
+			case 8:		*aResolve = psxADDI_a;		psxADDI_a(aCode, aResolve);	break;
+			case 9:		*aResolve = psxADDIU_a;		psxADDIU_a(aCode, aResolve);break;
+			case 10:	*aResolve = psxSLTI_a;		psxSLTI_a(aCode, aResolve);	break;
+			case 11:	*aResolve = psxSLTIU_a;		psxSLTIU_a(aCode, aResolve);break;
+			case 12:	*aResolve = psxANDI_a;		psxANDI_a(aCode, aResolve);	break;
+			case 13:	*aResolve = psxORI_a;		psxORI_a(aCode, aResolve);	break;
+			case 14:	*aResolve = psxXORI_a;		psxXORI_a(aCode, aResolve);	break;
+		}
+	}
+}
+
+/*********************************************************
+* Register arithmetic                                    *
+* Format:  OP rd, rs, rt                                 *
+*********************************************************/
+OPFUNC(psxADD_a)	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADDU_a) 	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
+OPFUNC(psxSUB_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUBU_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
+OPFUNC(psxAND_a) 	{ _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
+OPFUNC(psxOR_a) 	{ _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
+OPFUNC(psxXOR_a) 	{ _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
+OPFUNC(psxNOR_a) 	{ _rRd_ =~(_rRs_ | _rRt_); 		}				// Rd = Rs Nor Rt
+OPFUNC(psxSLT_a) 	{ _rRd_ =  _rRsS_ < _rRtS_;		}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLTU_a)	{ _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxADD_b)	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADDU_b) 	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt
+OPFUNC(psxSUB_b) 	{ _rRd_ =  _rRs_ - _rRs_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUBU_b) 	{ _rRd_ =  _rRs_ - _rRs_;		}				// Rd = Rs - Rt
+OPFUNC(psxAND_b) 	{ _rRd_ =  _rRs_ & _rRs_;		}				// Rd = Rs And Rt
+OPFUNC(psxOR_b) 	{ _rRd_ =  _rRs_ | _rRs_;		}				// Rd = Rs Or  Rt
+OPFUNC(psxXOR_b) 	{ _rRd_ =  _rRs_ ^ _rRs_;		}				// Rd = Rs Xor Rt
+OPFUNC(psxNOR_b) 	{ _rRd_ =~(_rRs_ | _rRs_); 		}				// Rd = Rs Nor Rt
+OPFUNC(psxSLT_b) 	{ _rRd_ =  _rRsS_ < _rRsS_;		}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLTU_b)	{ _rRd_ =  _rRs_ < _rRs_;		}				// Rd = Rs < Rt		(Unsigned)
+
+OPFUNC(PSXCPU_ALUREGResolve)
+{
+	if(_Rd_ == 0)
+	{
+		*aResolve = psxNULL;
+	}
+	else
+	{
+		switch(_Funct_)
+		{
+			case 32:	*aResolve = (_Rs_ != _Rt_) ? psxADD_a	: psxADD_b;		psxADD_a(aCode, aResolve); break;
+			case 33:	*aResolve = (_Rs_ != _Rt_) ? psxADDU_a	: psxADDU_b;	psxADDU_a(aCode, aResolve); break;
+			case 34:	*aResolve = (_Rs_ != _Rt_) ? psxSUB_a	: psxSUB_b;		psxSUB_a(aCode, aResolve); break;
+			case 35:	*aResolve = (_Rs_ != _Rt_) ? psxSUBU_a	: psxSUBU_b;	psxSUBU_a(aCode, aResolve); break;
+			case 36:	*aResolve = (_Rs_ != _Rt_) ? psxAND_a	: psxAND_b;		psxAND_a(aCode, aResolve); break;
+			case 37:	*aResolve = (_Rs_ != _Rt_) ? psxOR_a	: psxOR_b;		psxOR_a(aCode, aResolve); break;
+			case 38:	*aResolve = (_Rs_ != _Rt_) ? psxXOR_a	: psxXOR_b;		psxXOR_a(aCode, aResolve); break;
+			case 39:	*aResolve = (_Rs_ != _Rt_) ? psxNOR_a	: psxNOR_b;		psxNOR_a(aCode, aResolve); break;
+			case 42:	*aResolve = (_Rs_ != _Rt_) ? psxSLT_a	: psxSLT_b;		psxSLT_a(aCode, aResolve); break;
+			case 43:	*aResolve = (_Rs_ != _Rt_) ? psxSLTU_a	: psxSLTU_b;	psxSLTU_a(aCode, aResolve); break;
+		}
+	}
 }
 
 /*********************************************************
@@ -421,41 +516,6 @@ OPFUNC(psxSRLV) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ = _rRt_ >> _rRs_;		}				//
 * Format:  OP rt, immediate                              *
 *********************************************************/
 OPFUNC(psxLUI)		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = psxRegs.code << 16;	}				// Upper halfword of Rt = Im
-
-/*********************************************************
-* ALU                                                    *
-*********************************************************/
-/*********************************************************
-* Arithmetic with immediate operand                      *
-* Format:  OP rt, rs, immediate                          *
-*********************************************************/
-//Basic evedence suggests that this is faster than an isel type hack
-//(time) 183563219 / (count) 97448790	(1.883689054) Using snes9x-ps3 isel.h
-//(time) 192753295 / (count) 106571978	(1.808667706) Using following code
-//These times were obtained via SYS_TIMEBASE_GET and spread across all of basic ALU ops
-//With less than 2 ticks on average the timinig may very well be off
-OPFUNC(psxADDI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im 	(Exception on Integer Overflow)
-OPFUNC(psxADDIU) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im
-OPFUNC(psxANDI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ & _ImmU_;		}				// Rt = Rs And Im
-OPFUNC(psxORI) 		{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ | _ImmU_;		}				// Rt = Rs Or  Im
-OPFUNC(psxXORI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ ^ _ImmU_;		}				// Rt = Rs Xor Im
-OPFUNC(psxSLTI) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRsS_ < _Imm_ ;		}				// Rt = Rs < Im		(Signed)
-OPFUNC(psxSLTIU) 	{ if (UNLIKELY(!_Rt_)) return; _rRt_ = _rRs_ < ((u32)_Imm_);}				// Rt = Rs < Im		(Unsigned)
-
-/*********************************************************
-* Register arithmetic                                    *
-* Format:  OP rd, rs, rt                                 *
-*********************************************************/
-OPFUNC(psxADD)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-OPFUNC(psxADDU) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
-OPFUNC(psxSUB)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUBU) 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
-OPFUNC(psxAND)	 	{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
-OPFUNC(psxOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
-OPFUNC(psxXOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
-OPFUNC(psxNOR) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =~(_rRs_ | _rRt_); 	}				// Rd = Rs Nor Rt
-OPFUNC(psxSLT) 		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRsS_ < _rRtS_;	}				// Rd = Rs < Rt		(Signed)
-OPFUNC(psxSLTU)		{ if (UNLIKELY(!_Rd_)) return; _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
 
 /*********************************************************
 * Register mult/div & Register trap logic                *
@@ -779,55 +839,68 @@ OPFUNC(psxCFC2)
 
 
 /*********************************************************
-* Unknow instruction (would generate an exception)       *
-* Format:  ?                                             *
+* Others											     *
 *********************************************************/
-OPFUNC(psxNULL)		{}
-OPFUNC(psxSPECIAL)	{psxSPC[_Funct_](aCode);}
-OPFUNC(psxREGIMM)	{psxREG[_Rt_](aCode);}
-OPFUNC(psxCOP0)		{psxCP0[_Rs_](aCode);}
-OPFUNC(psxCOP2)		{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_](aCode);}
-OPFUNC(psxBASIC)	{psxCP2BSC[_Rs_](aCode);}
+OPFUNC(PSXCPU_SPCResolve)
+{
+	*aResolve = psxSPC[_Funct_];
+	(*aResolve)(aCode, aResolve);
+}
+
+OPFUNC(PSXCPU_REGIMMResolve)
+{
+	*aResolve = psxREG[_Rt_];
+	(*aResolve)(aCode, aResolve);
+}
+
+OPFUNC(PSXCPU_COP0Resolve)
+{
+	*aResolve = psxCP0[_Rs_];
+	(*aResolve)(aCode, aResolve);
+}
+
+OPFUNC(psxCOP2)		{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_](aCode, aResolve);}
+OPFUNC(psxBASIC)	{psxCP2BSC[_Rs_](aCode, aResolve);}
 OPFUNC(psxHLE)		{psxHLEt[psxRegs.code & 0x07]();}
 
-void (*psxBSC[64])(uint32_t aCode) = {
-	psxSPECIAL, psxREGIMM, psxJ   , psxJAL  , psxBEQ , psxBNE , psxBLEZ, psxBGTZ,
-	psxADDI   , psxADDIU , psxSLTI, psxSLTIU, psxANDI, psxORI , psxXORI, psxLUI ,
-	psxCOP0   , psxNULL  , psxCOP2, psxNULL , psxNULL, psxNULL, psxNULL, psxNULL,
-	psxNULL   , psxNULL  , psxNULL, psxNULL , psxNULL, psxNULL, psxNULL, psxNULL,
-	psxLB     , psxLH    , psxLWL , psxLW   , psxLBU , psxLHU , psxLWR , psxNULL,
-	psxSB     , psxSH    , psxSWL , psxSW   , psxNULL, psxNULL, psxSWR , psxNULL, 
-	psxNULL   , psxNULL  , gteLWC2, psxNULL , psxNULL, psxNULL, psxNULL, psxNULL,
-	psxNULL   , psxNULL  , gteSWC2, psxHLE  , psxNULL, psxNULL, psxNULL, psxNULL 
+psxOpFunc psxBSC[64] = {
+	PSXCPU_SPCResolve,		PSXCPU_REGIMMResolve,	psxJ,					psxJAL,					psxBEQ,					psxBNE,					psxBLEZ,				psxBGTZ,
+	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	psxLUI,
+	PSXCPU_COP0Resolve,		psxNULL,				psxCOP2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxLB,					psxLH,					psxLWL,					psxLW,					psxLBU,					psxLHU,					psxLWR,					psxNULL,
+	psxSB,					psxSH,					psxSWL,					psxSW,					psxNULL,				psxNULL,				psxSWR,					psxNULL, 
+	psxNULL,				psxNULL,				gteLWC2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				gteSWC2,				psxHLE,					psxNULL,				psxNULL,				psxNULL,				psxNULL 
 };
 
 
-void (*psxSPC[64])(uint32_t aCode) = {
-	psxSLL , psxNULL , psxSRL , psxSRA , psxSLLV   , psxNULL , psxSRLV, psxSRAV,
-	psxJR  , psxJALR , psxNULL, psxNULL, psxSYSCALL, psxBREAK, psxNULL, psxNULL,
-	psxMFHI, psxMTHI , psxMFLO, psxMTLO, psxNULL   , psxNULL , psxNULL, psxNULL,
-	psxMULT, psxMULTU, psxDIV , psxDIVU, psxNULL   , psxNULL , psxNULL, psxNULL,
-	psxADD , psxADDU , psxSUB , psxSUBU, psxAND    , psxOR   , psxXOR , psxNOR ,
-	psxNULL, psxNULL , psxSLT , psxSLTU, psxNULL   , psxNULL , psxNULL, psxNULL,
-	psxNULL, psxNULL , psxNULL, psxNULL, psxNULL   , psxNULL , psxNULL, psxNULL,
-	psxNULL, psxNULL , psxNULL, psxNULL, psxNULL   , psxNULL , psxNULL, psxNULL
+psxOpFunc psxSPC[64] = {
+	psxSLL,					psxNULL,				psxSRL,					psxSRA,					psxSLLV,				psxNULL,				psxSRLV,				psxSRAV,
+	psxJR,					psxJALR,				psxNULL,				psxNULL,				psxSYSCALL,				psxBREAK,				psxNULL,				psxNULL,
+	psxMFHI,				psxMTHI,				psxMFLO,				psxMTLO,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxMULT,				psxMULTU,				psxDIV,					psxDIVU,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,
+	psxNULL,				psxNULL,				PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL
 };
 
-void (*psxREG[32])(uint32_t aCode) = {
-	psxBLTZ  , psxBGEZ  , psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
-	psxNULL  , psxNULL  , psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
-	psxBLTZAL, psxBGEZAL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
-	psxNULL  , psxNULL  , psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL
+psxOpFunc psxREG[32] = {
+	psxBLTZ,				psxBGEZ,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxBLTZAL,				psxBGEZAL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL
 };
 
-void (*psxCP0[32])(uint32_t aCode) = {
+psxOpFunc psxCP0[32] = {
 	psxMFC0, psxNULL, psxCFC0, psxNULL, psxMTC0, psxNULL, psxCTC0, psxNULL,
 	psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
 	psxRFE , psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
 	psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL
 };
 
-void (*psxCP2[64])(uint32_t aCode) = {
+psxOpFunc psxCP2[64] = {
 	psxBASIC, gteRTPS , psxNULL , psxNULL, psxNULL, psxNULL , gteNCLIP, psxNULL, // 00
 	psxNULL , psxNULL , psxNULL , psxNULL, gteOP  , psxNULL , psxNULL , psxNULL, // 08
 	gteDPCS , gteINTPL, gteMVMVA, gteNCDS, gteCDP , psxNULL , gteNCDT , psxNULL, // 10
@@ -838,7 +911,7 @@ void (*psxCP2[64])(uint32_t aCode) = {
 	psxNULL , psxNULL , psxNULL , psxNULL, psxNULL, gteGPF  , gteGPL  , gteNCCT  // 38
 };
 
-void (*psxCP2BSC[32])(uint32_t aCode) = {
+psxOpFunc psxCP2BSC[32] = {
 	psxMFC2, psxNULL, psxCFC2, psxNULL, gteMTC2, psxNULL, gteCTC2, psxNULL,
 	psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
 	psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL, psxNULL,
@@ -850,7 +923,8 @@ void (*psxCP2BSC[32])(uint32_t aCode) = {
 
 void				INT_Resolve		(uint32_t aOpCode, psxOpFunc* aResolve)
 {
-	psxBSC[aOpCode >> 26](aOpCode);	
+	*aResolve = psxBSC[aOpCode >> 26];
+	(*aResolve)(aOpCode, aResolve);
 }
 
 static int intInit()
@@ -884,6 +958,10 @@ static void intExecuteBlock()
 
 static void intClear(u32 Addr, u32 Size)
 {
+	for(int i = 0; i != Size; i ++)
+	{
+		*PSXMop(Addr + i) = INT_Resolve;
+	}
 }
 
 static void intShutdown()

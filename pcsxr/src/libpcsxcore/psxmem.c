@@ -53,7 +53,7 @@ int							psxMemInit					()
 
 	//Init ops
 	psxOpFunc* opLists[4] = {PSXMEM_Memory.WorkOPS, PSXMEM_Memory.ScratchOPS, PSXMEM_Memory.BIOSOPS, PSXMEM_Memory.ParallelOPS};
-	uint32_t opLens[4] = {2 * 1024 * 1024, 9 * 1024, 512 * 1024, 64 * 1024};
+	uint32_t opLens[4] = {2 * 1024 * 1024 / 4, 9 * 1024 / 4, 512 * 1024 / 4, 64 * 1024 / 4};
 
 	for(int i = 0; i != 4; i ++)
 	{
@@ -68,7 +68,7 @@ int							psxMemInit					()
 	{
 		PSXMEM_Memory.ReadTable[i]				=	&PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
 		PSXMEM_Memory.WriteTable[i]				=	&PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
-		PSXMEM_Memory.OPTable[i]				=	&PSXMEM_Memory.WorkOPS[(i & 0x1F) << 16];
+		PSXMEM_Memory.OPTable[i]				=	&PSXMEM_Memory.WorkOPS[(i & 0x1F) << 14];
 	}
 
 	PSXMEM_Memory.ReadTable[0x1F00]				=	PSXMEM_Memory.Parallel;
@@ -89,7 +89,7 @@ int							psxMemInit					()
 	for(int i = 0; i != 8; i ++)
 	{
 		PSXMEM_Memory.ReadTable[i + 0x1FC0]		=	&PSXMEM_Memory.BIOS[i << 16];
-		PSXMEM_Memory.OPTable[i + 0x1FC0]		=	&PSXMEM_Memory.BIOSOPS[i << 16];
+		PSXMEM_Memory.OPTable[i + 0x1FC0]		=	&PSXMEM_Memory.BIOSOPS[i << 14];
 	}
 
 	memcpy(PSXMEM_Memory.ReadTable + 0x9FC0,	PSXMEM_Memory.ReadTable + 0x1FC0,	8 * sizeof(void *));
@@ -204,6 +204,7 @@ void						psxMemWrite8				(uint32_t mem, uint8_t value)
 		if(p)
 		{
 			*(p + (mem & 0xFFFF)) = value;
+			psxCpu->Clear((mem & (~3)), 1);
 		}
 	}
 }
@@ -229,6 +230,7 @@ void						psxMemWrite16				(uint32_t mem, uint16_t value)
 		if(p)
 		{
 			PUTLE16((u16*)(p + (mem & 0xFFFF)), value);
+			psxCpu->Clear((mem & (~3)), 1);
 		}
 	}
 }
@@ -254,6 +256,7 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value)
 		if(p)
 		{
 			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
+			psxCpu->Clear((mem & (~3)), 1);
 		}
 		else if(mem == 0xFFFE0130)
 		{
