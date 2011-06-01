@@ -25,26 +25,6 @@ void			SysCloseLibrary		(void *lib)
 }
 
 //TODO: So ugly, theres more code after this too!
-void			pkGPUinit				();
-long			pkGPUopen				(unsigned long * disp, char * CapText, char * CfgFile);
-long			pkGPUclose				();
-long			pkGPUshutdown			();
-void			pkGPUupdateLace			(void); // VSYNC
-uint32_t		pkGPUreadStatus			(void); // READ STATUS
-void			pkGPUwriteStatus		(uint32_t gdata);
-void			pkGPUreadDataMem		(uint32_t * pMem, int iSize);
-uint32_t		pkGPUreadData			(void);
-void			pkGPUwriteDataMem		(uint32_t * pMem, int iSize);
-void			pkGPUwriteData			(uint32_t gdata);
-long			pkGPUconfigure			(void);
-long			pkGPUdmaChain			(uint32_t * baseAddrL, uint32_t addr);
-void			pkGPUabout				(void); // ABOUT
-long			pkGPUfreeze				(uint32_t ulGetFreezeData, GPUFreeze_t * pF);
-void			pkGPUshowScreenPic		(unsigned char * pMem);
-void			pkGPUvBlank				(int val);
-void			pkGPUkeypressed			(int keycode){}
-long			pkGPUtest				();
-
 void			pkCDRinit				();
 long            pkCDRshutdown           (void);
 long            pkCDRopen               (void);
@@ -68,26 +48,6 @@ long            pkCDRgetTE              (unsigned char, unsigned char *, unsigne
 
 void*			SysLoadSym			(void *lib, const char *sym)
 {
-	if(strcmp(sym, "GPUinit") == 0) return pkGPUinit;
-    if(strcmp(sym, "GPUshutdown") == 0) return pkGPUshutdown;
-    if(strcmp(sym, "GPUopen") == 0) return pkGPUopen;
-    if(strcmp(sym, "GPUclose") == 0) return pkGPUclose;
-    if(strcmp(sym, "GPUreadData") == 0) return pkGPUreadData;
-    if(strcmp(sym, "GPUreadDataMem") == 0) return pkGPUreadDataMem;
-    if(strcmp(sym, "GPUreadStatus") == 0) return pkGPUreadStatus;
-    if(strcmp(sym, "GPUwriteData") == 0) return pkGPUwriteData;
-    if(strcmp(sym, "GPUwriteDataMem") == 0) return pkGPUwriteDataMem;
-    if(strcmp(sym, "GPUwriteStatus") == 0) return pkGPUwriteStatus;
-    if(strcmp(sym, "GPUdmaChain") == 0) return pkGPUdmaChain;
-    if(strcmp(sym, "GPUupdateLace") == 0) return pkGPUupdateLace;
-    if(strcmp(sym, "GPUkeypressed") == 0) return pkGPUkeypressed;
-    if(strcmp(sym, "GPUfreeze") == 0) return pkGPUfreeze;
-    if(strcmp(sym, "GPUshowScreenPic") == 0) return pkGPUshowScreenPic;
-    if(strcmp(sym, "GPUvBlank") == 0) return pkGPUvBlank;
-    if(strcmp(sym, "GPUconfigure") == 0) return pkGPUconfigure;
-    if(strcmp(sym, "GPUtest") == 0) return pkGPUtest;
-    if(strcmp(sym, "GPUabout") == 0) return pkGPUabout;
-
     if(strcmp(sym, "CDRinit") == 0) return pkCDRinit;
     if(strcmp(sym, "CDRshutdown") == 0) return pkCDRshutdown;
     if(strcmp(sym, "CDRopen") == 0) return pkCDRopen;
@@ -120,8 +80,8 @@ int					OpenPlugins		()
 	//Open all of the plugins and register any callbacks
 	CDR_open();
 
-	pkGPUopen(0, 0, 0);
-	GPU_registerCallback(GPUbusy);
+	pkGPUopen();
+//	pkGPUregisterCallback(GPUbusy);
 
 	pkSPUopen();
 	pkSPUregisterCallback(SPUirq);
@@ -138,7 +98,7 @@ void                ClosePlugins    ()
 	pkSPUclose();
 	pkPADclose();
 	pkPADclose();
-	GPU_close();
+	pkGPUclose();
 
 	//Tell libpcsxcore to unload the plugins
 	ReleasePlugins();

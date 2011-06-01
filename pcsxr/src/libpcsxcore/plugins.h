@@ -35,8 +35,6 @@ extern "C" {
 typedef void* HWND;
 #define CALLBACK
 
-typedef long (*GPUopen)(unsigned long *, char *, char *);
-typedef long (*PADopen)(unsigned long *);
 typedef long (*NETopen)(unsigned long *);
 typedef long (*SIO1open)(unsigned long *);
 
@@ -44,8 +42,6 @@ typedef long (*SIO1open)(unsigned long *);
 
 #include <windows.h>
 
-typedef long (CALLBACK* GPUopen)(HWND);
-typedef long (CALLBACK* PADopen)(HWND);
 typedef long (CALLBACK* NETopen)(HWND);
 typedef long (CALLBACK* SIO1open)(HWND);
 
@@ -100,33 +96,6 @@ typedef void (CALLBACK* GPUvisualVibration)(uint32_t, uint32_t);
 typedef void (CALLBACK* GPUcursor)(int, int, int);
 
 // GPU function pointers
-extern GPUupdateLace    GPU_updateLace;
-extern GPUinit          GPU_init;
-extern GPUshutdown      GPU_shutdown;
-extern GPUconfigure     GPU_configure;
-extern GPUtest          GPU_test;
-extern GPUabout         GPU_about;
-extern GPUopen          GPU_open;
-extern GPUclose         GPU_close;
-extern GPUreadStatus    GPU_readStatus;
-extern GPUreadData      GPU_readData;
-extern GPUreadDataMem   GPU_readDataMem;
-extern GPUwriteStatus   GPU_writeStatus;
-extern GPUwriteData     GPU_writeData;
-extern GPUwriteDataMem  GPU_writeDataMem;
-extern GPUdmaChain      GPU_dmaChain;
-extern GPUkeypressed    GPU_keypressed;
-extern GPUdisplayText   GPU_displayText;
-extern GPUmakeSnapshot  GPU_makeSnapshot;
-extern GPUfreeze        GPU_freeze;
-extern GPUgetScreenPic  GPU_getScreenPic;
-extern GPUshowScreenPic GPU_showScreenPic;
-extern GPUclearDynarec  GPU_clearDynarec;
-extern GPUvBlank        GPU_vBlank;
-extern GPUregisterCallback GPU_registerCallback;
-extern GPUidle          GPU_idle;
-extern GPUvisualVibration GPU_visualVibration;
-extern GPUcursor        GPU_cursor;
 
 // CD-ROM Functions
 typedef long (CALLBACK* CDRinit)(void);
