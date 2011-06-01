@@ -90,7 +90,7 @@ int gpuReadStatus() {
 
 
 	// GPU plugin
-	hard = GPU_readStatus();
+	hard = pkGPUreadStatus();
 
 
 	// Gameshark Lite - wants to see VRAM busy
@@ -119,7 +119,7 @@ void psxDma2(u32 madr, u32 bcr, u32 chcr) { // GPU
 			}
 			// BA blocks * BS words (word = 32-bits)
 			size = (bcr >> 16) * (bcr & 0xffff);
-			GPU_readDataMem(ptr, size);
+			pkGPUreadDataMem(ptr, size);
 			PSXCPU_Clear(madr, size);
 
 			// already 32-bit word size ((size * 4) / 4)
@@ -139,7 +139,7 @@ void psxDma2(u32 madr, u32 bcr, u32 chcr) { // GPU
 			}
 			// BA blocks * BS words (word = 32-bits)
 			size = (bcr >> 16) * (bcr & 0xffff);
-			GPU_writeDataMem(ptr, size);
+			pkGPUwriteDataMem(ptr, size);
 
 			// already 32-bit word size ((size * 4) / 4)
 			GPUDMA_INT(size);
@@ -151,7 +151,7 @@ void psxDma2(u32 madr, u32 bcr, u32 chcr) { // GPU
 #endif
 
 			size = gpuDmaChainSize(madr);
-			GPU_dmaChain((u32 *)PSXMEM_Memory.WorkRAM, madr & 0x1fffff);
+			pkGPUdmaChain((u32 *)PSXMEM_Memory.WorkRAM, madr & 0x1fffff);
 			
 			// Tekken 3 = use 1.0 only (not 1.5x)
 

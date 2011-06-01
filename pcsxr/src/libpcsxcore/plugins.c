@@ -28,34 +28,6 @@
 static char IsoFile[MAXPATHLEN] = "";
 static s64 cdOpenCaseTime = 0;
 
-GPUupdateLace         GPU_updateLace;
-GPUinit               GPU_init;
-GPUshutdown           GPU_shutdown;
-GPUconfigure          GPU_configure;
-GPUtest               GPU_test;
-GPUabout              GPU_about;
-GPUopen               GPU_open;
-GPUclose              GPU_close;
-GPUreadStatus         GPU_readStatus;
-GPUreadData           GPU_readData;
-GPUreadDataMem        GPU_readDataMem;
-GPUwriteStatus        GPU_writeStatus;
-GPUwriteData          GPU_writeData;
-GPUwriteDataMem       GPU_writeDataMem;
-GPUdmaChain           GPU_dmaChain;
-GPUkeypressed         GPU_keypressed;
-GPUdisplayText        GPU_displayText;
-GPUmakeSnapshot       GPU_makeSnapshot;
-GPUfreeze             GPU_freeze;
-GPUgetScreenPic       GPU_getScreenPic;
-GPUshowScreenPic      GPU_showScreenPic;
-GPUclearDynarec       GPU_clearDynarec;
-GPUvBlank             GPU_vBlank;
-GPUregisterCallback   GPU_registerCallback;
-GPUidle               GPU_idle;
-GPUvisualVibration    GPU_visualVibration;
-GPUcursor             GPU_cursor;
-
 CDRinit               CDR_init;
 CDRshutdown           CDR_shutdown;
 CDRopen               CDR_open;
@@ -141,86 +113,6 @@ static const char *err;
 #define LoadSym(dest, src, name, checkerr) { \
 	dest = (src)SysLoadSym(drv, name); \
 	if (checkerr) { CheckErr(name); } else SysLibError(); \
-}
-
-void *hGPUDriver = NULL;
-
-void CALLBACK GPU__displayText(char *pText) {
-	SysPrintf("%s\n", pText);
-}
-
-void CALLBACK GPUbusy( int ticks )
-{
-    //printf( "GPUbusy( %i )\n", ticks );
-    //fflush( 0 );
-
-    psxRegs.interrupt |= (1 << PSXINT_GPUBUSY);
-    psxRegs.intCycle[PSXINT_GPUBUSY].cycle = ticks;
-    psxRegs.intCycle[PSXINT_GPUBUSY].sCycle = psxRegs.cycle;
-}
-
-long CALLBACK GPU__configure(void) { return 0; }
-long CALLBACK GPU__test(void) { return 0; }
-void CALLBACK GPU__about(void) {}
-void CALLBACK GPU__makeSnapshot(void) {}
-void CALLBACK GPU__keypressed(int key) {}
-long CALLBACK GPU__getScreenPic(unsigned char *pMem) { return -1; }
-long CALLBACK GPU__showScreenPic(unsigned char *pMem) { return -1; }
-void CALLBACK GPU__clearDynarec(void (CALLBACK *callback)(void)) {}
-void CALLBACK GPU__vBlank(int val) {}
-void CALLBACK GPU__registerCallback(void (CALLBACK *callback)(int)) {}
-void CALLBACK GPU__idle(void) {}
-void CALLBACK GPU__visualVibration(unsigned long iSmall, unsigned long iBig) {}
-void CALLBACK GPU__cursor(int player, int x, int y) {}
-
-#define LoadGpuSym1(dest, name) \
-	LoadSym(GPU_##dest, GPU##dest, name, TRUE);
-
-#define LoadGpuSym0(dest, name) \
-	LoadSym(GPU_##dest, GPU##dest, name, FALSE); \
-	if (GPU_##dest == NULL) GPU_##dest = (GPU##dest) GPU__##dest;
-
-#define LoadGpuSymN(dest, name) \
-	LoadSym(GPU_##dest, GPU##dest, name, FALSE);
-
-static int LoadGPUplugin(const char *GPUdll) {
-	void *drv;
-
-	hGPUDriver = SysLoadLibrary(GPUdll);
-	if (hGPUDriver == NULL) {
-		GPU_configure = NULL;
-		SysMessage (_("Could not load GPU plugin %s!"), GPUdll); return -1;
-	}
-	drv = hGPUDriver;
-	LoadGpuSym1(init, "GPUinit");
-	LoadGpuSym1(shutdown, "GPUshutdown");
-	LoadGpuSym1(open, "GPUopen");
-	LoadGpuSym1(close, "GPUclose");
-	LoadGpuSym1(readData, "GPUreadData");
-	LoadGpuSym1(readDataMem, "GPUreadDataMem");
-	LoadGpuSym1(readStatus, "GPUreadStatus");
-	LoadGpuSym1(writeData, "GPUwriteData");
-	LoadGpuSym1(writeDataMem, "GPUwriteDataMem");
-	LoadGpuSym1(writeStatus, "GPUwriteStatus");
-	LoadGpuSym1(dmaChain, "GPUdmaChain");
-	LoadGpuSym1(updateLace, "GPUupdateLace");
-	LoadGpuSym0(keypressed, "GPUkeypressed");
-	LoadGpuSym0(displayText, "GPUdisplayText");
-	LoadGpuSym0(makeSnapshot, "GPUmakeSnapshot");
-	LoadGpuSym1(freeze, "GPUfreeze");
-	LoadGpuSym0(getScreenPic, "GPUgetScreenPic");
-	LoadGpuSym0(showScreenPic, "GPUshowScreenPic");
-	LoadGpuSym0(clearDynarec, "GPUclearDynarec");
-    LoadGpuSym0(vBlank, "GPUvBlank");
-    LoadGpuSym0(registerCallback, "GPUregisterCallback");
-    LoadGpuSym0(idle, "GPUidle");
-    LoadGpuSym0(visualVibration, "GPUvisualVibration");
-    LoadGpuSym0(cursor, "GPUcursor");
-	LoadGpuSym0(configure, "GPUconfigure");
-	LoadGpuSym0(test, "GPUtest");
-	LoadGpuSym0(about, "GPUabout");
-
-	return 0;
 }
 
 void *hCDRDriver = NULL;
@@ -454,9 +346,6 @@ int LoadPlugins() {
 		if (LoadCDRplugin(Plugin) == -1) return -1;
 	}
 
-	sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Gpu);
-	if (LoadGPUplugin(Plugin) == -1) return -1;
-
 	if (strcmp("Disabled", Config.Net) == 0 || strcmp("", Config.Net) == 0)
 		Config.UseNet = FALSE;
 	else {
@@ -472,8 +361,7 @@ int LoadPlugins() {
 
 	ret = CDR_init();
 	if (ret < 0) { SysMessage (_("Error initializing CD-ROM plugin: %d"), ret); return -1; }
-	ret = GPU_init();
-	if (ret < 0) { SysMessage (_("Error initializing GPU plugin: %d"), ret); return -1; }
+	pkGPUinit();
 	pkSPUinit();
 	pkPADinit(1);
 	pkPADinit(2);
@@ -501,14 +389,13 @@ void ReleasePlugins() {
 
 //ROBO: Not using cdriso
 	if (hCDRDriver != NULL /*|| cdrIsoActive()*/) CDR_shutdown();
-	if (hGPUDriver != NULL) GPU_shutdown();
+	pkGPUshutdown();
 	pkSPUshutdown();
 	pkPADshutdown();
 
 	if (Config.UseNet && hNETDriver != NULL) NET_shutdown();
 
 	if (hCDRDriver != NULL) SysCloseLibrary(hCDRDriver); hCDRDriver = NULL;
-	if (hGPUDriver != NULL) SysCloseLibrary(hGPUDriver); hGPUDriver = NULL;
 
 	if (Config.UseNet && hNETDriver != NULL) {
 		SysCloseLibrary(hNETDriver); hNETDriver = NULL;

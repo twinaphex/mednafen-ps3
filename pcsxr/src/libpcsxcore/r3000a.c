@@ -254,7 +254,7 @@ void psxBranchTest()
 			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_GPUBUSY].sCycle) >= psxRegs.intCycle[PSXINT_GPUBUSY].cycle))
 			{
 		        psxRegs.interrupt &= ~(1 << PSXINT_GPUBUSY);
-        		GPU_idle();
+//        		GPU_idle();
 			}
 		}
 
