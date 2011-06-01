@@ -2635,63 +2635,35 @@ void biosInterrupt() {
 		if (pad_buf != NULL) {
 			u32 *buf = (u32*)pad_buf;
 
-			if (!Config.UseNet) {
-				pkPADstartPoll(1);
-				if (pkPADpoll(0x42) == 0x23) {
-					pkPADpoll(0);
-					*buf = pkPADpoll(0) << 8;
-					*buf |= pkPADpoll(0);
-					pkPADpoll(0);
-					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 6 : 0);
-					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 7 : 0);
-				} else {
-					pkPADpoll(0);
-					*buf = pkPADpoll(0) << 8;
-					*buf|= pkPADpoll(0);
-				}
-
-				pkPADstartPoll(2);
-				if (pkPADpoll(0x42) == 0x23) {
-					pkPADpoll(0);
-					*buf |= pkPADpoll(0) << 24;
-					*buf |= pkPADpoll(0) << 16;
-					pkPADpoll(0);
-					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 22 : 0);
-					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 23 : 0);
-				} else {
-					pkPADpoll(0);
-					*buf |= pkPADpoll(0) << 24;
-					*buf |= pkPADpoll(0) << 16;
-				}
-			} else {
-				u16 data;
-
-				pkPADstartPoll(1);
-				pkPADpoll(0x42);
+			pkPADstartPoll(1);
+			if (pkPADpoll(0x42) == 0x23) {
 				pkPADpoll(0);
-				data = pkPADpoll(0) << 8;
-				data |= pkPADpoll(0);
+				*buf = pkPADpoll(0) << 8;
+				*buf |= pkPADpoll(0);
+				pkPADpoll(0);
+				*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 6 : 0);
+				*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 7 : 0);
+			} else {
+				pkPADpoll(0);
+				*buf = pkPADpoll(0) << 8;
+				*buf|= pkPADpoll(0);
+			}
 
-				if (NET_sendPadData(&data, 2) == -1)
-					netError();
-
-				if (NET_recvPadData(&((u16*)buf)[0], 1) == -1)
-					netError();
-				if (NET_recvPadData(&((u16*)buf)[1], 2) == -1)
-					netError();
+			pkPADstartPoll(2);
+			if (pkPADpoll(0x42) == 0x23) {
+				pkPADpoll(0);
+				*buf |= pkPADpoll(0) << 24;
+				*buf |= pkPADpoll(0) << 16;
+				pkPADpoll(0);
+				*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 22 : 0);
+				*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 23 : 0);
+			} else {
+				pkPADpoll(0);
+				*buf |= pkPADpoll(0) << 24;
+				*buf |= pkPADpoll(0) << 16;
 			}
 		}
-		if (Config.UseNet && pad_buf1 != NULL && pad_buf2 != NULL) {
-			psxBios_PADpoll(1);
-
-			if (NET_sendPadData(pad_buf1, i) == -1)
-				netError();
-
-			if (NET_recvPadData(pad_buf1, 1) == -1)
-				netError();
-			if (NET_recvPadData(pad_buf2, 2) == -1)
-				netError();
-		} else {
+		{
 			if (pad_buf1) {
 				psxBios_PADpoll(1);
 			}

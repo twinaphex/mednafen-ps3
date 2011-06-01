@@ -164,18 +164,14 @@ void sioWrite8(unsigned char value) {
 
 			if ((value & 0x40) == 0x40) {
 				padst = 2; parp = 1;
-				if (!Config.UseNet) {
-					switch (CtrlReg & 0x2002) {
-						case 0x0002:
-							buf[parp] = pkPADpoll(value);
-							break;
-						case 0x2002:
-							buf[parp] = pkPADpoll(value);
-							break;
+				switch (CtrlReg & 0x2002) {
+					case 0x0002:
+						buf[parp] = pkPADpoll(value);
+						break;
+					case 0x2002:
+						buf[parp] = pkPADpoll(value);
+						break;
 					}
-				}/* else {
-//					SysPrintf("%x: %x, %x, %x, %x\n", CtrlReg&0x2002, buf[2], buf[3], buf[4], buf[5]);
-				}*/
 
 				if (!(buf[parp] & 0x0f)) {
 					bufcount = 2 + 32;
@@ -224,11 +220,9 @@ void sioWrite8(unsigned char value) {
 				SIO_INT(SIO_CYCLES);
 				return;
 			}*/
-			if (!Config.UseNet) {
-				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[parp] = pkPADpoll(value); break;
-					case 0x2002: buf[parp] = pkPADpoll(value); break;
-				}
+			switch (CtrlReg & 0x2002) {
+				case 0x0002: buf[parp] = pkPADpoll(value); break;
+				case 0x2002: buf[parp] = pkPADpoll(value); break;
 			}
 
 			if (parp == bufcount) { padst = 0; return; }
@@ -671,41 +665,9 @@ void sioWrite8(unsigned char value) {
 		case 0x01: // start pad
 			StatReg |= RX_RDY;		// Transfer is Ready
 
-			if (!Config.UseNet) {
-				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[0] = pkPADstartPoll(1); break;
-					case 0x2002: buf[0] = pkPADstartPoll(2); break;
-				}
-			} else {
-				if ((CtrlReg & 0x2002) == 0x0002) {
-					int i, j;
-
-					pkPADstartPoll(1);
-					buf[0] = 0;
-					buf[1] = pkPADpoll(0x42);
-					if (!(buf[1] & 0x0f)) {
-						bufcount = 32;
-					} else {
-						bufcount = (buf[1] & 0x0f) * 2;
-					}
-					buf[2] = pkPADpoll(0);
-					i = 3;
-					j = bufcount;
-					while (j--) {
-						buf[i++] = pkPADpoll(0);
-					}
-					bufcount+= 3;
-
-					if (NET_sendPadData(buf, bufcount) == -1)
-						netError();
-
-					if (NET_recvPadData(buf, 1) == -1)
-						netError();
-					if (NET_recvPadData(buf + 128, 2) == -1)
-						netError();
-				} else {
-					memcpy(buf, buf + 128, 32);
-				}
+			switch (CtrlReg & 0x2002) {
+				case 0x0002: buf[0] = pkPADstartPoll(1); break;
+				case 0x2002: buf[0] = pkPADstartPoll(2); break;
 			}
 
 			bufcount = 2;
@@ -832,16 +794,6 @@ unsigned short sioReadCtrl16() {
 
 unsigned short sioReadBaud16() {
 	return BaudReg;
-}
-
-void netError() {
-	ClosePlugins();
-	SysMessage(_("Connection closed!\n"));
-
-	CdromId[0] = '\0';
-	CdromLabel[0] = '\0';
-
-	SysRunGui();
 }
 
 void sioInterrupt() {

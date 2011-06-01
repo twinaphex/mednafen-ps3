@@ -24,7 +24,6 @@
 #include "ppf.h"
 
 PcsxConfig Config;
-boolean NetOpened = FALSE;
 
 int EmuInit()
 {
