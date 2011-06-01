@@ -634,50 +634,6 @@ int CheckState(const char *file) {
 	return 0;
 }
 
-// NET Function Helpers
-
-int SendPcsxInfo() {
-	if (NET_recvData == NULL || NET_sendData == NULL)
-		return 0;
-
-	NET_sendData(&Config.Xa, sizeof(Config.Xa), PSE_NET_BLOCKING);
-	NET_sendData(&Config.Sio, sizeof(Config.Sio), PSE_NET_BLOCKING);
-	NET_sendData(&Config.SpuIrq, sizeof(Config.SpuIrq), PSE_NET_BLOCKING);
-	NET_sendData(&Config.RCntFix, sizeof(Config.RCntFix), PSE_NET_BLOCKING);
-	NET_sendData(&Config.PsxType, sizeof(Config.PsxType), PSE_NET_BLOCKING);
-	NET_sendData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
-
-	return 0;
-}
-
-int RecvPcsxInfo() {
-	int tmp;
-
-	if (NET_recvData == NULL || NET_sendData == NULL)
-		return 0;
-
-	NET_recvData(&Config.Xa, sizeof(Config.Xa), PSE_NET_BLOCKING);
-	NET_recvData(&Config.Sio, sizeof(Config.Sio), PSE_NET_BLOCKING);
-	NET_recvData(&Config.SpuIrq, sizeof(Config.SpuIrq), PSE_NET_BLOCKING);
-	NET_recvData(&Config.RCntFix, sizeof(Config.RCntFix), PSE_NET_BLOCKING);
-	NET_recvData(&Config.PsxType, sizeof(Config.PsxType), PSE_NET_BLOCKING);
-
-	SysUpdate();
-
-	tmp = Config.Cpu;
-/*	NET_recvData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
-	if (tmp != Config.Cpu) {
-		PSX_CPUShutdown();
-		psxCpu = &psxInt;
-		if (psxCpu->Init() == -1) {
-			SysClose(); return -1;
-		}
-		psxCpu->Reset();
-	}*/
-
-	return 0;
-}
-
 // remove the leading and trailing spaces in a string
 void trim(char *str) {
 	int pos = 0;

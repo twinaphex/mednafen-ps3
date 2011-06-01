@@ -103,18 +103,10 @@ extern int Log;
 void __Log(char *fmt, ...);
 
 typedef struct {
-	char Gpu[MAXPATHLEN];
-	char Spu[MAXPATHLEN];
-	char Cdr[MAXPATHLEN];
-	char Pad1[MAXPATHLEN];
-	char Pad2[MAXPATHLEN];
-	char Net[MAXPATHLEN];
-    char Sio1[MAXPATHLEN];
 	char Mcd1[MAXPATHLEN];
 	char Mcd2[MAXPATHLEN];
 	char Bios[MAXPATHLEN];
 	char BiosDir[MAXPATHLEN];
-	char PluginsDir[MAXPATHLEN];
 	char PatchesDir[MAXPATHLEN];
 	boolean Xa;
 	boolean Sio;
@@ -127,9 +119,7 @@ typedef struct {
 	boolean PsxOut;
 	boolean SpuIrq;
 	boolean RCntFix;
-	boolean UseNet;
 	boolean VSyncWA;
-	u8 Cpu; // CPU_DYNAREC or CPU_INTERPRETER
 	u8 PsxType; // PSX_TYPE_NTSC or PSX_TYPE_PAL
 #ifdef _WIN32
 	char Lang[256];
@@ -137,7 +127,6 @@ typedef struct {
 } PcsxConfig;
 
 extern PcsxConfig Config;
-extern boolean NetOpened;
 
 #define gzfreeze(ptr, size) { \
 	if (Mode == 1) gzwrite(f, ptr, size); \
@@ -154,11 +143,6 @@ enum {
 	PSX_TYPE_NTSC = 0,
 	PSX_TYPE_PAL
 }; // PSX Types
-
-enum {
-	CPU_DYNAREC = 0,
-	CPU_INTERPRETER
-}; // CPU Types
 
 int EmuInit();
 void EmuReset();

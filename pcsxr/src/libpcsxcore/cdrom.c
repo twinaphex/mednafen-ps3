@@ -141,11 +141,7 @@ void sec2msf(unsigned int s, char *msf) {
 
 
 
-//ROBO: Not using cdrios
-//extern u16 *iso_play_cdbuf;
-//extern u16 iso_play_bufptr;
-//extern long CALLBACK ISOinit(void);
-extern void CALLBACK SPUirq(void);
+extern void SPUirq(void);
 
 #define H_SPUirqAddr		0x1f801da4
 #define H_SPUaddr				0x1f801da6

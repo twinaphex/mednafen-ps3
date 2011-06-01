@@ -3,10 +3,6 @@
 #include "video_plugin/globals.h"
 #include "input_plugin/pad.h"
 
-//Plugins functions, from plugins.c
-int					OpenPlugins		();
-void				ClosePlugins	();
-
 //System functions, needed by libpcsxcore
 extern int wanna_leave;
 void				SysUpdate		()		{wanna_leave = 1;}
@@ -16,7 +12,7 @@ void				SysReset		()		{EmuReset();}
 void				SysClose		()
 {
 	EmuShutdown();
-	ReleasePlugins();
+	PSXPLUG_Close();
 }
 
 //Memory cards
@@ -74,20 +70,13 @@ int					SysLoad			()
 {
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
-    strcpy(Config.PluginsDir, "builtin");
-    strcpy(Config.Gpu, "builtin");
-    strcpy(Config.Spu, "builtin");
-    strcpy(Config.Pad1, "builtin");
-    strcpy(Config.Pad2, "builtin");
-    strcpy(Config.Cdr, "builtin");
-    strcpy(Config.Net, "Disabled");
     strcpy(Config.Bios, BIOSPath);
 	strncpy(Config.Mcd1, MCD1, MAXPATHLEN);
 	strncpy(Config.Mcd2, MCD2, MAXPATHLEN);
 
 	EmuInit();
 
-	OpenPlugins();
+	PSXPLUG_Load();
 
 	OpenMCDS();
 
