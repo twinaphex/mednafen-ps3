@@ -59,6 +59,8 @@ typedef uintptr_t uptr;
 
 typedef uint8_t boolean;
 
+typedef void				(*psxOpFunc)				(uint32_t aOpCode, void (*aResolve)());
+
 #ifndef TRUE
 #define TRUE 1
 #endif

@@ -59,7 +59,7 @@ int							psxMemInit					()
 	{
 		for(int j = 0; j != opLens[i]; j ++)
 		{
-			opLists[i][j] = INT_Resolve;
+			opLists[i][j] = PSXCPU_Resolve;
 		}
 	}
 
@@ -138,36 +138,7 @@ void						psxMemShutdown				()
 
 static int writeok = 1;
 
-uint8_t						psxMemRead8					(uint32_t mem)
-{
-	psxRegs.cycle += 0;
-
-	if((mem & 0xFFFF0000) == 0x1F800000)
-	{
-		return (mem < 0x1F801000) ? psxHu8(mem) : psxHwRead8(mem);
-	}
-	else
-	{
-		u8* p = (u8*)PSXMEM_Memory.ReadTable[mem >> 16];
-		return p ? (*(u8*)(p + (mem & 0xFFFF))) : 0;
-	}
-}
-
-uint16_t					psxMemRead16				(uint32_t mem)
-{
-	psxRegs.cycle += 1;
-
-	if((mem & 0xFFFF0000) == 0x1F800000)
-	{
-		return (mem < 0x1F801000) ? psxHu16(mem) : psxHwRead16(mem);
-	}
-	else
-	{
-		u8* p = (u8*)PSXMEM_Memory.ReadTable[mem >> 16];
-		return p ? GETLE16((u16*)(p + (mem & 0xFFFF))) : 0;
-	}
-}
-
+//Still needed for psxLWL psxLWR...
 uint32_t					psxMemRead32				(uint32_t mem)
 {
 	psxRegs.cycle += 1;
@@ -204,7 +175,7 @@ void						psxMemWrite8				(uint32_t mem, uint8_t value)
 		if(p)
 		{
 			*(p + (mem & 0xFFFF)) = value;
-			psxCpu->Clear((mem & (~3)), 1);
+			PSXCPU_Clear((mem & (~3)), 1);
 		}
 	}
 }
@@ -230,7 +201,7 @@ void						psxMemWrite16				(uint32_t mem, uint16_t value)
 		if(p)
 		{
 			PUTLE16((u16*)(p + (mem & 0xFFFF)), value);
-			psxCpu->Clear((mem & (~3)), 1);
+			PSXCPU_Clear((mem & (~3)), 1);
 		}
 	}
 }
@@ -256,7 +227,7 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value)
 		if(p)
 		{
 			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
-			psxCpu->Clear((mem & (~3)), 1);
+			PSXCPU_Clear((mem & (~3)), 1);
 		}
 		else if(mem == 0xFFFE0130)
 		{

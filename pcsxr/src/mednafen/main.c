@@ -112,7 +112,7 @@ void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t a
 	g.PadState[0].KeyStatus = ~aKeys;
 
 	//Run frame
-	psxCpu->Execute();
+	PSXCPU_Execute();
 
 	//Grab the frame
 	int x = 0, y = 0, w = 320, h = 240;

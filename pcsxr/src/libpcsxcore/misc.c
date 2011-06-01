@@ -578,7 +578,7 @@ int LoadState(const char *file) {
 		return -1;
 	}
 
-	psxCpu->Reset();
+	PSXCPU_Reset();
 	gzseek(f, 128 * 96 * 3, SEEK_CUR);
 
 	gzread(f, PSXMEM_Memory.WorkRAM, 0x00200000);
@@ -665,15 +665,15 @@ int RecvPcsxInfo() {
 	SysUpdate();
 
 	tmp = Config.Cpu;
-	NET_recvData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
+/*	NET_recvData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
 	if (tmp != Config.Cpu) {
-		psxCpu->Shutdown();
+		PSX_CPUShutdown();
 		psxCpu = &psxInt;
 		if (psxCpu->Init() == -1) {
 			SysClose(); return -1;
 		}
 		psxCpu->Reset();
-	}
+	}*/
 
 	return 0;
 }
