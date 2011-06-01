@@ -45,26 +45,6 @@ void			pkGPUvBlank				(int val);
 void			pkGPUkeypressed			(int keycode){}
 long			pkGPUtest				();
 
-long			pkSPUopen				(void);
-long			pkSPUinit				(void);
-long			pkSPUshutdown			(void);
-long			pkSPUclose				(void);
-void			pkSPUplaySample			(unsigned char u);
-void			pkSPUwriteRegister		(unsigned long u, unsigned short y);
-unsigned short	pkSPUreadRegister		(unsigned long u);
-void			pkSPUwriteDMA			(unsigned short u);
-unsigned short	pkSPUreadDMA			(void);
-void			pkSPUwriteDMAMem		(unsigned short *i, int l);
-void			pkSPUreadDMAMem			(unsigned short *i, int l);
-void			pkSPUplayADPCMchannel	(xa_decode_t *n);
-void			pkSPUregisterCallback	(void (*callback)(void));
-long			pkSPUconfigure			(void);
-long			pkSPUtest				(void);
-void			pkSPUabout				(void);
-long			pkSPUfreeze				(uint32_t i, SPUFreeze_t *j);
-void			pkSPUasync				(uint32_t o);
-void			pkSPUplayCDDAchannel	(short * m, int i);
-
 long			pkPADinit				(long flags);
 long			pkPADshutdown			(void);
 long			pkPADopen				(unsigned long *Disp);
@@ -123,25 +103,6 @@ void*			SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "GPUtest") == 0) return pkGPUtest;
     if(strcmp(sym, "GPUabout") == 0) return pkGPUabout;
 
-	if(strcmp(sym, "SPUinit") == 0) return pkSPUinit;
-	if(strcmp(sym, "SPUshutdown") == 0) return pkSPUshutdown;
-    if(strcmp(sym, "SPUopen") == 0) return pkSPUopen;
-    if(strcmp(sym, "SPUclose") == 0) return pkSPUclose;
-    if(strcmp(sym, "SPUconfigure") == 0) return pkSPUconfigure;
-    if(strcmp(sym, "SPUabout") == 0) return pkSPUabout;
-    if(strcmp(sym, "SPUtest") == 0) return pkSPUtest;
-    if(strcmp(sym, "SPUwriteRegister") == 0) return pkSPUwriteRegister;
-    if(strcmp(sym, "SPUreadRegister") == 0) return pkSPUreadRegister;
-    if(strcmp(sym, "SPUwriteDMA") == 0) return pkSPUwriteDMA;
-    if(strcmp(sym, "SPUreadDMA") == 0) return pkSPUreadDMA;
-    if(strcmp(sym, "SPUwriteDMAMem") == 0) return pkSPUwriteDMAMem;
-    if(strcmp(sym, "SPUreadDMAMem") == 0) return pkSPUreadDMAMem;
-    if(strcmp(sym, "SPUplayADPCMchannel") == 0) return pkSPUplayADPCMchannel;
-    if(strcmp(sym, "SPUfreeze") == 0) return pkSPUfreeze;
-    if(strcmp(sym, "SPUregisterCallback") == 0) return pkSPUregisterCallback;
-    if(strcmp(sym, "SPUasync") == 0) return pkSPUasync;
-    if(strcmp(sym, "SPUplayCDDAchannel") == 0) return pkSPUplayCDDAchannel;
-
     if(strcmp(sym, "PADinit") == 0) return pkPADinit;
     if(strcmp(sym, "PADshutdown") == 0) return pkPADshutdown;
     if(strcmp(sym, "PADopen") == 0) return pkPADopen;
@@ -193,7 +154,7 @@ int					OpenPlugins		()
 	GPU_registerCallback(GPUbusy);
 
 	pkSPUopen();
-	SPU_registerCallback(SPUirq);
+	pkSPUregisterCallback(SPUirq);
 
 	PAD1_open(0);
 	PAD2_open(0);
@@ -205,7 +166,7 @@ void                ClosePlugins    ()
 {
 	//Close all of the plugins
 	CDR_close();
-	SPU_close();
+	pkSPUclose();
 	PAD1_close();
 	PAD2_close();
 	GPU_close();

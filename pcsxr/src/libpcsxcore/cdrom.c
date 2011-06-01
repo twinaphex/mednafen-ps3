@@ -146,7 +146,6 @@ void sec2msf(unsigned int s, char *msf) {
 //extern u16 iso_play_bufptr;
 //extern long CALLBACK ISOinit(void);
 extern void CALLBACK SPUirq(void);
-extern SPUregisterCallback SPU_registerCallback;
 
 #define H_SPUirqAddr		0x1f801da4
 #define H_SPUaddr				0x1f801da6
@@ -207,7 +206,7 @@ extern SPUregisterCallback SPU_registerCallback;
 		cdr.Play = FALSE; \
 		cdr.FastForward = 0; \
 		cdr.FastBackward = 0; \
-		SPU_registerCallback( SPUirq ); \
+		pkSPUregisterCallback( SPUirq ); \
 	} \
 }
 
@@ -899,8 +898,8 @@ void cdrPlayInterrupt()
 	if (Config.Cdda) memset( cdr.Transfer, 0, CD_FRAMESIZE_RAW );
 
 
-	if( cdr.Play && SPU_playCDDAchannel)
-		SPU_playCDDAchannel((short *)cdr.Transfer, CD_FRAMESIZE_RAW);
+	if(cdr.Play)
+		pkSPUplayCDDAchannel((short *)cdr.Transfer, CD_FRAMESIZE_RAW);
 
 	CDRPLAY_INT( cdReadTime );
 
@@ -1594,7 +1593,7 @@ void cdrReadInterrupt() {
 			int ret = xa_decode_sector(&cdr.Xa, cdr.Transfer+4, cdr.FirstSector);
 
 			if (!ret) {
-				SPU_playADPCMchannel(&cdr.Xa);
+				pkSPUplayADPCMchannel(&cdr.Xa);
 				cdr.FirstSector = 0;
 
 

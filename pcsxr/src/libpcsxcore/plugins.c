@@ -76,26 +76,6 @@ CDRsetfilename        CDR_setfilename;
 CDRreadCDDA           CDR_readCDDA;
 CDRgetTE              CDR_getTE;
 
-SPUconfigure          SPU_configure;
-SPUabout              SPU_about;
-SPUinit               SPU_init;
-SPUshutdown           SPU_shutdown;
-SPUtest               SPU_test;
-SPUopen               SPU_open;
-SPUclose              SPU_close;
-SPUplaySample         SPU_playSample;
-SPUwriteRegister      SPU_writeRegister;
-SPUreadRegister       SPU_readRegister;
-SPUwriteDMA           SPU_writeDMA;
-SPUreadDMA            SPU_readDMA;
-SPUwriteDMAMem        SPU_writeDMAMem;
-SPUreadDMAMem         SPU_readDMAMem;
-SPUplayADPCMchannel   SPU_playADPCMchannel;
-SPUfreeze             SPU_freeze;
-SPUregisterCallback   SPU_registerCallback;
-SPUasync              SPU_async;
-SPUplayCDDAchannel    SPU_playCDDAchannel;
-
 PADconfigure          PAD1_configure;
 PADabout              PAD1_about;
 PADinit               PAD1_init;
@@ -339,53 +319,6 @@ static int LoadCDRplugin(const char *CDRdll) {
 	LoadCdrSym0(setfilename, "CDRsetfilename");
 	LoadCdrSymN(readCDDA, "CDRreadCDDA");
 	LoadCdrSymN(getTE, "CDRgetTE");
-
-	return 0;
-}
-
-void *hSPUDriver = NULL;
-
-long CALLBACK SPU__configure(void) { return 0; }
-void CALLBACK SPU__about(void) {}
-long CALLBACK SPU__test(void) { return 0; }
-
-#define LoadSpuSym1(dest, name) \
-	LoadSym(SPU_##dest, SPU##dest, name, TRUE);
-
-#define LoadSpuSym0(dest, name) \
-	LoadSym(SPU_##dest, SPU##dest, name, FALSE); \
-	if (SPU_##dest == NULL) SPU_##dest = (SPU##dest) SPU__##dest;
-
-#define LoadSpuSymN(dest, name) \
-	LoadSym(SPU_##dest, SPU##dest, name, FALSE);
-
-static int LoadSPUplugin(const char *SPUdll) {
-	void *drv;
-
-	hSPUDriver = SysLoadLibrary(SPUdll);
-	if (hSPUDriver == NULL) {
-		SPU_configure = NULL;
-		SysMessage (_("Could not load SPU plugin %s!"), SPUdll); return -1;
-	}
-	drv = hSPUDriver;
-	LoadSpuSym1(init, "SPUinit");
-	LoadSpuSym1(shutdown, "SPUshutdown");
-	LoadSpuSym1(open, "SPUopen");
-	LoadSpuSym1(close, "SPUclose");
-	LoadSpuSym0(configure, "SPUconfigure");
-	LoadSpuSym0(about, "SPUabout");
-	LoadSpuSym0(test, "SPUtest");
-	LoadSpuSym1(writeRegister, "SPUwriteRegister");
-	LoadSpuSym1(readRegister, "SPUreadRegister");
-	LoadSpuSym1(writeDMA, "SPUwriteDMA");
-	LoadSpuSym1(readDMA, "SPUreadDMA");
-	LoadSpuSym1(writeDMAMem, "SPUwriteDMAMem");
-	LoadSpuSym1(readDMAMem, "SPUreadDMAMem");
-	LoadSpuSym1(playADPCMchannel, "SPUplayADPCMchannel");
-	LoadSpuSym1(freeze, "SPUfreeze");
-	LoadSpuSym1(registerCallback, "SPUregisterCallback");
-	LoadSpuSymN(async, "SPUasync");
-	LoadSpuSymN(playCDDAchannel, "SPUplayCDDAchannel");
 
 	return 0;
 }
@@ -749,9 +682,6 @@ int LoadPlugins() {
 	sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Gpu);
 	if (LoadGPUplugin(Plugin) == -1) return -1;
 
-	sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Spu);
-	if (LoadSPUplugin(Plugin) == -1) return -1;
-
 	sprintf(Plugin, "%s/%s", Config.PluginsDir, Config.Pad1);
 	if (LoadPAD1plugin(Plugin) == -1) return -1;
 
@@ -775,8 +705,7 @@ int LoadPlugins() {
 	if (ret < 0) { SysMessage (_("Error initializing CD-ROM plugin: %d"), ret); return -1; }
 	ret = GPU_init();
 	if (ret < 0) { SysMessage (_("Error initializing GPU plugin: %d"), ret); return -1; }
-	ret = SPU_init();
-	if (ret < 0) { SysMessage (_("Error initializing SPU plugin: %d"), ret); return -1; }
+	pkSPUinit();
 	ret = PAD1_init(1);
 	if (ret < 0) { SysMessage (_("Error initializing Controller 1 plugin: %d"), ret); return -1; }
 	ret = PAD2_init(2);
@@ -806,7 +735,7 @@ void ReleasePlugins() {
 //ROBO: Not using cdriso
 	if (hCDRDriver != NULL /*|| cdrIsoActive()*/) CDR_shutdown();
 	if (hGPUDriver != NULL) GPU_shutdown();
-	if (hSPUDriver != NULL) SPU_shutdown();
+	pkSPUshutdown();
 	if (hPAD1Driver != NULL) PAD1_shutdown();
 	if (hPAD2Driver != NULL) PAD2_shutdown();
 
@@ -814,7 +743,6 @@ void ReleasePlugins() {
 
 	if (hCDRDriver != NULL) SysCloseLibrary(hCDRDriver); hCDRDriver = NULL;
 	if (hGPUDriver != NULL) SysCloseLibrary(hGPUDriver); hGPUDriver = NULL;
-	if (hSPUDriver != NULL) SysCloseLibrary(hSPUDriver); hSPUDriver = NULL;
 	if (hPAD1Driver != NULL) SysCloseLibrary(hPAD1Driver); hPAD1Driver = NULL;
 	if (hPAD2Driver != NULL) SysCloseLibrary(hPAD2Driver); hPAD2Driver = NULL;
 
