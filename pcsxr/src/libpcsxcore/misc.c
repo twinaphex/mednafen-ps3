@@ -387,7 +387,7 @@ static void LoadLibPS() {
 
 	if (f != NULL) {
 		fseek(f, 0x800, SEEK_SET);
-		fread(psxM + 0x10000, 0x61000, 1, f);
+		fread(PSXMEM_Memory.WorkRAM + 0x10000, 0x61000, 1, f);
 		fclose(f);
 	}
 }
@@ -524,9 +524,9 @@ int SaveState(const char *file) {
 	if (Config.HLE)
 		psxBiosFreeze(1);
 
-	gzwrite(f, psxM, 0x00200000);
-	gzwrite(f, psxR, 0x00080000);
-	gzwrite(f, psxH, 0x00010000);
+	gzwrite(f, PSXMEM_Memory.WorkRAM, 0x00200000);
+	gzwrite(f, PSXMEM_Memory.BIOS, 0x00080000);
+	gzwrite(f, PSXMEM_Memory.ScratchRAM, 0x00010000);
 	gzwrite(f, (void *)&psxRegs, sizeof(psxRegs));
 
 	// gpu
@@ -581,9 +581,9 @@ int LoadState(const char *file) {
 	psxCpu->Reset();
 	gzseek(f, 128 * 96 * 3, SEEK_CUR);
 
-	gzread(f, psxM, 0x00200000);
-	gzread(f, psxR, 0x00080000);
-	gzread(f, psxH, 0x00010000);
+	gzread(f, PSXMEM_Memory.WorkRAM, 0x00200000);
+	gzread(f, PSXMEM_Memory.BIOS, 0x00080000);
+	gzread(f, PSXMEM_Memory.ScratchRAM, 0x00010000);
 	gzread(f, (void *)&psxRegs, sizeof(psxRegs));
 
 	if (Config.HLE)

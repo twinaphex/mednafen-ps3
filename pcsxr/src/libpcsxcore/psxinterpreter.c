@@ -42,12 +42,13 @@ void (*psxCP2BSC[32])();
 void TOTAL_INLINE execI()
 { 
 	//ROBO: This will go crashy crashy if you try to execute garbage addresses !
-	psxRegs.code = GETLE32(Read_ICache(psxRegs.pc, FALSE));
-
 	psxRegs.pc += 4;
 	psxRegs.cycle += BIAS;
 
-	psxBSC[psxRegs.code >> 26](psxRegs.code);
+	psxRegs.code = GETLE32(PSXMfast(psxRegs.pc - 4));
+	(*PSXMop(psxRegs.pc - 4))(psxRegs.code, PSXMop(psxRegs.pc - 4));
+
+//	psxBSC[psxRegs.code >> 26](psxRegs.code);
 }
 
 
@@ -846,6 +847,11 @@ void (*psxCP2BSC[32])(uint32_t aCode) = {
 
 
 ///////////////////////////////////////////
+
+void				INT_Resolve		(uint32_t aOpCode, psxOpFunc* aResolve)
+{
+	psxBSC[aOpCode >> 26](aOpCode);	
+}
 
 static int intInit()
 {
