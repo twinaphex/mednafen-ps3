@@ -197,55 +197,6 @@ typedef struct {
 	unsigned char *SPUInfo;
 } SPUFreeze_t;
 
-// PAD Functions
-typedef long (CALLBACK* PADconfigure)(void);
-typedef void (CALLBACK* PADabout)(void);
-typedef long (CALLBACK* PADinit)(long);
-typedef long (CALLBACK* PADshutdown)(void);
-typedef long (CALLBACK* PADtest)(void);
-typedef long (CALLBACK* PADclose)(void);
-typedef long (CALLBACK* PADquery)(void);
-typedef long (CALLBACK* PADreadPort1)(PadDataS*);
-typedef long (CALLBACK* PADreadPort2)(PadDataS*);
-typedef long (CALLBACK* PADkeypressed)(void);
-typedef unsigned char (CALLBACK* PADstartPoll)(int);
-typedef unsigned char (CALLBACK* PADpoll)(unsigned char);
-typedef void (CALLBACK* PADsetSensitive)(int);
-typedef void (CALLBACK* PADregisterVibration)(void (CALLBACK *callback)(uint32_t, uint32_t));
-typedef void (CALLBACK* PADregisterCursor)(void (CALLBACK *callback)(int, int, int));
-
-// PAD function pointers
-extern PADconfigure        PAD1_configure;
-extern PADabout            PAD1_about;
-extern PADinit             PAD1_init;
-extern PADshutdown         PAD1_shutdown;
-extern PADtest             PAD1_test;
-extern PADopen             PAD1_open;
-extern PADclose            PAD1_close;
-extern PADquery            PAD1_query;
-extern PADreadPort1        PAD1_readPort1;
-extern PADkeypressed       PAD1_keypressed;
-extern PADstartPoll        PAD1_startPoll;
-extern PADpoll             PAD1_poll;
-extern PADsetSensitive     PAD1_setSensitive;
-extern PADregisterVibration PAD1_registerVibration;
-extern PADregisterCursor   PAD1_registerCursor;
-extern PADconfigure        PAD2_configure;
-extern PADabout            PAD2_about;
-extern PADinit             PAD2_init;
-extern PADshutdown         PAD2_shutdown;
-extern PADtest             PAD2_test;
-extern PADopen             PAD2_open;
-extern PADclose            PAD2_close;
-extern PADquery            PAD2_query;
-extern PADreadPort2        PAD2_readPort2;
-extern PADkeypressed       PAD2_keypressed;
-extern PADstartPoll        PAD2_startPoll;
-extern PADpoll             PAD2_poll;
-extern PADsetSensitive     PAD2_setSensitive;
-extern PADregisterVibration PAD2_registerVibration;
-extern PADregisterCursor   PAD2_registerCursor;
-
 // NET Functions
 typedef long (CALLBACK* NETinit)(void);
 typedef long (CALLBACK* NETshutdown)(void);
@@ -268,7 +219,6 @@ typedef struct {
 	void *psxMem;
 	GPUshowScreenPic GPU_showScreenPic;
 	GPUdisplayText GPU_displayText;
-	PADsetSensitive PAD_setSensitive;
 	char GPUpath[256];	// paths must be absolute
 	char SPUpath[256];
 	char CDRpath[256];
