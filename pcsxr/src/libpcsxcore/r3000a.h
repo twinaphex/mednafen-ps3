@@ -37,17 +37,14 @@ extern "C" {
 #include "psxcounters.h"
 #include "psxbios.h"
 
-typedef struct {
-	int  (*Init)();
-	void (*Reset)();
-	void (*Execute)();		/* executes up to a break */
-	void (*ExecuteBlock)();	/* executes up to a jump */
-	void (*Clear)(u32 Addr, u32 Size);
-	void (*Shutdown)();
-} R3000Acpu;
+void				PSXCPU_Resolve						(uint32_t aOpCode, psxOpFunc* aResolve);
+int					PSXCPU_Init							();
+void				PSXCPU_Reset						();
+void				PSXCPU_Execute						();
+void				PSXCPU_ExecuteBlock					();
+void				PSXCPU_Clear						(uint32_t aAddress, uint32_t aSize);
+void				PSXCPU_Shutdown						();
 
-extern R3000Acpu *psxCpu;
-extern R3000Acpu psxInt;
 
 typedef union {
 #if defined(__BIGENDIAN__)

@@ -66,11 +66,6 @@ static TOTAL_INLINE void PUTLE32(uint32_t *ptr, uint32_t val)	{__asm__ ("stwbrx 
 
 #endif
 
-typedef void				(*psxOpFunc)				(uint32_t aOpCode, void (*aResolve)());
-//
-void				INT_Resolve		(uint32_t aOpCode, psxOpFunc* aResolve);
-//
-
 typedef struct
 {
 	uint8_t					WorkRAM		[0x200000];
