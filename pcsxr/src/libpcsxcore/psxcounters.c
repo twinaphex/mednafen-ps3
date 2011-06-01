@@ -287,10 +287,7 @@ void psxRcntUpdate()
         {
             spuSyncCount = 0;
 
-            if( SPU_async )
-            {
-                SPU_async( SpuUpdInterval[Config.PsxType] * rcnts[3].target );
-            }
+            pkSPUasync( SpuUpdInterval[Config.PsxType] * rcnts[3].target );
         }
         
         // VSync irq.
