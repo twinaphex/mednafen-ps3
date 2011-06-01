@@ -201,7 +201,7 @@ extern void CALLBACK SPUirq(void);
 
 #define StopCdda() { \
 	if (cdr.Play) { \
-		if (!Config.Cdda) CDR_stop(); \
+		if (!Config.Cdda) pkCDRstop(); \
 		cdr.StatP &= ~STATUS_PLAY; \
 		cdr.Play = FALSE; \
 		cdr.FastForward = 0; \
@@ -220,66 +220,6 @@ extern void CALLBACK SPUirq(void);
 void cdrDecodedBufferInterrupt()
 {
 
-//ROBO: Not using cdriso
-#if 0
-	u16 buf_ptr[0x400], lcv;
-
-	// ISO reader only
-//	if( CDR_init != ISOinit ) return;
-
-	// check dbuf IRQ still active
-	if( cdr.Play == 0 ) return;
-	if( (SPU_readRegister( H_SPUctrl ) & 0x40) == 0 ) return;
-	if( (SPU_readRegister( H_SPUirqAddr ) * 8) >= 0x800 ) return;
-
-
-
-	// turn off plugin SPU IRQ decoded buffer handling
-	SPU_registerCallback( 0 );
-
-
-
-	/*
-	Vib Ribbon
-
-	000-3FF = left CDDA
-	400-7FF = right CDDA
-
-	Assume IRQ every wrap
-	*/
-
-	if( iso_play_cdbuf )
-	{
-		for( lcv = 0; lcv < 0x200; lcv++ )
-		{
-			// left
-			buf_ptr[ lcv ] = iso_play_cdbuf[ iso_play_bufptr ];
-
-			// right
-			buf_ptr[ lcv+0x200 ] = iso_play_cdbuf[ iso_play_bufptr+1 ];
-
-			iso_play_bufptr += 2;
-		}
-	}
-	else
-	{
-		memset( buf_ptr, 0, sizeof(buf_ptr) );
-	}
-
-
-	// feed CDDA decoded buffer manually
-	SPU_writeRegister( H_SPUaddr,0 );
-	SPU_writeDMAMem( buf_ptr, 0x800 / 2 );
-
-
-	// signal CDDA data ready
-	psxHu32ref(0x1070) |= SWAP32((u32)0x200);
-
-
-	// time for next full buffer
-	//CDRDBUF_INT( PSXCLK / 44100 * 0x200 );
-	CDRDBUF_INT( PSXCLK / 44100 * 0x100 );
-#endif
 }
 
 
@@ -355,7 +295,7 @@ void Check_Shell( int Irq )
 			u32 i;
 
 			i = cdrstat.Status;
-			if (CDR_getStatus(&cdrstat) != -1)
+			if (pkCDRgetStatus(&cdrstat) != -1)
 			{
 				if (cdrstat.Type == 0xff)
 					cdr.Stat = DiskError;
@@ -452,11 +392,11 @@ void Check_Shell( int Irq )
 void Find_CurTrack() {
 	cdr.CurTrack = 0;
 
-	if (CDR_getTN(cdr.ResultTN) != -1) {
+	if (pkCDRgetTN(cdr.ResultTN) != -1) {
 		int lcv;
 
 		for( lcv = 1; lcv <= cdr.ResultTN[1]; lcv++ ) {
-			if (CDR_getTD((u8)(lcv), cdr.ResultTD) != -1) {
+			if (pkCDRgetTD((u8)(lcv), cdr.ResultTD) != -1) {
 				u32 sect1, sect2;
 
 #ifdef CDR_LOG___0
@@ -493,7 +433,7 @@ static void ReadTrack( u8 *time ) {
 #ifdef CDR_LOG
 	CDR_LOG("ReadTrack() Log: KEY *** %x:%x:%x\n", cdr.Prev[0], cdr.Prev[1], cdr.Prev[2]);
 #endif
-	cdr.RErr = CDR_readTrack(cdr.Prev);
+	cdr.RErr = pkCDRreadTrack(cdr.Prev);
 }
 
 
@@ -533,11 +473,11 @@ void AddIrqQueue(unsigned char irq, unsigned long ecycle) {
 
 void Set_Track()
 {
-	if (CDR_getTN(cdr.ResultTN) != -1) {
+	if (pkCDRgetTN(cdr.ResultTN) != -1) {
 		int lcv;
 
 		for( lcv = 1; lcv < cdr.ResultTN[1]; lcv++ ) {
-			if (CDR_getTD((u8)(lcv), cdr.ResultTD) != -1) {
+			if (pkCDRgetTD((u8)(lcv), cdr.ResultTD) != -1) {
 #ifdef CDR_LOG___0
 				CDR_LOG( "settrack %d %d %d | %d %d %d | %d\n",
 					cdr.SetSectorPlay[0], cdr.SetSectorPlay[1], cdr.SetSectorPlay[2],
@@ -569,14 +509,14 @@ void Create_Fake_Subq()
 	u8 temp_cur[3], temp_next[3], temp_start[3], pregap;
 	int diff;
 
-	if (CDR_getTN(cdr.ResultTN) == -1) return;
+	if (pkCDRgetTN(cdr.ResultTN) == -1) return;
 	if( cdr.CurTrack+1 <= cdr.ResultTN[1] ) {
 		pregap = 150;
-		if( CDR_getTD(cdr.CurTrack+1, cdr.ResultTD) == -1 ) return;
+		if( pkCDRgetTD(cdr.CurTrack+1, cdr.ResultTD) == -1 ) return;
 	} else {
 		// last track - cd size
 		pregap = 0;
-		if( CDR_getTD(0, cdr.ResultTD) == -1 ) return;
+		if( pkCDRgetTD(0, cdr.ResultTD) == -1 ) return;
 	}
 
 	if( cdr.Play == TRUE ) {
@@ -613,10 +553,10 @@ void Create_Fake_Subq()
 
 	// repair
 	if( cdr.CurTrack <= cdr.ResultTN[1] ) {
-		if( CDR_getTD(cdr.CurTrack, cdr.ResultTD) == -1 ) return;
+		if( pkCDRgetTD(cdr.CurTrack, cdr.ResultTD) == -1 ) return;
 	} else {
 		// last track - cd size
-		if( CDR_getTD(0, cdr.ResultTD) == -1 ) return;
+		if( pkCDRgetTD(0, cdr.ResultTD) == -1 ) return;
 	}
 	
 	temp_start[0] = cdr.ResultTD[2];
@@ -662,9 +602,9 @@ void cdrPlayInterrupt_Autopause()
 	}
 	
 
-	if( CDR_getStatus(&cdrstat) == -1) return;
+	if( pkCDRgetStatus(&cdrstat) == -1) return;
 
-	subq = (struct SubQ *)CDR_getBufferSub();
+	subq = (struct SubQ *)pkCDRgetBufferSub();
 
 	if (subq != NULL ) {
 #ifdef CDR_LOG
@@ -753,12 +693,12 @@ void cdrPlayInterrupt_Repplay()
 	
 	
 	memset( cdr.Result, 0, 8 );
-	if( CDR_getStatus(&cdrstat) == -1) return;
+	if( pkCDRgetStatus(&cdrstat) == -1) return;
 
 	cdr.Result[0] = cdr.StatP;
 
 
-	subq = (struct SubQ *)CDR_getBufferSub();
+	subq = (struct SubQ *)pkCDRgetBufferSub();
 	if (subq != NULL ) {
 #ifdef CDR_LOG
 		CDR_LOG( "REPPLAY SUB - %X:%X:%X\n", 
@@ -881,15 +821,11 @@ void cdrPlayInterrupt()
 		temp[2] = itob(cdr.SetSectorPlay[2]);
 
 		// get subq
-		CDR_readTrack( temp );
+		pkCDRreadTrack( temp );
 	}
 
-	if( CDR_readCDDA ) {
-		CDR_readCDDA( cdr.SetSectorPlay[0], cdr.SetSectorPlay[1], cdr.SetSectorPlay[2], cdr.Transfer );
-		
-		CDXA_Attenuation( (short *) cdr.Transfer, 2352/2 );
-	}
-
+	pkCDRreadCDDA( cdr.SetSectorPlay[0], cdr.SetSectorPlay[1], cdr.SetSectorPlay[2], cdr.Transfer );
+	CDXA_Attenuation( (short *) cdr.Transfer, 2352/2 );
 
 
 	// TODO: mute data track cdplay
@@ -906,7 +842,7 @@ void cdrPlayInterrupt()
 	//////////////////////////////////////////
 	//////////////////////////////////////////
 
-	subq = (struct SubQ *)CDR_getBufferSub();
+	subq = (struct SubQ *)pkCDRgetBufferSub();
 	if (subq == NULL )
 		Create_Fake_Subq();
 
@@ -997,7 +933,7 @@ void cdrInterrupt() {
 				if( cdr.FastBackward ) cdr.FastBackward--;
 
 				if( cdr.FastBackward == 0 && cdr.FastForward == 0 ) {
-					if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+					if( cdr.Play && pkCDRgetStatus(&cdrstat) != -1 ) {
 						cdr.SetSectorPlay[0] = cdrstat.Time[0];
 						cdr.SetSectorPlay[1] = cdrstat.Time[1];
 						cdr.SetSectorPlay[2] = cdrstat.Time[2];
@@ -1042,12 +978,12 @@ void cdrInterrupt() {
 
 						cdr.CurTrack = btoi( cdr.Param[0] );
 
-						if (CDR_getTN(cdr.ResultTN) != -1) {
+						if (pkCDRgetTN(cdr.ResultTN) != -1) {
 							// check last track
 							if (cdr.CurTrack > cdr.ResultTN[1])
 								cdr.CurTrack = cdr.ResultTN[1];
 
-							if (CDR_getTD((u8)(cdr.CurTrack), cdr.ResultTD) != -1) {
+							if (pkCDRgetTD((u8)(cdr.CurTrack), cdr.ResultTD) != -1) {
 								cdr.SetSectorPlay[0] = cdr.ResultTD[2];
 								cdr.SetSectorPlay[1] = cdr.ResultTD[1];
 								cdr.SetSectorPlay[2] = cdr.ResultTD[0];
@@ -1219,7 +1155,7 @@ void cdrInterrupt() {
 			SetResultSize(17);
 			memset( cdr.Result, 0, 16 );
 
-			subq = (struct SubQ *)CDR_getBufferSub();
+			subq = (struct SubQ *)pkCDRgetBufferSub();
 
 			if (subq != NULL) {
 				cdr.Result[0] = subq->TrackNumber;
@@ -1271,7 +1207,7 @@ void cdrInterrupt() {
 			SetResultSize(3);
 			cdr.StatP |= STATUS_ROTATING;
         	cdr.Result[0] = cdr.StatP;
-        	if (CDR_getTN(cdr.ResultTN) == -1) {
+        	if (pkCDRgetTN(cdr.ResultTN) == -1) {
 				cdr.Stat = DiskError;
 				cdr.Result[0] |= STATUS_ERROR;
         	} else {
@@ -1286,7 +1222,7 @@ void cdrInterrupt() {
 			cdr.Track = btoi(cdr.Param[0]);
 			SetResultSize(4);
 			cdr.StatP |= STATUS_ROTATING;
-			if (CDR_getTD(cdr.Track, cdr.ResultTD) == -1) {
+			if (pkCDRgetTD(cdr.Track, cdr.ResultTD) == -1) {
 				cdr.Stat = DiskError;
 				cdr.Result[0] |= STATUS_ERROR;
 			} else {
@@ -1388,7 +1324,7 @@ void cdrInterrupt() {
 		case CdlID + 0x20:
 			SetResultSize(8);
 
-			if (CDR_getStatus(&cdrstat) == -1) {
+			if (pkCDRgetStatus(&cdrstat) == -1) {
 				cdr.Result[0] = 0x00; // 0x08 and cdr.Result[1]|0x10 : audio cd, enters cd player
 				cdr.Result[1] = 0x80; // 0x80 leads to the menu in the bios, else loads CD
 			}
@@ -1481,7 +1417,7 @@ void cdrInterrupt() {
 			// Crusaders of Might and Magic - update getlocl now
 			// - fixes cutscene speech
 			{
-				u8 *buf = CDR_getBuffer();
+				u8 *buf = pkCDRgetBuffer();
 				memcpy(cdr.Transfer, buf, 8);
 			}
 			
@@ -1557,7 +1493,7 @@ void cdrReadInterrupt() {
 
 	ReadTrack( cdr.SetSector );
 
-	buf = CDR_getBuffer();
+	buf = pkCDRgetBuffer();
 	if (buf == NULL)
 		cdr.RErr = -1;
 
@@ -1861,7 +1797,7 @@ void cdrWrite1(unsigned char rt) {
 
     	case CdlStop:
 				// GameShark CD Player: Reset CDDA to track start
-				if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+				if( cdr.Play && pkCDRgetStatus(&cdrstat) != -1 ) {
 					cdr.SetSectorPlay[0] = cdrstat.Time[0];
 					cdr.SetSectorPlay[1] = cdrstat.Time[1];
 					cdr.SetSectorPlay[2] = cdrstat.Time[2];
@@ -1870,7 +1806,7 @@ void cdrWrite1(unsigned char rt) {
 
 
 					// grab time for current track
-					CDR_getTD((u8)(cdr.CurTrack), cdr.ResultTD);
+					pkCDRgetTD((u8)(cdr.CurTrack), cdr.ResultTD);
 
 					cdr.SetSectorPlay[0] = cdr.ResultTD[2];
 					cdr.SetSectorPlay[1] = cdr.ResultTD[1];
@@ -1892,7 +1828,7 @@ void cdrWrite1(unsigned char rt) {
 				Twisted Metal - World Tour: don't save times for DATA reads
 				- Only get 1 chance to do this right
 				*/
-				if( cdr.Play && CDR_getStatus(&cdrstat) != -1 ) {
+				if( cdr.Play && pkCDRgetStatus(&cdrstat) != -1 ) {
 					cdr.SetSectorPlay[0] = cdrstat.Time[0];
 					cdr.SetSectorPlay[1] = cdrstat.Time[1];
 					cdr.SetSectorPlay[2] = cdrstat.Time[2];

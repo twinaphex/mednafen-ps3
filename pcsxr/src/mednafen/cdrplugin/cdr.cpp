@@ -30,7 +30,6 @@ static uint8_t	Buffer[8192];
 //Prototypes
 extern "C"
 {
-	long			CDR__getStatus			(struct CdrStat *stat);
 	long			pkCDRinit				(void);
 	long			pkCDRshutdown			(void);
 	long			pkCDRopen				(void);
@@ -186,8 +185,6 @@ long			pkCDRsetfilename		(char* aFileName)
 
 long			pkCDRgetStatus			(struct CdrStat* aStatus)
 {
-    CDR__getStatus(aStatus);
-
 //TODO:
 //    if (playing) {
 //        stat->Status |= 0x80;
