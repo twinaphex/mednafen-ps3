@@ -26,6 +26,8 @@
 #include "gte.h"
 #include "psxhle.h"
 
+#define PASS_IT_ON	(*aResolve)(aCode, aResolve)
+
 static int branch = 0;
 static int branch2 = 0;
 static u32 branchPC;
@@ -387,15 +389,17 @@ OPFUNC(PSXCPU_ALUIMMResolve)
 	{
 		switch(aCode >> 26)
 		{
-			case 8:		*aResolve = psxADDI_a;		psxADDI_a(aCode, aResolve);	break;
-			case 9:		*aResolve = psxADDIU_a;		psxADDIU_a(aCode, aResolve);break;
-			case 10:	*aResolve = psxSLTI_a;		psxSLTI_a(aCode, aResolve);	break;
-			case 11:	*aResolve = psxSLTIU_a;		psxSLTIU_a(aCode, aResolve);break;
-			case 12:	*aResolve = psxANDI_a;		psxANDI_a(aCode, aResolve);	break;
-			case 13:	*aResolve = psxORI_a;		psxORI_a(aCode, aResolve);	break;
-			case 14:	*aResolve = psxXORI_a;		psxXORI_a(aCode, aResolve);	break;
+			case 8:		*aResolve = psxADDI_a;	break;
+			case 9:		*aResolve = psxADDIU_a;	break;
+			case 10:	*aResolve = psxSLTI_a;	break;
+			case 11:	*aResolve = psxSLTIU_a;	break;
+			case 12:	*aResolve = psxANDI_a;	break;
+			case 13:	*aResolve = psxORI_a;	break;
+			case 14:	*aResolve = psxXORI_a;	break;
 		}
 	}
+
+	PASS_IT_ON;
 }
 
 /*********************************************************
@@ -433,18 +437,20 @@ OPFUNC(PSXCPU_ALUREGResolve)
 	{
 		switch(_Funct_)
 		{
-			case 32:	*aResolve = (_Rs_ != _Rt_) ? psxADD_a	: psxADD_b;		psxADD_a(aCode, aResolve); break;
-			case 33:	*aResolve = (_Rs_ != _Rt_) ? psxADDU_a	: psxADDU_b;	psxADDU_a(aCode, aResolve); break;
-			case 34:	*aResolve = (_Rs_ != _Rt_) ? psxSUB_a	: psxSUB_b;		psxSUB_a(aCode, aResolve); break;
-			case 35:	*aResolve = (_Rs_ != _Rt_) ? psxSUBU_a	: psxSUBU_b;	psxSUBU_a(aCode, aResolve); break;
-			case 36:	*aResolve = (_Rs_ != _Rt_) ? psxAND_a	: psxAND_b;		psxAND_a(aCode, aResolve); break;
-			case 37:	*aResolve = (_Rs_ != _Rt_) ? psxOR_a	: psxOR_b;		psxOR_a(aCode, aResolve); break;
-			case 38:	*aResolve = (_Rs_ != _Rt_) ? psxXOR_a	: psxXOR_b;		psxXOR_a(aCode, aResolve); break;
-			case 39:	*aResolve = (_Rs_ != _Rt_) ? psxNOR_a	: psxNOR_b;		psxNOR_a(aCode, aResolve); break;
-			case 42:	*aResolve = (_Rs_ != _Rt_) ? psxSLT_a	: psxSLT_b;		psxSLT_a(aCode, aResolve); break;
-			case 43:	*aResolve = (_Rs_ != _Rt_) ? psxSLTU_a	: psxSLTU_b;	psxSLTU_a(aCode, aResolve); break;
+			case 32:	*aResolve = (_Rs_ != _Rt_) ? psxADD_a	: psxADD_b;		break;
+			case 33:	*aResolve = (_Rs_ != _Rt_) ? psxADDU_a	: psxADDU_b;	break;
+			case 34:	*aResolve = (_Rs_ != _Rt_) ? psxSUB_a	: psxSUB_b;		break;
+			case 35:	*aResolve = (_Rs_ != _Rt_) ? psxSUBU_a	: psxSUBU_b;	break;
+			case 36:	*aResolve = (_Rs_ != _Rt_) ? psxAND_a	: psxAND_b;		break;
+			case 37:	*aResolve = (_Rs_ != _Rt_) ? psxOR_a	: psxOR_b;		break;
+			case 38:	*aResolve = (_Rs_ != _Rt_) ? psxXOR_a	: psxXOR_b;		break;
+			case 39:	*aResolve = (_Rs_ != _Rt_) ? psxNOR_a	: psxNOR_b;		break;
+			case 42:	*aResolve = (_Rs_ != _Rt_) ? psxSLT_a	: psxSLT_b;		break;
+			case 43:	*aResolve = (_Rs_ != _Rt_) ? psxSLTU_a	: psxSLTU_b;	break;
 		}
 	}
+
+	PASS_IT_ON;
 }
 
 /*********************************************************
@@ -591,8 +597,23 @@ OPFUNC(psxRFE) {
 * Move from HI/LO to GPR                                 *
 * Format:  OP rd                                         *
 *********************************************************/
-OPFUNC(psxMFHI) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rHi_; } // Rd = Hi
-OPFUNC(psxMFLO) { if (UNLIKELY(!_Rd_)) return; _rRd_ = _rLo_; } // Rd = Lo
+OPFUNC(psxMFHI_a) { _rRd_ = _rHi_; } // Rd = Hi
+OPFUNC(psxMFLO_a) { _rRd_ = _rLo_; } // Rd = Lo
+
+OPFUNC(PSXCPU_ResolveHILO)
+{
+	if(_Rd_ == 0)
+	{
+		*aResolve = psxNULL;
+	}
+	else
+	{
+		*aResolve = (_Funct_ == 16) ? psxMFHI_a : psxMFLO_a;
+	}
+
+	PASS_IT_ON;
+}
+
 
 /*********************************************************
 * Move to GPR to HI/LO & Register jump                   *
@@ -619,51 +640,70 @@ u32 TOTAL_INLINE testBranchDelay(uint32_t aCode)
 }
 
 
-OPFUNC(psxLB)
-{
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		u32 value = psxMemRead8(_oB_);
-		value |= (value & 0x80) ? 0xFFFFFF00 : 0;
-		_rRt_ = _Rt_ ? value : 0;
-	}
-}
+//a0: _Rt_ is zero, No branch, hardware read
+//a1: _Rt_ is non-zero, No branch, hardware read
+//a2: _Rt_ is non-zero, No branch, memory read
+OPFUNC(psxLB_a0)		{psxHwRead8(_oB_);}
+OPFUNC(psxLB_a1)		{_rRt_ = psxHwRead8(_oB_); _rRt_ |= (_rRt_ & 0x80) ? 0xFFFFFF00 : 0;}
+OPFUNC(psxLB_b1)		{_rRt_ = PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]; _rRt_ |= (_rRt_ & 0x80) ? 0xFFFFFF00 : 0;}
 
-OPFUNC(psxLBU)
-{
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		u32 value = psxMemRead8(_oB_);
-		_rRt_ = _Rt_ ? value : 0;
-	}
-}
+OPFUNC(psxLBU_a0)		{psxHwRead8(_oB_);}
+OPFUNC(psxLBU_a1)		{_rRt_ = psxHwRead8(_oB_);}
+OPFUNC(psxLBU_b1)		{_rRt_ = PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF];}
 
-OPFUNC(psxLH)
-{
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		u32 value = psxMemRead16(_oB_);
-		value |= (value & 0x8000) ? 0xFFFF0000 : 0;
-		_rRt_ = _Rt_ ? value : 0;
-	}
-}
+OPFUNC(psxLH_a0)		{psxHwRead16(_oB_);}
+OPFUNC(psxLH_a1)		{_rRt_ = psxHwRead16(_oB_); _rRt_ |= (_rRt_ & 0x8000) ? 0xFFFF0000 : 0;}
+OPFUNC(psxLH_b1)		{_rRt_ = GETLE16(&PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]); _rRt_ |= (_rRt_ & 0x8000) ? 0xFFFF0000 : 0;}
 
-OPFUNC(psxLHU)
-{
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		u32 value = psxMemRead16(_oB_);
-		_rRt_ = _Rt_ ? value : 0;
-	}
-}
+OPFUNC(psxLHU_a0)		{psxHwRead16(_oB_);}
+OPFUNC(psxLHU_a1)		{_rRt_ = psxHwRead16(_oB_);}
+OPFUNC(psxLHU_b1)		{_rRt_ = GETLE16(&PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]);}
 
-OPFUNC(psxLW)
+OPFUNC(psxLW_a0)		{psxHwRead32(_oB_);}
+OPFUNC(psxLW_a1)		{_rRt_ = psxHwRead32(_oB_);}
+OPFUNC(psxLW_b1)		{_rRt_ = GETLE32(&PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]);}
+
+OPFUNC(PSXCPU_ResolveLoad)
 {
-	if(LIKELY(testBranchDelay(aCode)))
+	if(_Rt_ == 0 && (_oB_ > 0x1F801000 && _oB_ < 0x1F808000))
 	{
-		u32 value = psxMemRead32(_oB_);
-		_rRt_ = _Rt_ ? value : 0;
+		switch(aCode >> 26)
+		{
+			case 32:	*aResolve = psxLB_a0; break;
+			case 33:	*aResolve = psxLH_a0; break;
+			case 35:	*aResolve = psxLW_a0; break;
+			case 36:	*aResolve = psxLBU_a0; break;
+			case 37:	*aResolve = psxLHU_a0; break;
+		}
 	}
+	else if(_Rt_ == 0)
+	{
+		*aResolve = psxNULL;
+	}
+	else if(_oB_ > 0x1F801000 && _oB_ < 0x1F808000)
+	{
+		switch(aCode >> 26)
+		{
+			case 32:	*aResolve = psxLB_a1; break;
+			case 33:	*aResolve = psxLH_a1; break;
+			case 35:	*aResolve = psxLW_a1; break;
+			case 36:	*aResolve = psxLBU_a1; break;
+			case 37:	*aResolve = psxLHU_a1; break;
+		}
+	}
+	else
+	{
+		switch(aCode >> 26)
+		{
+			case 32:	*aResolve = psxLB_b1; break;
+			case 33:	*aResolve = psxLH_b1; break;
+			case 35:	*aResolve = psxLW_b1; break;
+			case 36:	*aResolve = psxLBU_b1; break;
+			case 37:	*aResolve = psxLHU_b1; break;
+		}
+	}
+
+	PASS_IT_ON;
 }
 
 u32 LWL_MASK[4] = { 0xffffff, 0xffff, 0xff, 0 };
@@ -844,19 +884,19 @@ OPFUNC(psxCFC2)
 OPFUNC(PSXCPU_SPCResolve)
 {
 	*aResolve = psxSPC[_Funct_];
-	(*aResolve)(aCode, aResolve);
+	PASS_IT_ON;
 }
 
 OPFUNC(PSXCPU_REGIMMResolve)
 {
 	*aResolve = psxREG[_Rt_];
-	(*aResolve)(aCode, aResolve);
+	PASS_IT_ON;
 }
 
 OPFUNC(PSXCPU_COP0Resolve)
 {
 	*aResolve = psxCP0[_Rs_];
-	(*aResolve)(aCode, aResolve);
+	PASS_IT_ON;
 }
 
 OPFUNC(psxCOP2)		{if ((psxRegs.CP0.n.Status & 0x40000000) != 0 ) psxCP2[_Funct_](aCode, aResolve);}
@@ -868,7 +908,7 @@ psxOpFunc psxBSC[64] = {
 	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	psxLUI,
 	PSXCPU_COP0Resolve,		psxNULL,				psxCOP2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
-	psxLB,					psxLH,					psxLWL,					psxLW,					psxLBU,					psxLHU,					psxLWR,					psxNULL,
+	PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxLWL,					PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxLWR,					psxNULL,
 	psxSB,					psxSH,					psxSWL,					psxSW,					psxNULL,				psxNULL,				psxSWR,					psxNULL, 
 	psxNULL,				psxNULL,				gteLWC2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				gteSWC2,				psxHLE,					psxNULL,				psxNULL,				psxNULL,				psxNULL 
@@ -878,7 +918,7 @@ psxOpFunc psxBSC[64] = {
 psxOpFunc psxSPC[64] = {
 	psxSLL,					psxNULL,				psxSRL,					psxSRA,					psxSLLV,				psxNULL,				psxSRLV,				psxSRAV,
 	psxJR,					psxJALR,				psxNULL,				psxNULL,				psxSYSCALL,				psxBREAK,				psxNULL,				psxNULL,
-	psxMFHI,				psxMTHI,				psxMFLO,				psxMTLO,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
+	PSXCPU_ResolveHILO,		psxMTHI,				PSXCPU_ResolveHILO,		psxMTLO,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxMULT,				psxMULTU,				psxDIV,					psxDIVU,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,
 	psxNULL,				psxNULL,				PSXCPU_ALUREGResolve,	PSXCPU_ALUREGResolve,	psxNULL,				psxNULL,				psxNULL,				psxNULL,
