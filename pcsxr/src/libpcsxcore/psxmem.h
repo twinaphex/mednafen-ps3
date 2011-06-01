@@ -66,7 +66,7 @@ static TOTAL_INLINE void PUTLE32(uint32_t *ptr, uint32_t val)	{__asm__ ("stwbrx 
 
 #endif
 
-typedef void				(*psxOpFunc)				(uint32_t aOpCode, void* aResolve);
+typedef void				(*psxOpFunc)				(uint32_t aOpCode, void (*aResolve)());
 //
 void				INT_Resolve		(uint32_t aOpCode, psxOpFunc* aResolve);
 //
@@ -78,10 +78,10 @@ typedef struct
 	uint8_t					BIOS		[0x80000];
 	uint8_t					Parallel	[0x10000];
 
-	psxOpFunc				WorkOPS		[2 * 1024 * 1024];
-	psxOpFunc				ScratchOPS	[9 * 1024];
-	psxOpFunc				BIOSOPS		[512 * 1024];
-	psxOpFunc				ParallelOPS	[64 * 1024];
+	psxOpFunc				WorkOPS		[2 * 1024 * 1024 / 4];
+	psxOpFunc				ScratchOPS	[9 * 1024 / 4];
+	psxOpFunc				BIOSOPS		[512 * 1024 / 4];
+	psxOpFunc				ParallelOPS	[64 * 1024 / 4];
 
 	uint8_t*				ReadTable	[0x10000];
 	uint8_t*				WriteTable	[0x10000];
@@ -146,7 +146,7 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value);
 //ROBO
 #ifdef STUPID_SPEED_TEST
 #define PSXMfast(mem)	(PSXMEM_Memory.ReadTable[(mem) >> 16] + ((mem) & 0xffff))
-#define PSXMop(mem)		(PSXMEM_Memory.OPTable[(mem) >> 16] + ((mem) & 0xffff))
+#define PSXMop(mem)		(PSXMEM_Memory.OPTable[(mem) >> 16] + (((mem) & 0xffff) >> 2))
 #endif
 
 #ifdef __cplusplus
