@@ -45,22 +45,7 @@ void			pkGPUvBlank				(int val);
 void			pkGPUkeypressed			(int keycode){}
 long			pkGPUtest				();
 
-long			pkPADinit				(long flags);
-long			pkPADshutdown			(void);
-long			pkPADopen				(unsigned long *Disp);
-long			pkPADclose				(void);
-long			pkPADquery				(void);
-unsigned char	pkPADstartPoll			(int pad);
-unsigned char	pkPADpoll				(unsigned char value);
-long			pkPADreadPort			(int num, PadDataS *pad);
-long			pkPADreadPort1			(PadDataS *pad);
-long			pkPADreadPort2			(PadDataS *pad);
-long			pkPADkeypressed			(void);
-long			pkPADconfigure			(void);
-void			pkPADabout				(void);
-long			pkPADtest				(void);
-
-long            pkCDRinit               (void);
+void			pkCDRinit				();
 long            pkCDRshutdown           (void);
 long            pkCDRopen               (void);
 long            pkCDRclose              (void);
@@ -103,21 +88,6 @@ void*			SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "GPUtest") == 0) return pkGPUtest;
     if(strcmp(sym, "GPUabout") == 0) return pkGPUabout;
 
-    if(strcmp(sym, "PADinit") == 0) return pkPADinit;
-    if(strcmp(sym, "PADshutdown") == 0) return pkPADshutdown;
-    if(strcmp(sym, "PADopen") == 0) return pkPADopen;
-    if(strcmp(sym, "PADclose") == 0) return pkPADclose;
-    if(strcmp(sym, "PADquery") == 0) return pkPADquery;
-    if(strcmp(sym, "PADstartPoll") == 0) return pkPADstartPoll;
-    if(strcmp(sym, "PADpoll") == 0) return pkPADpoll;
-    if(strcmp(sym, "PADreadPort") == 0) return pkPADreadPort;
-    if(strcmp(sym, "PADreadPort1") == 0) return pkPADreadPort1;
-    if(strcmp(sym, "PADreadPort2") == 0) return pkPADreadPort2;
-    if(strcmp(sym, "PADkeypressed") == 0) return pkPADkeypressed;
-    if(strcmp(sym, "PADconfigure") == 0) return pkPADconfigure;
-    if(strcmp(sym, "PADabout") == 0) return pkPADabout;
-    if(strcmp(sym, "PADtest") == 0) return pkPADtest;
-
     if(strcmp(sym, "CDRinit") == 0) return pkCDRinit;
     if(strcmp(sym, "CDRshutdown") == 0) return pkCDRshutdown;
     if(strcmp(sym, "CDRopen") == 0) return pkCDRopen;
@@ -156,8 +126,7 @@ int					OpenPlugins		()
 	pkSPUopen();
 	pkSPUregisterCallback(SPUirq);
 
-	PAD1_open(0);
-	PAD2_open(0);
+	pkPADopen(0);
 
 	return 0;
 }
@@ -167,8 +136,8 @@ void                ClosePlugins    ()
 	//Close all of the plugins
 	CDR_close();
 	pkSPUclose();
-	PAD1_close();
-	PAD2_close();
+	pkPADclose();
+	pkPADclose();
 	GPU_close();
 
 	//Tell libpcsxcore to unload the plugins

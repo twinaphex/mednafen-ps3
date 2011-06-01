@@ -167,10 +167,10 @@ void sioWrite8(unsigned char value) {
 				if (!Config.UseNet) {
 					switch (CtrlReg & 0x2002) {
 						case 0x0002:
-							buf[parp] = PAD1_poll(value);
+							buf[parp] = pkPADpoll(value);
 							break;
 						case 0x2002:
-							buf[parp] = PAD2_poll(value);
+							buf[parp] = pkPADpoll(value);
 							break;
 					}
 				}/* else {
@@ -226,8 +226,8 @@ void sioWrite8(unsigned char value) {
 			}*/
 			if (!Config.UseNet) {
 				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[parp] = PAD1_poll(value); break;
-					case 0x2002: buf[parp] = PAD2_poll(value); break;
+					case 0x0002: buf[parp] = pkPADpoll(value); break;
+					case 0x2002: buf[parp] = pkPADpoll(value); break;
 				}
 			}
 
@@ -673,26 +673,26 @@ void sioWrite8(unsigned char value) {
 
 			if (!Config.UseNet) {
 				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[0] = PAD1_startPoll(1); break;
-					case 0x2002: buf[0] = PAD2_startPoll(2); break;
+					case 0x0002: buf[0] = pkPADstartPoll(1); break;
+					case 0x2002: buf[0] = pkPADstartPoll(2); break;
 				}
 			} else {
 				if ((CtrlReg & 0x2002) == 0x0002) {
 					int i, j;
 
-					PAD1_startPoll(1);
+					pkPADstartPoll(1);
 					buf[0] = 0;
-					buf[1] = PAD1_poll(0x42);
+					buf[1] = pkPADpoll(0x42);
 					if (!(buf[1] & 0x0f)) {
 						bufcount = 32;
 					} else {
 						bufcount = (buf[1] & 0x0f) * 2;
 					}
-					buf[2] = PAD1_poll(0);
+					buf[2] = pkPADpoll(0);
 					i = 3;
 					j = bufcount;
 					while (j--) {
-						buf[i++] = PAD1_poll(0);
+						buf[i++] = pkPADpoll(0);
 					}
 					bufcount+= 3;
 

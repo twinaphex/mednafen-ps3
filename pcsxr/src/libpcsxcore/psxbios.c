@@ -2613,18 +2613,18 @@ void psxBiosShutdown() {
 }
 
 #define psxBios_PADpoll(pad) { \
-	PAD##pad##_startPoll(pad); \
+	pkPADstartPoll(pad); \
 	pad_buf##pad[0] = 0; \
-	pad_buf##pad[1] = PAD##pad##_poll(0x42); \
+	pad_buf##pad[1] = pkPADpoll(0x42); \
 	if (!(pad_buf##pad[1] & 0x0f)) { \
 		bufcount = 32; \
 	} else { \
 		bufcount = (pad_buf##pad[1] & 0x0f) * 2; \
 	} \
-	PAD##pad##_poll(0); \
+	pkPADpoll(0); \
 	i = 2; \
 	while (bufcount--) { \
-		pad_buf##pad[i++] = PAD##pad##_poll(0); \
+		pad_buf##pad[i++] = pkPADpoll(0); \
 	} \
 }
 
@@ -2636,41 +2636,41 @@ void biosInterrupt() {
 			u32 *buf = (u32*)pad_buf;
 
 			if (!Config.UseNet) {
-				PAD1_startPoll(1);
-				if (PAD1_poll(0x42) == 0x23) {
-					PAD1_poll(0);
-					*buf = PAD1_poll(0) << 8;
-					*buf |= PAD1_poll(0);
-					PAD1_poll(0);
-					*buf &= ~((PAD1_poll(0) > 0x20) ? 1 << 6 : 0);
-					*buf &= ~((PAD1_poll(0) > 0x20) ? 1 << 7 : 0);
+				pkPADstartPoll(1);
+				if (pkPADpoll(0x42) == 0x23) {
+					pkPADpoll(0);
+					*buf = pkPADpoll(0) << 8;
+					*buf |= pkPADpoll(0);
+					pkPADpoll(0);
+					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 6 : 0);
+					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 7 : 0);
 				} else {
-					PAD1_poll(0);
-					*buf = PAD1_poll(0) << 8;
-					*buf|= PAD1_poll(0);
+					pkPADpoll(0);
+					*buf = pkPADpoll(0) << 8;
+					*buf|= pkPADpoll(0);
 				}
 
-				PAD2_startPoll(2);
-				if (PAD2_poll(0x42) == 0x23) {
-					PAD2_poll(0);
-					*buf |= PAD2_poll(0) << 24;
-					*buf |= PAD2_poll(0) << 16;
-					PAD2_poll(0);
-					*buf &= ~((PAD2_poll(0) > 0x20) ? 1 << 22 : 0);
-					*buf &= ~((PAD2_poll(0) > 0x20) ? 1 << 23 : 0);
+				pkPADstartPoll(2);
+				if (pkPADpoll(0x42) == 0x23) {
+					pkPADpoll(0);
+					*buf |= pkPADpoll(0) << 24;
+					*buf |= pkPADpoll(0) << 16;
+					pkPADpoll(0);
+					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 22 : 0);
+					*buf &= ~((pkPADpoll(0) > 0x20) ? 1 << 23 : 0);
 				} else {
-					PAD2_poll(0);
-					*buf |= PAD2_poll(0) << 24;
-					*buf |= PAD2_poll(0) << 16;
+					pkPADpoll(0);
+					*buf |= pkPADpoll(0) << 24;
+					*buf |= pkPADpoll(0) << 16;
 				}
 			} else {
 				u16 data;
 
-				PAD1_startPoll(1);
-				PAD1_poll(0x42);
-				PAD1_poll(0);
-				data = PAD1_poll(0) << 8;
-				data |= PAD1_poll(0);
+				pkPADstartPoll(1);
+				pkPADpoll(0x42);
+				pkPADpoll(0);
+				data = pkPADpoll(0) << 8;
+				data |= pkPADpoll(0);
 
 				if (NET_sendPadData(&data, 2) == -1)
 					netError();
