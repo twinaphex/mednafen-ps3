@@ -267,7 +267,6 @@ static inline psxOpFunc* Read_ICacheF(u32 pc, boolean isolate)
 	return PSXMop(pc);
 }
 
-
 /**** R3000A Instruction Macros ****/
 #define OPFUNC(a)	void a(uint32_t aCode, psxOpFunc* aResolve)
 
