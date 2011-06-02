@@ -409,26 +409,80 @@ OPFUNC(PSXCPU_ALUIMMResolve)
 * Register arithmetic                                    *
 * Format:  OP rd, rs, rt                                 *
 *********************************************************/
+//a: _Rs_ != _Rt_
+//b: _Rs_ == _Rt_
+//c: _Rs_ = 0
+//d: _Rt_ = 0
+//e: _Rs_ = 0 and _Rt_ = 0
 OPFUNC(psxADD_a)	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-OPFUNC(psxADDU_a) 	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
-OPFUNC(psxSUB_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUBU_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
-OPFUNC(psxAND_a) 	{ _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
-OPFUNC(psxOR_a) 	{ _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
-OPFUNC(psxXOR_a) 	{ _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
-OPFUNC(psxNOR_a) 	{ _rRd_ =~(_rRs_ | _rRt_); 		}				// Rd = Rs Nor Rt
-OPFUNC(psxSLT_a) 	{ _rRd_ =  _rRsS_ < _rRtS_;		}				// Rd = Rs < Rt		(Signed)
-OPFUNC(psxSLTU_a)	{ _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
 OPFUNC(psxADD_b)	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADD_c)	{ _rRd_ =  _rRt_;				}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADD_d)	{ _rRd_ =  _rRs_;				}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+OPFUNC(psxADD_e)	{ _rRd_ =  0;					}				// Rd = Rs + Rt		(Exception on Integer Overflow)
+
+OPFUNC(psxADDU_a) 	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
 OPFUNC(psxADDU_b) 	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt
-OPFUNC(psxSUB_b) 	{ _rRd_ =  _rRs_ - _rRs_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUBU_b) 	{ _rRd_ =  _rRs_ - _rRs_;		}				// Rd = Rs - Rt
-OPFUNC(psxAND_b) 	{ _rRd_ =  _rRs_ & _rRs_;		}				// Rd = Rs And Rt
-OPFUNC(psxOR_b) 	{ _rRd_ =  _rRs_ | _rRs_;		}				// Rd = Rs Or  Rt
-OPFUNC(psxXOR_b) 	{ _rRd_ =  _rRs_ ^ _rRs_;		}				// Rd = Rs Xor Rt
-OPFUNC(psxNOR_b) 	{ _rRd_ =~(_rRs_ | _rRs_); 		}				// Rd = Rs Nor Rt
-OPFUNC(psxSLT_b) 	{ _rRd_ =  _rRsS_ < _rRsS_;		}				// Rd = Rs < Rt		(Signed)
-OPFUNC(psxSLTU_b)	{ _rRd_ =  _rRs_ < _rRs_;		}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxADDU_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs + Rt
+OPFUNC(psxADDU_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs + Rt
+OPFUNC(psxADDU_e) 	{ _rRd_ =  0;					}				// Rd = Rs + Rt
+
+OPFUNC(psxSUB_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUB_b) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUB_c) 	{ _rRd_ =  0 - _rRt_;			}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUB_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+OPFUNC(psxSUB_e) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt		(Exception on Integer Overflow)
+
+OPFUNC(psxSUBU_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
+OPFUNC(psxSUBU_b) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt
+OPFUNC(psxSUBU_c) 	{ _rRd_ =  0 - _rRt_;			}				// Rd = Rs - Rt
+OPFUNC(psxSUBU_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs - Rt
+OPFUNC(psxSUBU_e) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt
+
+OPFUNC(psxAND_a) 	{ _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
+OPFUNC(psxAND_b) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs And Rt
+OPFUNC(psxAND_c) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
+OPFUNC(psxAND_d) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
+OPFUNC(psxAND_e) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
+
+OPFUNC(psxOR_a) 	{ _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
+OPFUNC(psxOR_b) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Or  Rt
+OPFUNC(psxOR_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs Or  Rt
+OPFUNC(psxOR_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Or  Rt
+OPFUNC(psxOR_e) 	{ _rRd_ =  0;					}				// Rd = Rs Or  Rt
+
+OPFUNC(psxXOR_a) 	{ _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
+OPFUNC(psxXOR_b) 	{ _rRd_ =  0;					}				// Rd = Rs Xor Rt
+OPFUNC(psxXOR_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs Xor Rt
+OPFUNC(psxXOR_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Xor Rt
+OPFUNC(psxXOR_e) 	{ _rRd_ =  0;					}				// Rd = Rs Xor Rt
+
+OPFUNC(psxNOR_a) 	{ _rRd_ =~(_rRs_ | _rRt_); 		}				// Rd = Rs Nor Rt
+OPFUNC(psxNOR_b) 	{ _rRd_ =~_rRs_; 				}				// Rd = Rs Nor Rt
+OPFUNC(psxNOR_c) 	{ _rRd_ =~_rRt_;	 			}				// Rd = Rs Nor Rt
+OPFUNC(psxNOR_d) 	{ _rRd_ =~_rRs_; 				}				// Rd = Rs Nor Rt
+OPFUNC(psxNOR_e) 	{ _rRd_ = 0xFFFFFFFF; 			}				// Rd = Rs Nor Rt
+
+OPFUNC(psxSLT_a) 	{ _rRd_ =  _rRsS_ < _rRtS_;		}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLT_b) 	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLT_c) 	{ _rRd_ =  0 < _rRtS_;			}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLT_d) 	{ _rRd_ =  _rRsS_ < 0;			}				// Rd = Rs < Rt		(Signed)
+OPFUNC(psxSLT_e) 	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Signed)
+
+OPFUNC(psxSLTU_a)	{ _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxSLTU_b)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxSLTU_c)	{ _rRd_ =  0 < _rRt_;			}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxSLTU_d)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
+OPFUNC(psxSLTU_e)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
+
+static const psxOpFunc			ALUREGTable[5][12] = 
+{
+	{psxADD_a,		psxADDU_a,		psxSUB_a,		psxSUBU_a,		psxAND_a,		psxOR_a,		psxXOR_a,		psxNOR_a,		psxNULL,		psxNULL,		psxSLT_a,		psxSLTU_a},
+	{psxADD_b,		psxADDU_b,		psxSUB_b,		psxSUBU_b,		psxAND_b,		psxOR_b,		psxXOR_b,		psxNOR_b,		psxNULL,		psxNULL,		psxSLT_b,		psxSLTU_b},
+	{psxADD_c,		psxADDU_c,		psxSUB_c,		psxSUBU_c,		psxAND_c,		psxOR_c,		psxXOR_c,		psxNOR_c,		psxNULL,		psxNULL,		psxSLT_c,		psxSLTU_c},
+	{psxADD_d,		psxADDU_d,		psxSUB_d,		psxSUBU_d,		psxAND_d,		psxOR_d,		psxXOR_d,		psxNOR_d,		psxNULL,		psxNULL,		psxSLT_d,		psxSLTU_d},
+	{psxADD_e,		psxADDU_e,		psxSUB_e,		psxSUBU_e,		psxAND_e,		psxOR_e,		psxXOR_e,		psxNOR_e,		psxNULL,		psxNULL,		psxSLT_e,		psxSLTU_e}
+};
+
 
 OPFUNC(PSXCPU_ALUREGResolve)
 {
@@ -438,19 +492,14 @@ OPFUNC(PSXCPU_ALUREGResolve)
 	}
 	else
 	{
-		switch(_Funct_)
-		{
-			case 32:	*aResolve = (_Rs_ != _Rt_) ? psxADD_a	: psxADD_b;		break;
-			case 33:	*aResolve = (_Rs_ != _Rt_) ? psxADDU_a	: psxADDU_b;	break;
-			case 34:	*aResolve = (_Rs_ != _Rt_) ? psxSUB_a	: psxSUB_b;		break;
-			case 35:	*aResolve = (_Rs_ != _Rt_) ? psxSUBU_a	: psxSUBU_b;	break;
-			case 36:	*aResolve = (_Rs_ != _Rt_) ? psxAND_a	: psxAND_b;		break;
-			case 37:	*aResolve = (_Rs_ != _Rt_) ? psxOR_a	: psxOR_b;		break;
-			case 38:	*aResolve = (_Rs_ != _Rt_) ? psxXOR_a	: psxXOR_b;		break;
-			case 39:	*aResolve = (_Rs_ != _Rt_) ? psxNOR_a	: psxNOR_b;		break;
-			case 42:	*aResolve = (_Rs_ != _Rt_) ? psxSLT_a	: psxSLT_b;		break;
-			case 43:	*aResolve = (_Rs_ != _Rt_) ? psxSLTU_a	: psxSLTU_b;	break;
-		}
+		uint32_t instruction = _Funct_ - 32;
+		uint32_t style = 4;
+		     if((_Rs_ && _Rt_) && (_Rs_ != _Rt_))	style = 0;
+		else if((_Rs_ && _Rt_) && (_Rs_ == _Rt_))	style = 1;
+		else if(!_Rs_)								style = 2;
+		else if(!_Rt_)								style = 3;
+
+		*aResolve = ALUREGTable[style][instruction];
 	}
 
 	PASS_IT_ON;
@@ -681,7 +730,7 @@ u32 TOTAL_INLINE testBranchDelay(uint32_t aCode)
 
 //a0: _Rt_ is zero, No branch, hardware read
 //a1: _Rt_ is non-zero, No branch, hardware read
-//a2: _Rt_ is non-zero, No branch, memory read
+//b1: _Rt_ is non-zero, No branch, memory read
 OPFUNC(psxLB_a0)		{/*psxRegs.cycle += 0;*/ psxHwRead8(_oB_);}
 OPFUNC(psxLB_a1)		{/*psxRegs.cycle += 0;*/ _rRt_ = psxHwRead8(_oB_); _rRt_ |= (_rRt_ & 0x80) ? 0xFFFFFF00 : 0;}
 OPFUNC(psxLB_b1)		{/*psxRegs.cycle += 0;*/ _rRt_ = PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]; _rRt_ |= (_rRt_ & 0x80) ? 0xFFFFFF00 : 0;}
