@@ -47,6 +47,7 @@ PSXMEM_MemoryMap			PSXMEM_Memory;
 */
 
 
+OPFUNC(psxNULL);
 int							psxMemInit					()
 {
 	memset(&PSXMEM_Memory, 0, sizeof(PSXMEM_MemoryMap));
@@ -63,7 +64,19 @@ int							psxMemInit					()
 		}
 	}
 
+	for(int i = 0; i != 0x10000; i ++)
+	{
+		PSXMEM_Memory.FakeOPS[i] = psxNULL;
+	}
+
 	//Init LUTs
+	for(int i = 0; i != 0x10000; i ++)	//Better than just crashing!
+	{
+		PSXMEM_Memory.ReadTable[i]				=	PSXMEM_Memory.FakePage;
+		PSXMEM_Memory.WriteTable[i]				=	PSXMEM_Memory.FakePage;
+		PSXMEM_Memory.OPTable[i]				=	PSXMEM_Memory.FakeOPS;
+	}
+
 	for(int i = 0; i != 0x80; i ++)
 	{
 		PSXMEM_Memory.ReadTable[i]				=	&PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
@@ -171,13 +184,7 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value)
 	}
 	else
 	{
-		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
-		if(p)
-		{
-			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
-			PSXCPU_Clear((mem & (~3)), 1);
-		}
-		else if(mem == 0xFFFE0130)	//Cache flushing
+		if(mem == 0xFFFE0130)	//Cache flushing
 		{
 			if((value == 0x800 || value == 0x804) && writeok)
 			{
@@ -201,6 +208,12 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value)
 					PSXMEM_Memory.WriteTable[i + 0xA000] = &PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
 				}
 			}
+		}
+		else
+		{
+			u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
+			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
+			PSXCPU_Clear((mem & (~3)), 1);
 		}
 	}
 }

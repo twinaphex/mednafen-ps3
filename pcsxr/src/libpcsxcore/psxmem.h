@@ -73,6 +73,7 @@ typedef struct
 	uint8_t					BIOS		[0x80000];
 	uint8_t					Parallel	[0x10000];
 	uint8_t					FakePage	[0x10000];
+	psxOpFunc				FakeOPS		[0x10000 / 4];
 
 	psxOpFunc				WorkOPS		[0x200000 / 4];
 	psxOpFunc				ScratchOPS	[0x10000 / 4];
@@ -93,7 +94,6 @@ void						psxMemShutdown				();
 uint32_t					psxMemRead32				(uint32_t mem);
 void						psxMemWrite32				(uint32_t mem, uint32_t value);
 
-//ROBO: psxMs gone
 #define psxMu8(mem)		(*(u8 *)&PSXMEM_Memory.WorkRAM[(mem) & 0x1fffff])
 #define psxMu16(mem)	(GETLE16((u16*)&PSXMEM_Memory.WorkRAM[(mem) & 0x1fffff]))
 #define psxMu32(mem)	(GETLE32((u32*)&PSXMEM_Memory.WorkRAM[(mem) & 0x1fffff]))
@@ -101,7 +101,6 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value);
 #define psxMu16ref(mem)	(*(u16 *)&PSXMEM_Memory.WorkRAM[(mem) & 0x1fffff])
 #define psxMu32ref(mem)	(*(u32 *)&PSXMEM_Memory.WorkRAM[(mem) & 0x1fffff])
 
-//ROBO: psxPs gone
 #define psxPu8(mem)		(*(u8 *)&PSXMEM_Memory.Parallel[(mem) & 0xffff])
 #define psxPu16(mem)	(GETLE16((u16*)&PSXMEM_Memory.Parallel[(mem) & 0xffff]))
 #define psxPu32(mem)	(GETLE32((u32*)&PSXMEM_Memory.Parallel[(mem) & 0xffff]))
@@ -109,7 +108,6 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value);
 #define psxPu16ref(mem)	(*(u16 *)&PSXMEM_Memory.Parallel[(mem) & 0xffff])
 #define psxPu32ref(mem)	(*(u32 *)&PSXMEM_Memory.Parallel[(mem) & 0xffff])
 
-//ROBO: psxRs* gone
 #define psxRu8(mem)		(*(u8* )&PSXMEM_Memory.BIOS[(mem) & 0x7ffff])
 #define psxRu16(mem)	(GETLE16((u16*)&PSXMEM_Memory.BIOS[(mem) & 0x7ffff]))
 #define psxRu32(mem)	(GETLE32((u32*)&PSXMEM_Memory.BIOS[(mem) & 0x7ffff]))
@@ -117,7 +115,6 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value);
 #define psxRu16ref(mem)	(*(u16*)&PSXMEM_Memory.BIOS[(mem) & 0x7ffff])
 #define psxRu32ref(mem)	(*(u32*)&PSXMEM_Memory.BIOS[(mem) & 0x7ffff])
 
-//ROBO: psxHs* gone
 #define psxHu8(mem)		(*(u8 *)&PSXMEM_Memory.ScratchRAM[(mem) & 0xffff])
 #define psxHu16(mem)	(GETLE16((u16 *)&PSXMEM_Memory.ScratchRAM[(mem) & 0xffff]))
 #define psxHu32(mem)	(GETLE32((u32 *)&PSXMEM_Memory.ScratchRAM[(mem) & 0xffff]))
@@ -128,8 +125,7 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value);
 #define psxHu16adr(mem)	((u16 *)&PSXMEM_Memory.ScratchRAM[(mem) & 0xffff])
 #define psxHu32adr(mem)	((u32 *)&PSXMEM_Memory.ScratchRAM[(mem) & 0xffff])
 
-//ROBO: PSXMs* gone
-#define PSXM(mem)		(PSXMEM_Memory.ReadTable[(mem) >> 16] == 0 ? NULL : (u8*)(PSXMEM_Memory.ReadTable[(mem) >> 16] + ((mem) & 0xffff)))
+#define PSXM(mem)		(PSXMEM_Memory.ReadTable[(mem) >> 16] + ((mem) & 0xffff))
 #define PSXMu8(mem)		(*(u8 *)PSXM(mem))
 #define PSXMu16(mem)	(GETLE16((u16 *)PSXM(mem)))
 #define PSXMu32(mem)	(GETLE32(*(u32 *)PSXM(mem)))
