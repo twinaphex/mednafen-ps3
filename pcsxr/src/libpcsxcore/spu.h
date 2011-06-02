@@ -39,7 +39,10 @@ extern "C" {
 #define H_SPUoff1        0x0d8c
 #define H_SPUoff2        0x0d8e
 
-void SPUirq(void);
+void inline TOTAL_INLINE	SPUirq				(void)
+{
+	psxHu32ref(0x1070) |= SWAPu32(0x200);
+}
 
 #ifdef __cplusplus
 }

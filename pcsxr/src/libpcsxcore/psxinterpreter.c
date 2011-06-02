@@ -702,6 +702,49 @@ OPFUNC(psxLW_a0)		{psxRegs.cycle += 1; psxHwRead32(_oB_);}
 OPFUNC(psxLW_a1)		{psxRegs.cycle += 1; _rRt_ = psxHwRead32(_oB_);}
 OPFUNC(psxLW_b1)		{psxRegs.cycle += 1; _rRt_ = GETLE32(&PSXMEM_Memory.ReadTable[_oB_ >> 16][_oB_ & 0xFFFF]);}
 
+u32 LWL_MASK[4] = { 0xffffff, 0xffff, 0xff, 0 };
+u32 LWL_SHIFT[4] = { 24, 16, 8, 0 };
+
+OPFUNC(psxLWL_a0)		{psxRegs.cycle += 1; psxHwRead32(_oB_ & ~3);}
+OPFUNC(psxLWL_a1)
+{
+	psxRegs.cycle += 1;
+	uint32_t mem = psxHwRead32(_oB_ & ~3);
+	uint32_t shift = _oB_ & 3;
+	_rRt_ =	(_rRt_ & LWL_MASK[shift]) | (mem << LWL_SHIFT[shift]);
+
+}
+
+OPFUNC(psxLWL_b1)
+{
+	psxRegs.cycle += 1;
+	uint32_t addr = _oB_ & ~3;
+	uint32_t shift = _oB_ & 3;
+	uint32_t mem = GETLE32(&PSXMEM_Memory.ReadTable[addr >> 16][addr & 0xFFFF]);
+	_rRt_ =	(_rRt_ & LWL_MASK[shift]) | (mem << LWL_SHIFT[shift]);
+}
+
+u32 LWR_MASK[4] = { 0, 0xff000000, 0xffff0000, 0xffffff00 };
+u32 LWR_SHIFT[4] = { 0, 8, 16, 24 };
+
+OPFUNC(psxLWR_a0)		{psxRegs.cycle += 1; psxHwRead32(_oB_ & ~3);}
+OPFUNC(psxLWR_a1)
+{
+	psxRegs.cycle += 1;
+	uint32_t mem = psxHwRead32(_oB_ & ~3);
+	uint32_t shift = _oB_ & 3;
+	_rRt_ =	(_rRt_ & LWR_MASK[shift]) | (mem >> LWR_SHIFT[shift]);
+}
+
+OPFUNC(psxLWR_b1)
+{
+	psxRegs.cycle += 1;
+	uint32_t addr = _oB_ & ~3;
+	uint32_t mem = GETLE32(&PSXMEM_Memory.ReadTable[addr >> 16][addr & 0xFFFF]);
+	uint32_t shift = _oB_ & 3;
+	_rRt_ =	(_rRt_ & LWR_MASK[shift]) | (mem >> LWR_SHIFT[shift]);
+}
+
 OPFUNC(PSXCPU_ResolveLoad)
 {
 	if(_Rt_ == 0 && (_oB_ > 0x1F801000 && _oB_ < 0x1F808000))
@@ -710,9 +753,11 @@ OPFUNC(PSXCPU_ResolveLoad)
 		{
 			case 32:	*aResolve = psxLB_a0; break;
 			case 33:	*aResolve = psxLH_a0; break;
+			case 34:	*aResolve = psxLWL_a0; break;
 			case 35:	*aResolve = psxLW_a0; break;
 			case 36:	*aResolve = psxLBU_a0; break;
 			case 37:	*aResolve = psxLHU_a0; break;
+			case 38:	*aResolve = psxLWR_a0; break;
 		}
 	}
 	else if(_Rt_ == 0)
@@ -725,9 +770,11 @@ OPFUNC(PSXCPU_ResolveLoad)
 		{
 			case 32:	*aResolve = psxLB_a1; break;
 			case 33:	*aResolve = psxLH_a1; break;
+			case 34:	*aResolve = psxLWL_a1; break;
 			case 35:	*aResolve = psxLW_a1; break;
 			case 36:	*aResolve = psxLBU_a1; break;
 			case 37:	*aResolve = psxLHU_a1; break;
+			case 38:	*aResolve = psxLWR_a1; break;
 		}
 	}
 	else
@@ -736,65 +783,15 @@ OPFUNC(PSXCPU_ResolveLoad)
 		{
 			case 32:	*aResolve = psxLB_b1; break;
 			case 33:	*aResolve = psxLH_b1; break;
+			case 34:	*aResolve = psxLWL_b1; break;
 			case 35:	*aResolve = psxLW_b1; break;
 			case 36:	*aResolve = psxLBU_b1; break;
 			case 37:	*aResolve = psxLHU_b1; break;
+			case 38:	*aResolve = psxLWR_b1; break;
 		}
 	}
 
 	PASS_IT_ON;
-}
-
-u32 LWL_MASK[4] = { 0xffffff, 0xffff, 0xff, 0 };
-u32 LWL_SHIFT[4] = { 24, 16, 8, 0 };
-
-OPFUNC(psxLWL) {
-	u32 addr = _oB_;
-	u32 shift = addr & 3;
-	u32 mem = psxMemRead32(addr & ~3);
-
-
-	// load delay = 1 latency
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		if (UNLIKELY(!_Rt_)) return;
-		_rRt_ =	( _rRt_ & LWL_MASK[shift]) | 
-						( mem << LWL_SHIFT[shift]);
-	}
-
-	/*
-	Mem = 1234.  Reg = abcd
-
-	0   4bcd   (mem << 24) | (reg & 0x00ffffff)
-	1   34cd   (mem << 16) | (reg & 0x0000ffff)
-	2   234d   (mem <<  8) | (reg & 0x000000ff)
-	3   1234   (mem      ) | (reg & 0x00000000)
-	*/
-}
-
-u32 LWR_MASK[4] = { 0, 0xff000000, 0xffff0000, 0xffffff00 };
-u32 LWR_SHIFT[4] = { 0, 8, 16, 24 };
-
-OPFUNC(psxLWR) {
-	u32 addr = _oB_;
-	u32 shift = addr & 3;
-	u32 mem = psxMemRead32(addr & ~3);
-	
-	if(LIKELY(testBranchDelay(aCode)))
-	{
-		if (UNLIKELY(!_Rt_)) return;
-		_rRt_ =	( _rRt_ & LWR_MASK[shift]) | 
-						( mem >> LWR_SHIFT[shift]);
-	}
-
-	/*
-	Mem = 1234.  Reg = abcd
-
-	0   1234   (mem      ) | (reg & 0x00000000)
-	1   a123   (mem >>  8) | (reg & 0xff000000)
-	2   ab12   (mem >> 16) | (reg & 0xffff0000)
-	3   abc1   (mem >> 24) | (reg & 0xffffff00)
-	*/
 }
 
 OPFUNC(psxSB) { psxMemWrite8 (_oB_, _rRt_); }
@@ -952,7 +949,7 @@ psxOpFunc psxBSC[64] = {
 	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,	PSXCPU_ALUIMMResolve,
 	PSXCPU_COP0Resolve,		psxNULL,				psxCOP2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
-	PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxLWL,					PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxLWR,					psxNULL,
+	PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxNULL,
 	psxSB,					psxSH,					psxSWL,					psxSW,					psxNULL,				psxNULL,				psxSWR,					psxNULL, 
 	psxNULL,				psxNULL,				gteLWC2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				gteSWC2,				psxHLE,					psxNULL,				psxNULL,				psxNULL,				psxNULL 
