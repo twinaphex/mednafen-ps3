@@ -698,3 +698,4 @@ u16 calcCrc(u8 *d, int len) {
 
 	return ~crc;
 }
+
