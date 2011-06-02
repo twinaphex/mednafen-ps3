@@ -371,15 +371,34 @@ OPFUNC(psxNULL)		{}
 * Arithmetic with immediate operand                      *
 * Format:  OP rt, rs, immediate                          *
 *********************************************************/
+OPFUNC(psxSETRT0)	{ _rRt_ = 0;					}
+OPFUNC(psxSETRTRS)	{ _rRt_ = _rRs_;				}
+OPFUNC(psxSETRTIMM)	{ _rRt_ = _Imm_;				}
+OPFUNC(psxSETRTIMMU){ _rRt_ = _ImmU_;				}
+
 OPFUNC(psxADDI_a) 	{ _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im 	(Exception on Integer Overflow)
 OPFUNC(psxADDIU_a) 	{ _rRt_ = _rRs_ + _Imm_ ;		}				// Rt = Rs + Im
 OPFUNC(psxANDI_a) 	{ _rRt_ = _rRs_ & _ImmU_;		}				// Rt = Rs And Im
 OPFUNC(psxORI_a) 	{ _rRt_ = _rRs_ | _ImmU_;		}				// Rt = Rs Or  Im
 OPFUNC(psxXORI_a) 	{ _rRt_ = _rRs_ ^ _ImmU_;		}				// Rt = Rs Xor Im
+
 OPFUNC(psxSLTI_a) 	{ _rRt_ = _rRsS_ < _Imm_ ;		}				// Rt = Rs < Im		(Signed)
+OPFUNC(psxSLTI_b) 	{ _rRt_ = _rRsS_ < 0;			}				// Rt = Rs < Im		(Signed)
+OPFUNC(psxSLTI_c) 	{ _rRt_ = 0 < _Imm_ ;			}				// Rt = Rs < Im		(Signed)
+
 OPFUNC(psxSLTIU_a) 	{ _rRt_ = _rRs_ < ((u32)_Imm_);	}				// Rt = Rs < Im		(Unsigned)
+OPFUNC(psxSLTIU_b) 	{ _rRt_ = _rRs_ < 0ul;			}				// Rt = Rs < Im		(Unsigned)
+OPFUNC(psxSLTIU_c) 	{ _rRt_ = 0 < ((u32)_Imm_);		}				// Rt = Rs < Im		(Unsigned)
+
 OPFUNC(psxLUI_a)	{ _rRt_ = psxRegs.code << 16;	}				// Upper halfword of Rt = Im
 
+static const psxOpFunc			ALUIMMTable[4][8] = 
+{
+	{psxADDI_a,		psxADDIU_a,		psxSLTI_a,		psxSLTIU_a,		psxANDI_a,		psxORI_a,		psxXORI_a,		psxLUI_a},
+	{psxSETRTIMM,	psxSETRTIMM,	psxSLTI_a,		psxSLTIU_b,		psxSETRT0,		psxSETRTIMMU,	psxSETRTIMMU,	psxLUI_a},
+	{psxSETRTRS,	psxSETRTRS,		psxSLTI_a,		psxSLTIU_c,		psxSETRT0,		psxSETRTRS,		psxSETRTRS,		psxLUI_a},
+	{psxSETRT0,		psxSETRT0,		psxSETRT0,		psxSETRT0,		psxSETRT0,		psxSETRT0,		psxSETRT0,		psxSETRT0},
+};
 
 OPFUNC(PSXCPU_ALUIMMResolve)
 {
@@ -389,17 +408,13 @@ OPFUNC(PSXCPU_ALUIMMResolve)
 	}
 	else
 	{
-		switch(aCode >> 26)
-		{
-			case 8:		*aResolve = psxADDI_a;	break;
-			case 9:		*aResolve = psxADDIU_a;	break;
-			case 10:	*aResolve = psxSLTI_a;	break;
-			case 11:	*aResolve = psxSLTIU_a;	break;
-			case 12:	*aResolve = psxANDI_a;	break;
-			case 13:	*aResolve = psxORI_a;	break;
-			case 14:	*aResolve = psxXORI_a;	break;
-			case 15:	*aResolve = psxLUI_a;	break;
-		}
+		uint32_t instruction = (aCode >> 26) - 8;
+		uint32_t style = 3;
+		     if((_Rs_ != 0) && (_Imm_ != 0))		style = 0;
+		else if((_Rs_ == 0) && (_Imm_ != 0))		style = 1;
+		else if((_Rs_ != 0) && (_Imm_ == 0))		style = 2;
+
+		*aResolve = ALUIMMTable[style][instruction];
 	}
 
 	PASS_IT_ON;
@@ -414,47 +429,25 @@ OPFUNC(PSXCPU_ALUIMMResolve)
 //c: _Rs_ = 0
 //d: _Rt_ = 0
 //e: _Rs_ = 0 and _Rt_ = 0
+OPFUNC(psxSETRD0)	{ _rRd_ = 0;					}
+OPFUNC(psxSETRDRS)	{ _rRd_ = _rRs_;				}
+OPFUNC(psxSETRDRT)	{ _rRd_ = _rRt_;				}
+
 OPFUNC(psxADD_a)	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
 OPFUNC(psxADD_b)	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-OPFUNC(psxADD_c)	{ _rRd_ =  _rRt_;				}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-OPFUNC(psxADD_d)	{ _rRd_ =  _rRs_;				}				// Rd = Rs + Rt		(Exception on Integer Overflow)
-OPFUNC(psxADD_e)	{ _rRd_ =  0;					}				// Rd = Rs + Rt		(Exception on Integer Overflow)
 
 OPFUNC(psxADDU_a) 	{ _rRd_ =  _rRs_ + _rRt_;		}				// Rd = Rs + Rt
 OPFUNC(psxADDU_b) 	{ _rRd_ =  _rRs_ + _rRs_;		}				// Rd = Rs + Rt
-OPFUNC(psxADDU_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs + Rt
-OPFUNC(psxADDU_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs + Rt
-OPFUNC(psxADDU_e) 	{ _rRd_ =  0;					}				// Rd = Rs + Rt
 
 OPFUNC(psxSUB_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUB_b) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt		(Exception on Integer Overflow)
 OPFUNC(psxSUB_c) 	{ _rRd_ =  0 - _rRt_;			}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUB_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs - Rt		(Exception on Integer Overflow)
-OPFUNC(psxSUB_e) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt		(Exception on Integer Overflow)
 
 OPFUNC(psxSUBU_a) 	{ _rRd_ =  _rRs_ - _rRt_;		}				// Rd = Rs - Rt
-OPFUNC(psxSUBU_b) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt
 OPFUNC(psxSUBU_c) 	{ _rRd_ =  0 - _rRt_;			}				// Rd = Rs - Rt
-OPFUNC(psxSUBU_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs - Rt
-OPFUNC(psxSUBU_e) 	{ _rRd_ =  0;					}				// Rd = Rs - Rt
 
 OPFUNC(psxAND_a) 	{ _rRd_ =  _rRs_ & _rRt_;		}				// Rd = Rs And Rt
-OPFUNC(psxAND_b) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs And Rt
-OPFUNC(psxAND_c) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
-OPFUNC(psxAND_d) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
-OPFUNC(psxAND_e) 	{ _rRd_ =  0;					}				// Rd = Rs And Rt
-
 OPFUNC(psxOR_a) 	{ _rRd_ =  _rRs_ | _rRt_;		}				// Rd = Rs Or  Rt
-OPFUNC(psxOR_b) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Or  Rt
-OPFUNC(psxOR_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs Or  Rt
-OPFUNC(psxOR_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Or  Rt
-OPFUNC(psxOR_e) 	{ _rRd_ =  0;					}				// Rd = Rs Or  Rt
-
 OPFUNC(psxXOR_a) 	{ _rRd_ =  _rRs_ ^ _rRt_;		}				// Rd = Rs Xor Rt
-OPFUNC(psxXOR_b) 	{ _rRd_ =  0;					}				// Rd = Rs Xor Rt
-OPFUNC(psxXOR_c) 	{ _rRd_ =  _rRt_;				}				// Rd = Rs Xor Rt
-OPFUNC(psxXOR_d) 	{ _rRd_ =  _rRs_;				}				// Rd = Rs Xor Rt
-OPFUNC(psxXOR_e) 	{ _rRd_ =  0;					}				// Rd = Rs Xor Rt
 
 OPFUNC(psxNOR_a) 	{ _rRd_ =~(_rRs_ | _rRt_); 		}				// Rd = Rs Nor Rt
 OPFUNC(psxNOR_b) 	{ _rRd_ =~_rRs_; 				}				// Rd = Rs Nor Rt
@@ -463,26 +456,20 @@ OPFUNC(psxNOR_d) 	{ _rRd_ =~_rRs_; 				}				// Rd = Rs Nor Rt
 OPFUNC(psxNOR_e) 	{ _rRd_ = 0xFFFFFFFF; 			}				// Rd = Rs Nor Rt
 
 OPFUNC(psxSLT_a) 	{ _rRd_ =  _rRsS_ < _rRtS_;		}				// Rd = Rs < Rt		(Signed)
-OPFUNC(psxSLT_b) 	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Signed)
 OPFUNC(psxSLT_c) 	{ _rRd_ =  0 < _rRtS_;			}				// Rd = Rs < Rt		(Signed)
 OPFUNC(psxSLT_d) 	{ _rRd_ =  _rRsS_ < 0;			}				// Rd = Rs < Rt		(Signed)
-OPFUNC(psxSLT_e) 	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Signed)
 
 OPFUNC(psxSLTU_a)	{ _rRd_ =  _rRs_ < _rRt_;		}				// Rd = Rs < Rt		(Unsigned)
-OPFUNC(psxSLTU_b)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
 OPFUNC(psxSLTU_c)	{ _rRd_ =  0 < _rRt_;			}				// Rd = Rs < Rt		(Unsigned)
-OPFUNC(psxSLTU_d)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
-OPFUNC(psxSLTU_e)	{ _rRd_ =  0;					}				// Rd = Rs < Rt		(Unsigned)
 
 static const psxOpFunc			ALUREGTable[5][12] = 
 {
 	{psxADD_a,		psxADDU_a,		psxSUB_a,		psxSUBU_a,		psxAND_a,		psxOR_a,		psxXOR_a,		psxNOR_a,		psxNULL,		psxNULL,		psxSLT_a,		psxSLTU_a},
-	{psxADD_b,		psxADDU_b,		psxSUB_b,		psxSUBU_b,		psxAND_b,		psxOR_b,		psxXOR_b,		psxNOR_b,		psxNULL,		psxNULL,		psxSLT_b,		psxSLTU_b},
-	{psxADD_c,		psxADDU_c,		psxSUB_c,		psxSUBU_c,		psxAND_c,		psxOR_c,		psxXOR_c,		psxNOR_c,		psxNULL,		psxNULL,		psxSLT_c,		psxSLTU_c},
-	{psxADD_d,		psxADDU_d,		psxSUB_d,		psxSUBU_d,		psxAND_d,		psxOR_d,		psxXOR_d,		psxNOR_d,		psxNULL,		psxNULL,		psxSLT_d,		psxSLTU_d},
-	{psxADD_e,		psxADDU_e,		psxSUB_e,		psxSUBU_e,		psxAND_e,		psxOR_e,		psxXOR_e,		psxNOR_e,		psxNULL,		psxNULL,		psxSLT_e,		psxSLTU_e}
+	{psxADD_b,		psxADDU_b,		psxSETRD0,		psxSETRD0,		psxSETRDRS,		psxSETRDRS,		psxSETRD0,		psxNOR_b,		psxNULL,		psxNULL,		psxSETRD0,		psxSETRD0},
+	{psxSETRDRT,	psxSETRDRT,		psxSUB_c,		psxSUBU_c,		psxSETRD0,		psxSETRDRT,		psxSETRDRT,		psxNOR_c,		psxNULL,		psxNULL,		psxSLT_c,		psxSLTU_c},
+	{psxSETRDRS,	psxSETRDRS,		psxSETRDRS,		psxSETRDRS,		psxSETRD0,		psxSETRDRS,		psxSETRDRS,		psxNOR_d,		psxNULL,		psxNULL,		psxSLT_d,		psxSETRD0},
+	{psxSETRD0,		psxSETRD0,		psxSETRD0,		psxSETRD0,		psxSETRD0,		psxSETRD0,		psxSETRD0,		psxNOR_e,		psxNULL,		psxNULL,		psxSETRD0,		psxSETRD0}
 };
-
 
 OPFUNC(PSXCPU_ALUREGResolve)
 {
