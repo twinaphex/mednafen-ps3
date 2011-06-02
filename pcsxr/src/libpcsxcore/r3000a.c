@@ -114,6 +114,32 @@ void psxBranchTestt();
  pizza += ex - en;
 }*/
 
+#if defined(__SNC__)
+#include <ppu_intrinsics.h>
+#endif
+
+static TOTAL_INLINE uint32_t				cntlzw		(uint32_t arg)
+{
+#if defined(__SNC__)
+	return __cntlzw(arg);
+#elif defined(__ppc__)
+	__asm__ volatile("cntlzw %0, %1" : "=r" (arg) : "r" (arg));
+#elif defined(__i386__)
+	__asm__ volatile("bsrl %0, %0\n\txorl $31,%0\n" : "=r" (arg) : "0" (arg));
+#else
+	if(!arg) return 32;
+
+	uint32_t res = 0;
+	while(!(arg & 0x80000000))
+	{
+		res ++;
+		arg <<= 1;
+	}
+	arg = res;
+#endif
+	return arg;
+}
+void lazy(){}
 
 void psxBranchTest()
 {
@@ -174,9 +200,31 @@ void psxBranchTest()
     //TT6     0			0
 	//TT7	  2		    2
 
-
 	if(UNLIKELY(psxRegs.interrupt != 0))
 	{
+#if 1
+		static const void (*intops[16])() =
+		{
+			sioInterrupt,			cdrInterrupt,			cdrReadInterrupt,				gpuInterrupt,
+			mdec1Interrupt,			spuInterrupt,			lazy,							mdec0Interrupt,
+			gpuotcInterrupt,		cdrDmaInterrupt,		lazy,							cdrDecodedBufferInterrupt,
+			cdrLidSeekInterrupt,	cdrPlayInterrupt,		lazy,							lazy
+		};
+
+		uint32_t interrupts = psxRegs.interrupt;
+
+		while(interrupts)
+		{
+			uint32_t index = 31 - cntlzw(interrupts);
+			interrupts &= ~(1 << index);
+
+			if((psxRegs.cycle - psxRegs.intCycle[index].sCycle) >= psxRegs.intCycle[index].cycle)
+			{
+				psxRegs.interrupt &= ~(1 << index);
+				intops[index]();
+			}
+		}
+#else
 		if(LIKELY((psxRegs.interrupt & (1 << PSXINT_CDREAD)) != 0))
 		{
 			if(UNLIKELY((psxRegs.cycle - psxRegs.intCycle[PSXINT_CDREAD].sCycle) >= psxRegs.intCycle[PSXINT_CDREAD].cycle))
@@ -293,6 +341,7 @@ void psxBranchTest()
 				cdrDecodedBufferInterrupt();
 			}
 		}
+#endif
 	}
 }
 

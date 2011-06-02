@@ -836,18 +836,18 @@ OPFUNC(PSXCPU_ResolveLoad)
 //b1: _Rt_ is non-zero, No branch, memory write
 OPFUNC(psxSB_a0)		{psxRegs.cycle += 1; psxHwWrite8(_oB_, 0);}
 OPFUNC(psxSB_a1)		{psxRegs.cycle += 1; psxHwWrite8(_oB_, _rRt_);}
-OPFUNC(psxSB_b0)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = 0; PSXCPU_Clear((_oB_ & (~3)), 1);}
-OPFUNC(psxSB_b1)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = _rRt_; PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSB_b0)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = 0; *PSXMop(_oB_) = PSXCPU_Resolve;}
+OPFUNC(psxSB_b1)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = _rRt_; *PSXMop(_oB_) = PSXCPU_Resolve;}
 
 OPFUNC(psxSH_a0)		{psxRegs.cycle += 1; psxHwWrite16(_oB_, 0);}
 OPFUNC(psxSH_a1)		{psxRegs.cycle += 1; psxHwWrite16(_oB_, _rRt_);}
-OPFUNC(psxSH_b0)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); PSXCPU_Clear((_oB_ & (~3)), 1);}
-OPFUNC(psxSH_b1)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSH_b0)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); *PSXMop(_oB_) = PSXCPU_Resolve;}
+OPFUNC(psxSH_b1)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); *PSXMop(_oB_) = PSXCPU_Resolve;}
 
 OPFUNC(psxSW_a0)		{psxRegs.cycle += 1; psxHwWrite32(_oB_, 0);}
 OPFUNC(psxSW_a1)		{psxRegs.cycle += 1; psxHwWrite32(_oB_, _rRt_);}
-OPFUNC(psxSW_b0)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); PSXCPU_Clear((_oB_ & (~3)), 1);}
-OPFUNC(psxSW_b1)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSW_b0)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); *PSXMop(_oB_) = PSXCPU_Resolve;}
+OPFUNC(psxSW_b1)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); *PSXMop(_oB_) = PSXCPU_Resolve;}
 OPFUNC(psxSW_cf)		{psxMemWrite32(_oB_, _rRt_);}
 
 OPFUNC(PSXCPU_ResolveStore)
