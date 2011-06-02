@@ -215,7 +215,6 @@ static FileExtensionSpecStruct	extensions[] =
 static MDFNSetting PcsxrSettings[] =
 {
 	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to optional (but recommended) PSX BIOS ROM image.",				NULL, MDFNST_STRING,	"scph1001.bin"},
-	{"pcsxr.recompiler",MDFNSF_NOFLAGS,		"Enable the dynamic recompiler. (Need to restart mednafen to change).",	NULL, MDFNST_BOOL,		"0"},
 	{NULL}
 };
 
