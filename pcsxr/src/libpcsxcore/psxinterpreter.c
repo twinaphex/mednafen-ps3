@@ -794,9 +794,78 @@ OPFUNC(PSXCPU_ResolveLoad)
 	PASS_IT_ON;
 }
 
-OPFUNC(psxSB) { psxMemWrite8 (_oB_, _rRt_); }
-OPFUNC(psxSH) { psxMemWrite16(_oB_, _rRt_); }
-OPFUNC(psxSW) { psxMemWrite32(_oB_, _rRt_); }
+//a0: _Rt_ is zero, No branch, hardware write
+//a1: _Rt_ is non-zero, No branch, hardware write
+//b0: _Rt_ is zero, No branch, memory write
+//b1: _Rt_ is non-zero, No branch, memory write
+OPFUNC(psxSB_a0)		{psxRegs.cycle += 1; psxHwWrite8(_oB_, 0);}
+OPFUNC(psxSB_a1)		{psxRegs.cycle += 1; psxHwWrite8(_oB_, _rRt_);}
+OPFUNC(psxSB_b0)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = 0; PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSB_b1)		{psxRegs.cycle += 1; PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF] = _rRt_; PSXCPU_Clear((_oB_ & (~3)), 1);}
+
+OPFUNC(psxSH_a0)		{psxRegs.cycle += 1; psxHwWrite16(_oB_, 0);}
+OPFUNC(psxSH_a1)		{psxRegs.cycle += 1; psxHwWrite16(_oB_, _rRt_);}
+OPFUNC(psxSH_b0)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSH_b1)		{psxRegs.cycle += 1; PUTLE16(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); PSXCPU_Clear((_oB_ & (~3)), 1);}
+
+OPFUNC(psxSW_a0)		{psxRegs.cycle += 1; psxHwWrite32(_oB_, 0);}
+OPFUNC(psxSW_a1)		{psxRegs.cycle += 1; psxHwWrite32(_oB_, _rRt_);}
+OPFUNC(psxSW_b0)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], 0); PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSW_b1)		{psxRegs.cycle += 1; PUTLE32(&PSXMEM_Memory.WriteTable[_oB_ >> 16][_oB_ & 0xFFFF], _rRt_); PSXCPU_Clear((_oB_ & (~3)), 1);}
+OPFUNC(psxSW_cf)		{psxMemWrite32(_oB_, _rRt_);}
+
+OPFUNC(PSXCPU_ResolveStore)
+{
+	*aResolve = psxNULL;
+
+	if(_oB_ == 0xFFFE0130)
+	{
+		switch(aCode >> 26)
+		{
+			case 43:	*aResolve = psxSW_cf; break;
+		}
+	}
+	else if(_Rt_ == 0 && (_oB_ > 0x1F801000 && _oB_ < 0x1F808000))
+	{
+		switch(aCode >> 26)
+		{
+			case 40:	*aResolve = psxSB_a0; break;
+			case 41:	*aResolve = psxSH_a0; break;
+			case 43:	*aResolve = psxSW_a0; break;
+		}
+	}
+	else if(_Rt_ == 0)
+	{
+		switch(aCode >> 26)
+		{
+			case 40:	*aResolve = psxSB_b0; break;
+			case 41:	*aResolve = psxSH_b0; break;
+			case 43:	*aResolve = psxSW_b0; break;
+		}
+	}
+	else if(_oB_ > 0x1F801000 && _oB_ < 0x1F808000)
+	{
+		switch(aCode >> 26)
+		{
+			case 40:	*aResolve = psxSB_a1; break;
+			case 41:	*aResolve = psxSH_a1; break;
+			case 43:	*aResolve = psxSW_a1; break;
+		}
+	}
+	else
+	{
+		switch(aCode >> 26)
+		{
+			case 40:	*aResolve = psxSB_b1; break;
+			case 41:	*aResolve = psxSH_b1; break;
+			case 43:	*aResolve = psxSW_b1; break;
+		}
+	}
+
+	PASS_IT_ON;
+}
+
+
 
 u32 SWL_MASK[4] = { 0xffffff00, 0xffff0000, 0xff000000, 0 };
 u32 SWL_SHIFT[4] = { 24, 16, 8, 0 };
@@ -950,7 +1019,7 @@ psxOpFunc psxBSC[64] = {
 	PSXCPU_COP0Resolve,		psxNULL,				psxCOP2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		PSXCPU_ResolveLoad,		psxNULL,
-	psxSB,					psxSH,					psxSWL,					psxSW,					psxNULL,				psxNULL,				psxSWR,					psxNULL, 
+	PSXCPU_ResolveStore,	PSXCPU_ResolveStore,	psxSWL,					PSXCPU_ResolveStore,	psxNULL,				psxNULL,				psxSWR,					psxNULL, 
 	psxNULL,				psxNULL,				gteLWC2,				psxNULL,				psxNULL,				psxNULL,				psxNULL,				psxNULL,
 	psxNULL,				psxNULL,				gteSWC2,				psxHLE,					psxNULL,				psxNULL,				psxNULL,				psxNULL 
 };

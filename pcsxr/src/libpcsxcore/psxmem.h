@@ -72,11 +72,12 @@ typedef struct
 	uint8_t					ScratchRAM	[0x10000];
 	uint8_t					BIOS		[0x80000];
 	uint8_t					Parallel	[0x10000];
+	uint8_t					FakePage	[0x10000];
 
-	psxOpFunc				WorkOPS		[2 * 1024 * 1024 / 4];
-	psxOpFunc				ScratchOPS	[9 * 1024 / 4];
-	psxOpFunc				BIOSOPS		[512 * 1024 / 4];
-	psxOpFunc				ParallelOPS	[64 * 1024 / 4];
+	psxOpFunc				WorkOPS		[0x200000 / 4];
+	psxOpFunc				ScratchOPS	[0x10000 / 4];
+	psxOpFunc				BIOSOPS		[0x80000 / 4];
+	psxOpFunc				ParallelOPS	[0x10000 / 4];
 
 	uint8_t*				ReadTable	[0x10000];
 	uint8_t*				WriteTable	[0x10000];
@@ -89,11 +90,7 @@ int							psxMemInit					();
 void						psxMemReset					();
 void						psxMemShutdown				();
 
-uint8_t						psxMemRead8					(uint32_t mem);
-uint16_t					psxMemRead16				(uint32_t mem);
 uint32_t					psxMemRead32				(uint32_t mem);
-void						psxMemWrite8				(uint32_t mem, uint8_t value);
-void						psxMemWrite16				(uint32_t mem, uint16_t value);
 void						psxMemWrite32				(uint32_t mem, uint32_t value);
 
 //ROBO: psxMs gone

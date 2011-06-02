@@ -154,58 +154,6 @@ uint32_t					psxMemRead32				(uint32_t mem)
 	}
 }
 
-void						psxMemWrite8				(uint32_t mem, uint8_t value)
-{
-	psxRegs.cycle += 1;
-
-	if((mem & 0xFFFF0000) == 0x1F800000)
-	{
-		if(mem < 0x1F801000)
-		{
-			psxHu8(mem) = value;
-		}
-		else
-		{
-			psxHwWrite8(mem, value);
-		}
-	}
-	else
-	{
-		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
-		if(p)
-		{
-			*(p + (mem & 0xFFFF)) = value;
-			PSXCPU_Clear((mem & (~3)), 1);
-		}
-	}
-}
-
-void						psxMemWrite16				(uint32_t mem, uint16_t value)
-{
-	psxRegs.cycle += 1;
-
-	if((mem & 0xFFFF0000) == 0x1F800000)
-	{
-		if(mem < 0x1F801000)
-		{
-			PUTLE16(psxHu16adr(mem), value);
-		}
-		else
-		{
-			psxHwWrite16(mem, value);
-		}
-	}
-	else
-	{
-		u8* p = (u8*)PSXMEM_Memory.WriteTable[mem >> 16];
-		if(p)
-		{
-			PUTLE16((u16*)(p + (mem & 0xFFFF)), value);
-			PSXCPU_Clear((mem & (~3)), 1);
-		}
-	}
-}
-
 void						psxMemWrite32				(uint32_t mem, uint32_t value)
 {
 	psxRegs.cycle += 1;
@@ -229,31 +177,29 @@ void						psxMemWrite32				(uint32_t mem, uint32_t value)
 			PUTLE32((u32*)(p + (mem & 0xFFFF)), value);
 			PSXCPU_Clear((mem & (~3)), 1);
 		}
-		else if(mem == 0xFFFE0130)
+		else if(mem == 0xFFFE0130)	//Cache flushing
 		{
-			int i;
-
-			// a0-44: used for cache flushing
-			switch (value)
+			if((value == 0x800 || value == 0x804) && writeok)
 			{
-				case 0x800: case 0x804:
-					if (writeok == 0) break;
-					writeok = 0;
-					memset(PSXMEM_Memory.WriteTable + 0x0000, 0, 0x80 * sizeof(void *));
-					memset(PSXMEM_Memory.WriteTable + 0x8000, 0, 0x80 * sizeof(void *));
-					memset(PSXMEM_Memory.WriteTable + 0xa000, 0, 0x80 * sizeof(void *));
+				writeok = 0;
+				psxRegs.ICache_valid = 0;
 
-					psxRegs.ICache_valid = 0;
-					break;
-				case 0x00: case 0x1e988:
-					if (writeok == 1) break;
-					writeok = 1;
-					for (i = 0; i < 0x80; i++) PSXMEM_Memory.WriteTable[i + 0x0000] = (void *)&PSXMEM_Memory.WorkRAM[(i & 0x1f) << 16];
-					memcpy(PSXMEM_Memory.WriteTable + 0x8000, PSXMEM_Memory.WriteTable, 0x80 * sizeof(void *));
-					memcpy(PSXMEM_Memory.WriteTable + 0xa000, PSXMEM_Memory.WriteTable, 0x80 * sizeof(void *));
-					break;
-				default:
-					break;
+				for(int i = 0; i != 0x80; i ++)
+				{
+					PSXMEM_Memory.WriteTable[i + 0x0000] = PSXMEM_Memory.FakePage;
+					PSXMEM_Memory.WriteTable[i + 0x8000] = PSXMEM_Memory.FakePage;
+					PSXMEM_Memory.WriteTable[i + 0xA000] = PSXMEM_Memory.FakePage;
+				}
+			}
+			else if((value == 0 || value == 0x1E988) && !writeok)
+			{
+				writeok = 1;
+				for(int i = 0; i != 0x80; i ++)
+				{
+					PSXMEM_Memory.WriteTable[i + 0x0000] = &PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
+					PSXMEM_Memory.WriteTable[i + 0x8000] = &PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
+					PSXMEM_Memory.WriteTable[i + 0xA000] = &PSXMEM_Memory.WorkRAM[(i & 0x1F) << 16];
+				}
 			}
 		}
 	}
