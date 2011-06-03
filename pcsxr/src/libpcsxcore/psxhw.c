@@ -37,6 +37,214 @@ void psxHwReset() {
 	psxRcntInit();
 }
 
+uint8_t					psxHwRead8				(uint32_t aAddress)
+{
+	switch(aAddress)
+	{
+		case 0x1f801040:	return sioRead8();
+		case 0x1f801800:	return cdrRead0();
+		case 0x1f801801:	return cdrRead1();
+		case 0x1f801802:	return cdrRead2();
+		case 0x1f801803:	return cdrRead3();
+		default:			 return psxHu8(aAddress);
+	}
+}
+
+uint16_t				psxHwRead16				(uint32_t aAddress)
+{
+	switch(aAddress)
+	{
+		case 0x1f801040:	return sioRead8() | (sioRead8() << 8);
+		case 0x1f801044:	return sioReadStat16();
+		case 0x1f801048:	return sioReadMode16();
+		case 0x1f80104a:	return sioReadCtrl16();
+		case 0x1f80104e:	return sioReadBaud16();
+		case 0x1f801100:	return psxRcntRcount(0);
+		case 0x1f801104:	return psxRcntRmode(0);
+		case 0x1f801108:	return psxRcntRtarget(0);
+		case 0x1f801110:	return psxRcntRcount(1);
+		case 0x1f801114:	return psxRcntRmode(1);
+		case 0x1f801118:	return psxRcntRtarget(1);
+		case 0x1f801120:	return psxRcntRcount(2);
+		case 0x1f801124:	return psxRcntRmode(2);
+		case 0x1f801128:	return psxRcntRtarget(2);
+		default:			return (aAddress >= 0x1f801c00 && aAddress < 0x1f801e00) ? pkSPUreadRegister(aAddress) : psxHu16(aAddress);
+	}
+}
+
+uint32_t				psxHwRead32				(uint32_t aAddress)
+{
+	switch(aAddress)
+	{
+		case 0x1f801040:	return sioRead8() | (sioRead8() << 8) | (sioRead8() << 16) | (sioRead8() << 24);
+		case 0x1f801810:	return pkGPUreadData();
+		case 0x1f801814:	return gpuReadStatus();
+		case 0x1f801820:	return mdecRead0();
+		case 0x1f801824:	return mdecRead1();
+		case 0x1f801100:	return psxRcntRcount(0);
+		case 0x1f801104:	return psxRcntRmode(0);
+		case 0x1f801108:	return psxRcntRtarget(0);
+		case 0x1f801110:	return psxRcntRcount(1);
+		case 0x1f801114:	return psxRcntRmode(1);
+		case 0x1f801118:	return psxRcntRtarget(1);
+		case 0x1f801120:	return psxRcntRcount(2);
+		case 0x1f801124:	return psxRcntRmode(2);
+		case 0x1f801128:	return psxRcntRtarget(2);
+		default:			return psxHu32(aAddress);
+	}
+}
+
+void					psxHwWrite8				(uint32_t aAddress, uint8_t aValue)
+{
+	switch(aAddress)
+	{
+		case 0x1f801040:	sioWrite8(aValue); return;
+		case 0x1f801800:	cdrWrite0(aValue); return;
+		case 0x1f801801:	cdrWrite1(aValue); return;
+		case 0x1f801802:	cdrWrite2(aValue); return;
+		case 0x1f801803:	cdrWrite3(aValue); return;
+		default:			psxHu8ref(aAddress) = aValue; return;
+	}
+}
+
+void					psxHwWrite16			(uint32_t aAddress, uint16_t aValue)
+{
+	switch(aAddress)
+	{
+		case 0x1f801040:	sioWrite8((unsigned char)aValue); sioWrite8((unsigned char)(aValue>>8)); return;
+		case 0x1f801044:	sioWriteStat16(aValue); return;
+		case 0x1f801048:	sioWriteMode16(aValue); return;
+		case 0x1f80104a:	sioWriteCtrl16(aValue); return;
+		case 0x1f80104e:	sioWriteBaud16(aValue); return;
+		case 0x1f801070: 
+			if (Config.Sio) psxHu16ref(0x1070) |= SWAPu16(0x80);
+			if (Config.SpuIrq) psxHu16ref(0x1070) |= SWAPu16(0x200);
+			psxHu16ref(0x1070) &= SWAPu16((psxHu16(0x1074) & aValue));
+			return;
+
+		case 0x1f801074:	psxHu16ref(0x1074) = SWAPu16(aValue); return;
+		case 0x1f801100:	psxRcntWcount(0, aValue); return;
+		case 0x1f801104:	psxRcntWmode(0, aValue); return;
+		case 0x1f801108:	psxRcntWtarget(0, aValue); return;
+		case 0x1f801110:	psxRcntWcount(1, aValue); return;
+		case 0x1f801114:	psxRcntWmode(1, aValue); return;
+		case 0x1f801118:	psxRcntWtarget(1, aValue); return;
+		case 0x1f801120:	psxRcntWcount(2, aValue); return;
+		case 0x1f801124:	psxRcntWmode(2, aValue); return;
+		case 0x1f801128:	psxRcntWtarget(2, aValue); return;
+
+		default:			if(aAddress>=0x1f801c00 && aAddress<0x1f801e00) {pkSPUwriteRegister(aAddress, aValue); return;}
+							psxHu16ref(aAddress) = SWAPu16(aValue); return;
+	}
+}
+
+#define DmaExec(n) { \
+	HW_DMA##n##_CHCR = SWAPu32(aValue); \
+\
+	if (SWAPu32(HW_DMA##n##_CHCR) & 0x01000000 && SWAPu32(HW_DMA_PCR) & (8 << (n * 4))) { \
+		psxDma##n(SWAPu32(HW_DMA##n##_MADR), SWAPu32(HW_DMA##n##_BCR), SWAPu32(HW_DMA##n##_CHCR)); \
+	} \
+}
+
+void				psxHwWrite32				(uint32_t aAddress, uint32_t aValue)
+{
+	switch(aAddress)
+	{
+	    case 0x1f801040:	sioWrite8((unsigned char)aValue); sioWrite8((unsigned char)((aValue&0xff) >>  8)); sioWrite8((unsigned char)((aValue&0xff) >> 16)); sioWrite8((unsigned char)((aValue&0xff) >> 24)); return;
+		case 0x1f801070: 
+			if (Config.Sio) psxHu32ref(0x1070) |= SWAPu32(0x80);
+			if (Config.SpuIrq) psxHu32ref(0x1070) |= SWAPu32(0x200);
+			psxHu32ref(0x1070) &= SWAPu32((psxHu32(0x1074) & aValue));
+			return;
+		case 0x1f801074:	psxHu32ref(0x1074) = SWAPu32(aValue);return;
+		case 0x1f801088:	DmaExec(0); return;
+		case 0x1f801098:	DmaExec(1);	return;
+		case 0x1f8010a8:	DmaExec(2); return;
+		case 0x1f8010b8:	DmaExec(3); return;
+		case 0x1f8010c8:	DmaExec(4); return;
+		case 0x1f8010e8:	DmaExec(6); return;
+		case 0x1f8010f4:
+		{
+			u32 tmp = (~aValue) & SWAPu32(HW_DMA_ICR);
+			HW_DMA_ICR = SWAPu32(((tmp ^ aValue) & 0xffffff) ^ tmp);
+			return;
+		}
+
+		case 0x1f801810:	pkGPUwriteData(aValue); return;
+		case 0x1f801814:	pkGPUwriteStatus(aValue); return;
+		case 0x1f801820:	mdecWrite0(aValue); break;
+		case 0x1f801824:	mdecWrite1(aValue); break;
+		case 0x1f801100:	psxRcntWcount(0, aValue & 0xffff); return;
+		case 0x1f801104:	psxRcntWmode(0, aValue); return;
+		case 0x1f801108:	psxRcntWtarget(0, aValue & 0xffff); return;
+		case 0x1f801110:	psxRcntWcount(1, aValue & 0xffff); return;
+		case 0x1f801114:	psxRcntWmode(1, aValue); return;
+		case 0x1f801118:	psxRcntWtarget(1, aValue & 0xffff); return;
+		case 0x1f801120:	psxRcntWcount(2, aValue & 0xffff); return;
+		case 0x1f801124:	psxRcntWmode(2, aValue); return;
+		case 0x1f801128:	psxRcntWtarget(2, aValue & 0xffff); return;
+
+		default:
+			// Dukes of Hazard 2 - car engine noise
+			if(aAddress>=0x1f801c00 && aAddress<0x1f801e00) {pkSPUwriteRegister(aAddress, aValue&0xffff);
+				aAddress += 2;
+				aValue >>= 16;
+
+				if(aAddress>=0x1f801c00 && aAddress<0x1f801e00)
+					pkSPUwriteRegister(aAddress, aValue&0xffff);
+				return;
+			}
+
+
+			psxHu32ref(aAddress) = SWAPu32(aValue); return;
+	}
+}
+
+int psxHwFreeze(gzFile f, int Mode) {
+	return 0;
+}
+
+#if 0
+
+/***************************************************************************
+ *   Copyright (C) 2007 Ryan Schultz, PCSX-df Team, PCSX team              *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
+ ***************************************************************************/
+
+/*
+* Functions for PSX hardware control.
+*/
+
+#include "psxhw.h"
+#include "mdec.h"
+#include "cdrom.h"
+#include "gpu.h"
+
+void psxHwReset() {
+	if (Config.Sio) psxHu32ref(0x1070) |= SWAP32(0x80);
+	if (Config.SpuIrq) psxHu32ref(0x1070) |= SWAP32(0x200);
+
+	memset(PSXMEM_Memory.ScratchRAM, 0, 0x10000);
+
+	mdecInit(); // initialize mdec decoder
+	cdrReset();
+	psxRcntInit();
+}
+
 u8 psxHwRead8(u32 add) {
 	unsigned char hard;
 
@@ -443,7 +651,7 @@ void psxHwWrite16(u32 add, u16 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 0 MODE 16bit write %x\n", value);
 #endif
-			psxRcntWmode(0, value); return;
+			psxRcntWmode0(value); return;
 		case 0x1f801108:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 0 TARGET 16bit write %x\n", value);
@@ -459,7 +667,7 @@ void psxHwWrite16(u32 add, u16 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 1 MODE 16bit write %x\n", value);
 #endif
-			psxRcntWmode(1, value); return;
+			psxRcntWmode1(value); return;
 		case 0x1f801118:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 1 TARGET 16bit write %x\n", value);
@@ -475,7 +683,7 @@ void psxHwWrite16(u32 add, u16 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 2 MODE 16bit write %x\n", value);
 #endif
-			psxRcntWmode(2, value); return;
+			psxRcntWmode2(value); return;
 		case 0x1f801128:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 2 TARGET 16bit write %x\n", value);
@@ -685,7 +893,7 @@ void psxHwWrite32(u32 add, u32 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 0 MODE 32bit write %x\n", value);
 #endif
-			psxRcntWmode(0, value); return;
+			psxRcntWmode0(value); return;
 		case 0x1f801108:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 0 TARGET 32bit write %x\n", value);
@@ -701,7 +909,7 @@ void psxHwWrite32(u32 add, u32 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 1 MODE 32bit write %x\n", value);
 #endif
-			psxRcntWmode(1, value); return;
+			psxRcntWmode1(value); return;
 		case 0x1f801118:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 1 TARGET 32bit write %x\n", value);
@@ -717,7 +925,7 @@ void psxHwWrite32(u32 add, u32 value) {
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 2 MODE 32bit write %x\n", value);
 #endif
-			psxRcntWmode(2, value); return;
+			psxRcntWmode2(value); return;
 		case 0x1f801128:
 #ifdef PSXHW_LOG
 			PSXHW_LOG("COUNTER 2 TARGET 32bit write %x\n", value);
@@ -753,3 +961,4 @@ void psxHwWrite32(u32 add, u32 value) {
 int psxHwFreeze(gzFile f, int Mode) {
 	return 0;
 }
+#endif

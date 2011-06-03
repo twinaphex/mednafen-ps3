@@ -29,6 +29,16 @@ extern "C" {
 #include "psxmem.h"
 #include "plugins.h"
 
+typedef struct Rcnt
+{
+    u16 mode, target;
+    u32 rate, irq, counterState, irqState;
+    u32 cycle, cycleStart;
+} Rcnt;
+
+#define CounterQuantity           ( 4 )
+
+extern Rcnt rcnts[ CounterQuantity ];
 extern u32 psxNextCounter, psxNextsCounter;
 
 void psxRcntInit();
@@ -40,7 +50,11 @@ void psxRcntWtarget(u32 index, u32 value);
 
 u32 psxRcntRcount(u32 index);
 u32 psxRcntRmode(u32 index);
-u32 psxRcntRtarget(u32 index);
+
+static TOTAL_INLINE uint32_t		psxRcntRtarget					(uint32_t aIndex)
+{
+    return rcnts[aIndex].target;
+}
 
 s32 psxRcntFreeze(gzFile f, s32 Mode);
 
