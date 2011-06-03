@@ -167,6 +167,8 @@ void psxRcntSet()
             psxNextCounter = countToUpdate;
         }
     }
+
+	PSXCPU_SetEvent(PSXINTF_COUNTERS, psxNextsCounter, psxNextCounter);
 }
 
 /******************************************************************************/

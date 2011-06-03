@@ -37,14 +37,6 @@ extern "C" {
 #include "psxcounters.h"
 #include "psxbios.h"
 
-void				PSXCPU_Resolve						(uint32_t aOpCode, psxOpFunc* aResolve);
-int					PSXCPU_Init							();
-void				PSXCPU_Reset						();
-void				PSXCPU_Execute						();
-void				PSXCPU_ExecuteBlock					();
-void				PSXCPU_Clear						(uint32_t aAddress, uint32_t aSize);
-void				PSXCPU_Shutdown						();
-
 
 typedef union {
 #if defined(__BIGENDIAN__)
@@ -164,7 +156,8 @@ enum {
 	DUMMY1,
 	PSXINT_CDRDBUF,
 	PSXINT_CDRLID,
-	PSXINT_CDRPLAY
+	PSXINT_CDRPLAY,
+	PSXINTF_COUNTERS
 };
 
 typedef struct {
@@ -183,6 +176,21 @@ typedef struct {
 } psxRegisters;
 
 extern psxRegisters psxRegs;
+
+void				PSXCPU_Resolve						(uint32_t aOpCode, psxOpFunc* aResolve);
+int					PSXCPU_Init							();
+void				PSXCPU_Reset						();
+void				PSXCPU_Execute						();
+void				PSXCPU_ExecuteBlock					();
+void				PSXCPU_Clear						(uint32_t aAddress, uint32_t aSize);
+void				PSXCPU_Shutdown						();
+
+static TOTAL_INLINE	PSXCPU_SetEvent						(uint32_t aIndex, uint32_t aStart, uint32_t aTrigger)
+{
+	psxRegs.interrupt |= 1 << aIndex;
+	psxRegs.intCycle[aIndex].sCycle = aStart;
+	psxRegs.intCycle[aIndex].cycle = aTrigger;
+}
 
 /*
 Formula One 2001

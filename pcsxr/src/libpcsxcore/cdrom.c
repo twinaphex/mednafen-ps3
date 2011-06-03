@@ -151,33 +151,23 @@ extern void SPUirq(void);
 
 
 #define CDR_INT(eCycle) { \
-	psxRegs.interrupt |= (1 << PSXINT_CDR); \
-	psxRegs.intCycle[PSXINT_CDR].cycle = eCycle; \
-	psxRegs.intCycle[PSXINT_CDR].sCycle = psxRegs.cycle; \
+	PSXCPU_SetEvent(PSXINT_CDR, psxRegs.cycle, eCycle); \
 }
 
 #define CDREAD_INT(eCycle) { \
-	psxRegs.interrupt |= (1 << PSXINT_CDREAD); \
-	psxRegs.intCycle[PSXINT_CDREAD].cycle = eCycle; \
-	psxRegs.intCycle[PSXINT_CDREAD].sCycle = psxRegs.cycle; \
+	PSXCPU_SetEvent(PSXINT_CDREAD, psxRegs.cycle, eCycle); \
 }
 
 #define CDRDBUF_INT(eCycle) { \
-	psxRegs.interrupt |= (1 << PSXINT_CDRDBUF); \
-	psxRegs.intCycle[PSXINT_CDRDBUF].cycle = eCycle; \
-	psxRegs.intCycle[PSXINT_CDRDBUF].sCycle = psxRegs.cycle; \
+	PSXCPU_SetEvent(PSXINT_CDRDBUF, psxRegs.cycle, eCycle); \
 }
 
 #define CDRLID_INT(eCycle) { \
-	psxRegs.interrupt |= (1 << PSXINT_CDRLID); \
-	psxRegs.intCycle[PSXINT_CDRLID].cycle = eCycle; \
-	psxRegs.intCycle[PSXINT_CDRLID].sCycle = psxRegs.cycle; \
+	PSXCPU_SetEvent(PSXINT_CDRLID, psxRegs.cycle, eCycle); \
 }
 
 #define CDRPLAY_INT(eCycle) { \
-	psxRegs.interrupt |= (1 << PSXINT_CDRPLAY); \
-	psxRegs.intCycle[PSXINT_CDRPLAY].cycle = eCycle; \
-	psxRegs.intCycle[PSXINT_CDRPLAY].sCycle = psxRegs.cycle; \
+	PSXCPU_SetEvent(PSXINT_CDRPLAY, psxRegs.cycle, eCycle); \
 }
 
 #define StartReading(type, eCycle) { \
