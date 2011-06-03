@@ -25,13 +25,6 @@
 
 /******************************************************************************/
 
-typedef struct Rcnt
-{
-    u16 mode, target;
-    u32 rate, irq, counterState, irqState;
-    u32 cycle, cycleStart;
-} Rcnt;
-
 enum
 {
     Rc0Gate           = 0x0001, // 0    not implemented
@@ -58,8 +51,6 @@ enum
     RcUnknown15       = 0x8000, // 15   ? (always zero)
 };
 
-#define CounterQuantity           ( 4 )
-//static const u32 CounterQuantity  = 4;
 
 static const u32 CountToOverflow  = 0;
 static const u32 CountToTarget    = 1;
@@ -70,11 +61,9 @@ static const u32 VBlankStart[]    = { 243, 256 };
 static const u32 HSyncTotal[]     = { 263, 313 };
 static const u32 SpuUpdInterval[] = { 23, 22 };
 
-static const s32 VerboseLevel     = 0;
-
 /******************************************************************************/
 
-static Rcnt rcnts[ CounterQuantity ];
+Rcnt rcnts[ CounterQuantity ];
 
 u32 hSyncCount = 0;
 static u32 spuSyncCount = 0;
@@ -89,7 +78,7 @@ void setIrq( u32 irq )
     psxHu32ref(0x1070) |= SWAPu32(irq);
 }
 
-static
+/*static
 void verboseLog( s32 level, const char *str, ... )
 {
     if( level <= VerboseLevel )
@@ -104,7 +93,8 @@ void verboseLog( s32 level, const char *str, ... )
         printf( buf );
         fflush( stdout );
     }
-}
+}*/
+#define verboseLog(...)
 
 /******************************************************************************/
 
@@ -429,13 +419,6 @@ u32 psxRcntRmode( u32 index )
     verboseLog( 2, "[RCNT %i] rmode: %x\n", index, mode );
 
     return mode;
-}
-
-u32 psxRcntRtarget( u32 index )
-{
-    verboseLog( 2, "[RCNT %i] rtarget: %x\n", index, rcnts[index].target );
-
-    return rcnts[index].target;
 }
 
 /******************************************************************************/
