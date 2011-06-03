@@ -164,12 +164,6 @@ void psxBranchTest()
 		}
 	}
 
-	//Taken: 1697770 (1.6 million) - Pass: 408958146 (408 million)
-	if(UNLIKELY((psxRegs.cycle - psxNextsCounter) >= psxNextCounter))
-	{
-		psxRcntUpdate();
-	}
-
 	//Taken: 68501038 (68 million) Passed: 349830640 (340 million)
 	//PSXINT_CDREAD:		44062809 (44 million)
 	//PSXINT_SIO:			10885594 (10 million)
@@ -208,7 +202,7 @@ void psxBranchTest()
 			sioInterrupt,			cdrInterrupt,			cdrReadInterrupt,				gpuInterrupt,
 			mdec1Interrupt,			spuInterrupt,			lazy,							mdec0Interrupt,
 			gpuotcInterrupt,		cdrDmaInterrupt,		lazy,							cdrDecodedBufferInterrupt,
-			cdrLidSeekInterrupt,	cdrPlayInterrupt,		lazy,							lazy
+			cdrLidSeekInterrupt,	cdrPlayInterrupt,		psxRcntUpdate,					lazy
 		};
 
 		uint32_t interrupts = psxRegs.interrupt;

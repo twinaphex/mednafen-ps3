@@ -86,9 +86,7 @@ static int DongleInit;
 // Breaks Twisted Metal 2 intro
 #define SIO_INT(eCycle) { \
 	if (!Config.Sio) { \
-		psxRegs.interrupt |= (1 << PSXINT_SIO); \
-		psxRegs.intCycle[PSXINT_SIO].cycle = eCycle; \
-		psxRegs.intCycle[PSXINT_SIO].sCycle = psxRegs.cycle; \
+		PSXCPU_SetEvent(PSXINT_SIO, psxRegs.cycle, eCycle); \
 	} \
 	\
 	StatReg &= ~RX_RDY; \
@@ -98,9 +96,7 @@ static int DongleInit;
 
 #define SIO_INT(eCycle) { \
 	if (!Config.Sio) { \
-		psxRegs.interrupt |= (1 << PSXINT_SIO); \
-		psxRegs.intCycle[PSXINT_SIO].cycle = eCycle; \
-		psxRegs.intCycle[PSXINT_SIO].sCycle = psxRegs.cycle; \
+		PSXCPU_SetEvent(PSXINT_SIO, psxRegs.cycle, eCycle); \
 	} \
 }
 
