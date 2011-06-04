@@ -1,11 +1,10 @@
-#ifndef L1GTHNETWORK_H
-#define L1GTHNETWORK_H
+#pragma once
 
-class								L1ghtSocket : public ESSocket
+class								CellSocket : public ESSocket
 {
 	public:
-									L1ghtSocket			(const char* aHost, uint32_t aPort);
-		virtual						~L1ghtSocket		();
+									CellSocket			(const char* aHost, uint32_t aPort);
+		virtual						~CellSocket			();
 
 		virtual uint32_t			ReadString			(void* aBuffer, uint32_t aLength);
 		virtual uint32_t			Read				(void* aBuffer, uint32_t aLength);
@@ -15,16 +14,12 @@ class								L1ghtSocket : public ESSocket
 		int							Socket;
 };
 
-class								L1ghtNetwork : public ESNetwork
+class								CellNetwork : public ESNetwork
 {
 	public:
-									L1ghtNetwork		();
-									~L1ghtNetwork		();
+									CellNetwork			();
+									~CellNetwork		();
 
 		virtual ESSocket*			OpenSocket			(const char* aHost, uint32_t aPort);
 };
-
-#endif
-
-
 

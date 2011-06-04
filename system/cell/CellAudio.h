@@ -2,11 +2,11 @@
 
 #include "src/utility/AudioBuffer.h"
 
-class								DorkAudio : public ESAudio
+class								CellAudio : public ESAudio
 {
 	public:	
-									DorkAudio				();
-									~DorkAudio				();
+									CellAudio				();
+									~CellAudio				();
 
 		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount) {while(RingBuffer.GetBufferFree() < aCount) Semaphore->Wait(); RingBuffer.WriteData(aSamples, aCount);};
 

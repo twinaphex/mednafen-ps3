@@ -8,7 +8,7 @@ namespace
 
 }
 
-					DorkInput::DorkInput					()
+					CellInput::CellInput					()
 {
 	cellPadInit(MAXPADS);
 
@@ -20,17 +20,17 @@ namespace
 	Large = 0;
 }
 
-					DorkInput::~DorkInput					()
+					CellInput::~CellInput					()
 {
 	cellPadEnd();
 }
 
-uint32_t			DorkInput::PadCount						()
+uint32_t			CellInput::PadCount						()
 {
 	return PadInfo.now_connect;
 }
 
-void				DorkInput::Reset						()
+void				CellInput::Reset						()
 {
 	for(int i = 0; i != PadCount(); i ++)
 	{
@@ -41,7 +41,7 @@ void				DorkInput::Reset						()
 	memset(SingleState, 0xFF, sizeof(SingleState));
 }
 
-void				DorkInput::Refresh						()
+void				CellInput::Refresh						()
 {
 	cellPadGetInfo2(&PadInfo);
 
@@ -75,7 +75,7 @@ void				DorkInput::Refresh						()
 	}
 }
 
-int32_t				DorkInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
+int32_t				CellInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 {
 	Assert(aPad, 0, aAxis);
 
@@ -90,21 +90,21 @@ int32_t				DorkInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 	}
 }
 
-bool				DorkInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
+bool				CellInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
 	return HeldState[aPad][aButton] == 1;
 }
 
-bool				DorkInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
+bool				CellInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
 	return HandleSingleState(HeldState[aPad][aButton], SingleState[aPad][aButton]);	
 }
 
-uint32_t			DorkInput::GetAnyButton					(uint32_t aPad)
+uint32_t			CellInput::GetAnyButton					(uint32_t aPad)
 {
 	Assert(aPad, 0);
 	
@@ -119,29 +119,29 @@ uint32_t			DorkInput::GetAnyButton					(uint32_t aPad)
 	return 0xFFFFFFFF;
 }
 
-std::string			DorkInput::GetButtonName				(uint32_t aButton)
+std::string			CellInput::GetButtonName				(uint32_t aButton)
 {
 	Assert(0, aButton);
 
 	return ButtonNames[aButton];
 }
 
-std::string			DorkInput::GetButtonImage				(uint32_t aButton)
+std::string			CellInput::GetButtonImage				(uint32_t aButton)
 {
 	Assert(0, aButton);
 
 	return ButtonNames[aButton] + "IMAGE";
 }
 
-void				DorkInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
+void				CellInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
 {
 	if(aPad >= MAXPADS || aButton >= BUTTONS || aAxis >= AXISCOUNT)
 	{
-		Abort("DorkInput: Pad or Button out of range");
+		Abort("CellInput: Pad or Button out of range");
 	}
 }
 
-void				DorkInput::RumbleOn						(uint32_t aSmall, uint32_t aLarge)
+void				CellInput::RumbleOn						(uint32_t aSmall, uint32_t aLarge)
 {
 	Small = aSmall;
 	Large = aLarge;

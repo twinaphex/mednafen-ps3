@@ -32,7 +32,7 @@ else
 	FREETYPELIBS	:= `$(FREETYPECONFIG) --libs`
 endif
 
-CNCXXFLAGS			:= -DMDDORK -g -O2 -pipe -I$(CELL_SDK)/target/ppu/include $(FREETYPECFLAGS)
+CNCXXFLAGS			:= -DMDCELL -g -O2 -pipe -I$(CELL_SDK)/target/ppu/include $(FREETYPECFLAGS)
 CNCXXFLAGS			+= -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
 CNCXXFLAGS			+= #-Xassumecorrectalignment=1 -Xfastmath=1
 
@@ -45,7 +45,7 @@ DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 include $(TOP)/Makefile.common
 ###
 
-pkg: $(BUILD)-dork
+pkg: $(BUILD)-cell
 	@$(MAKE_SELF_GH) $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000	
 	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
 

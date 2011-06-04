@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-						DorkAudio::DorkAudio			() : 
+						CellAudio::CellAudio			() : 
 	Thread(0),
 	Semaphore(0),
 	ThreadDie(false),
@@ -61,7 +61,7 @@
 }
 
 
-						DorkAudio::~DorkAudio			()
+						CellAudio::~CellAudio			()
 {
 	cellMSStreamSetSecondRead(MSChannel, 0, 0);
 	while(!StreamDead); //?
@@ -84,9 +84,9 @@
 	cellAudioQuit();
 }
 
-void					DorkAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
+void					CellAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
 {
-	DorkAudio* audio = (DorkAudio*)userData;
+	CellAudio* audio = (CellAudio*)userData;
 
 	if((cType == CELL_MS_CALLBACK_MOREDATA))
 	{
@@ -103,9 +103,9 @@ void					DorkAudio::MultiStreamCallback	(int streamNumber, void* userData, int c
 	}
 }
 
-int						DorkAudio::ProcessAudioThread	(void* aAudio)
+int						CellAudio::ProcessAudioThread	(void* aAudio)
 {
-	DorkAudio* audio = (DorkAudio*)aAudio;
+	CellAudio* audio = (CellAudio*)aAudio;
 
 	cellAudioPortStart(audio->Port);
 

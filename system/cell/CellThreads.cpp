@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-						DorkThread::DorkThread			(ThreadFunction aThreadFunction, void* aUserData) : 
+						CellThread::CellThread			(ThreadFunction aThreadFunction, void* aUserData) : 
 	Function(aThreadFunction),
 	UserData(aUserData),
 	Thread(0),
@@ -10,12 +10,12 @@
 	sys_ppu_thread_create(&Thread, ThreadWrapper, (uint64_t)this, 500, 65536, SYS_PPU_THREAD_CREATE_JOINABLE, "\0");
 }
 
-						DorkThread::~DorkThread			()
+						CellThread::~CellThread			()
 {
 	Wait();
 }
 
-int32_t					DorkThread::Wait				()
+int32_t					CellThread::Wait				()
 {
 	if(!Dead)
 	{
@@ -29,14 +29,14 @@ int32_t					DorkThread::Wait				()
 	return Result;
 }
 
-void					DorkThread::ThreadWrapper		(uint64_t aUserData)
+void					CellThread::ThreadWrapper		(uint64_t aUserData)
 {
-	DorkThread* thread = (DorkThread*)aUserData;
+	CellThread* thread = (CellThread*)aUserData;
 	int32_t result = thread->Function(thread->UserData);
 	sys_ppu_thread_exit(result);
 }
 
-						DorkMutex::DorkMutex			() :
+						CellMutex::CellMutex			() :
 	Mutex(0)
 {
 	sys_mutex_attribute_t attr;
@@ -44,46 +44,46 @@ void					DorkThread::ThreadWrapper		(uint64_t aUserData)
 	sys_mutex_create(&Mutex, &attr);
 }
 
-						DorkMutex::~DorkMutex			()
+						CellMutex::~CellMutex			()
 {
 	sys_mutex_destroy(Mutex);
 }
 
-void					DorkMutex::Lock					()
+void					CellMutex::Lock					()
 {
 	sys_mutex_lock(Mutex, 0);
 }
 
-void					DorkMutex::Unlock				()
+void					CellMutex::Unlock				()
 {
 	sys_mutex_unlock(Mutex);
 }
 
-						DorkSemaphore::DorkSemaphore	(uint32_t aValue)
+						CellSemaphore::CellSemaphore	(uint32_t aValue)
 {
 	sys_semaphore_attribute_t attr;
 	sys_semaphore_attribute_initialize(attr);
 	sys_semaphore_create(&Semaphore, &attr, aValue, aValue);
 }
 
-						DorkSemaphore::~DorkSemaphore	()
+						CellSemaphore::~CellSemaphore	()
 {
 	sys_semaphore_destroy(Semaphore);
 }
 
-uint32_t				DorkSemaphore::GetValue			()
+uint32_t				CellSemaphore::GetValue			()
 {
 	sys_semaphore_value_t val;
 	sys_semaphore_get_value(Semaphore, &val);
 	return val;
 }
 
-void					DorkSemaphore::Post				()
+void					CellSemaphore::Post				()
 {
 	sys_semaphore_post(Semaphore, 1);
 }
 
-void					DorkSemaphore::Wait				()
+void					CellSemaphore::Wait				()
 {
 	sys_semaphore_wait(Semaphore, 0);
 }

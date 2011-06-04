@@ -50,27 +50,27 @@ void				ESSUB_Quit				()
 
 ESVideo*			ESSUB_MakeVideo			()
 {
-	return new DorkVideo();
+	return new CellVideo();
 }
 
 ESAudio*			ESSUB_MakeAudio			()
 {
-	return new DorkAudio();
+	return new CellAudio();
 }
 
 ESInput*			ESSUB_MakeInput			()
 {
-	return new DorkInput();
+	return new CellInput();
 }
 
 ESNetwork*			ESSUB_MakeNetwork		()
 {
-	return new DorkNetwork();
+	return new CellNetwork();
 }
 
 ESThreads*			ESSUB_MakeThreads		()
 {
-	return new DorkThreads();
+	return new CellThreads();
 }
 
 

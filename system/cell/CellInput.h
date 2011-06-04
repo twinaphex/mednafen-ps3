@@ -1,6 +1,4 @@
-#ifndef L1GHTINPUT_H
-#define L1GHTINPUT_H
-
+#pragma once
 
 enum
 {
@@ -9,11 +7,11 @@ enum
 	ES_BUTTON_AUXLEFT3 = 12, ES_BUTTON_AUXRIGHT3 = 15 
 };
 
-class				L1ghtInput : public ESInput
+class				CellInput : public ESInput
 {
 	public:
-									L1ghtInput				();
-									~L1ghtInput				();
+									CellInput				();
+									~CellInput				();
 					
 		uint32_t					PadCount				();
 		void						Reset					();
@@ -37,8 +35,8 @@ class				L1ghtInput : public ESInput
 
 		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
 
-		padInfo						Info;
-		padData						CurrentState[MAXPADS];
+		CellPadInfo2				PadInfo;
+		CellPadData					CurrentState[MAXPADS];
 
 		uint32_t					HeldState[MAXPADS][BUTTONS];
 		uint32_t					SingleState[MAXPADS][BUTTONS];	
@@ -46,6 +44,4 @@ class				L1ghtInput : public ESInput
 		uint32_t					Small;
 		uint32_t					Large;
 };
-
-#endif
 
