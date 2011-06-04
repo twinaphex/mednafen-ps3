@@ -10,8 +10,7 @@ namespace
 	}
 }
 
-
-						SDLVideo::SDLVideo				()
+void					ESVideo::Initialize				()
 {
 	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
 
@@ -35,9 +34,9 @@ namespace
 	SDL_ShowCursor(SDL_DISABLE);
 	SDL_WM_SetCaption("Mednafen PS3", "Mednafen PS3");
 	
-	esScreenWidth = dispinfo->current_w;
-	esScreenHeight = dispinfo->current_h;
-	esWideScreen = false;
+	ScreenWidth = dispinfo->current_w;
+	ScreenHeight = dispinfo->current_h;
+	WideScreen = false;
 
 	//Some settings
 	glEnable(GL_SCISSOR_TEST);
@@ -63,13 +62,13 @@ namespace
 	Presenter = new GLShader(ShaderContext, "", false, 1);
 }
 
-						SDLVideo::~SDLVideo				()
+void					ESVideo::Shutdown				()
 {
 	delete FillerTexture;
 	free(VertexBuffer);
 }
 
-void					SDLVideo::EnableVsync			(bool aOn)
+void					ESVideo::EnableVsync			(bool aOn)
 {
 	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
@@ -77,14 +76,8 @@ void					SDLVideo::EnableVsync			(bool aOn)
 	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
 }
 
-void					SDLVideo::SetClip				(const Area& aClip)
-{
-	ESVideo::SetClip(aClip);
-	glScissor(esClip.X, GetScreenHeight() - esClip.Bottom(), esClip.Width, esClip.Height);
-}
-
 void					SetExit							();
-void					SDLVideo::Flip					()
+void					ESVideo::Flip					()
 {
 	SDL_GL_SwapBuffers();
 
@@ -108,7 +101,7 @@ void					SDLVideo::Flip					()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
+void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
 	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
 	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
@@ -122,22 +115,17 @@ void					SDLVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, 
 	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
 	((GLTexture*)aTexture)->Apply();
-	SetVertex(&VertexBuffer[0 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Y, r, g, b, a, xl, yl);
-	SetVertex(&VertexBuffer[1 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Y, r, g, b, a, xr, yl);
-	SetVertex(&VertexBuffer[2 * VertexSize], esClip.X + aDestination.Right(), esClip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
-	SetVertex(&VertexBuffer[3 * VertexSize], esClip.X + aDestination.X, esClip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
+	SetVertex(&VertexBuffer[0 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Y, r, g, b, a, xl, yl);
+	SetVertex(&VertexBuffer[1 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Y, r, g, b, a, xr, yl);
+	SetVertex(&VertexBuffer[2 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
+	SetVertex(&VertexBuffer[3 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
 
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
-void					SDLVideo::FillRectangle			(const Area& aArea, uint32_t aColor)
+void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
-	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
-}
-
-void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
-{
-	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
+	const Area& output = OpenGLHelp::CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
@@ -154,10 +142,10 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	((GLTexture*)aTexture)->Apply();
 
 	GLuint borderTexture = 0;
-	if(esBorder)
+	if(Border)
 	{
-		((GLTexture*)esBorder)->Apply();
-		borderTexture = esBorder ? ((GLTexture*)esBorder)->GetID() : 0;
+		((GLTexture*)Border)->Apply();
+		borderTexture = Border ? ((GLTexture*)Border)->GetID() : 0;
 	}
 
 	Presenter->Present(((GLTexture*)aTexture)->GetID(), borderTexture);
@@ -170,4 +158,18 @@ void					SDLVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int
 	/* Reset vertex buffer */
 	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 }
+
+SDL_Surface*			ESVideo::Screen;
+Texture*				ESVideo::FillerTexture;
+
+CGcontext				ESVideo::ShaderContext;
+GLShader*				ESVideo::Presenter;
+
+GLfloat*				ESVideo::VertexBuffer;
+
+uint32_t				ESVideo::ScreenWidth;
+uint32_t				ESVideo::ScreenHeight;
+bool					ESVideo::WideScreen;
+Area					ESVideo::Clip;
+Texture*				ESVideo::Border;
 

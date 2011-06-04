@@ -174,7 +174,7 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
 		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
 		
-		es_video->PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
+		ESVideo::PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
 
 		if(DrawLabels)
 		{
@@ -184,7 +184,7 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 	
 	if(aSelected)
 	{
-		es_video->FillRectangle(Area(aX, aY, aWidth - 2, aHeight - 2), Colors::SpecialBackGround);
+		ESVideo::FillRectangle(Area(aX, aY, aWidth - 2, aHeight - 2), Colors::SpecialBackGround);
 	}
 
 	return false;
@@ -195,8 +195,8 @@ bool										GridListView::Draw									()
 //TODO: Error check
 	SummerfaceList_Ptr List = WeakList.lock();
 
-	uint32_t iconWidth = es_video->GetClip().Width / Width - 4;
-	uint32_t iconHeight = es_video->GetClip().Height / Height - 4;	
+	uint32_t iconWidth = ESVideo::GetClip().Width / Width - 4;
+	uint32_t iconHeight = ESVideo::GetClip().Height / Height - 4;	
 
 	uint32_t XSelection = List->GetSelection() % Width;
 	uint32_t YSelection = List->GetSelection() / Width;
@@ -237,7 +237,7 @@ bool										AnchoredListView::DrawItem							(SummerfaceItem_Ptr aItem, uint32
 	{
 		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(List->GetFont()->GetHeight() - 4) / (double)image->GetHeight()));
 
-		es_video->PlaceTexture(image, Area(aX, aY + 2, width, List->GetFont()->GetHeight() - 4), Area(0, 0, image->GetWidth(), image->GetHeight()), 0xFFFFFFFF);
+		ESVideo::PlaceTexture(image, Area(aX, aY + 2, width, List->GetFont()->GetHeight() - 4), Area(0, 0, image->GetWidth(), image->GetHeight()), 0xFFFFFFFF);
 		aX += width;
 	}
 
@@ -254,7 +254,7 @@ bool										AnchoredListView::Draw								()
 	if(List->GetItemCount() != 0)
 	{
 		uint32_t itemheight = List->GetFont()->GetHeight();
-		LinesDrawn = es_video->GetClip().Height / itemheight;
+		LinesDrawn = ESVideo::GetClip().Height / itemheight;
 		
 		uint32_t online = 0;
 		int onitem = Anchored ? List->GetSelection() - LinesDrawn / 2 : FirstLine;
@@ -342,7 +342,7 @@ bool										CleanListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t
 {
 //TODO: Error check
 	SummerfaceList_Ptr List = WeakList.lock();
-	List->GetFont()->PutStringCenter(aItem->GetText().c_str(), Area(aX, aY, es_video->GetClip().Width, 0), aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	List->GetFont()->PutStringCenter(aItem->GetText().c_str(), Area(aX, aY, ESVideo::GetClip().Width, 0), aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 
 	return false;
 }

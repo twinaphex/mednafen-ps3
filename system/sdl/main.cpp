@@ -20,11 +20,6 @@ void				ESSUB_Quit				()
 	SDL_Quit();
 }
 
-ESVideo*			ESSUB_MakeVideo			()
-{
-	return new SDLVideo();
-}
-
 ESThreads*			ESSUB_MakeThreads		()
 {
 	return new SDLThreads();

@@ -276,7 +276,7 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 		}
 
 		//Restore viewport
-		glViewport(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight());
+		glViewport(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight());
 	}
 }
 

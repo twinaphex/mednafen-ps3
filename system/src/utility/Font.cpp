@@ -51,7 +51,7 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 			
 			if(chara && chara->CharTexture)
 			{
-				es_video->PlaceTexture(chara->CharTexture, Area(aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height), chara->TextureArea, aColor);
+				ESVideo::PlaceTexture(chara->CharTexture, Area(aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height), chara->TextureArea, aColor);
 			}
 			
 			if(chara)
@@ -112,7 +112,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 		
 		if(character->Width != 0 && character->Height != 0)
 		{
-			character->CharTexture = es_video->CreateTexture(FontFace->glyph->bitmap.width, FontFace->glyph->bitmap.rows, true);
+			character->CharTexture = ESVideo::CreateTexture(FontFace->glyph->bitmap.width, FontFace->glyph->bitmap.rows, true);
 			character->TextureArea = Area(0, 0, character->CharTexture->GetWidth(), character->CharTexture->GetHeight());
 			character->CharTexture->Clear(0);
 		
@@ -181,9 +181,9 @@ void					FontManager::InitFonts		()
 			Abort("FontManager::Init: Failed to initialize freetype");
 		}
 	
-		BigFont = new Font(es_video->GetScreenHeight() / 25);
-		SmallFont = new Font(es_video->GetScreenHeight() / 40);
-		FixedFont = new Font(es_video->GetScreenHeight() / 36, true);
+		BigFont = new Font(ESVideo::GetScreenHeight() / 25);
+		SmallFont = new Font(ESVideo::GetScreenHeight() / 40);
+		FixedFont = new Font(ESVideo::GetScreenHeight() / 36, true);
 	}
 	
 	FontsOpen = true;

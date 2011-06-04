@@ -77,14 +77,14 @@ bool									FlowListView::DrawItem			(SummerfaceItem_Ptr aItem, uint32_t aX, ui
 
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
 		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
-		es_video->PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
+		ESVideo::PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
 	}
 }
 
 bool							FlowListView::Draw						()
 {
-//	es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
-//	es_video->FillRectangle(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), 0x000080FF);
+//	ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
+//	ESVideo::FillRectangle(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()), 0x000080FF);
 
 	if(!WeakList.expired())
 	{
@@ -92,10 +92,10 @@ bool							FlowListView::Draw						()
 
 		List->SetHeader("");
 
-		uint32_t iconWidth = es_video->GetClip().Width / Columns;
-		uint32_t iconHeight = es_video->GetClip().Height / Rows;
-		uint32_t expandWidth = es_video->GetClip().Width / 16;
-		uint32_t expandHeight = es_video->GetClip().Height / 16;
+		uint32_t iconWidth = ESVideo::GetClip().Width / Columns;
+		uint32_t iconHeight = ESVideo::GetClip().Height / Rows;
+		uint32_t expandWidth = ESVideo::GetClip().Width / 16;
+		uint32_t expandHeight = ESVideo::GetClip().Height / 16;
 
 		int onitem = (List->GetSelection() - (List->GetSelection() % Rows)) - (Rows * (Columns / 2));
 		int selection = -1, selectionx = 0, selectiony = 0;
@@ -124,12 +124,12 @@ bool							FlowListView::Draw						()
 		
 		if(selection >= 0)
 		{
-			Area clipp = es_video->GetClip();
+			Area clipp = ESVideo::GetClip();
 
-			uint32_t textY = (clipp.Y + ((selectiony * iconHeight) - expandHeight) < es_video->GetScreenHeight() / 3) ? es_video->GetClip().Height - FontManager::GetBigFont()->GetHeight() - 16 : 16;
+			uint32_t textY = (clipp.Y + ((selectiony * iconHeight) - expandHeight) < ESVideo::GetScreenHeight() / 3) ? ESVideo::GetClip().Height - FontManager::GetBigFont()->GetHeight() - 16 : 16;
 			FontManager::GetBigFont()->PutString(List->GetSelected()->GetText().c_str(), 32, textY, 0x000000FF);
 
-			es_video->SetClip(Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()));
+			ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
 			DrawItem(List->GetItem(selection), (clipp.X + selectionx * iconWidth) - expandWidth, (clipp.Y + selectiony * iconHeight) - expandHeight, iconWidth + expandWidth * 2, iconHeight + expandHeight * 2, true);
 		}
 

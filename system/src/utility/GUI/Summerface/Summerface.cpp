@@ -17,10 +17,10 @@ Summerface_Ptr								Summerface::Create									(const std::string& aName, Summ
 
 bool										Summerface::Draw									()
 {
-	uint32_t screenW = es_video->GetScreenWidth();
-	uint32_t screenH = es_video->GetScreenHeight();
+	uint32_t screenW = ESVideo::GetScreenWidth();
+	uint32_t screenH = ESVideo::GetScreenHeight();
 
-	es_video->SetClip(Area(0, 0, screenW, screenH));
+	ESVideo::SetClip(Area(0, 0, screenW, screenH));
 
 	if(BackgroundCallback && BackgroundCallback())
 	{
@@ -28,11 +28,11 @@ bool										Summerface::Draw									()
 
 		if(!tex)
 		{
-			es_video->FillRectangle(Area(0, 0, screenW, screenH), 0x00000080);		
+			ESVideo::FillRectangle(Area(0, 0, screenW, screenH), 0x00000080);		
 		}
 		else
 		{
-			es_video->PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFF80);
+			ESVideo::PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFF80);
 		}
 	}
 	else
@@ -41,11 +41,11 @@ bool										Summerface::Draw									()
 
 		if(!tex)
 		{
-			es_video->FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);		
+			ESVideo::FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);		
 		}
 		else
 		{
-			es_video->PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
+			ESVideo::PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
 		}
 	}
 

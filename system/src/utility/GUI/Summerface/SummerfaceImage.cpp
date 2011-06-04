@@ -17,10 +17,10 @@ bool										SummerfaceImage::Draw								()
 	{
 		Texture* tex = ImageManager::GetImage(Image);
 
-		uint32_t x = 1, y = 1, w = es_video->GetClip().Width - 2, h = es_video->GetClip().Height - 2;
+		uint32_t x = 1, y = 1, w = ESVideo::GetClip().Width - 2, h = ESVideo::GetClip().Height - 2;
 		Utility::CenterAndScale(x, y, w, h, tex->GetWidth(), tex->GetHeight());
 
-		es_video->PlaceTexture(tex, Area(x, y, w, h), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
+		ESVideo::PlaceTexture(tex, Area(x, y, w, h), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
 	}
 
 	return false;

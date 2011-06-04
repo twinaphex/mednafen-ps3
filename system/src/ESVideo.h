@@ -40,7 +40,9 @@ class							Area
 		}	
 };
 
-typedef std::list<std::string>		ESFilterList;
+
+#if 0
+
 class								ESVideo
 {
 	public:	
@@ -68,8 +70,6 @@ class								ESVideo
 		virtual const ESFilterList&	GetFilters							() const {return esFilters;}
 		virtual void				SetFilter							(const std::string& aName, uint32_t aPrescale) {};
 
-	public: //Helpers
-		inline const Area&			CalculatePresentArea				(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine); //Defined below
 
 	protected:
 		Area						esClip;
@@ -80,12 +80,6 @@ class								ESVideo
 		ESFilterList				esFilters;
 
 		Texture*					esBorder;
-
-	private:
-		int32_t						LastAspect;
-		int32_t						LastUnderscan;
-		Area						LastUnderscanFine;
-		Area						PresentArea;
 };
 
 //---Inlines
@@ -94,33 +88,4 @@ void								ESVideo::SetClip					(const Area& aClip)
 	esClip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
 }
 
-const Area&							ESVideo::CalculatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
-{
-	if(aAspectOverride != LastAspect || LastUnderscan != aUnderscan || aUnderscanFine != LastUnderscanFine)
-	{
-		LastAspect = aAspectOverride;
-		LastUnderscan = aUnderscan;
-		LastUnderscanFine = aUnderscanFine;
-
-		int32_t xLeft = 0, xRight = GetScreenWidth(), yTop = 0, yBottom = GetScreenHeight();
-		float fwidth = (float)GetScreenWidth();
-		float fheight = (float)GetScreenHeight();
-
-		if((LastAspect == 0 && IsWideScreen()) || (LastAspect < 0))
-		{
-			xLeft += (int32_t)(fwidth * .125f);
-			xRight -= (int32_t)(fwidth * .125f);
-			fwidth -= fwidth * .250f;
-		}
-
-		xLeft += (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.X) / 200.0f));
-		xRight -= (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.Width) / 200.0f));
-		yTop += (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Y) / 200.0f));
-		yBottom -= (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Height) / 200.0f));
-
-		PresentArea = Area(xLeft, yTop, xRight - xLeft, yBottom - yTop);
-	}
-
-	return PresentArea;
-}
-
+#endif

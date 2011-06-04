@@ -1,7 +1,6 @@
 #include <es_system.h>
 
 Logger_Ptr			es_log;
-ESVideo*			es_video = 0;
 ESThreads*			es_threads = 0;
 PathBuild*			es_paths = 0;
 
@@ -58,7 +57,7 @@ void				InitES					(void (*aExitFunction)())
 
 	es_threads = ESSUB_MakeThreads();
 	ESNetwork::Initialize();
-	es_video = ESSUB_MakeVideo();
+	ESVideo::Initialize();
 	ESAudio::Initialize();
 	ESInput::Initialize();
 
@@ -75,7 +74,7 @@ void				QuitES					()
 
 	ESInput::Shutdown();
 	ESAudio::Shutdown();
-	delete es_video;
+	ESVideo::Shutdown();
 	ESNetwork::Shutdown();
 	delete es_threads;
 
