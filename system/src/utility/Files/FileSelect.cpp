@@ -35,21 +35,21 @@ bool									FlowListView::Input				()
 		int32_t oldIndex = List->GetSelection();
 		if(List->GetItemCount() != 0)
 		{
-			oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-			oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-			oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? Rows : 0);
-			oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? Rows : 0);
+			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? Rows : 0);
+			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? Rows : 0);
 			oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
 			List->SetSelection(oldIndex);
 		}
 
-		if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+		if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 		{
 			List->SetCanceled(true);
 			return true;
 		}
 
-		if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+		if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 		{
 			List->SetCanceled(false);
 			return true;
@@ -159,7 +159,7 @@ bool							FlowListView::Draw						()
 
 bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
 {
-	if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT2))
+	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
 	{
 		SummerfaceItem_Ptr item = List->GetSelected();
 		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->Properties["PATH"]);

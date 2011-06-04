@@ -19,7 +19,7 @@ void		MDFND_NetStart			()
 
 	try
 	{
-		slocket = es_network->OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
+		slocket = ESNetwork::OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
 		MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
 		NetplayOn = true;
 	}
@@ -157,6 +157,6 @@ int			MDFND_UnlockMutex		(MDFN_Mutex *mutex)
 
 void		MDFND_Rumble			(int s, int l)
 {
-	es_input->RumbleOn(s, l);
+	ESInput::RumbleOn(s, l);
 }
 

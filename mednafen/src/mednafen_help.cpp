@@ -301,7 +301,7 @@ bool						MednafenEmu::Frame				()
 			EmulatorSpec.SoundBuf = Samples;
 			EmulatorSpec.SoundBufMaxSize = 24000;
 			EmulatorSpec.SoundVolume = 1;
-			EmulatorSpec.NeedRewind = !NetplayOn && es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2);
+			EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
 			EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
 			MDFNI_Emulate(&EmulatorSpec);
 
@@ -326,16 +326,16 @@ bool						MednafenEmu::Frame				()
 			}
 
 			//Handle inputs
-			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
+			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 			{
 				MDFND_NetworkClose();
 			}
-			else if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 			{
 				DoCommands();
 				return false;
 			}
-			else if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
+			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
 			{
 				SetPause(true);
 			}
@@ -385,8 +385,8 @@ bool						MednafenEmu::Frame				()
 					realsamps = (uint32_t*)SamplesUp;
 				}
 
-				SkipNext = es_audio->GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
-				es_audio->AddSamples(realsamps, EmulatorSpec.SoundBufSize);
+				SkipNext = ESAudio::GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
+				ESAudio::AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 			}
 
 			return !EmulatorSpec.skip;
@@ -411,16 +411,16 @@ bool						MednafenEmu::Frame				()
 				}
 			}
 
-			if(NetplayOn && es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3) && es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
+			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 			{
 				MDFND_NetworkClose();
 			}
-			else if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 			{
 				DoCommands();
 				return false;
 			}
-			else if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
+			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
 			{
 				SetPause(false);
 			}
@@ -515,7 +515,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 {
 	std::string command;
 
-	if(aInterface && aInterface->GetWindow(aWindow) && es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(aInterface && aInterface->GetWindow(aWindow) && ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		SummerfaceList_Ptr list = boost::static_pointer_cast<SummerfaceList>(aInterface->GetWindow(aWindow));
 		command = list->GetSelected()->Properties["COMMAND"];

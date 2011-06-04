@@ -7,12 +7,12 @@ namespace
 		public:
 			bool	Input	()
 			{
-				if(es_input->ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+				if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
 				{
 					SettingMenu().Do();
 				}
 
-				if(es_input->ButtonDown(0, ES_BUTTON_AUXLEFT3))
+				if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
 					Summerface::Create("Text", boost::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
 				}

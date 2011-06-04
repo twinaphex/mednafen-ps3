@@ -93,12 +93,12 @@ bool										GridListView::Input									()
 	int32_t XSelection = List->GetSelection() % Width;
 	int32_t YSelection = (List->GetSelection() - FirstItem) / Width;
 
-	XSelection += es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	XSelection -= es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
+	XSelection += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	XSelection -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
 	XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
 
-	YSelection += es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
-	YSelection -= es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
+	YSelection += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
+	YSelection -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
 
 	if((FirstItem + (YSelection * Width + XSelection)) < List->GetItemCount())
 	{
@@ -135,7 +135,7 @@ bool										GridListView::Input									()
 
 //TODO: Handle conduits better!
 
-	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
@@ -146,7 +146,7 @@ bool										GridListView::Input									()
 		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		List->SetCanceled(false);
 		return true;
@@ -281,10 +281,10 @@ bool										AnchoredListView::Input								()
 	int32_t oldIndex = List->GetSelection();
 	if(List->GetItemCount() != 0)
 	{
-		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
-		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
+		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
+		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
 	
 		if(Wrap)
 		{
@@ -311,13 +311,13 @@ bool										AnchoredListView::Input								()
 
 //TODO: Handle conduits better!
 
-	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
 	}
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		List->SetCanceled(false);
 		return true;
@@ -373,8 +373,8 @@ bool										CleanListView::Input								()
 	int32_t oldIndex = List->GetSelection();
 	if(List->GetItemCount() != 0)
 	{
-		oldIndex += (es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		oldIndex -= (es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
 		oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
 		oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
 
@@ -384,7 +384,7 @@ bool										CleanListView::Input								()
 
 //TODO: Handle conduits better!
 
-	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
@@ -395,7 +395,7 @@ bool										CleanListView::Input								()
 		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		List->SetCanceled(false);
 		return true;

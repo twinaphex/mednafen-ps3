@@ -1,13 +1,6 @@
 #include <es_system.h>
 
-						CellAudio::CellAudio			() : 
-	Thread(0),
-	Semaphore(0),
-	ThreadDie(false),
-	MSChannel(-1),
-	MSMemory(0),
-	StreamDead(false),
-	Port(0)
+void					ESAudio::Initialize				()
 {
 	/* Init audio */
 	CellAudioPortParam portparam = {CELL_AUDIO_PORT_8CH, CELL_AUDIO_BLOCK_16, CELL_AUDIO_PORTATTR_BGM, 1};
@@ -34,7 +27,7 @@
 	cellMSCoreSetVolume64(CELL_MS_MASTER_BUS, CELL_MS_DRY, volumes);
 
 	/* Create thread */
-	Thread = es_threads->MakeThread(ProcessAudioThread, this);
+	Thread = es_threads->MakeThread(ProcessAudioThread, 0);
 	Semaphore = es_threads->MakeSemaphore(1);
 
 	/* Setup audio stream */
@@ -50,7 +43,7 @@
     MSChannel = cellMSStreamOpen();
 
     cellMSStreamSetInfo(MSChannel, &StreamInfo);
-	cellMSStreamSetCallbackData(MSChannel, this);
+	cellMSStreamSetCallbackData(MSChannel, 0);
     cellMSStreamSetCallbackFunc(MSChannel, MultiStreamCallback);
 	cellMSCoreSetVolume1(MSChannel, CELL_MS_DRY, CELL_MS_SPEAKER_FL, CELL_MS_CHANNEL_0, 1.0f);
 	cellMSCoreSetVolume1(MSChannel, CELL_MS_DRY, CELL_MS_SPEAKER_FR, CELL_MS_CHANNEL_1, 1.0f);
@@ -61,7 +54,7 @@
 }
 
 
-						CellAudio::~CellAudio			()
+void					ESAudio::Shutdown				()
 {
 	cellMSStreamSetSecondRead(MSChannel, 0, 0);
 	while(!StreamDead); //?
@@ -84,44 +77,54 @@
 	cellAudioQuit();
 }
 
-void					CellAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
+void					ESAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
 {
-	CellAudio* audio = (CellAudio*)userData;
-
 	if((cType == CELL_MS_CALLBACK_MOREDATA))
 	{
-		audio->RingBuffer.ReadDataSilentUnderrun((uint32_t*)pWriteBuffer, nBufferSize / 4);
+		RingBuffer.ReadDataSilentUnderrun((uint32_t*)pWriteBuffer, nBufferSize / 4);
 
-		if(!audio->Semaphore->GetValue())
+		if(!Semaphore->GetValue())
 		{
-			audio->Semaphore->Post();
+			Semaphore->Post();
 		}
 	}
 	else if(cType == CELL_MS_CALLBACK_FINISHSTREAM)
 	{
-		audio->StreamDead = 1;
+		StreamDead = 1;
 	}
 }
 
-int						CellAudio::ProcessAudioThread	(void* aAudio)
+int						ESAudio::ProcessAudioThread		(void* aAudio)
 {
-	CellAudio* audio = (CellAudio*)aAudio;
+	cellAudioPortStart(Port);
 
-	cellAudioPortStart(audio->Port);
-
-	while(!audio->ThreadDie)
+	while(!ThreadDie)
 	{
 		sys_timer_usleep(1000000 / 60 / 2);
 
-		if(!audio->StreamDead)
+		if(!StreamDead)
 		{
 			cellMSSystemSignalSPU();
 			cellMSSystemGenerateCallbacks();
 		}
 	}
 
-	cellAudioPortStop(audio->Port);
+	cellAudioPortStop(Port);
 
 	return 0;
 }
+
+ESThread*				ESAudio::Thread;
+ESSemaphore*			ESAudio::Semaphore;
+volatile bool			ESAudio::ThreadDie;
+
+int32_t					ESAudio::MSChannel = -1;
+void*					ESAudio::MSMemory;
+void*					ESAudio::MSBuffers[2];
+volatile bool			ESAudio::StreamDead;
+
+uint32_t				ESAudio::Port;
+CellAudioPortConfig		ESAudio::Config;
+
+AudioBuffer<>			ESAudio::RingBuffer;
 

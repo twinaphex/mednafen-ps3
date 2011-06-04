@@ -29,8 +29,8 @@ bool						StateLabel::Input						()
 {
 	uint32_t oldSlot = Slot;
 
-	Slot += es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	Slot -= es_input->ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
+	Slot += ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	Slot -= ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
 	Slot = Utility::Clamp(Slot, 1, 9);
 
 	if(Slot != oldSlot)
@@ -38,12 +38,12 @@ bool						StateLabel::Input						()
 		SetSlot(Slot);
 	}
 
-	if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		return true;
 	}
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		MednafenEmu::DoCommand(0, Summerface_Ptr(), Load ? "DoLoadState" : "DoSaveState");
 		return true;

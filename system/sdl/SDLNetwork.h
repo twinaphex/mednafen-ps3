@@ -1,31 +1,27 @@
-#ifndef SDLNETWORK_H
-#define SDLNETWORK_H
+#pragma once
 
-class								SDLSocket : public ESSocket
+class								ESSocket
 {
 	public:
-									SDLSocket			(const char* aHost, uint32_t aPort);
-		virtual						~SDLSocket			();
+									ESSocket			(const char* aHost, uint32_t aPort);
+									~ESSocket			();
 
-		virtual uint32_t			ReadString			(void* aBuffer, uint32_t aLength);
-		virtual uint32_t			Read				(void* aBuffer, uint32_t aLength);
-		virtual void				Write				(const void* aBuffer, uint32_t aLength);
+		uint32_t					ReadString			(void* aBuffer, uint32_t aLength);
+		uint32_t					Read				(void* aBuffer, uint32_t aLength);
+		void						Write				(const void* aBuffer, uint32_t aLength);
 
 	protected:
 		TCPsocket					Socket;
 		IPaddress					Connection;
 };
 
-class								SDLNetwork : public ESNetwork
+class								ESNetwork
 {
 	public:
-									SDLNetwork			();
-									~SDLNetwork			();
+		static void					Initialize			();
+		static void					Shutdown			();
 
-		virtual ESSocket*			OpenSocket			(const char* aHost, uint32_t aPort);
+		static ESSocket*			OpenSocket			(const char* aHost, uint32_t aPort);
 };
-
-#endif
-
 
 

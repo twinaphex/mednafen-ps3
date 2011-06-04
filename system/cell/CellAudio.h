@@ -2,16 +2,17 @@
 
 #include "src/utility/AudioBuffer.h"
 
-class								CellAudio : public ESAudio
+class								ESAudio
 {
 	public:	
-									CellAudio				();
-									~CellAudio				();
 
-		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount) {while(RingBuffer.GetBufferFree() < aCount) Semaphore->Wait(); RingBuffer.WriteData(aSamples, aCount);};
+		static void					Initialize				();
+		static void					Shutdown				();
 
-		volatile int32_t			GetBufferFree			() const {return RingBuffer.GetBufferFree();};
-		volatile int32_t			GetBufferAmount			() const {return RingBuffer.GetBufferAmount();};
+		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount) {while(RingBuffer.GetBufferFree() < aCount) Semaphore->Wait(); RingBuffer.WriteData(aSamples, aCount);};
+
+		static volatile int32_t		GetBufferFree			() {return RingBuffer.GetBufferFree();};
+		static volatile int32_t		GetBufferAmount			() {return RingBuffer.GetBufferAmount();};
 
 	protected:
 		static int					ProcessAudioThread		(void* aAudio);
@@ -19,18 +20,18 @@ class								CellAudio : public ESAudio
 	
 		static const int			BlockCount = 16;
 
-		ESThread*					Thread;
-		ESSemaphore*				Semaphore;
-		volatile bool				ThreadDie;
+		static ESThread*			Thread;
+		static ESSemaphore*			Semaphore;
+		static volatile bool		ThreadDie;
 
-		int32_t						MSChannel;
-		void*						MSMemory;
-		void*						MSBuffers[2];
-		volatile bool				StreamDead;
+		static int32_t				MSChannel;
+		static void*				MSMemory;
+		static void*				MSBuffers[2];
+		static volatile bool		StreamDead;
 
-		uint32_t					Port;
-		CellAudioPortConfig			Config;
+		static uint32_t				Port;
+		static CellAudioPortConfig	Config;
 
-		AudioBuffer<>				RingBuffer;
+		static AudioBuffer<>		RingBuffer;
 };
 

@@ -8,7 +8,7 @@ namespace
 
 }
 
-					CellInput::CellInput					()
+void				ESInput::Initialize						()
 {
 	cellPadInit(MAXPADS);
 
@@ -20,17 +20,17 @@ namespace
 	Large = 0;
 }
 
-					CellInput::~CellInput					()
+void				ESInput::Shutdown						()
 {
 	cellPadEnd();
 }
 
-uint32_t			CellInput::PadCount						()
+uint32_t			ESInput::PadCount						()
 {
 	return PadInfo.now_connect;
 }
 
-void				CellInput::Reset						()
+void				ESInput::Reset							()
 {
 	for(int i = 0; i != PadCount(); i ++)
 	{
@@ -41,7 +41,7 @@ void				CellInput::Reset						()
 	memset(SingleState, 0xFF, sizeof(SingleState));
 }
 
-void				CellInput::Refresh						()
+void				ESInput::Refresh						()
 {
 	cellPadGetInfo2(&PadInfo);
 
@@ -58,13 +58,13 @@ void				CellInput::Refresh						()
 
 				for(int i = 0; i != BUTTONS - 8; i ++)
 				{
-					RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
+					ESInputHelp::RefreshButton(CurrentState[p].button[ButtonIndex[i][0]] & ButtonIndex[i][1], HeldState[p][i], SingleState[p][i]);
 				}
 
 				for(int i = 0; i != 4; i ++)
 				{
-					RefreshButton(GetAxis(0, i) < -0x40, HeldState[p][16 + i * 2 + 0], SingleState[p][16 + i * 2 + 0]);
-					RefreshButton(GetAxis(0, i) >  0x40, HeldState[p][16 + i * 2 + 1], SingleState[p][16 + i * 2 + 1]);
+					ESInputHelp::RefreshButton(GetAxis(0, i) < -0x40, HeldState[p][16 + i * 2 + 0], SingleState[p][16 + i * 2 + 0]);
+					ESInputHelp::RefreshButton(GetAxis(0, i) >  0x40, HeldState[p][16 + i * 2 + 1], SingleState[p][16 + i * 2 + 1]);
 				}
 			}
 		}
@@ -75,7 +75,7 @@ void				CellInput::Refresh						()
 	}
 }
 
-int32_t				CellInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
+int32_t				ESInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 {
 	Assert(aPad, 0, aAxis);
 
@@ -90,21 +90,21 @@ int32_t				CellInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 	}
 }
 
-bool				CellInput::ButtonPressed				(uint32_t aPad, uint32_t aButton)
+bool				ESInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
 	return HeldState[aPad][aButton] == 1;
 }
 
-bool				CellInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
+bool				ESInput::ButtonDown						(uint32_t aPad, uint32_t aButton)
 {
 	Assert(aPad, aButton);
 
-	return HandleSingleState(HeldState[aPad][aButton], SingleState[aPad][aButton]);	
+	return ESInputHelp::HandleSingleState(HeldState[aPad][aButton], SingleState[aPad][aButton]);	
 }
 
-uint32_t			CellInput::GetAnyButton					(uint32_t aPad)
+uint32_t			ESInput::GetAnyButton					(uint32_t aPad)
 {
 	Assert(aPad, 0);
 	
@@ -119,21 +119,21 @@ uint32_t			CellInput::GetAnyButton					(uint32_t aPad)
 	return 0xFFFFFFFF;
 }
 
-std::string			CellInput::GetButtonName				(uint32_t aButton)
+std::string			ESInput::GetButtonName					(uint32_t aButton)
 {
 	Assert(0, aButton);
 
 	return ButtonNames[aButton];
 }
 
-std::string			CellInput::GetButtonImage				(uint32_t aButton)
+std::string			ESInput::GetButtonImage					(uint32_t aButton)
 {
 	Assert(0, aButton);
 
 	return ButtonNames[aButton] + "IMAGE";
 }
 
-void				CellInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
+void				ESInput::Assert							(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
 {
 	if(aPad >= MAXPADS || aButton >= BUTTONS || aAxis >= AXISCOUNT)
 	{
@@ -141,10 +141,19 @@ void				CellInput::Assert						(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
 	}
 }
 
-void				CellInput::RumbleOn						(uint32_t aSmall, uint32_t aLarge)
+void				ESInput::RumbleOn						(uint32_t aSmall, uint32_t aLarge)
 {
 	Small = aSmall;
 	Large = aLarge;
 	Refresh();
 }
+
+CellPadInfo2		ESInput::PadInfo;
+CellPadData			ESInput::CurrentState[MAXPADS];
+
+uint32_t			ESInput::HeldState[MAXPADS][BUTTONS];
+uint32_t			ESInput::SingleState[MAXPADS][BUTTONS];	
+
+uint32_t			ESInput::Small;
+uint32_t			ESInput::Large;
 

@@ -62,7 +62,7 @@ bool										SummerfaceWindow::Input								()
 	}
 	else
 	{
-		return es_input->ButtonDown(0, ES_BUTTON_CANCEL);
+		return ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
 	}
 }
 

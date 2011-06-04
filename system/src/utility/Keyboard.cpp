@@ -48,30 +48,30 @@ bool						Keyboard::Draw									()
 //TODO: This code can be dangerous
 bool						Keyboard::Input									()
 {
-	Row += es_input->ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
-	Row -= es_input->ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
+	Row += ESInput::ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
+	Row -= ESInput::ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
 	Row = Utility::Clamp(Row, 0, 4);
 	
-	Column += es_input->ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	Column -= es_input->ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
+	Column += ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	Column -= ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
 	Column = Utility::Clamp(Column, 0, strlen(Chars[0][Row]) - 1);
 
-	if(es_input->ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
 		Text.push_back(Chars[Shift][Row][Column]);
 	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_SHIFT))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
 	{
 		Shift = Shift == 0 ? 1 : 0;
 	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_TAB))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
 	{
 		if(!Text.empty())
 		{
 			Text.erase(Text.length() - 1);
 		}
 	}
-	else if(es_input->ButtonDown(0, ES_BUTTON_CANCEL))
+	else if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		return true;
 	}

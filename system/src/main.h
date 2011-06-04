@@ -5,9 +5,6 @@
 
 DEC_AND_DEF(ESThreads, es_threads);
 DEC_AND_DEF(ESVideo, es_video);
-DEC_AND_DEF(ESAudio, es_audio);
-DEC_AND_DEF(ESInput, es_input);
-DEC_AND_DEF(ESNetwork, es_network);
 DEC_AND_DEF(PathBuild, es_paths);
 
 #undef DEC_AND_DEF

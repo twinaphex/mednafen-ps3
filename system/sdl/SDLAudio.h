@@ -2,21 +2,22 @@
 
 #include "src/utility/AudioBuffer.h"
 
-class								SDLAudio : public ESAudio
+class								ESAudio
 {
 	public:	
-									SDLAudio				();
-									~SDLAudio				();
+		static void					Initialize				();
+		static void					Shutdown				();
 									
-		void						AddSamples				(const uint32_t* aSamples, uint32_t aCount);
-		volatile int32_t			GetBufferAmount			() const {return Buffer.GetBufferAmount();}
-		volatile int32_t			GetBufferFree			() const {return Buffer.GetBufferFree();}
+		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount);
+		static volatile int32_t		GetBufferAmount			() {return Buffer.GetBufferAmount();}
+		static volatile int32_t		GetBufferFree			() {return Buffer.GetBufferFree();}
 
 	protected:
 		static void					ProcessAudioCallback	(void *userdata, Uint8 *stream, int len);
 
 		static const int			BlockCount = 16;
-		SDL_AudioSpec				Format;
+		static SDL_AudioSpec		Format;
 
-		AudioBuffer<>				Buffer;
+		static AudioBuffer<>		Buffer;
 };
+

@@ -25,21 +25,6 @@ ESVideo*			ESSUB_MakeVideo			()
 	return new SDLVideo();
 }
 
-ESAudio*			ESSUB_MakeAudio			()
-{
-	return new SDLAudio();
-}
-
-ESInput*			ESSUB_MakeInput			()
-{
-	return new SDLInput();
-}
-
-ESNetwork*			ESSUB_MakeNetwork		()
-{
-	return new SDLNetwork();
-}
-
 ESThreads*			ESSUB_MakeThreads		()
 {
 	return new SDLThreads();

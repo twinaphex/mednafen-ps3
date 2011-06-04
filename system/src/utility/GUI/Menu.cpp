@@ -26,7 +26,7 @@ void						Menu::Do					()
 
 		if(now > lasthit + (20 * InputDelay))
 		{
-			es_input->Refresh();
+			ESInput::Refresh();
 
 			if(Hook && Hook->Input())
 			{
@@ -49,7 +49,7 @@ void						Menu::Do					()
 		es_video->Flip();
 	}
 	
-	es_input->Reset();
+	ESInput::Reset();
 }
 
 void						Menu::SetHook				(MenuHook* aHook)
