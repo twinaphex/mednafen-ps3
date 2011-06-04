@@ -1,5 +1,5 @@
 ifeq ($(strip $(PLATFORM)),)
-	PLATFORM = l1ght
+	PLATFORM = cell
 endif
 
 ##Package Details
@@ -16,7 +16,7 @@ MEDNAFENINCLUDES	:=	. src/src/hw_misc src/src/hw_video src/include src/src/hw_cp
 
 ##Build info
 TARGET				:=	mednafen
-TYPE				:=	elf
+TYPE				:=	bin
 PACKAGE				:=	mednafen.pkg
 BUILD				:=	build
 SOURCE				:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_cpu/c68k src/src/hw_cpu/huc6280 src/src/hw_cpu/v810 \

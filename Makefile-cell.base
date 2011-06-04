@@ -3,24 +3,11 @@ export PATH := $(CELL_SDK)/host-win32/bin:$(CELL_SDK)/host-win32/ppu/bin:$(PATH)
 
 .SUFFIXES:
 
-ifeq ($(strip $(PREFIX)),)
-PREFIX		:=	ppu-lv2-
-endif
-
-#AS			:=	ps3ppuas
-#CC			:=	ps3ppusnc
-#CXX		:=	ps3ppusnc
-#AR			:=	ps3snarl
-
-
-OBJCOPY		:=	$(PREFIX)objcopy
 AR			:=	$(PREFIX)ar
 AS			:=	$(PREFIX)gcc
 CC			:=	$(PREFIX)gcc
 CXX			:=	$(PREFIX)g++
 LD			:=	$(CXX)
-STRIP		:=	$(PREFIX)strip
-NM			:=	nm
 PKG			:=	pkg.py
 MAKE_SELF_GH:= make_self_npdrm
 
@@ -34,12 +21,11 @@ endif
 
 CNCXXFLAGS			:= -DMDCELL -g -O2 -pipe -I$(CELL_SDK)/target/ppu/include $(FREETYPECFLAGS)
 CNCXXFLAGS			+= -DMSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_BIGENDIAN -D__ppc__ -DC_CORE -D__POWERPC__ -D__BIG_ENDIAN__ -D__BIGENDIAN__
-CNCXXFLAGS			+= #-Xassumecorrectalignment=1 -Xfastmath=1
 
-CFLAGS		+= $(CNCXXFLAGS) --std=gnu99 -DPSGL
-CXXFLAGS	+= $(CNCXXFLAGS) -DPSGL
-LDFLAGS		+= -lpng $(FREETYPELIBS) -L$(CELL_SDK)/target/ppu/lib -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/ultra-opt -lPSGLFX -lPSGL -lPSGLU -lm -lnet_stub -lfs_stub -lio_stub -lsysutil_stub -lsysmodule_stub -lgcm_cmd -lresc_stub -lgcm_sys_stub -laudio_stub -lz -lspurs_stub -lmstreamThreadMP3 -lPSGLcgc -lcgc
-DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
+CFLAGS				+= $(CNCXXFLAGS) --std=gnu99 -DPSGL
+CXXFLAGS			+= $(CNCXXFLAGS) -DPSGL
+LDFLAGS				+= -lpng $(FREETYPELIBS) -L$(CELL_SDK)/target/ppu/lib -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/ultra-opt -lPSGLFX -lPSGL -lPSGLU -lm -lnet_stub -lfs_stub -lio_stub -lsysutil_stub -lsysmodule_stub -lgcm_cmd -lresc_stub -lgcm_sys_stub -laudio_stub -lz -lspurs_stub -lmstreamThreadMP3 -lPSGLcgc -lcgc
+DEPSOPTIONS			=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 ###
 include $(TOP)/Makefile.common

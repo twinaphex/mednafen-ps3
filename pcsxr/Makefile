@@ -1,15 +1,9 @@
 ifeq ($(strip $(PLATFORM)),)
-	PLATFORM = l1ght
+	PLATFORM = cell
 endif
 
 TARGET		:=	libpcsxr
-ifeq ($(strip $(PLATFORM)),dll)
-TYPE		:=	so
-else
-TYPE		:=	a
-endif
-SONAME		:=	libpcsxr
-#SYMPREFIX	:=	pcsx
+TYPE		:=	lib
 BUILD		:=	build
 SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin
 INCLUDE		:=	src src/libpcsxcore ../mednafen/src ../system
