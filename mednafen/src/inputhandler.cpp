@@ -41,7 +41,7 @@ namespace
 void							InputHandler::Process					()
 {
 	//Update platform dependent input
-	es_input->Refresh();
+	ESInput::Refresh();
 
 	//TODO: Support more input types, more than two controllers
 	for(int p = 0; p != GameInfo->InputInfo->InputPorts && p != 2; p ++)
@@ -57,13 +57,13 @@ void							InputHandler::Process					()
 			int bit = Inputs[i].BitOffset & 7;
 
 			//Get any non rapid press
-			if((Inputs[i].Data->Type == IDIT_BUTTON || Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].Button)))
+			if((Inputs[i].Data->Type == IDIT_BUTTON || Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(p, Inputs[i].Button)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
 
 			//Get any rapid press
-			if((Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (es_input->ButtonPressed(p, Inputs[i].RapidButton) && (RapidCount == 0)))
+			if((Inputs[i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(p, Inputs[i].RapidButton) && (RapidCount == 0)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
@@ -298,7 +298,7 @@ bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterfa
 	static bool gotbutton = true;
 
 	//Don't continue until all buttons are released
-	if(gotbutton && es_input->GetAnyButton(0) != 0xFFFFFFFF)
+	if(gotbutton && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
 	{
 		return false;
 	}
@@ -308,7 +308,7 @@ bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterfa
 
 	//Get a button from the input engine and store it at aUserData
 	uint32_t* button = (uint32_t*)aUserData;
-	button[0] = es_input->GetAnyButton(0);
+	button[0] = ESInput::GetAnyButton(0);
 
 	//Note wheather a button has beed pressed for next call
 	gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;

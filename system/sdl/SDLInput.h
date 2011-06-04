@@ -8,26 +8,28 @@ enum
 	ES_BUTTON_AUXLEFT3, ES_BUTTON_AUXRIGHT3, 
 };
 
-class				SDLInput : public ESInput
+class				ESInput
 {
-	friend class							SDLVideo;
+	friend class							ESVideo;
 
 	public:
-											SDLInput				();
-											~SDLInput				();
+		static void							Initialize				();
+		static void							Shutdown				();
 					
-		uint32_t							PadCount				();
-		void								Reset					();
-		void								Refresh					();
+		static uint32_t						PadCount				();
+		static void							Reset					();
+		static void							Refresh					();
 		
-		int32_t								GetAxis					(uint32_t aPad, uint32_t aAxis);
+		static int32_t						GetAxis					(uint32_t aPad, uint32_t aAxis);
 
-		bool								ButtonPressed			(uint32_t aPad, uint32_t aButton);
-		bool								ButtonDown				(uint32_t aPad, uint32_t aButton);
+		static bool							ButtonPressed			(uint32_t aPad, uint32_t aButton);
+		static bool							ButtonDown				(uint32_t aPad, uint32_t aButton);
 		
-		uint32_t							GetAnyButton			(uint32_t aPad);
-		std::string							GetButtonName			(uint32_t aButton);
-		std::string							GetButtonImage			(uint32_t aButton);
+		static uint32_t						GetAnyButton			(uint32_t aPad);
+		static std::string					GetButtonName			(uint32_t aButton);
+		static std::string					GetButtonImage			(uint32_t aButton);
+
+		static void							RumbleOn				(uint32_t aBig, uint32_t aSmall) {};
 	
 	protected:
 		static const uint32_t				MAXKEYS = 512;
@@ -35,17 +37,17 @@ class				SDLInput : public ESInput
 		static const uint32_t				BUTTONS = 128;
 		static const uint32_t				AXISCOUNT = 8;
 	
-		void								Assert					(uint32_t aPad, uint32_t aButton);
-		bool								IsJoystickButton		(uint32_t aButton);
+		static void							Assert					(uint32_t aPad, uint32_t aButton);
+		static bool							IsJoystickButton		(uint32_t aButton);
 		
-		std::vector<SDL_Joystick*>			Joysticks;
-		uint32_t							ESInputs[14];
+		static std::vector<SDL_Joystick*>	Joysticks;
+		static uint32_t						ESInputs[14];
 
-		uint32_t							KeyState[MAXKEYS];
-		uint32_t							KeySingle[MAXKEYS];
+		static uint32_t						KeyState[MAXKEYS];
+		static uint32_t						KeySingle[MAXKEYS];
 
-		uint32_t							HeldState[MAXPADS][BUTTONS];
-		uint32_t							SingleState[MAXPADS][BUTTONS];	
+		static uint32_t						HeldState[MAXPADS][BUTTONS];
+		static uint32_t						SingleState[MAXPADS][BUTTONS];	
 };
 
 #endif

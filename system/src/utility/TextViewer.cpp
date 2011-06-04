@@ -57,20 +57,20 @@ bool					TextViewer::Draw						()
 
 bool					TextViewer::Input						()
 {
-	Top += es_input->ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
-	Top -= es_input->ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
-	Top += es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT1) ? LinesDrawn : 0;
-	Top -= es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT1) ? LinesDrawn : 0;
+	Top += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
+	Top -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
+	Top += ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT1) ? LinesDrawn : 0;
+	Top -= ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT1) ? LinesDrawn : 0;
 	Top = Utility::Clamp(Top, 0, (int32_t)Lines.size() - 1);
 
-	Top = es_input->ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? Lines.size() - 1 : Top;
-	Top = es_input->ButtonPressed(0, ES_BUTTON_AUXLEFT2) ? 0 : Top;
+	Top = ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2) ? Lines.size() - 1 : Top;
+	Top = ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2) ? 0 : Top;
 	
-	Left += es_input->ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	Left -= es_input->ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;	
+	Left += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+	Left -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;	
 	Left = Utility::Clamp(Left, 0, (int32_t)LongestLine);
 
-	return es_input->ButtonDown(0, ES_BUTTON_ACCEPT);
+	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT);
 }
 		
 void					TextViewer::LoadStream					(std::istream* aStream)

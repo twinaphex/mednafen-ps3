@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-					SDLInput::SDLInput						()
+void				ESInput::Initialize						()
 {
 	for(int i = 0; i != SDL_NumJoysticks(); i ++)
 	{
@@ -12,7 +12,7 @@
 	Reset();
 }
 
-					SDLInput::~SDLInput						()
+void				ESInput::Shutdown						()
 {
 	for(int i = 0; i != Joysticks.size(); i ++)
 	{
@@ -20,12 +20,12 @@
 	}
 }
 
-uint32_t			SDLInput::PadCount						()
+uint32_t			ESInput::PadCount						()
 {
 	return Joysticks.size() ? Joysticks.size() : 1;
 }
 
-void				SDLInput::Reset							()
+void				ESInput::Reset							()
 {
 	memset(HeldState, 0xFF, sizeof(HeldState));
 	memset(SingleState, 0xFF, sizeof(SingleState));
@@ -34,7 +34,7 @@ void				SDLInput::Reset							()
 	memset(KeySingle, 0xFF, sizeof(KeySingle));
 }
 
-void				SDLInput::Refresh						()
+void				ESInput::Refresh						()
 {
 	int numkeys;
 	uint8_t* keys = SDL_GetKeyState(&numkeys);
@@ -46,7 +46,7 @@ void				SDLInput::Refresh						()
 
 	for(int j = 0; j != numkeys && j != MAXKEYS; j ++)
 	{
-		RefreshButton(keys[j], KeyState[j], KeySingle[j]);
+		ESInputHelp::RefreshButton(keys[j], KeyState[j], KeySingle[j]);
 	}
 
 	for(int i = 0; i != Joysticks.size(); i ++)
@@ -55,34 +55,34 @@ void				SDLInput::Refresh						()
 	
 		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
 		{
-			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
-			RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 1]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 1]);
 			buttonIndex += 2;
 		}
 
 		for(int j = 0; j != SDL_JoystickNumHats(Joysticks[i]); j ++)
 		{
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_UP, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_DOWN, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);			
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_LEFT, HeldState[i][buttonIndex + 2], SingleState[i][buttonIndex + 2]);
-			RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_RIGHT, HeldState[i][buttonIndex + 3], SingleState[i][buttonIndex + 3]);			
+			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_UP, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_DOWN, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);			
+			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_LEFT, HeldState[i][buttonIndex + 2], SingleState[i][buttonIndex + 2]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_RIGHT, HeldState[i][buttonIndex + 3], SingleState[i][buttonIndex + 3]);			
 			buttonIndex += 4;
 		}
 	
 		for(int j = 0; j != SDL_JoystickNumButtons(Joysticks[i]); j ++)
 		{
-			RefreshButton(SDL_JoystickGetButton(Joysticks[i], j), HeldState[i][j + buttonIndex], SingleState[i][j + buttonIndex]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetButton(Joysticks[i], j), HeldState[i][j + buttonIndex], SingleState[i][j + buttonIndex]);
 		}
 	}
 }
 
-int32_t				SDLInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
+int32_t				ESInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
 {
 	//TODO: 
 	return 0;
 }
 
-bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
+bool				ESInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 {
 	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
 	{
@@ -101,7 +101,7 @@ bool				SDLInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
 	}
 }
 
-bool				SDLInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
+bool				ESInput::ButtonDown						(uint32_t aPad, uint32_t aButton)
 {
 	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
 	{
@@ -112,15 +112,15 @@ bool				SDLInput::ButtonDown					(uint32_t aPad, uint32_t aButton)
 
 	if(!IsJoystickButton(aButton) && aPad == 0)
 	{
-		return HandleSingleState(KeyState[aButton & 0xFFFF], KeySingle[aButton & 0xFFFF]);
+		return ESInputHelp::HandleSingleState(KeyState[aButton & 0xFFFF], KeySingle[aButton & 0xFFFF]);
 	}
 	else
 	{
-		return HandleSingleState(HeldState[aPad][aButton & 0xFFFF], SingleState[aPad][aButton & 0xFFFF]);	
+		return ESInputHelp::HandleSingleState(HeldState[aPad][aButton & 0xFFFF], SingleState[aPad][aButton & 0xFFFF]);	
 	}
 }
 
-uint32_t			SDLInput::GetAnyButton					(uint32_t aPad)
+uint32_t			ESInput::GetAnyButton					(uint32_t aPad)
 {
 	Assert(aPad, 0);
 
@@ -149,7 +149,7 @@ uint32_t			SDLInput::GetAnyButton					(uint32_t aPad)
 	return 0xFFFFFFFF;
 }
 
-std::string			SDLInput::GetButtonName					(uint32_t aButton)
+std::string			ESInput::GetButtonName					(uint32_t aButton)
 {
 	Assert(0, aButton);
 	
@@ -164,7 +164,7 @@ std::string			SDLInput::GetButtonName					(uint32_t aButton)
 	}
 }
 
-std::string			SDLInput::GetButtonImage				(uint32_t aButton)
+std::string			ESInput::GetButtonImage					(uint32_t aButton)
 {
 	//TODO:
 	Assert(0, aButton);
@@ -172,7 +172,7 @@ std::string			SDLInput::GetButtonImage				(uint32_t aButton)
 	return "NOIMAGE";
 }
 
-void				SDLInput::Assert						(uint32_t aPad, uint32_t aButton)
+void				ESInput::Assert							(uint32_t aPad, uint32_t aButton)
 {
 	if(aPad >= MAXPADS || (IsJoystickButton(aButton) && aButton >= BUTTONS) || (!IsJoystickButton(aButton) && (aButton & 0xFFFF) >= MAXKEYS))
 	{
@@ -180,9 +180,21 @@ void				SDLInput::Assert						(uint32_t aPad, uint32_t aButton)
 	}
 }
 
-bool				SDLInput::IsJoystickButton				(uint32_t aButton)
+bool				ESInput::IsJoystickButton				(uint32_t aButton)
 {
 	return (aButton >> 16) == 0;
 }
+
+void				ESInput::Assert					(uint32_t aPad, uint32_t aButton);
+bool				ESInput::IsJoystickButton		(uint32_t aButton);
+		
+std::vector<SDL_Joystick*>	ESInput::Joysticks;
+uint32_t			ESInput::ESInputs[14];
+
+uint32_t			ESInput::KeyState[MAXKEYS];
+uint32_t			ESInput::KeySingle[MAXKEYS];
+
+uint32_t			ESInput::HeldState[MAXPADS][BUTTONS];
+uint32_t			ESInput::SingleState[MAXPADS][BUTTONS];	
 
 

@@ -7,41 +7,41 @@ enum
 	ES_BUTTON_AUXLEFT3 = 12, ES_BUTTON_AUXRIGHT3 = 15 
 };
 
-class				CellInput : public ESInput
+class								ESInput
 {
 	public:
-									CellInput				();
-									~CellInput				();
+		static void					Initialize				();
+		static void					Shutdown				();
 					
-		uint32_t					PadCount				();
-		void						Reset					();
-		void						Refresh					();
+		static uint32_t				PadCount				();
+		static void					Reset					();
+		static void					Refresh					();
 		
-		int32_t						GetAxis					(uint32_t aPad, uint32_t aAxis);
+		static int32_t				GetAxis					(uint32_t aPad, uint32_t aAxis);
 
-		bool						ButtonPressed			(uint32_t aPad, uint32_t aButton);
-		bool						ButtonDown				(uint32_t aPad, uint32_t aButton);
+		static bool					ButtonPressed			(uint32_t aPad, uint32_t aButton);
+		static bool					ButtonDown				(uint32_t aPad, uint32_t aButton);
 	
-		uint32_t					GetAnyButton			(uint32_t aPad);
-		std::string					GetButtonName			(uint32_t aButton);
-		std::string					GetButtonImage			(uint32_t aButton);
+		static uint32_t				GetAnyButton			(uint32_t aPad);
+		static std::string			GetButtonName			(uint32_t aButton);
+		static std::string			GetButtonImage			(uint32_t aButton);
 
-		void						RumbleOn				(uint32_t aSmall, uint32_t aLarge);
+		static void					RumbleOn				(uint32_t aSmall, uint32_t aLarge);
 	
 	protected:
 		static const uint32_t		MAXPADS = 4;
 		static const uint32_t		BUTTONS = 24;
 		static const uint32_t		AXISCOUNT = 4;
 
-		void						Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
+		static void					Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
 
-		CellPadInfo2				PadInfo;
-		CellPadData					CurrentState[MAXPADS];
+		static CellPadInfo2			PadInfo;
+		static CellPadData			CurrentState[MAXPADS];
 
-		uint32_t					HeldState[MAXPADS][BUTTONS];
-		uint32_t					SingleState[MAXPADS][BUTTONS];	
+		static uint32_t				HeldState[MAXPADS][BUTTONS];
+		static uint32_t				SingleState[MAXPADS][BUTTONS];	
 
-		uint32_t					Small;
-		uint32_t					Large;
+		static uint32_t				Small;
+		static uint32_t				Large;
 };
 

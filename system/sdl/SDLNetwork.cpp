@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-							SDLSocket::SDLSocket			(const char* aHost, uint32_t aPort)
+							ESSocket::ESSocket				(const char* aHost, uint32_t aPort)
 {
 	if(-1 == SDLNet_ResolveHost(&Connection, aHost, aPort))
 	{
@@ -14,12 +14,12 @@
 	}
 }
 
-							SDLSocket::~SDLSocket			()
+							ESSocket::~ESSocket				()
 {
 	SDLNet_TCP_Close(Socket);
 }
 
-uint32_t					SDLSocket::ReadString			(void* aBuffer, uint32_t aLength)
+uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -41,7 +41,7 @@ uint32_t					SDLSocket::ReadString			(void* aBuffer, uint32_t aLength)
 	return aLength;
 }
 
-uint32_t					SDLSocket::Read					(void* aBuffer, uint32_t aLength)
+uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -55,7 +55,7 @@ uint32_t					SDLSocket::Read					(void* aBuffer, uint32_t aLength)
 	return count;
 }
 
-void						SDLSocket::Write				(const void* aBuffer, uint32_t aLength)
+void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
 	if(aLength != SDLNet_TCP_Send(Socket, aBuffer, aLength))
 	{
@@ -63,7 +63,7 @@ void						SDLSocket::Write				(const void* aBuffer, uint32_t aLength)
 	}
 }
 
-							SDLNetwork::SDLNetwork			()
+void						ESNetwork::Initialize			()
 {
 	if(-1 == SDLNet_Init())
 	{
@@ -71,13 +71,13 @@ void						SDLSocket::Write				(const void* aBuffer, uint32_t aLength)
 	}
 }
 
-							SDLNetwork::~SDLNetwork			()
+void						ESNetwork::Shutdown				()
 {
 	SDLNet_Quit();
 }
 
-ESSocket*					SDLNetwork::OpenSocket			(const char* aHost, uint32_t aPort)
+ESSocket*					ESNetwork::OpenSocket			(const char* aHost, uint32_t aPort)
 {
-	return new SDLSocket(aHost, aPort);
+	return new ESSocket(aHost, aPort);
 }
 

@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-							CellSocket::CellSocket			(const char* aHost, uint32_t aPort)
+							ESSocket::ESSocket				(const char* aHost, uint32_t aPort)
 {
 	Socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(Socket == -1)
@@ -29,12 +29,12 @@
 	}
 }
 
-							CellSocket::~CellSocket			()
+							ESSocket::~ESSocket				()
 {
 	close(Socket);
 }
 
-uint32_t					CellSocket::ReadString			(void* aBuffer, uint32_t aLength)
+uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -56,7 +56,7 @@ uint32_t					CellSocket::ReadString			(void* aBuffer, uint32_t aLength)
 	return aLength;
 }
 
-uint32_t					CellSocket::Read				(void* aBuffer, uint32_t aLength)
+uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -70,7 +70,7 @@ uint32_t					CellSocket::Read				(void* aBuffer, uint32_t aLength)
 	return count;
 }
 
-void						CellSocket::Write				(const void* aBuffer, uint32_t aLength)
+void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
 	if(aLength != send(Socket, aBuffer, aLength, 0))
 	{
@@ -78,19 +78,19 @@ void						CellSocket::Write				(const void* aBuffer, uint32_t aLength)
 	}
 }
 
-							CellNetwork::CellNetwork		()
+void						ESNetwork::Initialize			()
 {
 //TODO:
 //	netInitialize();
 }
 
-							CellNetwork::~CellNetwork		()
+void						ESNetwork::Shutdown				()
 {
 }
 
-ESSocket*					CellNetwork::OpenSocket		(const char* aHost, uint32_t aPort)
+ESSocket*					ESNetwork::OpenSocket			(const char* aHost, uint32_t aPort)
 {
-	return new CellSocket(aHost, aPort);
+	return new ESSocket(aHost, aPort);
 }
 
 

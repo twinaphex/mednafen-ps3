@@ -1,4 +1,4 @@
-#pragma once
+#if 0
 
 class								ESSocket
 {
@@ -17,4 +17,4 @@ class								ESNetwork
 	public:
 		virtual ESSocket*			OpenSocket			(const char* aHost, uint32_t aPort) = 0;
 };
-
+#endif

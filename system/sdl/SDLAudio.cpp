@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-						SDLAudio::SDLAudio				()
+void					ESAudio::Initialize				()
 {
 	SDL_AudioSpec spec;
 	spec.freq = 48000;
@@ -14,22 +14,23 @@
 }
 
 
-						SDLAudio::~SDLAudio				()
+void					ESAudio::Shutdown				()
 {
 	SDL_CloseAudio();
 }
 
-void					SDLAudio::AddSamples			(const uint32_t* aSamples, uint32_t aCount)
+void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 {
 	SDL_LockAudio();
 	Buffer.WriteData(aSamples, aCount);
 	SDL_UnlockAudio();
 }
 
-void					SDLAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
+void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 {
-	if(es_audio)
-	{
-		((SDLAudio*)es_audio)->Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);
-	}
+	Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);
 }
+
+SDL_AudioSpec			ESAudio::Format;
+AudioBuffer<>			ESAudio::Buffer;
+

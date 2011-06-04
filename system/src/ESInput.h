@@ -1,26 +1,7 @@
-#ifndef ESINPUT_H
-#define ESINPUT_H
+#pragma once
 
-class				ESInput
+class				ESInputHelp
 {
-	public:
-		virtual								~ESInput				(){};
-	
-		virtual uint32_t					PadCount				() = 0;
-		virtual void						Reset					() = 0;
-		virtual void						Refresh					() = 0;
-		
-		virtual int32_t						GetAxis					(uint32_t aPad, uint32_t aAxis) = 0;
-
-		virtual bool						ButtonPressed			(uint32_t aPad, uint32_t aButton) = 0;
-		virtual bool						ButtonDown				(uint32_t aPad, uint32_t aButton) = 0;
-		
-		virtual uint32_t					GetAnyButton			(uint32_t aPad) = 0;
-		virtual std::string					GetButtonName			(uint32_t aButton) = 0;
-		virtual std::string					GetButtonImage			(uint32_t aButton) = 0;
-
-		virtual void						RumbleOn				(uint32_t aSmall, uint32_t aLarge){}
-		
 	public:	//Helpers
 		static void							RefreshButton			(uint32_t aState, uint32_t& aHeld, uint32_t& aSingle)
 		{
@@ -58,6 +39,4 @@ class				ESInput
 			}
 		}
 };
-
-#endif
 

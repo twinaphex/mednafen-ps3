@@ -48,26 +48,6 @@ void				ESSUB_Quit				()
 	cellSysutilUnregisterCallback(0);
 }
 
-ESVideo*			ESSUB_MakeVideo			()
-{
-	return new CellVideo();
-}
-
-ESAudio*			ESSUB_MakeAudio			()
-{
-	return new CellAudio();
-}
-
-ESInput*			ESSUB_MakeInput			()
-{
-	return new CellInput();
-}
-
-ESNetwork*			ESSUB_MakeNetwork		()
-{
-	return new CellNetwork();
-}
-
 ESThreads*			ESSUB_MakeThreads		()
 {
 	return new CellThreads();

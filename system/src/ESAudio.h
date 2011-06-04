@@ -1,6 +1,4 @@
-#ifndef ESAUDIO_H
-#define	ESAUDIO_H
-
+#if 0
 class								ESAudio
 {
 	public:	
@@ -10,5 +8,4 @@ class								ESAudio
 		virtual volatile int32_t	GetBufferAmount			() const  = 0;
 		virtual volatile int32_t	GetBufferFree			() const  = 0;
 };
-
 #endif

@@ -18,7 +18,7 @@
 
 bool						FastCounter::Fast					()
 {
-	return es_input->ButtonPressed(0, Button);
+	return ESInput::ButtonPressed(0, Button);
 }
 
 uint32_t					FastCounter::GetSpeed				()

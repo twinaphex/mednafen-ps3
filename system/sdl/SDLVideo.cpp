@@ -98,7 +98,7 @@ void					SDLVideo::Flip					()
 		}
 	}
 	
-	if(es_input->ButtonDown(0, 0x80000000 | SDLK_F10))
+	if(ESInput::ButtonDown(0, 0x80000000 | SDLK_F10))
 	{
 		SetExit();
 	}
