@@ -146,12 +146,12 @@ int					main					(int argc, char* argv[])
 			while(WantToSleep() && !WantToDie())
 			{
 				MednafenEmu::DummyFrame();
-				es_video->Flip();
+				ESVideo::Flip();
 			}
 
 			if(MednafenEmu::Frame())
 			{
-				es_video->Flip();
+				ESVideo::Flip();
 			}
 		}
 	

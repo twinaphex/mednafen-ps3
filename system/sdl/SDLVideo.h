@@ -2,34 +2,55 @@
 
 #include "../opengl_common/Shaders.h"
 
-class								SDLVideo : public ESVideo
+class								ESVideo
 {
 	public:	
-									SDLVideo				();
-									~SDLVideo				();
+		static void					Initialize				();
+		static void					Shutdown				();
 
-		void						EnableVsync				(bool aOn);
+		static void					EnableVsync				(bool aOn);
 	
-		Texture*					CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic) {return new GLTexture(aWidth, aHeight);};
+		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new GLTexture(aWidth, aHeight);};
 	
-		virtual void				SetClip					(const Area& aClip);
+		static uint32_t				GetScreenWidth			() {return ScreenWidth;}
+		static uint32_t				GetScreenHeight			() {return ScreenHeight;}
+		static bool					IsWideScreen			() {return WideScreen;}
+
+		static inline void			SetClip					(const Area& aClip); //Below
+		static const Area&			GetClip					() {return Clip;}
 	
-		void						Flip					();
+		static void					Flip					();
 		
-		virtual void				PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //External
-		virtual void				FillRectangle			(const Area& aArea, uint32_t aColor); //External
-		virtual void				PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
+		static void					PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //External
+		static void					FillRectangle			(const Area& aArea, uint32_t aColor) {PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);}
+		static void					AttachBorder			(Texture* aTexture) {Border = aTexture;};
+		static void					PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
 
-		virtual void				SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = GLShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
+		static void					SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = GLShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
 		
 	protected:
-		SDL_Surface*				Screen;
-		Texture*					FillerTexture;
+		static SDL_Surface*			Screen;
+		static Texture*				FillerTexture;
 
-		CGcontext					ShaderContext;
-		GLShader*					Presenter;
+		static CGcontext			ShaderContext;
+		static GLShader*			Presenter;
 		static const uint32_t		VertexSize = 9;
 		static const uint32_t		VertexBufferCount = 4;
-		GLfloat*					VertexBuffer;
+		static GLfloat*				VertexBuffer;
+
+		static uint32_t				ScreenWidth;
+		static uint32_t				ScreenHeight;
+		static bool					WideScreen;
+		static Area					Clip;
+		static Texture*				Border;
 };
+
+//---Inlines
+void								ESVideo::SetClip					(const Area& aClip)
+{
+	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	glScissor(Clip.X, GetScreenHeight() - Clip.Bottom(), Clip.Width, Clip.Height);
+}
+
+#include "../opengl_common/Helpers.h"
 

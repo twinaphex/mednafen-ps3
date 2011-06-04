@@ -175,7 +175,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		ROMSize = aSize;
 
 		//HACK: Attach a default border
-		es_video->AttachBorder(ImageManager::GetImage("GameBorder"));
+		ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
 
 		Inputs = boost::make_shared<InputHandler>(GameInfo);
 
@@ -195,7 +195,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		ReadSettings(true);
 
 		//Create the helpers for this game
-		Buffer = Texture_Ptr(es_video->CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
+		Buffer = Texture_Ptr(ESVideo::CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
 		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		Buffer->Clear(0);
@@ -462,16 +462,16 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 		Buffer->Unmap();
 
-		es_video->PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
+		ESVideo::PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
 		if(!aPixels && Lua)
 		{
-			static Texture_Ptr tex(es_video->CreateTexture(1024, 768));
+			static Texture_Ptr tex(ESVideo::CreateTexture(1024, 768));
 			uint32_t* pix = tex->Map();
 			memcpy(pix, gui_array, 1024 * 768 * 4);
 			memset(gui_array, 0, sizeof(gui_array));
 			tex->Unmap();
-			es_video->PlaceTexture(tex.get(), Area(0, 0, es_video->GetScreenWidth(), es_video->GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
+			ESVideo::PlaceTexture(tex.get(), Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
 		}
 	}
 }
@@ -664,7 +664,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{
 			VsyncSetting = MDFN_GetSettingB(SETTINGNAME("display.vsync"));
-			es_video->EnableVsync(VsyncSetting);
+			ESVideo::EnableVsync(VsyncSetting);
 		}
 
 		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
@@ -674,7 +674,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			{
 				ImageManager::Purge();
 				ImageManager::LoadImage("GameBorderCustom", BorderSetting);
-				es_video->AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+				ESVideo::AttachBorder(ImageManager::GetImage("GameBorderCustom"));
 			}
 		}
 
@@ -682,7 +682,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
 			ShaderPrescaleSetting = MDFN_GetSettingI(SETTINGNAME("shader.prescale"));
-			es_video->SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), ShaderPrescaleSetting);
+			ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), ShaderPrescaleSetting);
 		}
 	}
 }

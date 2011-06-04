@@ -40,8 +40,8 @@ bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX
 		snprintf(buffer, 250, "%s", (setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(setting->name).c_str());
 
 //HACK: Use real font
-	  //  List->LabelFont->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
-		FontManager::GetBigFont()->PutString(buffer, aX + (es_video->GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	  //  List->LabelFont->PutString(buffer, aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor());
+		FontManager::GetBigFont()->PutString(buffer, aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 
 	}
 	return false;

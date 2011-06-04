@@ -97,7 +97,7 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 	{
 		PNGFile ping(aPath);
 
-		Texture* output = es_video->CreateTexture(ping.Width, ping.Height, true);
+		Texture* output = ESVideo::CreateTexture(ping.Width, ping.Height, true);
 		output->SetFilter(true);
 
 		ping.CopyToTexture(output);

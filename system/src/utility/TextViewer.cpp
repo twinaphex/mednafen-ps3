@@ -37,7 +37,7 @@
 bool					TextViewer::Draw						()
 {
 	uint32_t lineheight = FontManager::GetFixedFont()->GetHeight();
-	LinesDrawn = es_video->GetClip().Height / lineheight;
+	LinesDrawn = ESVideo::GetClip().Height / lineheight;
 	
 	for(int i = 0; i != LinesDrawn; i ++)
 	{

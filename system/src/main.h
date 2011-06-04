@@ -4,7 +4,6 @@
 #define DEC_AND_DEF(a,b)	class a; extern a* b;
 
 DEC_AND_DEF(ESThreads, es_threads);
-DEC_AND_DEF(ESVideo, es_video);
 DEC_AND_DEF(PathBuild, es_paths);
 
 #undef DEC_AND_DEF

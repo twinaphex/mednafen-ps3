@@ -46,7 +46,7 @@ void						Menu::Do					()
 			break;
 		}
 
-		es_video->Flip();
+		ESVideo::Flip();
 	}
 	
 	ESInput::Reset();
