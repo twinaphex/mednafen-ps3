@@ -2,11 +2,11 @@
 
 #include "../opengl_common/Shaders.h"
 
-class								DorkVideo : public ESVideo
+class								CellVideo : public ESVideo
 {
 	public:	
-									DorkVideo				();
-									~DorkVideo				();
+									CellVideo				();
+									~CellVideo				();
 	
 		void						EnableVsync				(bool aOn);
 

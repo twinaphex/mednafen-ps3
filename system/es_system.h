@@ -27,29 +27,14 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/main.h"
 #include "src/luascripter.h"
 
-#ifdef L1GHT
-# include "l1ght/L1ghtPlatform.h"
-# include "l1ght/L1ghtTexture.h"
-# include "l1ght/L1ghtVideo.h"
-# include "l1ght/L1ghtAudio.h"
-# include "l1ght/L1ghtInput.h"
-# include "l1ght/L1ghtNetwork.h"
-#elif defined(MDDORK)
-# include "dork/DorkPlatform.h"
-# include "dork/DorkThreads.h"
+#if defined(MDCELL)
+# include "cell/CellPlatform.h"
+# include "cell/CellThreads.h"
 # include "opengl_common/Texture.h"
-# include "dork/DorkVideo.h"
-# include "dork/DorkAudio.h"
-# include "dork/DorkInput.h"
-# include "dork/DorkNetwork.h"
-#elif defined(MDWII)
-# include "wii/WiiPlatform.h"
-# include "wii/WiiThreads.h"
-# include "wii/WiiTexture.h"
-# include "wii/WiiVideo.h"
-# include "wii/WiiAudio.h"
-# include "wii/WiiInput.h"
-# include "wii/WiiNetwork.h"
+# include "cell/CellVideo.h"
+# include "cell/CellAudio.h"
+# include "cell/CellInput.h"
+# include "cell/CellNetwork.h"
 #else
 # include "sdl/SDLPlatform.h"
 # include "sdl/SDLThreads.h"

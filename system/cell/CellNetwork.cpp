@@ -1,11 +1,11 @@
 #include <es_system.h>
 
-							DorkSocket::DorkSocket			(const char* aHost, uint32_t aPort)
+							CellSocket::CellSocket			(const char* aHost, uint32_t aPort)
 {
 	Socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(Socket == -1)
 	{
-		throw ESException("DorkNetwork: Could not open socket");
+		throw ESException("CellNetwork: Could not open socket");
 	}
 
 	//TODO: gethostby name is appently evil?
@@ -13,7 +13,7 @@
 	if(server == 0)
 	{
 		close(Socket);
-		throw ESException("DorkNetwork: Host look up failed");
+		throw ESException("CellNetwork: Host look up failed");
 	}
 
 	struct sockaddr_in serv_addr;
@@ -25,16 +25,16 @@
 	if(-1 == connect(Socket, (sockaddr*)&serv_addr, sizeof(serv_addr)))
 	{
 		close(Socket);
-		throw ESException("DorkNetwork: connect() failed");
+		throw ESException("CellNetwork: connect() failed");
 	}
 }
 
-							DorkSocket::~DorkSocket			()
+							CellSocket::~CellSocket			()
 {
 	close(Socket);
 }
 
-uint32_t					DorkSocket::ReadString			(void* aBuffer, uint32_t aLength)
+uint32_t					CellSocket::ReadString			(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -49,14 +49,14 @@ uint32_t					DorkSocket::ReadString			(void* aBuffer, uint32_t aLength)
 
 		if(count < 0)
 		{
-			throw ESException("DorkNetwork: failed to read socket");
+			throw ESException("CellNetwork: failed to read socket");
 		}
 	}
 
 	return aLength;
 }
 
-uint32_t					DorkSocket::Read				(void* aBuffer, uint32_t aLength)
+uint32_t					CellSocket::Read				(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
@@ -64,33 +64,33 @@ uint32_t					DorkSocket::Read				(void* aBuffer, uint32_t aLength)
 
 	if(count < 0)
 	{
-		throw ESException("DorkNetwork: failed to read socket");
+		throw ESException("CellNetwork: failed to read socket");
 	}
 
 	return count;
 }
 
-void						DorkSocket::Write				(const void* aBuffer, uint32_t aLength)
+void						CellSocket::Write				(const void* aBuffer, uint32_t aLength)
 {
 	if(aLength != send(Socket, aBuffer, aLength, 0))
 	{
-		throw ESException("DorkNetwork: failed to write socket");
+		throw ESException("CellNetwork: failed to write socket");
 	}
 }
 
-							DorkNetwork::DorkNetwork		()
+							CellNetwork::CellNetwork		()
 {
 //TODO:
 //	netInitialize();
 }
 
-							DorkNetwork::~DorkNetwork		()
+							CellNetwork::~CellNetwork		()
 {
 }
 
-ESSocket*					DorkNetwork::OpenSocket		(const char* aHost, uint32_t aPort)
+ESSocket*					CellNetwork::OpenSocket		(const char* aHost, uint32_t aPort)
 {
-	return new DorkSocket(aHost, aPort);
+	return new CellSocket(aHost, aPort);
 }
 
 

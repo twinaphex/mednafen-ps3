@@ -10,7 +10,7 @@ namespace
 	}
 }
 
-						DorkVideo::DorkVideo			() :
+						CellVideo::CellVideo			() :
 	Device(0),
 	Context(0),
 	ShaderContext(0),
@@ -58,7 +58,7 @@ namespace
 	Presenter = new GLShader(ShaderContext, "", false, 1);
 }
 
-						DorkVideo::~DorkVideo			()
+						CellVideo::~CellVideo			()
 {
 	delete FillerTexture;
 	delete Presenter;
@@ -73,7 +73,7 @@ namespace
 	free(VertexBuffer);
 }
 
-void					DorkVideo::EnableVsync			(bool aOn)
+void					CellVideo::EnableVsync			(bool aOn)
 {
 	if(aOn)
 	{
@@ -85,13 +85,13 @@ void					DorkVideo::EnableVsync			(bool aOn)
 	}
 }
 
-void					DorkVideo::SetClip				(const Area& aClip)
+void					CellVideo::SetClip				(const Area& aClip)
 {
 	ESVideo::SetClip(aClip);
 	glScissor(esClip.X, GetScreenHeight() - esClip.Bottom(), esClip.Width, esClip.Height);
 }
 
-void					DorkVideo::Flip					()
+void					CellVideo::Flip					()
 {
 	psglSwap();
 
@@ -99,7 +99,7 @@ void					DorkVideo::Flip					()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void					DorkVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
+void					CellVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
 	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
 	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
@@ -121,12 +121,12 @@ void					DorkVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination,
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
-void					DorkVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
+void					CellVideo::FillRectangle		(const Area& aArea, uint32_t aColor)
 {
 	PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);
 }
 
-void					DorkVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					CellVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 

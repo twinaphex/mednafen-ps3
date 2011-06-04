@@ -19,7 +19,7 @@
 #include "escape.h"
 
 //ROBO: PS3SDK
-#ifdef MDDORK
+#ifdef MDCELL
 #include <ctype.h>
 #endif
 

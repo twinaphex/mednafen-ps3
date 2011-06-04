@@ -25,7 +25,7 @@
 #define INT(x) ((int)(x))
 
 //ROBO: SoDK
-#ifndef MDDORK
+#ifndef MDCELL
 #define FRACT(x) ((x) - floor(x))
 #else
 #define FRACT(x) (((float)x) - floor((float)x))

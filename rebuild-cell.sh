@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PLATFORM=dork
+export PLATFORM=cell
 cd system
 make clean
 make -j2

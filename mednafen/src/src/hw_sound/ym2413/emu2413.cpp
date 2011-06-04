@@ -237,7 +237,7 @@ makeAdjustTable (void)
   AR_ADJUST_TABLE[0] = (1 << EG_BITS) - 1;
   for (i = 1; i < (1<<EG_BITS); i++)
 //ROBO: It really is a dork
-#ifndef MDDORK
+#ifndef MDCELL
     AR_ADJUST_TABLE[i] = (uint32) ((double) (1<<EG_BITS)-1 - ((1<<EG_BITS)-1)*log(i)/log(127));
 #else
     AR_ADJUST_TABLE[i] = (uint32) ((double) (1<<EG_BITS)-1 - ((1<<EG_BITS)-1)*log((float)i)/log((float)127));

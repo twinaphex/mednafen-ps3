@@ -41,7 +41,7 @@
 #include <errno.h>
 #include <fcntl.h>
 //ROBO: Sony doesn't give you options
-#ifndef MDDORK
+#ifndef MDCELL
 #include <getopt.h>
 #endif
 #include <math.h>

@@ -29,7 +29,7 @@
 #include "NstPins.hpp"
 
 //ROBO: Sony SDK needs this
-#ifdef MDDORK
+#ifdef MDCELL
 using _CSTD wcslen;
 #endif
 
