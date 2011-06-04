@@ -1,9 +1,9 @@
 ifeq ($(strip $(PLATFORM)),)
-	PLATFORM = l1ght
+	PLATFORM = cell
 endif
 
 TARGET		:=	libemusys
-TYPE		:=	a
+TYPE		:=	lib
 BUILD		:=	build
 SOURCE		:=	$(PLATFORM) src opengl_common src/utility src/utility/Files src/utility/GUI src/fex/fex src/fex/7z_C src/utility/GUI/Summerface src/lua src/lua/lua
 INCLUDE		:=	. src src/lua src/fex

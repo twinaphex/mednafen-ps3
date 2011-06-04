@@ -24,15 +24,11 @@ endif
 
 %.so:
 	@echo "[LD]  $(notdir $@)"
-	@$(LD) -shared -Wl,-soname,$(SONAME).so.1 -o $@ $^
+	@$(LD) -shared -Wl,-soname,$(TARGET).so.1 -o $@ $^
 
 %.a:
 	@echo "[AR]  $(notdir $@)"
 	@$(AR) -rcs ../$(TARGET)-$(PLATFORM).a $^
-ifneq ($(strip $(SYMPREFIX)),)
-	python $(TOP)/manhandle.py ../$(TARGET)-$(PLATFORM).a $(SYMPREFIX) $(OBJCOPY) $(NM)
-endif
-
 
 %.elf:
 	@echo "[LD]  $(notdir $@)"
@@ -70,7 +66,12 @@ else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-$(OUTPUT).$(TYPE): $(OFILES)
+OUTTYPE				:=	elf
+ifeq ($(strip $(TYPE)),lib)
+OUTTYPE				:=	a
+endif
+
+$(OUTPUT).$(OUTTYPE): $(OFILES)
 
 -include $(DEPENDS)
 

@@ -1,15 +1,9 @@
 ifeq ($(strip $(PLATFORM)),)
-	PLATFORM = l1ght
+	PLATFORM = cell
 endif
 
 TARGET		:=	libnestopia
-ifeq ($(strip $(PLATFORM)),dll)
-TYPE		:=	so
-else
-TYPE		:=	a
-endif
-SONAME		:=	libnestopia
-#SYMPREFIX	:=	nest
+TYPE		:=	lib
 BUILD		:=	build
 SOURCE		:=	src src/core src/core/api src/core/board src/core/input src/core/vssystem
 INCLUDE		:=	../mednafen/src

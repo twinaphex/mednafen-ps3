@@ -1,15 +1,9 @@
 ifeq ($(strip $(PLATFORM)),)
-	PLATFORM = l1ght
+	PLATFORM = cell
 endif
 
 TARGET		:=	libgambatte
-ifeq ($(strip $(PLATFORM)),dll)
-TYPE		:=	so
-else
-TYPE		:=	a
-endif
-SONAME		:=	libgambatte
-#SYMPREFIX	:=	gmbt
+TYPE		:=	lib
 BUILD		:=	build
 SOURCE		:=	src src/libgambatte/src src/libgambatte/src/file src/libgambatte/src/sound src/libgambatte/src/video src/common src/common/resample
 INCLUDE		:=	../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system
