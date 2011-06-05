@@ -20,20 +20,6 @@ void				ESInput::Shutdown						()
 	}
 }
 
-uint32_t			ESInput::PadCount						()
-{
-	return Joysticks.size() ? Joysticks.size() : 1;
-}
-
-void				ESInput::Reset							()
-{
-	memset(HeldState, 0xFF, sizeof(HeldState));
-	memset(SingleState, 0xFF, sizeof(SingleState));
-	
-	memset(KeyState, 0xFF, sizeof(KeyState));
-	memset(KeySingle, 0xFF, sizeof(KeySingle));
-}
-
 void				ESInput::Refresh						()
 {
 	int numkeys;
@@ -75,118 +61,6 @@ void				ESInput::Refresh						()
 		}
 	}
 }
-
-int32_t				ESInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
-{
-	//TODO: 
-	return 0;
-}
-
-bool				ESInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
-{
-	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
-	{
-		aButton = ESInputs[aButton & 0xFF];
-	}
-
-	Assert(aPad, aButton);
-
-	if(!IsJoystickButton(aButton) && aPad == 0)
-	{
-		return KeyState[aButton & 0xFFFF] == 1;
-	}
-	else
-	{
-		return HeldState[aPad][aButton & 0xFFFF] == 1;
-	}
-}
-
-bool				ESInput::ButtonDown						(uint32_t aPad, uint32_t aButton)
-{
-	if((aButton & 0xFF000000) == 0xFF000000 && (aButton & 0xFF) < 14)
-	{
-		aButton = ESInputs[aButton & 0xFF];
-	}
-
-	Assert(aPad, aButton);
-
-	if(!IsJoystickButton(aButton) && aPad == 0)
-	{
-		return ESInputHelp::HandleSingleState(KeyState[aButton & 0xFFFF], KeySingle[aButton & 0xFFFF]);
-	}
-	else
-	{
-		return ESInputHelp::HandleSingleState(HeldState[aPad][aButton & 0xFFFF], SingleState[aPad][aButton & 0xFFFF]);	
-	}
-}
-
-uint32_t			ESInput::GetAnyButton					(uint32_t aPad)
-{
-	Assert(aPad, 0);
-
-	if(aPad == 0)
-	{
-		for(int i = 0; i != MAXKEYS; i ++)
-		{
-			if(KeyState[i] == 1)
-			{
-				return (1 << 16) | i;
-			}
-		}
-	}
-
-	if(Joysticks.size() > aPad)
-	{
-		for(int i = 0; i != (SDL_JoystickNumAxes(Joysticks[aPad]) * 2 + SDL_JoystickNumHats(Joysticks[aPad]) * 4 + SDL_JoystickNumButtons(Joysticks[aPad])); i ++)
-		{
-			if(HeldState[aPad][i] == 1)
-			{
-				return i;
-			}
-		}
-	}
-
-	return 0xFFFFFFFF;
-}
-
-std::string			ESInput::GetButtonName					(uint32_t aButton)
-{
-	Assert(0, aButton);
-	
-	if(!IsJoystickButton(aButton))
-	{
-		return SDL_GetKeyName((SDLKey)(aButton & 0xFFFF));
-	}
-	else
-	{
-		//TODO: Return real string
-		return std::string("JSBUTTON");
-	}
-}
-
-std::string			ESInput::GetButtonImage					(uint32_t aButton)
-{
-	//TODO:
-	Assert(0, aButton);
-
-	return "NOIMAGE";
-}
-
-void				ESInput::Assert							(uint32_t aPad, uint32_t aButton)
-{
-	if(aPad >= MAXPADS || (IsJoystickButton(aButton) && aButton >= BUTTONS) || (!IsJoystickButton(aButton) && (aButton & 0xFFFF) >= MAXKEYS))
-	{
-		Abort("SDLInput: Pad or Button out of range.");
-	}
-}
-
-bool				ESInput::IsJoystickButton				(uint32_t aButton)
-{
-	return (aButton >> 16) == 0;
-}
-
-void				ESInput::Assert					(uint32_t aPad, uint32_t aButton);
-bool				ESInput::IsJoystickButton		(uint32_t aButton);
 		
 std::vector<SDL_Joystick*>	ESInput::Joysticks;
 uint32_t			ESInput::ESInputs[14];

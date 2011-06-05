@@ -19,13 +19,6 @@ void					ESAudio::Shutdown				()
 	SDL_CloseAudio();
 }
 
-void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
-{
-	SDL_LockAudio();
-	Buffer.WriteData(aSamples, aCount);
-	SDL_UnlockAudio();
-}
-
 void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 {
 	Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);

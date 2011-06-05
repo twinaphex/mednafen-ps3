@@ -20,27 +20,6 @@ void				ESInput::Initialize						()
 	Large = 0;
 }
 
-void				ESInput::Shutdown						()
-{
-	cellPadEnd();
-}
-
-uint32_t			ESInput::PadCount						()
-{
-	return PadInfo.now_connect;
-}
-
-void				ESInput::Reset							()
-{
-	for(int i = 0; i != PadCount(); i ++)
-	{
-		cellPadClearBuf(i);
-	}
-
-	memset(HeldState, 0xFF, sizeof(HeldState));
-	memset(SingleState, 0xFF, sizeof(SingleState));
-}
-
 void				ESInput::Refresh						()
 {
 	cellPadGetInfo2(&PadInfo);
@@ -73,79 +52,6 @@ void				ESInput::Refresh						()
 		CellPadActParam param = {Small & 1, Large & 0xFF};
 		cellPadSetActDirect(0, &param);
 	}
-}
-
-int32_t				ESInput::GetAxis						(uint32_t aPad, uint32_t aAxis)
-{
-	Assert(aPad, 0, aAxis);
-
-	if(aPad < PadCount())
-	{
-		int realaxis = AXISCOUNT + (AXISCOUNT - 1 - aAxis);
-		return (int16_t)(CurrentState[aPad].button[realaxis]) - 0x80;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-bool				ESInput::ButtonPressed					(uint32_t aPad, uint32_t aButton)
-{
-	Assert(aPad, aButton);
-
-	return HeldState[aPad][aButton] == 1;
-}
-
-bool				ESInput::ButtonDown						(uint32_t aPad, uint32_t aButton)
-{
-	Assert(aPad, aButton);
-
-	return ESInputHelp::HandleSingleState(HeldState[aPad][aButton], SingleState[aPad][aButton]);	
-}
-
-uint32_t			ESInput::GetAnyButton					(uint32_t aPad)
-{
-	Assert(aPad, 0);
-	
-	for(int i = 0; i != BUTTONS; i ++)
-	{
-		if(HeldState[aPad][i] == 1)
-		{
-			return i;
-		}
-	}
-
-	return 0xFFFFFFFF;
-}
-
-std::string			ESInput::GetButtonName					(uint32_t aButton)
-{
-	Assert(0, aButton);
-
-	return ButtonNames[aButton];
-}
-
-std::string			ESInput::GetButtonImage					(uint32_t aButton)
-{
-	Assert(0, aButton);
-
-	return ButtonNames[aButton] + "IMAGE";
-}
-
-void				ESInput::Assert							(uint32_t aPad, uint32_t aButton, uint32_t aAxis)
-{
-	if(aPad >= MAXPADS || aButton >= BUTTONS || aAxis >= AXISCOUNT)
-	{
-		Abort("CellInput: Pad or Button out of range");
-	}
-}
-
-void				ESInput::RumbleOn						(uint32_t aSmall, uint32_t aLarge)
-{
-	Small = aSmall;
-	Large = aLarge;
-	Refresh();
 }
 
 CellPadInfo2		ESInput::PadInfo;

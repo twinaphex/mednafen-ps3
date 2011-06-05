@@ -138,3 +138,4 @@ Texture*									ImageManager::GetImage								(const std::string& aName)
 
 std::string									ImageManager::Directory;
 std::map<std::string, Texture*>				ImageManager::Images;
+
