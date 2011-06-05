@@ -112,6 +112,9 @@ class				Utility
 		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
 		{
 #ifndef NO_READDIR
+#ifndef S_ISDIR
+#define S_ISDIR(a) ((a & S_IFMT) == S_IFDIR)
+#endif
 			DIR* dirhandle;
 			struct dirent* item;
 			
@@ -122,12 +125,12 @@ class				Utility
 					struct stat statbuf;
 					stat((aPath + item->d_name).c_str(), &statbuf);
 				
-					if((statbuf.st_mode & S_IFDIR) && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
+					if(S_ISDIR(statbuf.st_mode) && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
 					{
 						continue;
 					}
 
-					aOutput.push_back(std::string(item->d_name) + ((statbuf.st_mode & S_IFDIR) ? "/" : ""));
+					aOutput.push_back(std::string(item->d_name) + (S_ISDIR(statbuf.st_mode) ? "/" : ""));
 				}
 
 				closedir(dirhandle);				

@@ -3,20 +3,6 @@
 class													ImageManager
 {
 	public:
-		struct											PNGFile
-		{
-														PNGFile							(const std::string& aFileName);
-														~PNGFile						();
-			void										CopyToTexture					(Texture* aTexture);
-			
-			png_structp									png_ptr;
-			png_infop									info_ptr;
-			png_bytep*									row_pointers;
-			uint32_t									Width;
-			uint32_t									Height;
-		};
-	
-	public:
 		static void										Purge							();
 		static void										SetDirectory					(const std::string& aPath) {Directory = aPath;}
 
