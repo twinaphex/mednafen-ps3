@@ -221,7 +221,7 @@ std::string								FileSelect::GetFile					()
 	}
 	else
 	{
-		throw ESException("FileSelect::GetFile: FileSelect object is invalid.");
+		ErrorCheck(0, "FileSelect::GetFile: FileSelect object is invalid.");
 	}
 }
 

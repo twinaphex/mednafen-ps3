@@ -73,10 +73,7 @@ void				ReloadEmulator			(const std::string& aFileName)
 		Summerface_Ptr sface = Summerface::Create("Archive", archive);
 
 		//If there are no items we are lost
-		if(archive->GetItemCount() == 0)
-		{
-			throw ESException("Loader: Could not read file [File: %s]", filename.c_str());
-		}
+		ErrorCheck(archive->GetItemCount() != 0, "Loader: Could not read file [File: %s]", filename.c_str());
 
 		//If there is more than one file, run a list to get the specific file
 		if(archive->GetItemCount() > 1)
@@ -163,12 +160,14 @@ int					main					(int argc, char* argv[])
 		Exit();
 		abort();
 	}
+#ifdef USE_ERRORCHECK
 	catch(ESException& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();
 	}
+#endif
 	catch(std::exception& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
