@@ -45,42 +45,26 @@
 #define RTS			0x0020
 #define SIO_RESET	0x0040
 
+PSXSIO_DataDef		PSXSIO_Data;
+
 // *** FOR WORKS ON PADS AND MEMORY CARDS *****
-
-
-void LoadDongle( char *str );
-void SaveDongle( char *str );
-
-
-#define BUFFER_SIZE 0x1010
-
-static unsigned char buf[ BUFFER_SIZE ];
-
 unsigned char cardh[4] = { 0x00, 0x00, 0x5a, 0x5d };
 
-// Transfer Ready and the Buffer is Empty
-// static unsigned short StatReg = 0x002b;
-static unsigned short StatReg = TX_RDY | TX_EMPTY;
-static unsigned short ModeReg;
-static unsigned short CtrlReg;
-static unsigned short BaudReg;
-
-static unsigned int bufcount;
-static unsigned int parp;
-static unsigned int mcdst, rdwr;
-static unsigned char adrH, adrL;
-static unsigned int padst;
-static unsigned int gsdonglest;
-
-char Mcd1Data[MCD_SIZE], Mcd2Data[MCD_SIZE];
-
-
-#define DONGLE_SIZE 0x40 * 0x1000
-
-unsigned int DongleBank;
-unsigned char DongleData[ DONGLE_SIZE ];
-static int DongleInit;
-
+#define buf PSXSIO_Data.Buffer
+#define StatReg PSXSIO_Data.Status
+#define ModeReg PSXSIO_Data.Mode
+#define CtrlReg PSXSIO_Data.Control
+#define BaudReg PSXSIO_Data.Baud
+#define bufcount PSXSIO_Data.bufcount
+#define parp PSXSIO_Data.parp
+#define mcdst PSXSIO_Data.mcdst
+#define rdwr PSXSIO_Data.rdwr
+#define adrH PSXSIO_Data.adrH
+#define adrL PSXSIO_Data.adrL
+#define padst PSXSIO_Data.padst
+#define gsdonglest PSXSIO_Data.gsdonglest
+#define Mcd1Data PSXSIO_Data.Mcd1Data
+#define Mcd2Data PSXSIO_Data.Mcd2Data
 
 #if 0
 // Breaks Twisted Metal 2 intro
@@ -117,21 +101,20 @@ static int DongleInit;
 // ePSXe 1.7.0
 //#define SIO_CYCLES 635
 
-unsigned char reverse_8( unsigned char bits )
+void					PSXSIO_WriteControl				(uint16_t aValue)
 {
-	unsigned char tmp;
-	int lcv;
-
-	tmp = 0;
-	for( lcv = 0; lcv < 8; lcv++ )
+	PSXSIO_Data.Control = aValue & ~RESET_ERR;
+	if(aValue & RESET_ERR)
 	{
-		tmp >>= 1;
-		tmp |= (bits & 0x80);
-
-		bits <<= 1;
+		PSXSIO_Data.Status &= ~IRQ;
 	}
 
-	return tmp;
+	if((PSXSIO_Data.Control & SIO_RESET) || (!PSXSIO_Data.Control))
+	{
+		padst = 0; mcdst = 0; parp = 0;
+		StatReg = TX_RDY | TX_EMPTY;
+		psxRegs.interrupt &= ~(1 << PSXINT_SIO);
+	}
 }
 
 
@@ -300,363 +283,6 @@ void sioWrite8(unsigned char value) {
 			return;
 	}
 
-
-	/*
-	GameShark CDX
-	
-	ae - be - ef - 04 + [00]
-	ae - be - ef - 01 + 00 + [00] * $1000
-	ae - be - ef - 01 + 42 + [00] * $1000
-	ae - be - ef - 03 + 01,01,1f,e3,85,ae,d1,28 + [00] * 4
-	*/
-	switch (gsdonglest) {
-		// main command loop
-		case 1:
-			SIO_INT( SIO_CYCLES );
-
-			// GS CDX
-			// - unknown output
-
-			// reset device when fail?
-			if( value == 0xae )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-			}
-
-
-			// GS CDX
-			else if( value == 0xbe )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-
-				buf[0] = reverse_8( 0xde );
-			}
-
-
-			// GS CDX
-			else if( value == 0xef )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-
-				buf[0] = reverse_8( 0xad );
-			}
-
-
-			// GS CDX [1 in + $1000 out + $1 out]
-			else if( value == 0x01 )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-
-				// $00 = 0000 0000
-				// - (reverse) 0000 0000
-				buf[0] = 0x00;
-				gsdonglest = 2;
-			}
-
-
-			// GS CDX [1 in + $1000 in + $1 out]
-			else if( value == 0x02 )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-
-				// $00 = 0000 0000
-				// - (reverse) 0000 0000
-				buf[0] = 0x00;
-				gsdonglest = 3;
-			}
-
-
-			// GS CDX [8 in, 4 out]
-			else if( value == 0x03 )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-				// $00 = 0000 0000
-				// - (reverse) 0000 0000
-				buf[0] = 0x00;
-
-				gsdonglest = 4;
-			}
-
-
-			// GS CDX [out 1]
-			else if( value == 0x04 )
-			{
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-
-
-				// $00 = 0000 0000
-				// - (reverse) 0000 0000
-				buf[0] = 0x00;
-				gsdonglest = 5;
-			}
-			else
-			{
-				// ERROR!!
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-				buf[0] = 0xff;
-
-				gsdonglest = 0;
-			}
-
-			return;
-
-
-		// be - ef - 01
-		case 2: {
-			unsigned char checksum;
-			unsigned int lcv;
-
-			SIO_INT( SIO_CYCLES );
-			StatReg |= RX_RDY;
-
-
-			// read 1 byte
-			DongleBank = buf[ 0 ];
-
-
-			// write data + checksum
-			checksum = 0;
-			for( lcv = 0; lcv < 0x1000; lcv++ )
-			{
-				unsigned char data;
-
-				data = DongleData[ DongleBank * 0x1000 + lcv ];
-
-				buf[ lcv+1 ] = reverse_8( data );
-				checksum += data;
-			}
-
-
-			parp = 0;
-			bufcount = 0x1001;
-			buf[ 0x1001 ] = reverse_8( checksum );
-
-
-			gsdonglest = 255;
-			return;
-		}
-
-
-		// be - ef - 02
-		case 3:
-			SIO_INT( SIO_CYCLES );
-			StatReg |= RX_RDY;
-
-			// command start
-			if( parp < 0x1000+1 )
-			{
-				// read 1 byte
-				buf[ parp ] = value;
-				parp++;
-			}
-
-			if( parp == 0x1001 )
-			{
-				unsigned char checksum;
-				unsigned int lcv;
-
-				DongleBank = buf[0];
-				memcpy( DongleData + DongleBank * 0x1000, buf+1, 0x1000 );
-
-				// save to file
-				SaveDongle( "memcards/CDX_Dongle.bin" );
-
-
-				// write 8-bit checksum
-				checksum = 0;
-				for( lcv = 1; lcv < 0x1001; lcv++ )
-				{
-					checksum += buf[ lcv ];
-				}
-
-				parp = 0;
-				bufcount = 1;
-				buf[1] = reverse_8( checksum );
-
-
-				// flush result
-				gsdonglest = 255;
-			}
-			return;
-
-
-		// be - ef - 03
-		case 4:
-			SIO_INT( SIO_CYCLES );
-			StatReg |= RX_RDY;
-
-			// command start
-			if( parp < 8 )
-			{
-				// read 2 (?,?) + 4 (DATA?) + 2 (CRC?)
-				buf[ parp ] = value;
-				parp++;
-			}
-
-			if( parp == 8 )
-			{
-				// now write 4 bytes via -FOUR- $00 writes
-				parp = 8;
-				bufcount = 12;
-
-
-				// TODO: Solve CDX algorithm
-
-
-				// GS CDX [magic key]
-				if( buf[2] == 0x12 && buf[3] == 0x34 &&
-						buf[4] == 0x56 && buf[5] == 0x78 )
-				{
-					buf[9] = reverse_8( 0x3e );
-					buf[10] = reverse_8( 0xa0 );
-					buf[11] = reverse_8( 0x40 );
-					buf[12] = reverse_8( 0x29 );
-				}
-
-				// GS CDX [address key #2 = 6ec]
-				else if( buf[2] == 0x1f && buf[3] == 0xe3 &&
-								 buf[4] == 0x45 && buf[5] == 0x60 )
-				{
-					buf[9] = reverse_8( 0xee );
-					buf[10] = reverse_8( 0xdd );
-					buf[11] = reverse_8( 0x71 );
-					buf[12] = reverse_8( 0xa8 );
-				}
-
-				// GS CDX [address key #3 = ???]
-				else if( buf[2] == 0x1f && buf[3] == 0xe3 &&
-								 buf[4] == 0x72 && buf[5] == 0xe3 )
-				{
-					// unsolved!!
-
-					// Used here: 80090348 / 80090498
-
-					// dummy value - MSB
-					buf[9] = reverse_8( 0xfa );
-					buf[10] = reverse_8( 0xde );
-					buf[11] = reverse_8( 0x21 );
-					buf[12] = reverse_8( 0x97 );
-				}
-
-				// GS CDX [address key #4 = a00]
-				else if( buf[2] == 0x1f && buf[3] == 0xe3 &&
-								 buf[4] == 0x85 && buf[5] == 0xae )
-				{
-					buf[9] = reverse_8( 0xee );
-					buf[10] = reverse_8( 0xdd );
-					buf[11] = reverse_8( 0x7d );
-					buf[12] = reverse_8( 0x44 );
-				}
-
-				// GS CDX [address key #5 = 9ec]
-				else if( buf[2] == 0x17 && buf[3] == 0xe3 &&
-								 buf[4] == 0xb5 && buf[5] == 0x60 )
-				{
-					buf[9] = reverse_8( 0xee );
-					buf[10] = reverse_8( 0xdd );
-					buf[11] = reverse_8( 0x7e );
-					buf[12] = reverse_8( 0xa8 );
-				}
-
-				else
-				{
-					// dummy value - MSB
-					buf[9] = reverse_8( 0xfa );
-					buf[10] = reverse_8( 0xde );
-					buf[11] = reverse_8( 0x21 );
-					buf[12] = reverse_8( 0x97 );
-				}						
-
-				// flush bytes -> done
-				gsdonglest = 255;
-			}
-			return;
-
-
-		// be - ef - 04
-		case 5:
-			if( value == 0x00 )
-			{
-				SIO_INT( SIO_CYCLES );
-				StatReg |= RX_RDY;
-
-
-				// read 1 byte
-				parp = 0;
-				bufcount = parp;
-
-				// size of dongle card?
-				buf[ 0 ] = reverse_8( DONGLE_SIZE / 0x1000 );
-
-
-				// done already
-				gsdonglest = 0;
-			}
-			return;
-
-
-		// flush bytes -> done
-		case 255:
-			if( value == 0x00 )
-			{
-				//SIO_INT( SIO_CYCLES );
-				SIO_INT(1);
-				StatReg |= RX_RDY;
-
-				parp++;
-				if( parp == bufcount )
-				{
-					gsdonglest = 0;
-
-#ifdef GSDONGLE_LOG
-					PAD_LOG("(gameshark dongle) DONE!!\n" );
-#endif
-				}
-			}
-			else
-			{
-				// ERROR!!
-				StatReg |= RX_RDY;
-
-				parp = 0;
-				bufcount = parp;
-				buf[0] = 0xff;
-
-				gsdonglest = 0;
-			}
-			return;
-	}
-
-
 	switch (value) {
 		case 0x01: // start pad
 			StatReg |= RX_RDY;		// Transfer is Ready
@@ -681,49 +307,15 @@ void sioWrite8(unsigned char value) {
 			SIO_INT(SIO_CYCLES);
 			return;
 
-		case 0xae: // GameShark CDX - start dongle
-			StatReg |= RX_RDY;
-			gsdonglest = 1;
-
-			parp = 0;
-			bufcount = parp;
-
-			if( !DongleInit )
-			{
-				LoadDongle( "memcards/CDX_Dongle.bin" );
-
-				DongleInit = 1;
-			}
-
-			SIO_INT( SIO_CYCLES );
-			return;
-
 		default: // no hardware found
 			StatReg |= RX_RDY;
 			return;
 	}
 }
 
-void sioWriteStat16(unsigned short value) {
-}
 
-void sioWriteMode16(unsigned short value) {
-	ModeReg = value;
-}
 
-void sioWriteCtrl16(unsigned short value) {
-	CtrlReg = value & ~RESET_ERR;
-	if (value & RESET_ERR) StatReg &= ~IRQ;
-	if ((CtrlReg & SIO_RESET) || (!CtrlReg)) {
-		padst = 0; mcdst = 0; parp = 0;
-		StatReg = TX_RDY | TX_EMPTY;
-		psxRegs.interrupt &= ~(1 << PSXINT_SIO);
-	}
-}
 
-void sioWriteBaud16(unsigned short value) {
-	BaudReg = value;
-}
 
 unsigned char sioRead8() {
 	unsigned char ret = 0;
@@ -762,36 +354,6 @@ unsigned char sioRead8() {
 	return ret;
 }
 
-unsigned short sioReadStat16() {
-	u16 hard;
-
-	hard = StatReg;
-
-#if 0
-	// wait for IRQ first
-	if( psxRegs.interrupt & (1 << PSXINT_SIO) )
-	{
-		hard &= ~TX_RDY;
-		hard &= ~RX_RDY;
-		hard &= ~TX_EMPTY;
-	}
-#endif
-
-	return hard;
-}
-
-unsigned short sioReadMode16() {
-	return ModeReg;
-}
-
-unsigned short sioReadCtrl16() {
-	return CtrlReg;
-}
-
-unsigned short sioReadBaud16() {
-	return BaudReg;
-}
-
 void sioInterrupt() {
 #ifdef PAD_LOG
 	PAD_LOG("Sio Interrupt (CP0.Status = %x)\n", psxRegs.CP0.n.Status);
@@ -825,12 +387,12 @@ void LoadMcd(int mcd, char *str) {
 		CreateMcd(str);
 		f = fopen(str, "rb");
 		if (f != NULL) {
-			struct stat buf;
+			struct stat buff;
 
-			if (stat(str, &buf) != -1) {
-				if (buf.st_size == MCD_SIZE + 64)
+			if (stat(str, &buff) != -1) {
+				if (buff.st_size == MCD_SIZE + 64)
 					fseek(f, 64, SEEK_SET);
-				else if(buf.st_size == MCD_SIZE + 3904)
+				else if(buff.st_size == MCD_SIZE + 3904)
 					fseek(f, 3904, SEEK_SET);
 			}
 			fread(data, 1, MCD_SIZE, f);
@@ -840,12 +402,12 @@ void LoadMcd(int mcd, char *str) {
 			SysMessage(_("Memory card %s failed to load!\n"), str);
 	}
 	else {
-		struct stat buf;
+		struct stat buff;
 		SysPrintf(_("Loading memory card %s\n"), str);
-		if (stat(str, &buf) != -1) {
-			if (buf.st_size == MCD_SIZE + 64)
+		if (stat(str, &buff) != -1) {
+			if (buff.st_size == MCD_SIZE + 64)
 				fseek(f, 64, SEEK_SET);
-			else if(buf.st_size == MCD_SIZE + 3904)
+			else if(buff.st_size == MCD_SIZE + 3904)
 				fseek(f, 3904, SEEK_SET);
 		}
 		fread(data, 1, MCD_SIZE, f);
@@ -863,12 +425,12 @@ void SaveMcd(char *mcd, char *data, uint32_t adr, int size) {
 
 	f = fopen(mcd, "r+b");
 	if (f != NULL) {
-		struct stat buf;
+		struct stat buff;
 
-		if (stat(mcd, &buf) != -1) {
-			if (buf.st_size == MCD_SIZE + 64)
+		if (stat(mcd, &buff) != -1) {
+			if (buff.st_size == MCD_SIZE + 64)
 				fseek(f, adr + 64, SEEK_SET);
-			else if (buf.st_size == MCD_SIZE + 3904)
+			else if (buff.st_size == MCD_SIZE + 3904)
 				fseek(f, adr + 3904, SEEK_SET);
 			else
 				fseek(f, adr, SEEK_SET);
@@ -894,7 +456,7 @@ void SaveMcd(char *mcd, char *data, uint32_t adr, int size) {
 
 void CreateMcd(char *mcd) {
 	FILE *f;
-	struct stat buf;
+	struct stat buff;
 	int s = MCD_SIZE;
 	int i = 0, j;
 
@@ -902,8 +464,8 @@ void CreateMcd(char *mcd) {
 	if (f == NULL)
 		return;
 
-	if (stat(mcd, &buf) != -1) {
-		if ((buf.st_size == MCD_SIZE + 3904) || strstr(mcd, ".gme")) {
+	if (stat(mcd, &buff) != -1) {
+		if ((buff.st_size == MCD_SIZE + 3904) || strstr(mcd, ".gme")) {
 			s = s + 3904;
 			fputc('1', f);
 			s--;
@@ -950,7 +512,7 @@ void CreateMcd(char *mcd) {
 			fputc(0xff, f);
 			while (s-- > (MCD_SIZE + 1))
 				fputc(0, f);
-		} else if ((buf.st_size == MCD_SIZE + 64) || strstr(mcd, ".mem") || strstr(mcd, ".vgs")) {
+		} else if ((buff.st_size == MCD_SIZE + 64) || strstr(mcd, ".mem") || strstr(mcd, ".vgs")) {
 			s = s + 64;
 			fputc('V', f);
 			s--;
@@ -1224,49 +786,4 @@ int sioFreeze(gzFile f, int Mode) {
 }
 
 
-void LoadDongle( char *str )
-{
-	FILE *f;
-	
-	f = fopen(str, "r+b");
-	if (f != NULL) {
-		fread( DongleData, 1, DONGLE_SIZE, f );
-		fclose( f );
-	}
-	else {
-		u32 *ptr, lcv;
 
-		ptr = (unsigned int *) DongleData;
-
-		// create temp data
-		ptr[0] = (u32) 0x02015447;
-		ptr[1] = (u32) 7;
-		ptr[2] = (u32) 1;
-		ptr[3] = (u32) 0;
-
-		for( lcv=4; lcv<0x6c / 4; lcv++ )
-		{
-			ptr[ lcv ] = 0;
-		}
-
-		ptr[ lcv ] = (u32) 0x02000100;
-		lcv++;
-
-		while( lcv < 0x1000/4 )
-		{
-			ptr[ lcv ] = (u32) 0xffffffff;
-			lcv++;
-		}
-	}
-}
-
-void SaveDongle( char *str )
-{
-	FILE *f;
-	
-	f = fopen(str, "wb");
-	if (f != NULL) {
-		fwrite( DongleData, 1, DONGLE_SIZE, f );
-		fclose( f );
-	}
-}
