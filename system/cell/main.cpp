@@ -36,14 +36,16 @@ void				ESSUB_Init				()
 		}
 	}
 
-//	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);		
+	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);
 	cellSysmoduleLoadModule(CELL_SYSMODULE_NET);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_PNGDEC);
 }
 
 void				ESSUB_Quit				()
 {
+	cellSysmoduleUnloadModule(CELL_SYSMODULE_PNGDEC);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
-//	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);	
+	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);	
 
 	cellSysutilUnregisterCallback(0);
 }
@@ -70,4 +72,5 @@ std::string			ESSUB_GetBaseDirectory	()
 {
 	return "/dev_hdd0/game/MDFN90002/USRDIR/";
 }
+
 

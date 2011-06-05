@@ -1,7 +1,15 @@
 #include <es_system.h>
 
-											ImageManager::PNGFile::PNGFile						(const std::string& aPath)
+#ifndef ES_HAVE_LOADPNG
+void										ESSUB_LoadPNG										(const std::string& aPath, Texture** aTexture)
 {
+	png_structp png_ptr;
+	png_infop info_ptr;
+	png_bytep* row_pointers;
+	uint32_t Width;
+	uint32_t Height;
+
+	//Load
 	uint8_t header[8];
 		
 	FILE *fp = fopen(aPath.c_str(), "rb");
@@ -35,26 +43,19 @@
 	row_pointers = png_get_rows(png_ptr, info_ptr);
 	Width = png_get_image_width(png_ptr, info_ptr);
 	Height = png_get_image_height(png_ptr, info_ptr);
-}
 
-											ImageManager::PNGFile::~PNGFile						()
-{
-	png_destroy_info_struct(png_ptr, &info_ptr);
-	png_destroy_read_struct(&png_ptr, 0, 0);
-}
+	//Copy to texture
+	Texture* output = ESVideo::CreateTexture(Width, Height, true);
+	output->Clear(0);
 
-void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
-{
-	aTexture->Clear(0);
+	uint32_t copyWidth = std::min(Width, output->GetWidth());
+	uint32_t copyHeight = std::min(Height, output->GetHeight());
 
-	uint32_t copyWidth = std::min(Width, aTexture->GetWidth());
-	uint32_t copyHeight = std::min(Height, aTexture->GetHeight());
-
-	uint32_t* texPixels = aTexture->Map();
+	uint32_t* texPixels = output->Map();
 
 	for(int i = 0; i != copyHeight; i ++)
 	{
-		uint32_t* dest = texPixels + (aTexture->GetPitch() * i);
+		uint32_t* dest = texPixels + (output->GetPitch() * i);
 		uint8_t* source = row_pointers[i];
 
 		for(int j = 0; j != copyWidth; j ++)
@@ -63,12 +64,18 @@ void										ImageManager::PNGFile::CopyToTexture				(Texture* aTexture)
 			uint32_t r = *source ++;
 			uint32_t g = *source ++;
 			uint32_t b = *source ++;
-			*dest++ = aTexture->ConvertPixel(r, g, b, a);
+			*dest++ = output->ConvertPixel(r, g, b, a);
 		}
 	}
 
-	aTexture->Unmap();
+	output->Unmap();
+	*aTexture = output;
+
+	//Close
+	png_destroy_info_struct(png_ptr, &info_ptr);
+	png_destroy_read_struct(&png_ptr, 0, 0);
 }
+#endif
 
 void										ImageManager::Purge									()
 {
@@ -95,12 +102,10 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 
 	if(Images.find(aName) == Images.end())
 	{
-		PNGFile ping(aPath);
+		Texture* output;
 
-		Texture* output = ESVideo::CreateTexture(ping.Width, ping.Height, true);
+		ESSUB_LoadPNG(aPath, &output);
 		output->SetFilter(true);
-
-		ping.CopyToTexture(output);
 		
 		Images[aName] = output;
 	}
