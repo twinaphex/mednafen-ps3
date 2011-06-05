@@ -1,4 +1,4 @@
-#pragma once
+#if 0
 
 class								Texture
 {
@@ -44,3 +44,4 @@ uint32_t							Texture::ConvertPixel	(uint8_t aRed, uint8_t aGreen, uint8_t aBlu
 {
 	return (aRed << GetRedShift()) | (aBlue << GetBlueShift()) | (aGreen << GetGreenShift()) | (aAlpha << GetAlphaShift());
 }
+#endif

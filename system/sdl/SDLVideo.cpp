@@ -36,7 +36,7 @@ void					ESVideo::Initialize				()
 	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 
 	//Texture for FillRectangle
-	FillerTexture = new GLTexture(2, 2);
+	FillerTexture = new Texture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
 
 	//Init shaders
@@ -88,7 +88,7 @@ void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, c
 	yl = (float)aSource.Y / (float)aTexture->GetHeight();
 	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
 
-	((GLTexture*)aTexture)->Apply();
+	aTexture->Apply();
 	OpenGLHelp::SetVertex(&VertexBuffer[0 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Y, r, g, b, a, xl, yl);
 	OpenGLHelp::SetVertex(&VertexBuffer[1 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Y, r, g, b, a, xr, yl);
 	OpenGLHelp::SetVertex(&VertexBuffer[2 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
@@ -110,16 +110,16 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int3
 
 	const Area& output = OpenGLHelp::CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
-	((GLTexture*)aTexture)->Apply();
+	aTexture->Apply();
 
 	GLuint borderTexture = 0;
 	if(Border)
 	{
-		((GLTexture*)Border)->Apply();
-		borderTexture = Border ? ((GLTexture*)Border)->GetID() : 0;
+		Border->Apply();
+		borderTexture = Border ? Border->GetID() : 0;
 	}
 
-	Presenter->Present(((GLTexture*)aTexture)->GetID(), borderTexture);
+	Presenter->Present(aTexture->GetID(), borderTexture);
 
 	//Exit present state
 	OpenGLHelp::ExitPresentState();
