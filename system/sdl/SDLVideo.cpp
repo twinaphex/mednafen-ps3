@@ -50,14 +50,6 @@ void					ESVideo::Shutdown				()
 	free(VertexBuffer);
 }
 
-void					ESVideo::EnableVsync			(bool aOn)
-{
-	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
-//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
-	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
-}
-
 void					SetExit							();
 void					ESVideo::Flip					()
 {

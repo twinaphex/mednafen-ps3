@@ -5,10 +5,10 @@
 class								ESVideo
 {
 	public:	
-		static void					Initialize				();
-		static void					Shutdown				();
+		static void					Initialize				(); //External
+		static void					Shutdown				(); //External
 
-		static void					EnableVsync				(bool aOn);
+		static inline void			EnableVsync				(bool aOn); //Below
 	
 		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new GLTexture(aWidth, aHeight);};
 	
@@ -19,7 +19,7 @@ class								ESVideo
 		static inline void			SetClip					(const Area& aClip); //Below
 		static const Area&			GetClip					() {return Clip;}
 	
-		static void					Flip					();
+		static void					Flip					(); //External
 		
 		static void					PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //External
 		static void					FillRectangle			(const Area& aArea, uint32_t aColor) {PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);}
@@ -46,6 +46,14 @@ class								ESVideo
 };
 
 //---Inlines
+void					ESVideo::EnableVsync			(bool aOn)
+{
+	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
+//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
+	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
+}
+
 void								ESVideo::SetClip					(const Area& aClip)
 {
 	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());

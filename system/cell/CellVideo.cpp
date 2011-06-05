@@ -49,26 +49,6 @@ void					ESVideo::Shutdown				()
 	free(VertexBuffer);
 }
 
-void					ESVideo::EnableVsync			(bool aOn)
-{
-	if(aOn)
-	{
-		glEnable(GL_VSYNC_SCE);
-	}
-	else
-	{
-		glDisable(GL_VSYNC_SCE);
-	}
-}
-
-void					ESVideo::Flip					()
-{
-	psglSwap();
-
-	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
-	glClear(GL_COLOR_BUFFER_BIT);
-}
-
 void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
 	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
@@ -102,6 +82,7 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int3
 	//Enter present state
 	OpenGLHelp::EnterPresentState();
 
+	const Area& output = OpenGLHelp::CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 	Presenter->Set(output, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
 	((GLTexture*)aTexture)->Apply();
 
@@ -112,7 +93,6 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int3
 		borderTexture = Border ? ((GLTexture*)Border)->GetID() : 0;
 	}
 
-	const Area& output = OpenGLHelp::CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
 	Presenter->Present(((GLTexture*)aTexture)->GetID(), borderTexture);
 
 	//Exit present state

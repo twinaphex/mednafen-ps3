@@ -1,6 +1,8 @@
 #ifndef PS3_SYSTEM_H____
 #define PS3_SYSTEM_H____
 
+#define	ginline extern inline 
+
 #include "src/stdheaders.h"
 #include "src/ESException.h"
 inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
