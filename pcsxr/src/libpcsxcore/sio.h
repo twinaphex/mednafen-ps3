@@ -24,30 +24,67 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "psxcommon.h"
 #include "r3000a.h"
+#include "psxcommon.h"
 #include "psxmem.h"
 #include "plugins.h"
 #include "psemu_plugin_defs.h"
 
+#define BUFFER_SIZE 0x1010
+#define DONGLE_SIZE 0x40 * 0x1000
 #define MCD_SIZE	(1024 * 8 * 16)
 
-extern char Mcd1Data[MCD_SIZE], Mcd2Data[MCD_SIZE];
+typedef	struct
+{
+	uint8_t				Buffer[BUFFER_SIZE];
+
+	uint16_t			Status;	//This had a default, its gone now, but should probably come back
+	uint16_t			Mode;
+	uint16_t			Control;
+	uint16_t			Baud;
+
+	uint32_t			bufcount;
+	uint32_t			parp;
+	uint32_t			mcdst, rdwr;
+	uint8_t				adrH, adrL;
+	uint32_t			padst;
+	uint32_t			gsdonglest;
+	int8_t				Mcd1Data[MCD_SIZE], Mcd2Data[MCD_SIZE];
+	uint32_t			DongleBank;
+	uint8_t				DongleData[DONGLE_SIZE];
+	int32_t				DongleInit;
+}	PSXSIO_DataDef;
+extern PSXSIO_DataDef PSXSIO_Data;
+
+//Earmarked for removal
+#define Mcd1Data	PSXSIO_Data.Mcd1Data
+#define Mcd2Data	PSXSIO_Data.Mcd2Data
 
 void sioWrite8(unsigned char value);
-void sioWriteStat16(unsigned short value);
-void sioWriteMode16(unsigned short value);
-void sioWriteCtrl16(unsigned short value);
-void sioWriteBaud16(unsigned short value);
+
+static inline void			PSXSIO_WriteStatus				(uint16_t aValue)	{}
+static inline void			PSXSIO_WriteMode				(uint16_t aValue)	{PSXSIO_Data.Mode = aValue;}
+static inline void			PSXSIO_WriteBaud				(uint16_t aValue)	{PSXSIO_Data.Baud = aValue;}
+void						PSXSIO_WriteControl				(uint16_t aValue);
+
 
 unsigned char sioRead8();
-unsigned short sioReadStat16();
-unsigned short sioReadMode16();
-unsigned short sioReadCtrl16();
-unsigned short sioReadBaud16();
+static inline uint16_t		PSXSIO_ReadStatus				()		{return PSXSIO_Data.Status;}
+static inline uint16_t		PSXSIO_ReadMode					()		{return PSXSIO_Data.Mode;}
+static inline uint16_t		PSXSIO_ReadControl				()		{return PSXSIO_Data.Control;}
+static inline uint16_t		PSXSIO_ReadBaud					()		{return PSXSIO_Data.Baud;}
 
-void netError();
+#if 0
+Read Status:
+	// wait for IRQ first
+	if( psxRegs.interrupt & (1 << PSXINT_SIO) )
+	{
+		hard &= ~TX_RDY;
+		hard &= ~RX_RDY;
+		hard &= ~TX_EMPTY;
+	}
+#endif
+
 
 void sioInterrupt();
 int sioFreeze(gzFile f, int Mode);
