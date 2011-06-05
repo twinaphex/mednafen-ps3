@@ -63,7 +63,7 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 
 void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
-	ErrorCheck(aLength == send(Socket, aBuffer, aLength, 0) "CellNetwork: failed to write socket");
+	ErrorCheck(aLength == send(Socket, aBuffer, aLength, 0), "CellNetwork: failed to write socket");
 }
 
 void						ESNetwork::Initialize			()

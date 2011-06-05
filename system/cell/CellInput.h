@@ -33,7 +33,8 @@ class								ESInput
 		static const uint32_t		BUTTONS = 24;
 		static const uint32_t		AXISCOUNT = 4;
 
-		static void					Assert					(uint32_t aPad, uint32_t aButton, uint32_t aAxis = 0);
+		static uint32_t				ButtonIndex[][2];
+		static std::string			ButtonNames[16];
 
 		static CellPadInfo2			PadInfo;
 		static CellPadData			CurrentState[MAXPADS];
@@ -59,8 +60,6 @@ void								ESInput::Reset			()
 
 int32_t								ESInput::GetAxis		(uint32_t aPad, uint32_t aAxis)
 {
-	Assert(aPad, 0, aAxis);
-
 	if(aPad < PadCount())
 	{
 		int realaxis = AXISCOUNT + (AXISCOUNT - 1 - aAxis);
@@ -74,8 +73,6 @@ int32_t								ESInput::GetAxis		(uint32_t aPad, uint32_t aAxis)
 
 uint32_t							ESInput::GetAnyButton	(uint32_t aPad)
 {
-	Assert(aPad, 0);
-	
 	for(int i = 0; i != BUTTONS; i ++)
 	{
 		if(HeldState[aPad][i] == 1)
