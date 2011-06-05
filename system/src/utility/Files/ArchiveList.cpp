@@ -55,7 +55,7 @@ void										ArchiveList::FindFexFile					(const std::string& aFileName) const
 		fex_next(Archive);
 	}
 
-	throw ESException("ArchiveList: Fex could not find file in archive [File: %s]", aFileName.c_str());
+	ErrorCheck(0, "ArchiveList: Fex could not find file in archive [File: %s]", aFileName.c_str());
 }
 
 bool										ArchiveList::IsArchive						(const std::string& aFileName)
