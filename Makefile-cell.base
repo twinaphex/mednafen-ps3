@@ -3,10 +3,10 @@ export PATH := $(CELL_SDK)/host-win32/bin:$(CELL_SDK)/host-win32/ppu/bin:$(PATH)
 
 .SUFFIXES:
 
-AR			:=	$(PREFIX)ar
-AS			:=	$(PREFIX)gcc
-CC			:=	$(PREFIX)gcc
-CXX			:=	$(PREFIX)g++
+AR			:=	ppu-lv2-ar
+AS			:=	ppu-lv2-gcc
+CC			:=	ppu-lv2-gcc
+CXX			:=	ppu-lv2-g++
 LD			:=	$(CXX)
 PKG			:=	pkg.py
 MAKE_SELF_GH:= make_self_npdrm
