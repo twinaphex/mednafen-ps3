@@ -70,7 +70,14 @@ bool				ESSUB_WantToSleep		()
 
 std::string			ESSUB_GetBaseDirectory	()
 {
-	return "/dev_hdd0/game/MDFN90002/USRDIR/";
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#ifndef ES_HOME_PATH
+#define ES_HOME_PATH /dev_hdd0/game/MDFN90002/USRDIR/
+#endif
+#define ES_DIR TOSTRING(ES_HOME_PATH)
+
+	return ES_DIR;
 }
 
 
