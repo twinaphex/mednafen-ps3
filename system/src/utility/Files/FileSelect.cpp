@@ -144,14 +144,14 @@ bool							FlowListView::Draw						()
 
 
 										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
-	List(boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
 	Valid(true),
 	Header(aHeader),
 	BookMarks(aBookMarks)
 {
 	Interface->SetHook(aInputHook);
-	List->SetInputConduit(boost::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
+	List->SetInputConduit(smartptr::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
 
 	Paths.push(aPath);
 	LoadList(aPath);
@@ -232,11 +232,11 @@ void								FileSelect::LoadList						(const std::string& aPath)
 
 	if(Utility::DirectoryExists(aPath + "/__images"))
 	{
-		List->SetView(boost::make_shared<FlowListView>(List));
+		List->SetView(smartptr::make_shared<FlowListView>(List));
 	}
 	else
 	{
-		List->SetView(boost::make_shared<AnchoredListView>(List, true));
+		List->SetView(smartptr::make_shared<AnchoredListView>(List, true));
 	}
 
 	if(aPath.empty())
@@ -284,7 +284,7 @@ SummerfaceItem_Ptr					FileSelect::MakeItem						(const std::string& aName, cons
 {
 	std::string extension = Utility::GetExtension(aPath);
 
-	SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
+	SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
 	item->IntProperties["DIRECTORY"] = aDirectory;
 	item->IntProperties["FILE"] = aFile;
 	item->IntProperties["BOOKMARK"] = std::find(BookMarks.begin(), BookMarks.end(), aPath) != BookMarks.end();

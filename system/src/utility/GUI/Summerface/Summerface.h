@@ -2,7 +2,7 @@
 
 #include "SummerfaceWindow.h"
 
-class													Summerface : public Menu, public boost::enable_shared_from_this<Summerface>
+class													Summerface : public Menu, public smartptr::enable_shared_from_this<Summerface>
 {
 	public: //Do not call!
 														Summerface						() {};

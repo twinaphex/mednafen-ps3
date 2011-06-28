@@ -82,12 +82,12 @@ void							InputHandler::Configure				()
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
 		//More than one type, run a list to choose
-		SummerfaceList_Ptr linelist = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
-		linelist->SetView(boost::make_shared<AnchoredListView>(linelist));
+		SummerfaceList_Ptr linelist = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
+		linelist->SetView(smartptr::make_shared<AnchoredListView>(linelist));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
-			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
+			SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
 			item->Properties["REALNAME"] = GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName;
 			linelist->AddItem(item);
 		}
@@ -113,8 +113,8 @@ void							InputHandler::Configure				()
 	uint32_t buttonID;
 
 	//Create the window to receive input
-	SummerfaceLabel_Ptr button = boost::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
-	button->SetInputConduit(boost::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
+	SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
+	button->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 	//Add the window to any existing summerface, or create a new one if needed 
 	if(sface)
@@ -130,7 +130,7 @@ void							InputHandler::Configure				()
 	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
 	if(ImageManager::GetImage(imagename))
 	{
-		sface->AddWindow("InputImage", boost::make_shared<SummerfaceImage>(Area(10, 50, 80, 40), imagename));
+		sface->AddWindow("InputImage", smartptr::make_shared<SummerfaceImage>(Area(10, 50, 80, 40), imagename));
 		sface->SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
 	}
 

@@ -89,11 +89,11 @@ bool							SettingLineView::HandleEnum						(const MDFNCS& aSetting)
 	}
 	else if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT)) //Choose from list
 	{
-		SummerfaceList_Ptr list = boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
-		list->SetView(boost::make_shared<AnchoredListView>(list));
+		SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+		list->SetView(smartptr::make_shared<AnchoredListView>(list));
 		while(values && values->string)
 		{
-			SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(values->string, "");
+			SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(values->string, "");
 			list->AddItem(item);
 			values ++;
 		}
@@ -209,19 +209,19 @@ bool							SettingLineView::Input							()
 
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
-	CategoryList(boost::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+	CategoryList(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("Categories", CategoryList))
 {
-	CategoryList->SetView(boost::make_shared<AnchoredListView>(CategoryList));
+	CategoryList->SetView(smartptr::make_shared<AnchoredListView>(CategoryList));
 	CategoryList->SetHeader("Choose Setting Category");
-	List->SetView(boost::make_shared<SettingLineView>(List));
+	List->SetView(smartptr::make_shared<SettingLineView>(List));
 
 	LoadSettings();
 
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
 	{
-		SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
+		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
 		item->Properties["CATEGORY"] = i->first;
 		CategoryList->AddItem(item);
 	}
@@ -247,7 +247,7 @@ void							SettingMenu::Do									()
 			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->Properties["CATEGORY"]];
 			for(int i = 0; i != items.size(); i ++)
 			{
-				SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(items[i]->name, "");
+				SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(items[i]->name, "");
 				item->IntProperties["MDFNCS"] = (uint64_t)items[i];
 				List->AddItem(item);
 			}

@@ -177,7 +177,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//HACK: Attach a default border
 		ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
 
-		Inputs = boost::make_shared<InputHandler>(GameInfo);
+		Inputs = smartptr::make_shared<InputHandler>(GameInfo);
 
 		//Reset states
 		MDFND_NetworkClose();
@@ -196,7 +196,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Create the helpers for this game
 		Buffer = Texture_Ptr(ESVideo::CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
-		Surface = boost::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
+		Surface = smartptr::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		Buffer->Clear(0);
 
@@ -497,13 +497,13 @@ void						MednafenEmu::DoCommands			()
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
 	};
 
-	SummerfaceList_Ptr grid = boost::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
-	grid->SetView(boost::make_shared<GridListView>(grid, 4, 3, true, false));
+	SummerfaceList_Ptr grid = smartptr::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
+	grid->SetView(smartptr::make_shared<GridListView>(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
-	grid->SetInputConduit(boost::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
+	grid->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
 	for(int i = 0; i != 12; i ++)
 	{
-		SummerfaceItem_Ptr item = boost::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
+		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
 		item->Properties["COMMAND"] = commands[i * 3 + 2];
 		grid->AddItem(item);
 	}
@@ -517,7 +517,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 	if(aInterface && aInterface->GetWindow(aWindow) && ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 	{
-		SummerfaceList_Ptr list = boost::static_pointer_cast<SummerfaceList>(aInterface->GetWindow(aWindow));
+		SummerfaceList_Ptr list = smartptr::static_pointer_cast<SummerfaceList>(aInterface->GetWindow(aWindow));
 		command = list->GetSelected()->Properties["COMMAND"];
 	}
 	else if(!aInterface)
@@ -552,7 +552,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 			if(!filename.empty())
 			{
-				boost::shared_ptr<TextViewer> tv = boost::make_shared<TextViewer>(Area(10, 10, 80, 80), filename);
+				smartptr::shared_ptr<TextViewer> tv = smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), filename);
 				tv->SetHeader(filename);
 				Summerface::Create("TextView", tv)->Do();
 			}

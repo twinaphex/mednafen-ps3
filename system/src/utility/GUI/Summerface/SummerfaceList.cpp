@@ -15,7 +15,7 @@ namespace
 	SelectedIndex(0),
 	Canceled(false),
 	LabelFont(FontManager::GetBigFont()),
-	View(boost::make_shared<ListView>())
+	View(smartptr::make_shared<ListView>())
 {
 }
 
@@ -61,7 +61,7 @@ void										SummerfaceList::SetFont								(Font* aFont)
 
 void										SummerfaceList::SetView								(ListView_Ptr aView)
 {
-	ErrorCheck(aView, "SummerfaceList::SetView: View must not be null");
+	ErrorCheck(!!aView, "SummerfaceList::SetView: View must not be null");
 	View = aView;
 }
 

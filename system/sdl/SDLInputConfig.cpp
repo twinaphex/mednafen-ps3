@@ -66,8 +66,8 @@ namespace SDLInputConfig
 		const char* buttons[] = {"Up", "Down", "Left", "Right", "Accept", "Cancel", "Shift", "Tab", "AuxLeft1", "AuxRight1", "AuxLeft2", "AuxRight2", "AuxLeft3", "AuxRight3"};
 
 		uint32_t buttonID;
-		SummerfaceLabel_Ptr button = boost::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
-		button->SetInputConduit(boost::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
+		SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
+		button->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 		Summerface_Ptr sface = Summerface::Create("InputWindow", button);
 
