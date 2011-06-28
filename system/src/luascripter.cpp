@@ -1,3 +1,5 @@
+#ifndef NO_LUA
+
 #include <es_system.h>
 
 #include <random/mersennetwister.h>
@@ -115,3 +117,4 @@ uint32_t					LuaScripter::Call							(const std::string& aFunction, uint32_t aA,
 }
 
 
+#endif //NO_LUA

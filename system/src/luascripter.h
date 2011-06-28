@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef NO_LUA
+
 struct lua_State;
 struct luaL_Reg;
 
@@ -24,4 +26,6 @@ class								LuaScripter
 
 		lua_State*					LuaState;
 };
+
+#endif //NO_LUA
 

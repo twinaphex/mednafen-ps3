@@ -1,5 +1,7 @@
 //ROBO: Much of this file stolen shamelessly from FCEUX
 
+#ifndef NO_LUA
+
 #include <mednafen_includes.h>
 
 extern "C"
@@ -754,3 +756,4 @@ luaL_reg guilib[] =
 	{NULL,NULL}
 };
 
+#endif //NO_LUA

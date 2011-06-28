@@ -2,6 +2,7 @@
 #include "savestates.h"
 
 //HACK
+#ifndef NO_LUA
 extern "C"
 {
 	#include <src/lua/lua.h>
@@ -15,6 +16,7 @@ extern luaL_reg joypadlib[];
 extern luaL_reg guilib[];
 extern luaL_reg memorylib[];
 extern uint32_t gui_array[1024 * 768];
+#endif
 
 namespace
 {
@@ -200,6 +202,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		Buffer->Clear(0);
 
+#ifndef NO_LUA
 		//HACK: Setup lua
 		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
 		if(Utility::FileExists(luafile))
@@ -220,6 +223,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		{
 			Lua = 0;
 		}
+#endif
 
 		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
@@ -266,7 +270,9 @@ void						MednafenEmu::CloseGame			()
 		Buffer.reset();
 		Surface.reset();
 
+#ifndef NO_LUA
 		delete Lua;
+#endif
 
 		free(ROMData);
 		ROMData = 0;
@@ -310,6 +316,7 @@ bool						MednafenEmu::Frame				()
 			FrameCount ++;
 
 //HACK
+#ifndef NO_LUA
 			if(Lua)
 			{
 				lua_settop(Lua->LuaState, 0);
@@ -324,6 +331,7 @@ bool						MednafenEmu::Frame				()
 					Lua = 0;
 				}
 			}
+#endif
 
 			//Handle inputs
 			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
@@ -396,6 +404,7 @@ bool						MednafenEmu::Frame				()
 			Inputs->Process();
 
 //HACK:
+#ifndef NO_LUA
 			if(Lua)
 			{
 				lua_settop(Lua->LuaState, 0);
@@ -410,6 +419,7 @@ bool						MednafenEmu::Frame				()
 					Lua = 0;
 				}
 			}
+#endif
 
 			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
 			{
@@ -464,6 +474,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 		ESVideo::PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
+#ifndef NO_LUA
 		if(!aPixels && Lua)
 		{
 			static Texture_Ptr tex(ESVideo::CreateTexture(1024, 768));
@@ -473,6 +484,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 			tex->Unmap();
 			ESVideo::PlaceTexture(tex.get(), Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
 		}
+#endif
 	}
 }
 
@@ -722,7 +734,9 @@ uint32_t					MednafenEmu::ROMSize = 0;
 InputHandler_Ptr			MednafenEmu::Inputs;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
+#ifndef NO_LUA
 LuaScripter*				MednafenEmu::Lua = 0;
+#endif
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
