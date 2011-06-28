@@ -50,6 +50,10 @@ CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lpcsxr-$(PLATFORM) -lvbam-$(PLATFORM)
 
+ifeq ($(strip $(NO_LUA)),1)
+	CXXFLAGS+=	-DNO_LUA
+endif
+
 ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base
 else

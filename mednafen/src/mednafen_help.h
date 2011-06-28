@@ -55,7 +55,9 @@ class	MednafenEmu
 		static InputHandler_Ptr			Inputs;		
 		static FastCounter				Counter;
 		static EmuRealSyncher			Syncher;
+#ifndef NO_LUA
 		static LuaScripter*				Lua; //TODO: Make shared_ptr
+#endif
 		
 		static std::string				Message;
 		static uint32_t					MessageTime;
