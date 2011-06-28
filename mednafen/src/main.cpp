@@ -14,7 +14,7 @@ namespace
 
 				if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
 				{
-					Summerface::Create("Text", boost::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
+					Summerface::Create("Text", smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
 				}
 
 				return false;
@@ -67,9 +67,9 @@ void				ReloadEmulator			(const std::string& aFileName)
 	else
 	{
 		//Load file as an archive
-//		ArchiveList_Ptr archive = boost::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
-		boost::shared_ptr<ArchiveList> archive = boost::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
-		archive->SetView(boost::make_shared<AnchoredListView>(archive, true));
+//		ArchiveList_Ptr archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
+		smartptr::shared_ptr<ArchiveList> archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
+		archive->SetView(smartptr::make_shared<AnchoredListView>(archive, true));
 		Summerface_Ptr sface = Summerface::Create("Archive", archive);
 
 		//If there are no items we are lost

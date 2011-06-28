@@ -83,7 +83,7 @@ void						StateLabel::FillScratch					(uint32_t aSlot)
 }
 
 							StateMenu::StateMenu					(bool aLoad) :
-	Label(boost::make_shared<StateLabel>(aLoad)),
+	Label(smartptr::make_shared<StateLabel>(aLoad)),
 	UI(Summerface::Create("StateLabel", Label))
 {
 

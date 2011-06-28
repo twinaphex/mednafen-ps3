@@ -11,7 +11,7 @@
 	{
 		if(fex_name(Archive) != 0)
 		{
-			AddItem(boost::make_shared<SummerfaceItem>(fex_name(Archive), ""));
+			AddItem(smartptr::make_shared<SummerfaceItem>(fex_name(Archive), ""));
 		}
 		
 		fex_next(Archive);

@@ -21,7 +21,7 @@ std::string			ESSUB_GetBaseDirectory	();
 #ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage)
 {
-	SummerfaceLabel_Ptr text = boost::make_shared<SummerfaceLabel>(Area(10, 10, 80, 20), aMessage);
+	SummerfaceLabel_Ptr text = smartptr::make_shared<SummerfaceLabel>(Area(10, 10, 80, 20), aMessage);
 	Summerface::Create("Error", text)->Do();
 }
 #endif
@@ -29,7 +29,7 @@ void				ESSUB_Error				(const char* aMessage)
 #ifndef HAVE_ESSUB_GETSTRING
 std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
 {
-	Keyboard_Ptr kb = boost::make_shared<Keyboard>(Area(10, 10, 80, 80), aHeader, aMessage);
+	Keyboard_Ptr kb = smartptr::make_shared<Keyboard>(Area(10, 10, 80, 80), aHeader, aMessage);
 	Summerface::Create("Keyboard", kb)->Do();
 	return kb->GetText();
 }
@@ -64,7 +64,7 @@ void				InitES					(void (*aExitFunction)())
 	FontManager::InitFonts();
 	ImageManager::SetDirectory(es_paths->Build("assets/png/"));
 
-	es_log = boost::make_shared<Logger>(Area(10, 10, 80, 80));
+	es_log = smartptr::make_shared<Logger>(Area(10, 10, 80, 80));
 }
 
 void				QuitES					()

@@ -9,7 +9,7 @@ DEC_AND_DEF(PathBuild, es_paths);
 #undef DEC_AND_DEF
 
 class	Logger;
-typedef boost::shared_ptr<Logger> Logger_Ptr;
+typedef smartptr::shared_ptr<Logger> Logger_Ptr;
 extern Logger_Ptr es_log;
 
 //Happy functions

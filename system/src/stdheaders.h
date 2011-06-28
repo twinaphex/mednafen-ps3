@@ -19,15 +19,22 @@
 #include <fstream>
 #include <algorithm>
 
-//Boost
+//Smart ptr
+#ifndef USE_CPP0X_SMARTPTR
 #include <boost/smart_ptr.hpp>
 #include <boost/make_shared.hpp>
+namespace smartptr = boost;
+#else
+#include <memory>
+namespace smartptr = std;
+#endif
+
 
 //Shared ptr helper macro
 #define DEFINE_PTR_TYPE(a)						\
 	class	a;									\
-	typedef boost::shared_ptr<a>	a##_Ptr;	\
-	typedef boost::weak_ptr<a>		a##_WeakPtr;
+	typedef smartptr::shared_ptr<a>	a##_Ptr;	\
+	typedef smartptr::weak_ptr<a>	a##_WeakPtr;
 
 
 //Depends
@@ -40,3 +47,4 @@ extern "C"
 	#include FT_BITMAP_H
 	#include FT_GLYPH_H
 }
+

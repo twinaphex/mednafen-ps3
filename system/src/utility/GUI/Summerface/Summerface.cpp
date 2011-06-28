@@ -3,13 +3,13 @@
 
 Summerface_Ptr								Summerface::Create									()
 {
-	return boost::make_shared<Summerface>();
+	return smartptr::make_shared<Summerface>();
 }
 
 
 Summerface_Ptr								Summerface::Create									(const std::string& aName, SummerfaceWindow_Ptr aWindow)
 {
-	Summerface_Ptr sface = boost::make_shared<Summerface>();
+	Summerface_Ptr sface = smartptr::make_shared<Summerface>();
 	sface->AddWindow(aName, aWindow);
 	return sface;
 }
@@ -72,7 +72,7 @@ bool										Summerface::Input									()
 
 void										Summerface::AddWindow								(const std::string& aName, SummerfaceWindow_Ptr aWindow)
 {
-	ErrorCheck(aWindow, "Summerface::AddWindow: Window is not a valid pointer. [Name: %s]", aName.c_str());
+	ErrorCheck(!!aWindow, "Summerface::AddWindow: Window is not a valid pointer. [Name: %s]", aName.c_str());
 	ErrorCheck(Windows.find(aName) == Windows.end(), "Summerface::AddWindow: Window with name is already present. [Name: %s]", aName.c_str());
 
 	Windows[aName] = aWindow;
