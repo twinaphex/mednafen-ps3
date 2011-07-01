@@ -45,7 +45,6 @@ std::string			ESSUB_GetBaseDirectory	()
 #define ES_DIR TOSTRING(ES_HOME_PATH)
 
 #ifndef __WIN32__
-	printf("%s\n", (std::string(getenv("HOME")) + "/." ES_DIR "/").c_str());
 	return std::string(getenv("HOME")) + "/." ES_DIR "/";
 #else
 	char path[MAX_PATH];

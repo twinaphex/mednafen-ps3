@@ -4,8 +4,10 @@ class							Area
 {
 	public:
 		int32_t					X, Y, Width, Height;
-		
+
+		int32_t					Left					() const {return X;}		
 		int32_t					Right					() const {return X + Width;}
+		int32_t					Top						() const {return Y;}
 		int32_t					Bottom					() const {return Y + Height;}
 
 								Area					(int32_t aX = 0, int32_t aY = 0, int32_t aWidth = 0, int32_t aHeight = 0)
@@ -22,6 +24,16 @@ class							Area
 			Y -= aAmount;
 			Width += aAmount * 2;
 			Height += aAmount * 2;
+		}
+
+		bool					ContainsPoint			(int32_t aX, int32_t aY) const
+		{
+			return (aX >= X && aX < Right() && aY >= Y && aY < Bottom());
+		}
+
+		bool					Intersects				(const Area& aArea) const
+		{
+			return !((Right() < aArea.Left()) || (Left() > aArea.Right()) || (Bottom() < aArea.Top()) || (Top() > aArea.Bottom()));
 		}
 
 		bool					Valid					(uint32_t aWidth, uint32_t aHeight) const
