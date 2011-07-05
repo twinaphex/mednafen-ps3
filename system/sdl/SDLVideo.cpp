@@ -13,8 +13,8 @@ void					ESVideo::Initialize				()
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
-	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
+	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
+//	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
 	if(!Screen)
 	{
 		printf("SDL Couldn't set video mode: %s\n", SDL_GetError());
@@ -81,28 +81,6 @@ void					ESVideo::Flip					()
 
 	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
 	glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
-{
-	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
-	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
-	float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
-	float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
-
-	float xl = 0, xr = 1, yl = 0, yr = 1;
-	xl = (float)aSource.X / (float)aTexture->GetWidth();
-	xr = (float)aSource.Right() / (float)aTexture->GetWidth();
-	yl = (float)aSource.Y / (float)aTexture->GetHeight();
-	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
-
-	aTexture->Apply();
-	OpenGLHelp::SetVertex(&VertexBuffer[0 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Y, r, g, b, a, xl, yl);
-	OpenGLHelp::SetVertex(&VertexBuffer[1 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Y, r, g, b, a, xr, yl);
-	OpenGLHelp::SetVertex(&VertexBuffer[2 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
-	OpenGLHelp::SetVertex(&VertexBuffer[3 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
-
-	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)

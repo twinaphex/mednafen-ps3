@@ -22,7 +22,7 @@ class								ESVideo
 	
 		static void					Flip					(); //External
 		
-		static void					PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //External
+		static inline void			PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor); //Below
 		static void					FillRectangle			(const Area& aArea, uint32_t aColor) {PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);}
 		static void					AttachBorder			(Texture* aTexture) {Border = aTexture;};
 		static void					PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
@@ -62,4 +62,9 @@ void								ESVideo::SetClip		(const Area& aClip)
 }
 
 #include "../opengl_common/Helpers.h"
+
+void								ESVideo::PlaceTexture	(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
+{
+	OpenGLHelp::PlaceTexture(aTexture, aDestination, aSource, aColor, VertexBuffer, VertexSize);
+}
 

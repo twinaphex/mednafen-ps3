@@ -41,6 +41,29 @@ struct							OpenGLHelp
 		glColor4f(0, 0, 0, 0);
 	}
 
+	static void					PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor, float* aVertexBuffer, uint32_t aVertexSize)
+	{
+		float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
+		float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
+		float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
+		float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
+
+		float xl = ((float)aSource.X + .5f) / (float)aTexture->GetWidth();
+		float xr = ((float)aSource.Right() - .5f) / (float)aTexture->GetWidth();
+		float yl = ((float)aSource.Y + .5f) / (float)aTexture->GetHeight();
+		float yr = ((float)aSource.Bottom() - .5f) / (float)aTexture->GetHeight();
+
+		const Area& Clip = ESVideo::GetClip();
+		aTexture->Apply();
+		SetVertex(&aVertexBuffer[0 * aVertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Y, r, g, b, a, xl, yl);
+		SetVertex(&aVertexBuffer[1 * aVertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Y, r, g, b, a, xr, yl);
+		SetVertex(&aVertexBuffer[2 * aVertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
+		SetVertex(&aVertexBuffer[3 * aVertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+	}
+
+
 	static const Area&			CalculatePresentArea	(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 	{
 		static Area PresentArea;

@@ -57,28 +57,6 @@ void					ESVideo::SetScreenSize			(uint32_t aX, uint32_t aY)
 	glDisable(GL_SCISSOR_TEST);
 }
 
-void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
-{
-	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
-	float g = (float)((aColor >> 16) & 0xFF) / 256.0f;	
-	float b = (float)((aColor >> 8) & 0xFF) / 256.0f;
-	float a = (float)((aColor >> 0) & 0xFF) / 256.0f;	
-
-	float xl = 0, xr = 1, yl = 0, yr = 1;
-	xl = (float)aSource.X / (float)aTexture->GetWidth();
-	xr = (float)aSource.Right() / (float)aTexture->GetWidth();
-	yl = (float)aSource.Y / (float)aTexture->GetHeight();
-	yr = (float)aSource.Bottom() / (float)aTexture->GetHeight();
-
-	aTexture->Apply();
-	OpenGLHelp::SetVertex(&VertexBuffer[0 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Y, r, g, b, a, xl, yl);
-	OpenGLHelp::SetVertex(&VertexBuffer[1 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Y, r, g, b, a, xr, yl);
-	OpenGLHelp::SetVertex(&VertexBuffer[2 * VertexSize], Clip.X + aDestination.Right(), Clip.Y + aDestination.Bottom(), r, g, b, a, xr, yr);
-	OpenGLHelp::SetVertex(&VertexBuffer[3 * VertexSize], Clip.X + aDestination.X, Clip.Y + aDestination.Bottom(), r, g, b, a, xl, yr);
-
-	glDrawArrays(GL_QUADS, 0, 4);
-}
-
 void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
