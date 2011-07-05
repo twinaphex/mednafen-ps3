@@ -50,6 +50,14 @@ void					ESVideo::Shutdown				()
 	free(VertexBuffer);
 }
 
+void					ESVideo::SetScreenSize			(uint32_t aX, uint32_t aY)
+{
+	ScreenWidth = aX;
+	ScreenHeight = aY;
+	OpenGLHelp::InitializeState();
+	glDisable(GL_SCISSOR_TEST);
+}
+
 void					SetExit							();
 void					ESVideo::Flip					()
 {

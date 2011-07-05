@@ -11,7 +11,8 @@ class								ESVideo
 		static inline void			EnableVsync				(bool aOn); //Below
 
 		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new Texture(aWidth, aHeight);};
-	
+
+		static void					SetScreenSize			(uint32_t aX, uint32_t aY); //External	
 		static uint32_t				GetScreenWidth			() {return ScreenWidth;}
 		static uint32_t				GetScreenHeight			() {return ScreenHeight;}
 		static bool					IsWideScreen			() {return WideScreen;}
