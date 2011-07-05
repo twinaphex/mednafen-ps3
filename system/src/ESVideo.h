@@ -36,6 +36,11 @@ class							Area
 			return !((Right() < aArea.Left()) || (Left() > aArea.Right()) || (Bottom() < aArea.Top()) || (Top() > aArea.Bottom()));
 		}
 
+		bool					Contains				(const Area& aArea) const
+		{
+			return (aArea.Left() >= Left()) && (aArea.Right() <= Right()) && (aArea.Top() >= Top()) && (aArea.Bottom() <= Bottom());
+		}
+
 		bool					Valid					(uint32_t aWidth, uint32_t aHeight) const
 		{
 			return (X >= 0) && (Y >= 0) && (Width > 0) && (Height > 0) && (Right() <= aWidth) && (Bottom() <= aHeight);
@@ -50,6 +55,18 @@ class							Area
 		{
 			return !(X == aB.X && Y == aB.Y && Width == aB.Width && Height == aB.Height);
 		}	
+
+		friend std::ostream&	operator<<				(std::ostream& aStream, const Area& aA)
+		{
+			aStream << aA.X << " " << aA.Y << " " << aA.Width << " " << aA.Height;
+			return aStream;
+		}
+
+		friend std::istream&	operator>>				(std::istream& aStream, Area& aA)
+		{
+			aStream >> aA.X >> aA.Y >> aA.Width >> aA.Height;
+			return aStream;
+		}
 };
 
 
