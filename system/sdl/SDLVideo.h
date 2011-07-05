@@ -12,6 +12,7 @@ class								ESVideo
 	
 		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new Texture(aWidth, aHeight);};
 	
+		static void					SetScreenSize			(uint32_t aX, uint32_t aY); //External
 		static uint32_t				GetScreenWidth			() {return ScreenWidth;}
 		static uint32_t				GetScreenHeight			() {return ScreenHeight;}
 		static bool					IsWideScreen			() {return WideScreen;}
@@ -46,7 +47,7 @@ class								ESVideo
 };
 
 //---Inlines
-void					ESVideo::EnableVsync			(bool aOn)
+void								ESVideo::EnableVsync	(bool aOn)
 {
 	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
@@ -54,7 +55,7 @@ void					ESVideo::EnableVsync			(bool aOn)
 	Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
 }
 
-void								ESVideo::SetClip					(const Area& aClip)
+void								ESVideo::SetClip		(const Area& aClip)
 {
 	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
 	glScissor(Clip.X, GetScreenHeight() - Clip.Bottom(), Clip.Width, Clip.Height);

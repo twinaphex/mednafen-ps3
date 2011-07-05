@@ -49,6 +49,14 @@ void					ESVideo::Shutdown				()
 	free(VertexBuffer);
 }
 
+void					ESVideo::SetScreenSize			(uint32_t aX, uint32_t aY)
+{
+	ScreenWidth = aX;
+	ScreenHeight = aY;
+	OpenGLHelp::InitializeState();
+	glDisable(GL_SCISSOR_TEST);
+}
+
 void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
 {
 	float r = (float)((aColor >> 24) & 0xFF) / 256.0f;
