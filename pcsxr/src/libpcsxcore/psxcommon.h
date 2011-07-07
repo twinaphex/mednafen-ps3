@@ -43,6 +43,21 @@ extern "C" {
 #include <sys/types.h>
 #include <assert.h>
 #include <zlib.h>
+//ROBO: Use a fake gzfile implement for savestate support, these are implemented in src/mednafen.cpp
+#define gzFile smFile
+#define gzopen smopen
+#define gzseek smseek
+#define gzclose smclose
+#define gzwrite smwrite
+#define gzread smread
+
+typedef void* smFile;
+gzFile smopen (const char *path , const char *mode );
+off_t smseek(smFile file, off_t offset, int whence);
+int smclose (smFile file );
+int smwrite (smFile file, const void* buf, unsigned int len);
+int smread (smFile file, void* buf, unsigned int len);
+
 
 // Define types
 typedef int8_t s8;
