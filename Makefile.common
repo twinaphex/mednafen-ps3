@@ -68,7 +68,11 @@ DEPENDS	:= $(OFILES:.o=.d)
 
 OUTTYPE				:=	elf
 ifeq ($(strip $(TYPE)),lib)
+ifeq ($(strip $(PLATFORM)),dll)
+OUTTYPE				:=	so
+else
 OUTTYPE				:=	a
+endif
 endif
 
 $(OUTPUT).$(OUTTYPE): $(OFILES)

@@ -121,7 +121,7 @@ void			VbamEmulate				(EmulateSpecStruct *espec)
 	//Update sound
 	if(ESpec->SoundFormatChanged)
 	{
-		soundSetSampleRate(ESpec->SoundRate);
+		soundSetSampleRate((ESpec->SoundRate > 1.0) ? ESpec->SoundRate : 22050);
 	}
 
 	//TODO: Support color shift
