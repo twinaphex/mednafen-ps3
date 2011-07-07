@@ -9,10 +9,13 @@ namespace nestMDFN
 	Sound::Output 				EmuAudio;
 	uint32_t					Samples[48000];
 	uint32_t					SampleRate;
+	bool						SoundDisabled = true;
 
 	void						SetupAudio							(uint32_t aSampleRate)
 	{
-		SampleRate = aSampleRate;
+		//If sample rate is zero (mednafen can't open a sound device), use 22050 to prevent issues
+		SoundDisabled = !aSampleRate ? true : false;
+		SampleRate = aSampleRate ? aSampleRate : 22050;
 
 		EmuAudio.samples[0] = (void*)Samples;
 		//This cant really be how to get the length, can it?
@@ -34,7 +37,7 @@ namespace nestMDFN
 	void						CopyAudio							(void* aSoundBuffer, uint32_t aMaxSize, int32_t& aFrameCount)
 	{
 		//This cant really be how to get the length, can it?
-		if(aSoundBuffer && (aMaxSize > SampleRate / NestopiaSettings.FPS))
+		if(!SoundDisabled && aSoundBuffer && (aMaxSize > SampleRate / NestopiaSettings.FPS))
 		{
 			aFrameCount = SampleRate / NestopiaSettings.FPS;
 			memcpy(aSoundBuffer, Samples, aFrameCount * 2);

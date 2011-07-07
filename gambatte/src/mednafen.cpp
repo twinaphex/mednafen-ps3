@@ -31,7 +31,7 @@ namespace mdfngmbt
 				{
 					if(ESpec->SoundFormatChanged)
 					{
-						SideA->Resample->adjustRate(2097152, ESpec->SoundRate);
+						SideA->Resample->adjustRate(2097152, (ESpec->SoundRate > 1.0) ? ESpec->SoundRate : 22050);
 					}
 
 					if(InputPort[0])
@@ -77,7 +77,7 @@ namespace mdfngmbt
 				{
 					if(ESpec->SoundFormatChanged)
 					{
-						SideB->Resample->adjustRate(2097152, ESpec->SoundRate);
+						SideB->Resample->adjustRate(2097152, (ESpec->SoundRate > 1.0) ? ESpec->SoundRate : 22050);
 					}
 
 					if(InputPort[1])
