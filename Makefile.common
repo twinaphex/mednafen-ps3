@@ -1,7 +1,11 @@
 ifeq ($(strip $(BOOST_PATH)),)
+ifeq ($(strip $(PLATFORM)),cell)
 $(error Set BOOST_PATH in environment)
+else
+$(warning Building as C++0x)
+SMARTPTRFLAGS	=	-DUSE_CPP0X_SMARTPTR -std=c++0x
 endif
-
+endif
 
 #RULES FOR COMPILE
 %.o: %.c
@@ -14,7 +18,7 @@ endif
 	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
 	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
 	@echo "[CXX] $(notdir $<)"
-	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) $(SMARTPTRFLAGS) -c $< -o $@
 
 %.o: %.S
 	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
@@ -48,7 +52,11 @@ CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
 SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
 
 export OFILES	:=	$(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
+ifneq ($(strip $(BOOST_PATH)),)
 export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM) -I$(BOOST_PATH)
+else
+export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM)
+endif
 export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
 .PHONY: $(BUILD)-$(PLATFORM) clean

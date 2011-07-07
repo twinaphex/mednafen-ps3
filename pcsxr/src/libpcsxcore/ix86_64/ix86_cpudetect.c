@@ -145,7 +145,8 @@ u64 GetCPUTick( void )
 #endif
 }
 
-#if defined(__LINUX__) || defined(__APPLE__)
+//ROBO: Use mednafen timing
+/*#if defined(__LINUX__) || defined(__APPLE__)
 
 #include <sys/time.h>
 #include <errno.h>
@@ -156,8 +157,10 @@ unsigned long timeGetTime2()
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return (unsigned long)tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
 }
-//*/
-#endif
+//
+#endif*/
+
+#define timeGetTime2 MDFNDC_GetTime
 
 s64 CPUSpeedHz( unsigned int time )
 {
