@@ -121,6 +121,8 @@ unsigned char Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
 // so (PSXCLK / 75) = cdr read time (linuzappz)
 #define cdReadTime (PSXCLK / 75)
 
+//ROBO: Rename to avoid conflict with libc's stat
+#define stat cdrstat
 static struct CdrStat stat;
 static struct SubQ *subq;
 
