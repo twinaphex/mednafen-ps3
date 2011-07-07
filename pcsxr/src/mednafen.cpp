@@ -12,8 +12,12 @@ namespace
 {
 	EmulateSpecStruct*			ESpec;
 	uint8_t*					Ports[8];
+	Fir_Resampler<8>			Resampler;				///<The sound plugin only gives 44100hz sound
+	int16_t						SampleBuffer[48000];	///<TODO: Support sound freqs > 48000
 }
 
+//Pair of functions to export timing to C files.
+//TODO: These shouldn't be needed as the emulator module shouldn't be doing timing.
 extern "C" void MDFNDC_Sleep(uint32_t aMS){MDFND_Sleep(aMS);}
 extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
 
@@ -41,18 +45,20 @@ extern "C"
 		return name;
 	}
 
+	//Return the value of the recompiler setting
 	int32_t		GetRecompiler			()
 	{
 		return MDFN_GetSettingB("pcsxr.recompiler");
 	}
 
-
+	//From main.c
 	void		SysLoad					();
 	void		SysClose				();
 	void		SysReset				();
 	void		SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 
-	void				SysPrintf		(const char *fmt, ...)
+	//Printing functions needed by libpcsxcore
+	void		SysPrintf				(const char *fmt, ...)
 	{
 		char buffer[2048];
 		va_list args;
@@ -63,7 +69,7 @@ extern "C"
 		MDFND_Message(buffer);
 	}
 
-	void				SysMessage		(const char *fmt, ...)
+	void		SysMessage				(const char *fmt, ...)
 	{
 		char buffer[2048];
 		va_list args;
@@ -72,24 +78,20 @@ extern "C"
 		va_end (args);
 
 		MDFND_Message(buffer);
-	}
-
-	uint32_t	DoesFileExist			(const char* aPath)
-	{
-//		return Utility::FileExists(aPath) ? 1 : 0;
-		return 0;
 	}
 }
 
-static Fir_Resampler<8> resampler;
-
+//Implement MDFNGI:
 int				PcsxrLoad				()
 {
-	resampler.buffer_size(588 * 2 * 2 + 100);
-	resampler.time_ratio((double)44100 / 48000.0, 0.9965);
+	//Initialize the resampler
+	Resampler.buffer_size(588 * 2 * 2 + 100);
+	Resampler.time_ratio((double)44100 / 48000.0, 0.9965);
 
+	//Call the C function to finish loading
+	//TODO: Return error if SysLoad fails.
 	SysLoad();
-//	SysInit();
+
 	return 1;
 }
 
@@ -103,6 +105,7 @@ bool			PcsxrTestMagic			()
 
 void			PcsxrCloseGame			(void)
 {
+	//Call the C function in main.c
 	SysClose();
 }
 
@@ -122,43 +125,108 @@ uint8			PcsxrMemRead			(uint32 addr)
 	return 0;
 }
 
+//FAKE ZLIB HACK
+static StateMem* stateMemory;
+
+extern "C"
+{
+	int SaveState(const char *file);
+	int LoadState(const char *file);
+
+	typedef void* smFile;
+	smFile smopen (const char *path , const char *mode )
+	{
+		if(!stateMemory)
+		{
+			MDFND_PrintError("pcsxr: Using save state functions without a memory object?\n");
+		}
+
+		return (void*)stateMemory;
+	}
+
+	int smclose (smFile file )
+	{
+		if(!stateMemory)
+		{
+			MDFND_PrintError("pcsxr: Using save state functions without a memory object?\n");
+		}
+
+		stateMemory = 0;
+	}
+
+	off_t smseek(smFile file, off_t offset, int whence)
+	{
+		StateMem* mem = (StateMem*)file;
+		return smem_seek(mem, offset, whence);
+	}
+
+	int smwrite (smFile file, void* buf, unsigned int len)
+	{
+		StateMem* mem = (StateMem*)file;
+		smem_write(mem, buf, len);
+		return len;
+	}
+
+	int smread (smFile file, void* buf, unsigned int len)
+	{
+		StateMem* mem = (StateMem*)file;
+		smem_read(mem, buf, len);
+		return len;
+	}
+};
+
+
 int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
 {
-	return 0;
+	//TODO:
+	if(!load)
+	{
+		stateMemory = sm;
+		int result = SaveState("");
+		stateMemory = 0;
+		return result == 0;
+	}
+	else
+	{
+		stateMemory = sm;
+		int result = LoadState("");
+		stateMemory = 0;
+		return result == 0;
+	}
 }
 
-uint16_t bingbang[48000];
 void			PcsxrEmulate			(EmulateSpecStruct *espec)
 {
     ESpec = espec;
 
     if(espec->SoundFormatChanged)
     {
+		//TODO
     }
 
+	//Call the C function to emulate the frame
+	//TODO: Support multiplayer
+    //TODO: Support color shift
 	uint32_t width, height;
 	uint32_t sndsize;
-	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)bingbang, &sndsize);
+	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)SampleBuffer, &sndsize);
 
+	//Resample the audio if needed
+	//TODO: Why only on sndsize < 1500, that seems wrong somehow...
 	if(sndsize < 1500 && espec->SoundBuf)
 	{
-		for(int i = 0; i != sndsize * 2; i ++)
-		{
-			resampler.buffer()[i] = /*(rand() & 0x7FFF) - 0x4000;*/ bingbang[i];
-		}
-
-		resampler.write(sndsize * 2);
-		espec->SoundBufSize = resampler.read(espec->SoundBuf, resampler.avail()) >> 1;
+		memcpy(Resampler.buffer(), SampleBuffer, sndsize * 4);
+		Resampler.write(sndsize * 2);
+		espec->SoundBufSize = Resampler.read(espec->SoundBuf, Resampler.avail()) >> 1;
 	}
 
-    //TODO: Support color shift
-    //TODO: Support multiplayer
-
+	//Set the output size
     espec->DisplayRect.x = 0;
     espec->DisplayRect.y = 0;
     espec->DisplayRect.w = width;
     espec->DisplayRect.h = height;
 
+	//Update timing
 	espec->MasterCycles = 1LL * 100;
 }
 
