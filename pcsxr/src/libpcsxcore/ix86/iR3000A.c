@@ -358,6 +358,7 @@ void iDumpBlock(char *ptr) {
 	fflush(stdout);
 }
 
+
 #define REC_FUNC(f) \
 void psx##f(); \
 static void rec##f() { \
@@ -459,8 +460,12 @@ __inline static void execute() {
 	(*recFunc)();
 }
 
+//ROBO: Leave on command
+extern int wanna_leave;
 static void recExecute() {
-	for (;;) execute();
+	wanna_leave = 0;
+	while(!wanna_leave) execute();
+//	for (;;) execute();
 }
 
 static void recExecuteBlock() {
@@ -1747,6 +1752,7 @@ void recLWR() {
 	else {
 		MOV32MtoR(EAX, (u32)&psxRegs.GPR.r[_Rs_]);
 		if (_Imm_) ADD32ItoR(EAX, _Imm_);
+
 	}
 	PUSH32R  (EAX);
 	AND32ItoR(EAX, ~3);
