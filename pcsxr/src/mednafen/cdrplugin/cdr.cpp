@@ -27,6 +27,108 @@ static uint8_t	Buffer[8192];
 //MSF to sector
 #define MSF2SECT(m, s, f)               (((m) * 60 + (s) - 2) * 75 + (f))
 
+#ifdef CDAUDIOTEST
+// this thread plays audio data
+void			pkSPUplayCDDAchannel	(short * m, int i);
+//static uint16_t *iso_play_cdbuf;
+//static uint16_t iso_play_bufptr;
+//static uint32_t CDASector;
+static MDFN_Thread*					AudioThread;
+static volatile int32_t				AudioPlaying = 0;
+static volatile uint32_t			AudioInitalOffset = 0;
+static volatile uint32_t			AudioOffset = 0;
+static uint8_t						AudioBuffer[2352 * 10];
+#define CDDA_FRAMETIME			(1000 * (sizeof(sndbuffer) / 2352) / 75)
+static int 							AudioThreadFunction				(void *param)
+{
+	long			d, t, i, s;
+	unsigned char	tmp;
+	int sec;
+
+	t = MDFND_GetTime();
+
+	iso_play_cdbuf = 0;
+	iso_play_bufptr = 0;
+
+	CD_TOC toc;
+	CDIF_ReadTOC(&toc);
+
+
+	while (playing) {
+		d = t - (long)MDFND_GetTime();
+		if (d <= 0) {
+			d = 1;
+		}
+		else if (d > CDDA_FRAMETIME) {
+			d = CDDA_FRAMETIME;
+		}
+
+		MDFND_Sleep(d);
+		t = MDFND_GetTime() + CDDA_FRAMETIME;
+
+		//TODO: Subchannels?
+
+		CDIF_ReadRawSector(sndbuffer, AudioOffset ++);
+		
+		if(AudioOffset >= toc.tracks[100].lba)
+		{
+			playing = 0;
+		}
+
+		if(/*!cdr.Muted &&*/ playing)
+		{
+			//TODO: Wipe data?
+			pkSPUplayCDDAchannel((short *)AudioBuffer, 2352);
+		}
+
+#if 0	
+		// BIOS CD Player: Fast forward / reverse seek
+		if( cdr.FastForward ) {
+			// ~+0.25 sec
+			cddaCurOffset += CD_FRAMESIZE_RAW * 75 * 3;
+
+#if 0
+			// Bad idea: too much static
+			if( subChanInterleaved )
+				fseek( cddaHandle, s * (CD_FRAMESIZE_RAW + SUB_FRAMESIZE), SEEK_SET );
+			else
+				fseek( cddaHandle, s * CD_FRAMESIZE_RAW, SEEK_SET );
+#endif
+		}
+		else if( cdr.FastBackward ) {
+			// ~-0.25 sec
+			cddaCurOffset -= CD_FRAMESIZE_RAW * 75 * 3;
+			if( cddaCurOffset & 0x80000000 ) {
+				cddaCurOffset = 0;
+				cdr.FastBackward = 0;
+
+				playing = 0;
+				fclose(cddaHandle);
+				cddaHandle = NULL;
+				initial_offset = 0;
+				break;
+			}
+
+#if 0
+			// Bad idea: too much static
+			if( subChanInterleaved )
+				fseek( cddaHandle, s * (CD_FRAMESIZE_RAW + SUB_FRAMESIZE), SEEK_SET );
+			else
+				fseek( cddaHandle, s * CD_FRAMESIZE_RAW, SEEK_SET );
+#endif
+		}
+#endif
+	
+		// Vib Ribbon: decoded buffer IRQ
+//		iso_play_cdbuf = sndbuffer;
+//		iso_play_bufptr = 0;
+	}
+
+	return 0;
+}
+#endif
+
+
 //Prototypes
 extern "C"
 {
@@ -48,10 +150,7 @@ extern "C"
 	long			pkCDRstop				(void);
 	long			pkCDRsetfilename		(char* aFileName);
 	long			pkCDRgetStatus			(struct CdrStat* aStatus);
-	char*			pkCDRgetDriveLetter		(void);
 	long			pkCDRreadCDDA			(unsigned char aMinutes, unsigned char aSeconds, unsigned char aFrames, unsigned char* aBuffer);
-	long			pkCDRgetTE				(unsigned char, unsigned char *, unsigned char *, unsigned char *);
-
 }
 
 
@@ -88,6 +187,8 @@ long			pkCDRgetTN				(unsigned char * aBuffer)
 
 long			pkCDRgetTD				(unsigned char aTrack, unsigned char* aBuffer)
 {
+	//TODO: Special case track zero to return size of disc?
+
 	uint32_t sectors = CDIF_GetTrackSectorCount(aTrack);
 
 	aBuffer[2] = sectors / 75 / 60;
@@ -101,6 +202,8 @@ long			pkCDRgetTD				(unsigned char aTrack, unsigned char* aBuffer)
 
 long			pkCDRreadTrack			(unsigned char* aPosition)
 {
+	//TODO: Fix
+
 	int sector = MSF2SECT(btoi(aPosition[0]), btoi(aPosition[1]), btoi(aPosition[2]));
 	sector += CDIF_GetTrackStartPositionLBA(1);
 	CDIF_ReadRawSector(Buffer, sector);
@@ -168,13 +271,41 @@ void			pkCDRabout				(void)
 
 long			pkCDRplay				(unsigned char* aTime)
 {
-	//TODO
+#ifdef CDAUDIOTEST
+	if(pkSPUplayCDDAchannel != NULL)
+	{
+		int32_t offset = MSF2SECT(time[0], time[1], time[2]);
+		if(AudioPlaying)
+		{
+			if(AudioInitialOffset == offset)
+			{
+				return;
+			}
+			pkCDRstop();
+		}
+
+		AudioInitialOffset = offset;
+		AudioCurrentOffset = AudioInitialOffset;
+
+		AudioPlaying = 1;
+		AudioThread = MDFND_CreateThread(AudioTheadFunction, 0);
+	}
+#endif
 	return 0;
 }
 
 long			pkCDRstop				(void)
 {
-	//TODO
+#ifdef CDAUDIOTEST
+	if(AudioPlaying)
+	{
+		AudioPlaying = 0;
+
+		MDFND_WaitThread(AudioThread);
+		AudioInitialOffset = 0;
+	}
+#endif
+
 	return 0;
 }
 
@@ -188,35 +319,26 @@ long			pkCDRgetStatus			(struct CdrStat* aStatus)
 {
     CDR__getStatus(aStatus);
 
+#ifdef CDAUDIOTEST
+	stat->Status |= AudioPlaying ? 0x80 : 0;
+	sec2msf(AudioOffset, (u8*)stat->Time);
+
 //TODO:
-//    if (playing) {
-//        stat->Status |= 0x80;
-//    }
-
-    // relative -> absolute time
-//    sect = cddaCurOffset / CD_FRAMESIZE_RAW + 150;
-//    sec2msf(sect, (u8 *)stat->Time);
-
-    // BIOS - boot ID (CD type)
+//BIOS - boot ID (CD type)
 //    stat->Type = ti[1].type;
+#endif
 
-	return 0;
-}
-
-char*			pkCDRgetDriveLetter		(void)
-{
-	//NOTHING
 	return 0;
 }
 
 long			pkCDRreadCDDA			(unsigned char aMinutes, unsigned char aSeconds, unsigned char aFrames, unsigned char* aBuffer)
 {
-	//TODO:
-	return 0;
-}
+#ifdef CDAUDIOTEST
+	int sector = MSF2SECT(aMinutes, aSeconds, aFrames);
+	sector += CDIF_GetTrackStartPositionLBA(1);
+	CDIF_ReadRawSector(aBuffer, sector);
+#endif
 
-long			pkCDRgetTE				(unsigned char, unsigned char *, unsigned char *, unsigned char *)
-{
 	return 0;
 }
 

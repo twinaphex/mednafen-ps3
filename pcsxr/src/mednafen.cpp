@@ -10,7 +10,6 @@
 
 namespace
 {
-	EmulateSpecStruct*			ESpec;
 	uint8_t*					Ports[8];
 	Fir_Resampler<8>			Resampler;				///<The sound plugin only gives 44100hz sound
 	int16_t						SampleBuffer[48000];	///<TODO: Support sound freqs > 48000
@@ -55,7 +54,7 @@ extern "C"
 	void		SysLoad					();
 	void		SysClose				();
 	void		SysReset				();
-	void		SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
+	void		SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aInputPort1, uint32_t aInputPort2, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 
 	//Printing functions needed by libpcsxcore
 	void		SysPrintf				(const char *fmt, ...)
@@ -91,6 +90,8 @@ int				PcsxrLoad				()
 	//Call the C function to finish loading
 	//TODO: Return error if SysLoad fails.
 	SysLoad();
+
+	//TODO: Set the clock if the machine is PAL
 
 	return 1;
 }
@@ -197,19 +198,21 @@ int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
 
 void			PcsxrEmulate			(EmulateSpecStruct *espec)
 {
-    ESpec = espec;
-
     if(espec->SoundFormatChanged)
     {
 		//TODO
     }
+
+	//Fetch the list of pressed buttons
+	uint32_t input1 = Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0;
+	uint32_t input2 = Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0;
 
 	//Call the C function to emulate the frame
 	//TODO: Support multiplayer
     //TODO: Support color shift
 	uint32_t width, height;
 	uint32_t sndsize;
-	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, Ports[0][0] | (Ports[0][1] << 8), &width, &height, (uint32_t*)SampleBuffer, &sndsize);
+	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, input1, input2, &width, &height, (uint32_t*)SampleBuffer, &sndsize);
 
 	//Resample the audio if needed
 	//TODO: Why only on sndsize < 1500, that seems wrong somehow...
@@ -280,6 +283,7 @@ static InputDeviceInfoStruct InputDeviceInfoPSXPort[] =
 static const InputPortInfoStruct PortInfo[] =
 {
 	{0, "port1", "Port 1", 2, InputDeviceInfoPSXPort, "gamepad"},
+	{0, "port2", "Port 2", 2, InputDeviceInfoPSXPort, "gamepad"},
 };
 
 InputInfoStruct		PcsxrInput =

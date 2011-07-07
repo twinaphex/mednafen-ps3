@@ -51,8 +51,11 @@ int					SysLoad			()
 	strncpy(Config.Mcd1, GetMemoryCardName(0), MAXPATHLEN);
 	strncpy(Config.Mcd2, GetMemoryCardName(1), MAXPATHLEN);
 
+	SetIsoFile("/opt/media/Games/Sony Playstation/Final Fantasy VII - Disc 1.bin");
+
 	//Init psx cpu emulator and memory mapping
 	EmuInit();
+
 
 	//Open and initialize all of the plugins
 	OpenPlugins();
@@ -79,11 +82,14 @@ extern uint32_t SoundBufLen;
 #define GREEN(x) ((x>>8) & 0xff)
 #define COLOR(x) (x & 0xffffff)
 
-void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aKeys, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
+void		SysFrame			(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aInputPort1, uint32_t aInputPort2, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen)
 {
 	//Send input
-	g.PadState[0].JoyKeyStatus = ~aKeys;
-	g.PadState[0].KeyStatus = ~aKeys;
+	g.PadState[0].JoyKeyStatus = ~aInputPort1;
+	g.PadState[0].KeyStatus = ~aInputPort1;
+	g.PadState[1].JoyKeyStatus = ~aInputPort2;
+	g.PadState[1].KeyStatus = ~aInputPort2;
+
 
 	//Run frame
 	psxCpu->Execute();

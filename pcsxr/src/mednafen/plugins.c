@@ -96,9 +96,7 @@ long            pkCDRplay               (unsigned char* aTime);
 long            pkCDRstop               (void);
 long            pkCDRsetfilename        (char* aFileName);
 long            pkCDRgetStatus          (struct CdrStat* aStatus);
-char*           pkCDRgetDriveLetter     (void);
 long            pkCDRreadCDDA           (unsigned char aMinutes, unsigned char aSeconds, unsigned char aFrames, unsigned char* aBuffer);
-long            pkCDRgetTE              (unsigned char, unsigned char *, unsigned char *, unsigned char *);
 
 
 void*			SysLoadSym			(void *lib, const char *sym)
@@ -173,11 +171,9 @@ void*			SysLoadSym			(void *lib, const char *sym)
     if(strcmp(sym, "CDRstop") == 0) return pkCDRstop;
     if(strcmp(sym, "CDRsetfilename") == 0) return pkCDRsetfilename;
     if(strcmp(sym, "CDRgetStatus") == 0) return pkCDRgetStatus;
-    if(strcmp(sym, "CDRgetDriveLetter") == 0) return pkCDRgetDriveLetter;
     if(strcmp(sym, "CDRreadCDDA") == 0) return pkCDRreadCDDA;
-    if(strcmp(sym, "CDRgetTE") == 0) return pkCDRgetTE;
 
-	return PluginStub;
+	return 0;
 }
 //TODO: Now that THATS over, here's the rest of the useful code!
 
