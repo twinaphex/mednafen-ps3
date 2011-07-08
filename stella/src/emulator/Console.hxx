@@ -17,8 +17,6 @@
 // $Id: Console.hxx 2231 2011-05-10 15:04:19Z stephena $
 //============================================================================
 
-//ROBO: Butcher
-
 #ifndef CONSOLE_HXX
 #define CONSOLE_HXX
 
@@ -34,6 +32,8 @@ class Cartridge;
 #include "Control.hxx"
 #include "Props.hxx"
 #include "TIATables.hxx"
+//ROBO: No FrameBuffer support
+//#include "FrameBuffer.hxx"
 #include "Serializable.hxx"
 
 /**
@@ -67,7 +67,7 @@ class Console : public Serializable
       @param cart     The cartridge to use with this console
       @param props    The properties for the cartridge  
     */
-//ROBO:No OSystem
+//ROBO: No OSystem support
     Console(void* osystem, Cartridge* cart, const Properties& props);
 
     /**
@@ -208,6 +208,18 @@ class Console : public Serializable
     void toggleColorLoss();
 
     /**
+      Initialize the video subsystem wrt this class.
+      This is required for changing window size, title, etc.
+
+      @param full  Whether we want a full initialization,
+                   or only reset certain attributes.
+
+      @return  The results from FrameBuffer::initialize()
+    */
+//ROBO: Function isn't needed
+//    FBInitStatus initializeVideo(bool full = true);
+
+    /**
       Initialize the audio subsystem wrt this class.
       This is required any time the sound settings change.
     */
@@ -304,6 +316,10 @@ class Console : public Serializable
     void toggleTIACollision(TIABit bit, const string& bitname, bool show = true) const;
 
   private:
+    // Pointer to the osystem object
+//ROBO: No OSystem
+//    OSystem* myOSystem;
+
     // Pointers to the left and right controllers
     Controller* myControllers[2];
 
