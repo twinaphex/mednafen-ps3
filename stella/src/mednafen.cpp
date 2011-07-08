@@ -4,11 +4,13 @@
 #include "Settings.hxx"
 #include "TIA.hxx"
 #include "Props.hxx"
+#include "PropsSet.hxx"
 #include "Cart.hxx"
 #include "Console.hxx"
 #include "Serializer.hxx"
 #include "Event.hxx"
 #include "Switches.hxx"
+#include "MD5.hxx"
 
 uint32_t stellaNTSCPalette[256] = {
   0x000000, 0, 0x4a4a4a, 0, 0x6f6f6f, 0, 0x8e8e8e, 0,
@@ -46,19 +48,25 @@ uint32_t stellaNTSCPalette[256] = {
 };
 
 
-Settings	stellaSettings(0);	//TODO:<
-Properties	stellaProperties;
-Console*	stellaConsole;
-uint8_t*	stellaPort[2];
+Settings		stellaSettings(0);	//TODO:<
+Console*		stellaConsole;
+uint8_t*		stellaPort[2];
 
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
 	try
 	{
+		//Get the cart's MD5 sum
+		string cartMD5 = MD5(fp->data, fp->size);
+
+		//Get the game properties
+		PropertiesSet propslist(0);
+		Properties gameProperties;
+		propslist.getMD5(cartMD5, gameProperties);
+
 		//Load the cart
-		string cartType = "AUTO-DETECT";
-		string cartID = "";			//?
-		string cartMD5 = "";		//?
+		string cartType = gameProperties.get(Cartridge_Type);
+		string cartID = "";
 		Cartridge* stellaCart = Cartridge::create(fp->data, fp->size, cartMD5, cartType, cartID, stellaSettings);
 
 		if(stellaCart == 0)
@@ -68,7 +76,7 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 		}
 
 		//Create the console
-		stellaConsole = new Console(0, stellaCart, stellaProperties);
+		stellaConsole = new Console(0, stellaCart, gameProperties);
 		return 1;
 	}
 	catch(...)
@@ -90,6 +98,8 @@ void			StellaCloseGame			(void)
 
 	delete stellaConsole;
 	stellaConsole = 0;
+
+	stellaPort[0] = stellaPort[1] = 0;
 }
 
 void			StellaInstallReadPatch	(uint32 address)
