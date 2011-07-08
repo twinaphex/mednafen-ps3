@@ -6,6 +6,7 @@
 #include "Props.hxx"
 #include "Cart.hxx"
 #include "Console.hxx"
+#include "Serializer.hxx"
 
 Settings	stellaSettings(0);	//TODO:<
 Properties	stellaProperties;
@@ -53,7 +54,18 @@ uint8			StellaMemRead			(uint32 addr)
 
 int				StellaStateAction		(StateMem *sm, int load, int data_only)
 {
-	//TODO:
+	if(load)
+	{
+		Serializer state(sm);
+		stellaConsole->load(state);
+		return 1;
+	}
+	else
+	{
+		Serializer state(sm);
+		stellaConsole->save(state);
+		return 1;
+	}
 	return 0;
 }
 

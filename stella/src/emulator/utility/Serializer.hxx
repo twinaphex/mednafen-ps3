@@ -20,6 +20,22 @@
 #ifndef SERIALIZER_HXX
 #define SERIALIZER_HXX
 
+//ROBO: Use mednafen's StateMem as stream
+//ROBO: This is a hack to prevent #error's from mednafen's types.h about include order
+#ifndef _STATE_H
+#include <stdint.h>
+typedef struct
+{
+	uint8_t *data;
+	uint32_t loc;
+	uint32_t len;
+
+	uint32_t malloced;
+
+	uint32_t initial_malloc; // A setting!
+} StateMem;
+#endif
+
 #include <iostream>
 #include "bspf.hxx"
 
@@ -41,19 +57,7 @@
 class Serializer
 {
   public:
-    /**
-      Creates a new Serializer device for streaming binary data.
-
-      If a filename is provided, the stream will be to the given
-      filename.  Otherwise, the stream will be in memory.
-
-      If a file is opened readonly, we can never write to it.
-
-      The isValid() method must immediately be called to verify the stream
-      was correctly initialized.
-    */
-    Serializer(const string& filename, bool readonly = false);
-    Serializer(void);
+    Serializer(StateMem* stream);
 
     /**
       Destructor
@@ -130,8 +134,7 @@ class Serializer
 
   private:
     // The stream to send the serialized data to.
-    iostream* myStream;
-    bool myUseFilestream;
+    StateMem* myStream;
 
     enum {
       TruePattern  = 0xfe,
