@@ -51,6 +51,26 @@ uint32_t stellaNTSCPalette[256] = {
 Settings		stellaSettings(0);	//TODO:<
 Console*		stellaConsole;
 uint8_t*		stellaPort[2];
+uint32_t		stellaPortType[2];
+
+static struct
+{
+	const char*			Name;
+	uint32_t			Port;
+	uint32_t			Count;
+	Event::Type			IDs[32];
+}	stellaInputDefs[] = 
+{
+	"none", 0, 0, {},
+	"none", 1, 0, {},
+	"gamepad", 0, 9, {Event::JoystickZeroUp, Event::JoystickZeroDown, Event::JoystickZeroLeft, Event::JoystickZeroRight, Event::JoystickZeroFire1, Event::JoystickZeroFire2, Event::JoystickZeroFire3, Event::ConsoleSelect, Event::ConsoleReset},
+	"gamepad", 1, 9, {Event::JoystickOneUp, Event::JoystickOneDown, Event::JoystickOneLeft, Event::JoystickOneRight, Event::JoystickOneFire1, Event::JoystickOneFire2, Event::JoystickOneFire3, Event::ConsoleSelect, Event::ConsoleReset},
+	"paddle", 0, 8, {Event::PaddleZeroDecrease, Event::PaddleZeroIncrease, Event::PaddleZeroFire, Event::PaddleOneDecrease, Event::PaddleOneIncrease, Event::PaddleOneFire, Event::ConsoleSelect, Event::ConsoleReset},
+	"paddle", 1, 8, {Event::PaddleTwoDecrease, Event::PaddleTwoIncrease, Event::PaddleTwoFire, Event::PaddleThreeDecrease, Event::PaddleThreeIncrease, Event::PaddleThreeFire, Event::ConsoleSelect, Event::ConsoleReset},
+	"keyboard", 0, 14, {Event::KeyboardZero1, Event::KeyboardZero2, Event::KeyboardZero3, Event::KeyboardZero4, Event::KeyboardZero5, Event::KeyboardZero6, Event::KeyboardZero7, Event::KeyboardZero8, Event::KeyboardZero9, Event::KeyboardZeroStar, Event::KeyboardZero0, Event::KeyboardZeroPound, Event::ConsoleSelect, Event::ConsoleReset},
+	"keyboard", 1, 14, {Event::KeyboardOne1, Event::KeyboardOne2, Event::KeyboardOne3, Event::KeyboardOne4, Event::KeyboardOne5, Event::KeyboardOne6, Event::KeyboardOne7, Event::KeyboardOne8, Event::KeyboardOne9, Event::KeyboardOneStar, Event::KeyboardOne0, Event::KeyboardOnePound, Event::ConsoleSelect, Event::ConsoleReset},
+};
+
 
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
@@ -144,13 +164,18 @@ int				StellaStateAction		(StateMem *sm, int load, int data_only)
 void			StellaEmulate			(EmulateSpecStruct *espec)
 {
 	//Update the input
-	Event::Type inputIDs[] = {	Event::JoystickZeroUp, Event::JoystickZeroDown, Event::JoystickZeroLeft, Event::JoystickZeroRight,
-								Event::JoystickZeroFire1, Event::JoystickZeroFire2, Event::JoystickZeroFire3, Event::ConsoleSelect, Event::ConsoleReset};
-	uint32_t inputState = stellaPort[0] ? (stellaPort[0][0] | (stellaPort[0][1] << 8)) : 0;
-	for(int i = 0; i != 9; i ++, inputState >>= 1)
+	for(int i = 0; i != 2; i ++)
 	{
-		stellaConsole->event().set(inputIDs[i], inputState & 1);
+		if(stellaPort[i])
+		{
+			uint32_t inputState = stellaPort[i][0] | (stellaPort[i][1] << 8);
+			for(int j = 0; j != stellaInputDefs[stellaPortType[i]].Count - ((i == 1) ? 2 : 0); j ++, inputState >>= 1)
+			{
+				stellaConsole->event().set(stellaInputDefs[stellaPortType[i]].IDs[j], inputState & 1);
+			}
+		}
 	}
+
 	stellaConsole->switches().update();
 	stellaConsole->controller(Controller::Left).update();
 	stellaConsole->controller(Controller::Right).update();
@@ -189,6 +214,17 @@ void			StellaSetInput			(int port, const char *type, void *ptr)
 	if(port >= 0 && port < 2)
 	{
 		stellaPort[port] = (uint8_t*)ptr;
+
+		for(int i = 0; i != sizeof(stellaInputDefs) / sizeof(stellaInputDefs[0]); i ++)
+		{
+			if(strcmp(stellaInputDefs[i].Name, type) == 0 && stellaInputDefs[i].Port == port)
+			{
+				stellaPortType[port] = i;
+				return;
+			}
+		}
+
+		stellaPortType[port] = 0;
 	}
 }
 
@@ -213,8 +249,8 @@ static const InputDeviceInputInfoStruct GamepadIDII[] =
 	{"fire1",	"Fire1",				4,	IDIT_BUTTON, NULL},
 	{"fire2",	"Fire2",				5,	IDIT_BUTTON, NULL},
 	{"fire3",	"Fire3",				6,	IDIT_BUTTON, NULL},
-	{"select",	"Select (On Console)",	7,	IDIT_BUTTON, NULL},
-	{"reset",	"Reset (On Console)",	8,	IDIT_BUTTON, NULL},
+	{"select",	"Select (Port 1 Only)",	7,	IDIT_BUTTON, NULL},
+	{"reset",	"Reset (Port 1 Only)",	8,	IDIT_BUTTON, NULL},
 };
 
 static InputDeviceInfoStruct InputDeviceInfoPort[] =
@@ -232,7 +268,7 @@ static const InputPortInfoStruct PortInfo[] =
 
 InputInfoStruct		StellaInput =
 {
-	1,
+	2,
 	PortInfo
 };
 
