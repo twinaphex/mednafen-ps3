@@ -11,29 +11,46 @@
 Settings	stellaSettings(0);	//TODO:<
 Properties	stellaProperties;
 Console*	stellaConsole;
-Cartridge*	stellaCart;
 
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
-	//Load the cart
-	string cartType = "AUTO-DETECT";
-	string cartID = "";			//?
-	string cartMD5 = "";		//?
-	stellaCart = Cartridge::create(fp->data, fp->size, cartMD5, cartType, cartID, stellaSettings);
+	try
+	{
+		//Load the cart
+		string cartType = "AUTO-DETECT";
+		string cartID = "";			//?
+		string cartMD5 = "";		//?
+		Cartridge* stellaCart = Cartridge::create(fp->data, fp->size, cartMD5, cartType, cartID, stellaSettings);
 
-	stellaConsole = new Console(0, stellaCart, stellaProperties);
-	return 1;
+		if(stellaCart == 0)
+		{
+			MDFND_PrintError("Stella: Failed to load cartridge.");
+			return 0;
+		}
+
+		//Create the console
+		stellaConsole = new Console(0, stellaCart, stellaProperties);
+		return 1;
+	}
+	catch(...)
+	{
+		MDFND_PrintError("Stella: Failed to load due to exception.");
+		return 0;
+	}
 }
 
 bool			StellaTestMagic			(const char *name, MDFNFILE *fp)
 {
-	//TODO:
+	//There is no reliable way to detect a 2600 game, so just go by extension
 	return true;
 }
 
 void			StellaCloseGame			(void)
 {
-	//TODO
+	//TODO: Is anything else needed here?
+
+	delete stellaConsole;
+	stellaConsole = 0;
 }
 
 void			StellaInstallReadPatch	(uint32 address)
@@ -54,19 +71,25 @@ uint8			StellaMemRead			(uint32 addr)
 
 int				StellaStateAction		(StateMem *sm, int load, int data_only)
 {
-	if(load)
+	try
 	{
-		Serializer state(sm);
-		stellaConsole->load(state);
+		if(load)
+		{
+			Serializer state(sm);
+			stellaConsole->load(state);
+		}
+		else
+		{
+			Serializer state(sm);
+			stellaConsole->save(state);
+		}
+
 		return 1;
 	}
-	else
+	catch(...)
 	{
-		Serializer state(sm);
-		stellaConsole->save(state);
-		return 1;
+		return 0;
 	}
-	return 0;
 }
 
 void			StellaEmulate			(EmulateSpecStruct *espec)
@@ -144,7 +167,6 @@ InputInfoStruct		StellaInput =
 static FileExtensionSpecStruct	extensions[] = 
 {
 	{".a26", "Atari 2600 ROM"},
-	{".bin", "Atari 2600 BIN ROM"},
 	{0, 0}
 };
 
