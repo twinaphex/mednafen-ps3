@@ -17,8 +17,6 @@
 // $Id: Console.cxx 2232 2011-05-24 16:04:48Z stephena $
 //============================================================================
 
-//ROBO: Butcher, report later!
-
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -31,6 +29,8 @@
 #include "Cart.hxx"
 #include "Driving.hxx"
 #include "Event.hxx"
+//ROBO: No EventHandler
+//#include "EventHandler.hxx"
 #include "Joystick.hxx"
 #include "Keyboard.hxx"
 #include "KidVid.hxx"
@@ -47,15 +47,34 @@
 #include "System.hxx"
 #include "TIA.hxx"
 #include "TrackBall.hxx"
+//ROBO: No FrameBuffer or OSystem or Menu or CommandMenu
+//#include "FrameBuffer.hxx"
+//#include "OSystem.hxx"
+//#include "Menu.hxx"
+//#include "CommandMenu.hxx"
 #include "Serializable.hxx"
+#include "Version.hxx"
+
+#ifdef DEBUGGER_SUPPORT
+  #include "Debugger.hxx"
+#endif
+
+#ifdef CHEATCODE_SUPPORT
+  #include "CheatManager.hxx"
+#endif
+
 #include "Console.hxx"
 
-//ROBO:
+//ROBO: External global settings
 extern Settings stellaSettings;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//ROBO: No OSystem
+//Console::Console(OSystem* osystem, Cartridge* cart, const Properties& props)
 Console::Console(void* osystem, Cartridge* cart, const Properties& props)
-  : myProperties(props),
+//: //myOSystem(osystem),
+  : 
+    myProperties(props),
     myDisplayFormat("NTSC"),
     myFramerate(60.0),
     myUserPaletteDefined(false)
@@ -65,7 +84,11 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
   myTIA = 0;
   mySwitches = 0;
   mySystem = 0;
-//ROBO: Make an event?
+  myEvent = 0;
+
+  // Attach the event subsystem to the current console
+//ROBO: No OSystem, create own event
+//  myEvent = myOSystem->eventHandler().event();
   myEvent = new Event();
 
   // Load user-defined palette for this ROM
@@ -88,26 +111,48 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
   myControllers[1] = new Joystick(Controller::Right, *myEvent, *mySystem);
 
   M6502* m6502 = new M6502(1);
+#ifdef DEBUGGER_SUPPORT
+  m6502->attach(myOSystem->debugger());
+#endif
 
   myCart = cart;
-  myRiot = new M6532(*this, 0);
-//HACK ROBO: No sound
+//ROBO: External global settings
+//ROBO HACK: No Sound on TIA
+//myRiot = new M6532(*this, myOSystem->settings());
+//myTIA  = new TIA(*this, myOSystem->sound(), myOSystem->settings());
+  myRiot = new M6532(*this, stellaSettings);
   myTIA  = new TIA(*this, stellaSettings);
+
 
   mySystem->attach(m6502);
   mySystem->attach(myRiot);
   mySystem->attach(myTIA);
   mySystem->attach(myCart);
 
+#ifdef DEBUGGER_SUPPORT
+  // The debugger must be added before we run the console for the first time
+  myOSystem->debugger().setConsole(this);
+  myOSystem->debugger().initialize();
+#endif
+
   // Auto-detect NTSC/PAL mode if it's requested
   string autodetected = "";
   myDisplayFormat = myProperties.get(Display_Format);
-  if(myDisplayFormat == "AUTO-DETECT")
+  if(myDisplayFormat == "AUTO-DETECT" ||
+//ROBO: External global settings
+//     myOSystem->settings().getBool("rominfo"))
+     stellaSettings.getBool("rominfo"))
   {
     // Run the system for 60 frames, looking for PAL scanline patterns
     // We turn off the SuperCharger progress bars, otherwise the SC BIOS
     // will take over 250 frames!
     // The 'fastscbios' option must be changed before the system is reset
+//ROBO: External global settings
+//    bool fastscbios = myOSystem->settings().getBool("fastscbios");
+//    myOSystem->settings().setBool("fastscbios", true);
+    bool fastscbios = stellaSettings.getBool("fastscbios");
+    stellaSettings.setBool("fastscbios", true);
+
     mySystem->reset(true);  // autodetect in reset enabled
     int palCount = 0;
     for(int i = 0; i < 60; ++i)
@@ -119,6 +164,11 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
     myDisplayFormat = (palCount >= 20) ? "PAL" : "NTSC";
     if(myProperties.get(Display_Format) == "AUTO-DETECT")
       autodetected = "*";
+
+    // Don't forget to reset the SC progress bars again
+//ROBO: External global settings
+//    myOSystem->settings().setBool("fastscbios", fastscbios);
+    stellaSettings.setBool("fastscbios", fastscbios);
   }
   myConsoleInfo.DisplayFormat = myDisplayFormat + autodetected;
 
@@ -155,8 +205,24 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
 
   // Make sure these values fit within the bounds of the desktop
   // If not, attempt to center vertically
+//ROBO: Fixed size
+/*  if(height <= myOSystem->desktopHeight())
+  {
+    myTIA->setYStart(ystart);
+    myTIA->setHeight(height);
+  }
+  else
+  {
+    ystart += height - myOSystem->desktopHeight();
+    ystart = BSPF_min(ystart, 64u);
+    height = myOSystem->desktopHeight();
+    myTIA->setYStart(ystart);
+    myTIA->setHeight(height);
+  }*/
+
   myTIA->setYStart(ystart);
   myTIA->setHeight(height);
+
 
   const string& md5 = myProperties.get(Cartridge_MD5);
 
@@ -165,11 +231,11 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
 
   // Bumper Bash always requires all 4 directions
   // Other ROMs can use it if the setting is enabled
-  bool joyallow4 = md5 == "aa1c41f86ec44c0a44eb64c332ce08af" ||
-                   md5 == "1bf503c724001b09be79c515ecfcbd03";
-//TODO:
-//                   myOSystem->settings().getBool("joyallow4");
-//  myOSystem->eventHandler().allowAllDirections(joyallow4);
+//ROBO: TODO: No EventHandler...
+/*  bool joyallow4 = md5 == "aa1c41f86ec44c0a44eb64c332ce08af" ||
+                   md5 == "1bf503c724001b09be79c515ecfcbd03" ||
+                  myOSystem->settings().getBool("joyallow4");
+  myOSystem->eventHandler().allowAllDirections(joyallow4);*/
 
   // Reset the system to its power-on state
   mySystem->reset();
@@ -185,7 +251,7 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Console::~Console()
 {
-//ROBO: Delete the event?
+//ROBO: Delete myEvent
   delete myEvent;
 
   delete mySystem;
@@ -285,16 +351,24 @@ void Console::toggleFormat()
 
   myDisplayFormat = format;
   myProperties.set(Display_Format, myDisplayFormat);
+//ROBO: No FrameBuffer Messages
+//  myOSystem->frameBuffer().showMessage(message);
+//ROBO: External global settings
 //  setPalette(myOSystem->settings().getString("palette"));
+  setPalette(stellaSettings.getString("palette"));
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::toggleColorLoss()
 {
+//ROBO: Global settings
 //  bool colorloss = !myOSystem->settings().getBool("colorloss");
 //  myOSystem->settings().setBool("colorloss", colorloss);
-//  myTIA->enableColorLoss(colorloss);
+  bool colorloss = !stellaSettings.getBool("colorloss");
+  stellaSettings.setBool("colorloss", colorloss);
+  myTIA->enableColorLoss(colorloss);
 
+//ROBO: No Framebuffer Messages
 //  string message = string("PAL color-loss ") +
 //                   (colorloss ? "enabled" : "disabled");
 //  myOSystem->frameBuffer().showMessage(message);
@@ -303,8 +377,10 @@ void Console::toggleColorLoss()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::togglePalette()
 {
-  string palette = "standard", message;
+  string palette, message;
+//ROBO: External settings
 //  palette = myOSystem->settings().getString("palette");
+  palette = stellaSettings.getString("palette");
  
   if(palette == "standard")       // switch to z26
   {
@@ -337,7 +413,10 @@ void Console::togglePalette()
     message = "Standard Stella palette";
   }
 
+//ROBO: External settings
 //  myOSystem->settings().setString("palette", palette);
+  stellaSettings.setString("palette", palette);
+//ROBO: No FrameBuffer Messages
 //  myOSystem->frameBuffer().showMessage(message);
 
   setPalette(palette);
@@ -375,6 +454,7 @@ void Console::setPalette(const string& type)
     (myDisplayFormat.compare(0, 5, "SECAM") == 0) ? palettes[paletteNum][2] :
      palettes[paletteNum][0];
 
+//ROBO TODO: No Framebuffer
 //  myOSystem->frameBuffer().setTIAPalette(palette);
 }
 
@@ -388,15 +468,18 @@ void Console::togglePhosphor()
   {
     myProperties.set(Display_Phosphor, "No");
     enable = false;
+//ROBO: No FrameBuffer Messages
 //    myOSystem->frameBuffer().showMessage("Phosphor effect disabled");
   }
   else
   {
     myProperties.set(Display_Phosphor, "Yes");
     enable = true;
+//ROBO: No FrameBuffer Messages
 //    myOSystem->frameBuffer().showMessage("Phosphor effect enabled");
   }
 
+//ROBO TODO: No framebuffer
 //  myOSystem->frameBuffer().enablePhosphor(enable, blend);
 }
 
@@ -407,36 +490,39 @@ void Console::setProperties(const Properties& props)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//ROBO TODO: Function not needed?
 /*FBInitStatus Console::initializeVideo(bool full)
 {
+  FBInitStatus fbstatus = kSuccess;
+
   if(full)
   {
-//    const string& title = string("Stella ") + STELLA_VERSION +
-//                   ": \"" + myProperties.get(Cartridge_Name) + "\"";
-//    fbstatus = myOSystem->frameBuffer().initialize(title,
-//                 myTIA->width() << 1, myTIA->height());
-//    if(fbstatus != kSuccess)
-//      return fbstatus;
+    const string& title = string("Stella ") + STELLA_VERSION +
+                   ": \"" + myProperties.get(Cartridge_Name) + "\"";
+    fbstatus = myOSystem->frameBuffer().initialize(title,
+                 myTIA->width() << 1, myTIA->height());
+    if(fbstatus != kSuccess)
+      return fbstatus;
 
-//    myOSystem->frameBuffer().showFrameStats(myOSystem->settings().getBool("stats"));
+    myOSystem->frameBuffer().showFrameStats(myOSystem->settings().getBool("stats"));
     setColorLossPalette();
   }
 
   bool enable = myProperties.get(Display_Phosphor) == "YES";
   int blend = atoi(myProperties.get(Display_PPBlend).c_str());
-//  myOSystem->frameBuffer().enablePhosphor(enable, blend);
-//  setPalette(myOSystem->settings().getString("palette"));
+  myOSystem->frameBuffer().enablePhosphor(enable, blend);
+  setPalette(myOSystem->settings().getString("palette"));
 
   // Set the correct framerate based on the format of the ROM
   // This can be overridden by changing the framerate in the
   // VideoDialog box or on the commandline, but it can't be saved
   // (ie, framerate is now determined based on number of scanlines).
-//  int framerate = myOSystem->settings().getInt("framerate");
-//  if(framerate > 0) myFramerate = float(framerate);
-//  myOSystem->setFramerate(myFramerate);
+  int framerate = myOSystem->settings().getInt("framerate");
+  if(framerate > 0) myFramerate = float(framerate);
+  myOSystem->setFramerate(myFramerate);
 
   // Make sure auto-frame calculation is only enabled when necessary
-//  myTIA->enableAutoFrame(framerate <= 0);
+  myTIA->enableAutoFrame(framerate <= 0);
 
   return fbstatus;
 }*/
@@ -444,21 +530,22 @@ void Console::setProperties(const Properties& props)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::initializeAudio()
 {
-  // Initialize the sound interface.
+//ROBO TODO: Dummied function
+/*  // Initialize the sound interface.
   // The # of channels can be overridden in the AudioDialog box or on
   // the commandline, but it can't be saved.
-  int framerate = 64;//myOSystem->settings().getInt("framerate");
+  int framerate = myOSystem->settings().getInt("framerate");
   if(framerate > 0) myFramerate = float(framerate);
   const string& sound = myProperties.get(Cartridge_Sound);
   uInt32 channels = (sound == "STEREO" ? 2 : 1);
 
-/*  myOSystem->sound().close();
+  myOSystem->sound().close();
   myOSystem->sound().setChannels(channels);
   myOSystem->sound().setFrameRate(myFramerate);
-  myOSystem->sound().open();*/
+  myOSystem->sound().open();
 
   // Make sure auto-frame calculation is only enabled when necessary
-  myTIA->enableAutoFrame(framerate <= 0);
+  myTIA->enableAutoFrame(framerate <= 0);*/
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -497,6 +584,7 @@ void Console::changeYStart(int direction)
     ystart++;
     if(ystart > 64)
     {
+//ROBO: No FrameBuffer Messages
 //      myOSystem->frameBuffer().showMessage("YStart at maximum");
       return;
     }
@@ -506,6 +594,7 @@ void Console::changeYStart(int direction)
     ystart--;
     if(ystart < 0)
     {
+//ROBO: No FrameBuffer Messages
 //      myOSystem->frameBuffer().showMessage("YStart at minimum");
       return;
     }
@@ -515,10 +604,12 @@ void Console::changeYStart(int direction)
 
   myTIA->setYStart(ystart);
   myTIA->frameReset();
+//ROBO TODO: No Framebuffer
 //  myOSystem->frameBuffer().refresh();
 
   ostringstream val;
   val << ystart;
+//ROBO: No FrameBuffer Messages
 //  myOSystem->frameBuffer().showMessage("YStart " + val.str());
   myProperties.set(Display_YStart, val.str());
 }
@@ -531,30 +622,36 @@ void Console::changeHeight(int direction)
   if(direction == +1)       // increase Height
   {
     height++;
+//ROBO: No OSystem
 //    if(height > 256 || height > myOSystem->desktopHeight())
-//    {
+    if(height > 256)
+    {
+//ROBO: No FrameBuffer Messages
 //      myOSystem->frameBuffer().showMessage("Height at maximum");
-//      return;
-//    }
+      return;
+    }
   }
   else if(direction == -1)  // decrease Height
   {
     height--;
-/*    if(height < 210)
+    if(height < 210)
     {
-      myOSystem->frameBuffer().showMessage("Height at minimum");
+//ROBO: No FrameBuffer Messages
+//      myOSystem->frameBuffer().showMessage("Height at minimum");
       return;
-    }*/
+    }
   }
   else
     return;
 
   myTIA->setHeight(height);
   myTIA->frameReset();
+//ROBO TODO: video change
 //  initializeVideo();  // takes care of refreshing the screen
 
   ostringstream val;
   val << height;
+//ROBO: No FrameBuffer Messages
 //  myOSystem->frameBuffer().showMessage("Height " + val.str());
   myProperties.set(Display_Height, val.str());
 }
@@ -679,6 +776,7 @@ void Console::setControllers(const string& rommd5)
   }
   else if(right == "ATARIVOX")
   {
+//ROBO TODO: No OSystem, use medanfen paths
 /*    const string& eepromfile = myOSystem->eepromDir() + "atarivox_eeprom.dat";
     myControllers[rightPort] = new AtariVox(Controller::Right, *myEvent,
                    *mySystem, myOSystem->serialPort(),
@@ -686,6 +784,7 @@ void Console::setControllers(const string& rommd5)
   }
   else if(right == "SAVEKEY")
   {
+//ROBO TODO: No OSystem, use medanfen paths
 /*    const string& eepromfile = myOSystem->eepromDir() + "savekey_eeprom.dat";
     myControllers[rightPort] = new SaveKey(Controller::Right, *myEvent, *mySystem,
                                            eepromfile);*/
@@ -707,7 +806,9 @@ void Console::setControllers(const string& rommd5)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::loadUserPalette()
 {
-  const string& palette = "DICKS";//myOSystem->paletteFile();
+//ROBO TODO: Allow definintion thru mednafen setting
+//  const string& palette = myOSystem->paletteFile();
+  const string& palette = "ERRORS";
   ifstream in(palette.c_str(), ios::binary);
   if(!in)
     return;
@@ -803,7 +904,7 @@ void Console::setColorLossPalette()
 void Console::setFramerate(float framerate)
 {
   myFramerate = framerate;
-  //TODO:
+//ROBO TODO: No OSYSTEM
 //  myOSystem->setFramerate(framerate);
 //  myOSystem->sound().setFrameRate(framerate);
 }
@@ -811,18 +912,29 @@ void Console::setFramerate(float framerate)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::toggleTIABit(TIABit bit, const string& bitname, bool show) const
 {
-  myTIA->toggleBit(bit);
+  bool result = myTIA->toggleBit(bit);
+//ROBO: No FrameBuffer Messages
+//  string message = bitname + (result ? " enabled" : " disabled");
+//  myOSystem->frameBuffer().showMessage(message);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::toggleTIACollision(TIABit bit, const string& bitname, bool show) const
 {
-  myTIA->toggleCollision(bit);
+  bool result = myTIA->toggleCollision(bit);
+//ROBO: No FrameBuffer Messages
+//  string message = bitname + (result ? " collision enabled" : " collision disabled");
+//  myOSystem->frameBuffer().showMessage(message);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::toggleHMOVE() const
 {
+//ROBO: No FrameBuffer Messages
+//  if(myTIA->toggleHMOVEBlank())
+//    myOSystem->frameBuffer().showMessage("HMOVE blanking enabled");
+//  else
+//    myOSystem->frameBuffer().showMessage("HMOVE blanking disabled");
   myTIA->toggleHMOVEBlank();
 }
 
@@ -830,17 +942,28 @@ void Console::toggleHMOVE() const
 void Console::enableBits(bool enable) const
 {
   myTIA->enableBits(enable);
+//ROBO: No FrameBuffer Messages
+//  string message = string("TIA bits") + (enable ? " enabled" : " disabled");
+//  myOSystem->frameBuffer().showMessage(message);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::enableCollisions(bool enable) const
 {
   myTIA->enableCollisions(enable);
+//ROBO: No FrameBuffer Messages
+//  string message = string("TIA collisions") + (enable ? " enabled" : " disabled");
+//  myOSystem->frameBuffer().showMessage(message);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Console::toggleFixedColors() const
 {
+//ROBO: No FrameBuffer Messages
+//  if(myTIA->toggleFixedColors())
+//    myOSystem->frameBuffer().showMessage("Fixed debug colors enabled");
+//  else
+//    myOSystem->frameBuffer().showMessage("Fixed debug colors disabled");
   myTIA->toggleFixedColors();
 }
 
@@ -1071,6 +1194,8 @@ uInt32 Console::ourUserSECAMPalette[256] = { 0 }; // filled from external file
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Console::Console(const Console& console)
+//ROBO: No OSystem
+//  : myOSystem(console.myOSystem)
 {
   assert(false);
 }
