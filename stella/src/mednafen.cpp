@@ -96,11 +96,11 @@ void			StellaDoSimpleCommand	(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET)
 	{
-		//TODO
+		stellaConsole->system().reset();
 	}
 	else if(cmd == MDFN_MSC_POWER)
 	{
-		//TODO
+		stellaConsole->system().reset();
 	}
 }
 
@@ -189,8 +189,8 @@ MDFNGI	StellaInfo =
 #define DLL_PUBLIC __attribute__ ((visibility("default")))
 #endif
 #else
-#define VERSION_FUNC pcsxGetVersion
-#define GETEMU_FUNC pcsxGetEmulator
+#define VERSION_FUNC stellaGetVersion
+#define GETEMU_FUNC stellaGetEmulator
 #define	DLL_PUBLIC
 #endif
 
