@@ -7,10 +7,13 @@
 #include "Cart.hxx"
 #include "Console.hxx"
 #include "Serializer.hxx"
+#include "Event.hxx"
+#include "Switches.hxx"
 
 Settings	stellaSettings(0);	//TODO:<
 Properties	stellaProperties;
 Console*	stellaConsole;
+uint8_t*	stellaPort[2];
 
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
@@ -92,8 +95,23 @@ int				StellaStateAction		(StateMem *sm, int load, int data_only)
 	}
 }
 
+void		MDFND_DispMessage		(UTF8 *text);
 void			StellaEmulate			(EmulateSpecStruct *espec)
 {
+	//Update the input
+	Event::Type inputIDs[] = {	Event::JoystickZeroUp, Event::JoystickZeroDown, Event::JoystickZeroLeft, Event::JoystickZeroRight,
+								Event::JoystickZeroFire1, Event::JoystickZeroFire2, Event::JoystickZeroFire3, Event::ConsoleSelect, Event::ConsoleReset};
+	uint32_t inputState = stellaPort[0][0] | (stellaPort[0][1] << 8);
+	for(int i = 0; i != 9; i ++, inputState >>= 1)
+	{
+		stellaConsole->event().set(inputIDs[i], inputState & 1);
+	}
+	stellaConsole->switches().update();
+	stellaConsole->controller(Controller::Left).update();
+	stellaConsole->controller(Controller::Right).update();
+
+
+
 	// Run the console for one frame
 	stellaConsole->tia().update();
 
@@ -124,7 +142,10 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 
 void			StellaSetInput			(int port, const char *type, void *ptr)
 {
-	//TODO:
+	if(port >= 0 && port < 2)
+	{
+		stellaPort[port] = (uint8_t*)ptr;
+	}
 }
 
 void			StellaDoSimpleCommand	(int cmd)
@@ -141,13 +162,21 @@ void			StellaDoSimpleCommand	(int cmd)
 
 static const InputDeviceInputInfoStruct GamepadIDII[] =
 {
-	{"button",	"BUTTON",	0,	IDIT_BUTTON, NULL},
+	{"up",		"Up",					0,	IDIT_BUTTON, NULL},
+	{"down",	"Down",					1,	IDIT_BUTTON, NULL},
+	{"left",	"Left",					2,	IDIT_BUTTON, NULL},
+	{"right",	"Right",				3,	IDIT_BUTTON, NULL},
+	{"fire1",	"Fire1",				4,	IDIT_BUTTON, NULL},
+	{"fire2",	"Fire2",				5,	IDIT_BUTTON, NULL},
+	{"fire3",	"Fire3",				6,	IDIT_BUTTON, NULL},
+	{"select",	"Select (On Console)",	7,	IDIT_BUTTON, NULL},
+	{"reset",	"Reset (On Console)",	8,	IDIT_BUTTON, NULL},
 };
 
 static InputDeviceInfoStruct InputDeviceInfoPort[] =
 {
 	{"none",	"none",		NULL,	0,	NULL},
-	{"gamepad", "Gamepad",	NULL,	1,	GamepadIDII},
+	{"gamepad", "Gamepad",	NULL,	9,	GamepadIDII},
 };
 
 
