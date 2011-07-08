@@ -136,7 +136,7 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 	//Update the input
 	Event::Type inputIDs[] = {	Event::JoystickZeroUp, Event::JoystickZeroDown, Event::JoystickZeroLeft, Event::JoystickZeroRight,
 								Event::JoystickZeroFire1, Event::JoystickZeroFire2, Event::JoystickZeroFire3, Event::ConsoleSelect, Event::ConsoleReset};
-	uint32_t inputState = stellaPort[0][0] | (stellaPort[0][1] << 8);
+	uint32_t inputState = stellaPort[0] ? (stellaPort[0][0] | (stellaPort[0][1] << 8)) : 0;
 	for(int i = 0; i != 9; i ++, inputState >>= 1)
 	{
 		stellaConsole->event().set(inputIDs[i], inputState & 1);
@@ -236,6 +236,11 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting StellaSettings[] =
 {
+	{"stella.ramrandom",	MDFNSF_NOFLAGS,		"Use random values to initialize RAM",					NULL, MDFNST_BOOL,		"1"},
+	{"stella.fastscbios",	MDFNSF_NOFLAGS,		"Use quick method to init SuperCharger BIOS",			NULL, MDFNST_BOOL,		"0"},
+	{"stella.colorloss",	MDFNSF_NOFLAGS,		"Emulate Color loss",									NULL, MDFNST_BOOL,		"0"},
+	{"stella.tiadriven",	MDFNSF_NOFLAGS,		"Randomly toggle unused TIA pins",						NULL, MDFNST_BOOL,		"0"},
+	{"stella.palette",		MDFNSF_NOFLAGS,		"Color Palette to use",									NULL, MDFNST_STRING,	"standard"},
 	{NULL}
 };
 
