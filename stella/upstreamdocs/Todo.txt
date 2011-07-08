@@ -1,0 +1,20 @@
+===========================================================================
+
+     SSSS    tt          lll  lll
+    SS  SS   tt           ll   ll
+    SS     tttttt  eeee   ll   ll   aaaa
+     SSSS    tt   ee  ee  ll   ll      aa
+        SS   tt   eeeeee  ll   ll   aaaaa  --  "An Atari 2600 VCS Emulator"
+    SS  SS   tt   ee      ll   ll  aa  aa
+     SSSS     ttt  eeeee llll llll  aaaaa
+
+===========================================================================
+                                To Do List
+===========================================================================
+
+All Todo items are now available in the Stella tracker on AtariAge:
+
+  http://www.atariage.com/forums/tracker/project-16-stella-emulator
+
+If you would like to contribute to Stella's development then find something
+on the list above and email Stephen Anthony (stephena@users.sf.net).
