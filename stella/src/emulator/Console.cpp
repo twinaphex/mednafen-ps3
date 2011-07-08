@@ -65,7 +65,8 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
   myTIA = 0;
   mySwitches = 0;
   mySystem = 0;
-  myEvent = 0;
+//ROBO: Make an event?
+  myEvent = new Event();
 
   // Load user-defined palette for this ROM
   loadUserPalette();
@@ -184,6 +185,9 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Console::~Console()
 {
+//ROBO: Delete the event?
+  delete myEvent;
+
   delete mySystem;
   delete mySwitches;
   delete myControllers[0];

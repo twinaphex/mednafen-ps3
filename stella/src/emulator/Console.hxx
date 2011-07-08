@@ -272,6 +272,9 @@ class Console : public Serializable
     */
     void toggleFixedColors() const;
 
+	//ROBO: Get the event
+	Event& event() {return *myEvent;}
+
   private:
     /**
       Adds the left and right controllers to the console.
