@@ -8,8 +8,8 @@ BUILD		:=	build
 SOURCE		:=	src src/emulator/cart src/emulator/input src/emulator/system src/emulator/utility src/emulator/properties src/emulator
 INCLUDE		:=	../mednafen/src src/emulator src/emulator/cart src/emulator/input src/emulator/system src/emulator/utility src/emulator/properties 
 
-CFLAGS		:=	-DHAVE_INTTYPES
-CXXFLAGS	:=	-DHAVE_INTTYPES
+CFLAGS		:=	-DHAVE_INTTYPES -DKeyboard=StellaKeyboard
+CXXFLAGS	:=	-DHAVE_INTTYPES -DKeyboard=StellaKeyboard
 
 ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
 	include $(CURDIR)/../Makefile-$(PLATFORM).base

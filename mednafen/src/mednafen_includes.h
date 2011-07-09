@@ -18,6 +18,7 @@ extern "C" MDFNGI*				nestGetEmulator			();
 extern "C" MDFNGI*				gmbtGetEmulator			();
 extern "C" MDFNGI*				vbamGetEmulator			();
 extern "C" MDFNGI*				pcsxGetEmulator			();
+extern "C" MDFNGI*				stellaGetEmulator		();
 
 void							MDFNDES_BlockExit		(bool aExit);
 void							MDFND_NetStart			();

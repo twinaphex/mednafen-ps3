@@ -4,6 +4,9 @@ export PLATFORM=dll
 cd nestopia
 make clean
 make -j2
+cd ../stella
+make clean
+make -j2
 cd ../gambatte
 make clean
 make -j2

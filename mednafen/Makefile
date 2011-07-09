@@ -44,11 +44,11 @@ ifeq ($(strip $(PLATFORM)),l1ght)
 endif
 
 INCLUDE				:=	src ../system $(MEDNAFENINCLUDES) 
-LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr
+LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella
 
 CFLAGS				:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
 CXXFLAGS			:=	$(MEDNAFENFLAGS) $(MEDNAFENCONFIG)
-LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lpcsxr-$(PLATFORM) -lvbam-$(PLATFORM)
+LIBS				:=	-lemusys-$(PLATFORM) -lnestopia-$(PLATFORM) -lgambatte-$(PLATFORM) -lpcsxr-$(PLATFORM) -lvbam-$(PLATFORM) -lstella-$(PLATFORM)
 
 ifeq ($(strip $(NO_LUA)),1)
 	CXXFLAGS+=	-DNO_LUA
