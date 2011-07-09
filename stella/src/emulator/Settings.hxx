@@ -20,8 +20,7 @@
 #ifndef SETTINGS_HXX
 #define SETTINGS_HXX
 
-//ROBO: No OSystem
-//class OSystem;
+//ROBO: Totally convert this to use mednafen for settings backend, diff with orig for details
 
 #include "Array.hxx"
 #include "bspf.hxx"
@@ -38,44 +37,14 @@ class Settings
     /**
       Create a new settings abstract class
     */
-//ROBO: No OSystem
-//    Settings(OSystem* osystem);
-    Settings(void* osystem);
+    Settings();
 
     /**
       Destructor
     */
-    virtual ~Settings();
+    virtual ~Settings() {};
 
   public:
-    /**
-      This method should be called to load the current settings from an rc file.
-    */
-    virtual void loadConfig();
-
-    /**
-      This method should be called to save the current settings to an rc file.
-    */
-    virtual void saveConfig();
-
-    /**
-      This method should be called to load the arguments from the commandline.
-
-      @return Name of the ROM to load, otherwise empty string
-    */
-    string loadCommandLine(int argc, char** argv);
-
-    /**
-      This method should be called *after* settings have been read,
-      to validate (and change, if necessary) any improper settings.
-    */
-    void validate();
-
-    /**
-      This method should be called to display usage information.
-    */
-    void usage();
-
     /**
       Get the value assigned to the specified key.  If the key does
       not exist then -1 is returned.
@@ -113,15 +82,6 @@ class Settings
     const string& getString(const string& key) const;
 
     /**
-      Get the x*y size assigned to the specified key.  If the key does
-      not exist (or is invalid) then results are -1 for each item.
-
-      @param key The key of the setting to lookup
-      @return The x and y values encoded in the key
-    */
-    void getSize(const string& key, int& x, int& y) const;
-
-    /**
       Set the value associated with key to the given value.
 
       @param key   The key of the setting
@@ -153,66 +113,13 @@ class Settings
     */
     void setString(const string& key, const string& value);
 
-    /**
-      Set the value associated with key to the given value.
-
-      @param key   The key of the setting
-      @param value The value to assign to the setting
-    */
-    void setSize(const string& key, const int value1, const int value2);
 
   private:
     // Copy constructor isn't supported by this class so make it private
-    Settings(const Settings&);
+    Settings(const Settings&) {};
 
     // Assignment operator isn't supported by this class so make it private
-    Settings& operator = (const Settings&);
-
-    // Trim leading and following whitespace from a string
-    static string trim(string& str)
-    {
-      string::size_type first = str.find_first_not_of(' ');
-      return (first == string::npos) ? string() :
-              str.substr(first, str.find_last_not_of(' ')-first+1);
-    }
-
-  protected:
-    // The parent OSystem object
-//ROBO: No OSystem
-//    OSystem* myOSystem;
-
-    // Structure used for storing settings
-    struct Setting
-    {
-      string key;
-      string value;
-      string initialValue;
-    };
-    typedef Common::Array<Setting> SettingsArray;
-
-    const SettingsArray& getInternalSettings() const
-      { return myInternalSettings; }
-    const SettingsArray& getExternalSettings() const
-      { return myExternalSettings; }
-
-    /** Get position in specified array of 'key' */
-    int getInternalPos(const string& key) const;
-    int getExternalPos(const string& key) const;
-
-    /** Add key,value pair to specified array at specified position */
-    int setInternal(const string& key, const string& value,
-                    int pos = -1, bool useAsInitial = false);
-    int setExternal(const string& key, const string& value,
-                    int pos = -1, bool useAsInitial = false);
-
-  private:
-    // Holds key,value pairs that are necessary for Stella to
-    // function and must be saved on each program exit.
-    SettingsArray myInternalSettings;
-
-    // Holds auxiliary key,value pairs that shouldn't be saved on
-    // program exit.
-    SettingsArray myExternalSettings;
+    Settings& operator = (const Settings&) {assert(false); return *this;};
 };
 
 #endif
