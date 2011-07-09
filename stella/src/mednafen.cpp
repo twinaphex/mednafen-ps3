@@ -56,25 +56,6 @@ Settings&				stellaMDFNSettings			()
 	abort();
 }
 
-//Define the available input types
-static struct
-{
-	const char*			Name;
-	uint32_t			Port;
-	uint32_t			Count;
-	Event::Type			IDs[32];
-}	stellaInputDefs[] = 
-{
-	"none", 0, 0, {},
-	"none", 1, 0, {},
-	"gamepad", 0, 9, {Event::JoystickZeroUp, Event::JoystickZeroDown, Event::JoystickZeroLeft, Event::JoystickZeroRight, Event::JoystickZeroFire1, Event::JoystickZeroFire2, Event::JoystickZeroFire3, Event::ConsoleSelect, Event::ConsoleReset},
-	"gamepad", 1, 9, {Event::JoystickOneUp, Event::JoystickOneDown, Event::JoystickOneLeft, Event::JoystickOneRight, Event::JoystickOneFire1, Event::JoystickOneFire2, Event::JoystickOneFire3, Event::ConsoleSelect, Event::ConsoleReset},
-	"paddle", 0, 8, {Event::PaddleZeroDecrease, Event::PaddleZeroIncrease, Event::PaddleZeroFire, Event::PaddleOneDecrease, Event::PaddleOneIncrease, Event::PaddleOneFire, Event::ConsoleSelect, Event::ConsoleReset},
-	"paddle", 1, 8, {Event::PaddleTwoDecrease, Event::PaddleTwoIncrease, Event::PaddleTwoFire, Event::PaddleThreeDecrease, Event::PaddleThreeIncrease, Event::PaddleThreeFire, Event::ConsoleSelect, Event::ConsoleReset},
-	"keyboard", 0, 14, {Event::KeyboardZero1, Event::KeyboardZero2, Event::KeyboardZero3, Event::KeyboardZero4, Event::KeyboardZero5, Event::KeyboardZero6, Event::KeyboardZero7, Event::KeyboardZero8, Event::KeyboardZero9, Event::KeyboardZeroStar, Event::KeyboardZero0, Event::KeyboardZeroPound, Event::ConsoleSelect, Event::ConsoleReset},
-	"keyboard", 1, 14, {Event::KeyboardOne1, Event::KeyboardOne2, Event::KeyboardOne3, Event::KeyboardOne4, Event::KeyboardOne5, Event::KeyboardOne6, Event::KeyboardOne7, Event::KeyboardOne8, Event::KeyboardOne9, Event::KeyboardOneStar, Event::KeyboardOne0, Event::KeyboardOnePound, Event::ConsoleSelect, Event::ConsoleReset},
-};
-
 //Implement MDFNGI:
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
@@ -184,15 +165,21 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 		//Update stella's event structure
 		for(int i = 0; i != 2; i ++)
 		{
-			if(mdfnStella->Port[i])
+			//Get the base event id for this port
+			Event::Type baseEvent = (i == 0) ? Event::JoystickZeroUp : Event::JoystickOneUp;
+
+			//Get the input data for this port and stuff it in the event structure
+			uint32_t inputState = mdfnStella->Port[i] ? (mdfnStella->Port[i][0] | (mdfnStella->Port[i][1] << 8) | (mdfnStella->Port[i][2] << 16)) : 0;
+			for(int j = 0; j != 19; j ++, inputState >>= 1)
 			{
-				uint32_t inputState = mdfnStella->Port[i][0] | (mdfnStella->Port[i][1] << 8);
-				for(int j = 0; j != stellaInputDefs[mdfnStella->PortType[i]].Count - ((i == 1) ? 2 : 0); j ++, inputState >>= 1)
-				{
-					mdfnStella->GameConsole->event().set(stellaInputDefs[mdfnStella->PortType[i]].IDs[j], inputState & 1);
-				}
+				mdfnStella->GameConsole->event().set((Event::Type)(baseEvent + j), inputState & 1);
 			}
 		}
+
+		//Update the reset and select events
+		uint32_t inputState = mdfnStella->Port[0] ? (mdfnStella->Port[0][2] << 16) >> 19 : 0;
+		mdfnStella->GameConsole->event().set(Event::ConsoleSelect, inputState & 1);
+		mdfnStella->GameConsole->event().set(Event::ConsoleReset, inputState & 2);
 
 		//Tell all input devices to read their state from the event structure
 		mdfnStella->GameConsole->switches().update();
@@ -278,21 +265,8 @@ void			StellaSetInput			(int port, const char *type, void *ptr)
 	//Don't do anything if state isn't valid
 	if(mdfnStella && port >= 0 && port < 2)
 	{
-		//Copy the data pointer
 		mdfnStella->Port[port] = (uint8_t*)ptr;
-
-		//Search for the input device type
-		for(int i = 0; i != sizeof(stellaInputDefs) / sizeof(stellaInputDefs[0]); i ++)
-		{
-			if(strcmp(stellaInputDefs[i].Name, type) == 0 && stellaInputDefs[i].Port == port)
-			{
-				mdfnStella->PortType[port] = i;
-				return;
-			}
-		}
-
-		//The device wasn't found, this should never happen
-		mdfnStella->PortType[port] = 0;
+		mdfnStella->PortType[port] = strcmp(type, "none") != 0;
 	}
 }
 
@@ -311,17 +285,31 @@ static const InputDeviceInputInfoStruct GamepadIDII[] =
 	{"down",	"Down",					1,	IDIT_BUTTON, NULL},
 	{"left",	"Left",					2,	IDIT_BUTTON, NULL},
 	{"right",	"Right",				3,	IDIT_BUTTON, NULL},
-	{"fire1",	"Fire1",				4,	IDIT_BUTTON, NULL},
-	{"fire2",	"Fire2",				5,	IDIT_BUTTON, NULL},
-	{"fire3",	"Fire3",				6,	IDIT_BUTTON, NULL},
-	{"select",	"Select (Port 1 Only)",	7,	IDIT_BUTTON, NULL},
-	{"reset",	"Reset (Port 1 Only)",	8,	IDIT_BUTTON, NULL},
+	{"fire1",	"Fire 1",				4,	IDIT_BUTTON, NULL},
+	{"fire2",	"Fire 2",				5,	IDIT_BUTTON, NULL},
+	{"fire3",	"Fire 3",				6,	IDIT_BUTTON, NULL},
+
+	{"one",		"Keyboard One",			7,	IDIT_BUTTON, NULL},
+	{"two",		"Keyboard Two",			8,	IDIT_BUTTON, NULL},
+	{"three",	"Keyboard Three",		9,	IDIT_BUTTON, NULL},
+	{"four",	"Keyboard Four",		10,	IDIT_BUTTON, NULL},
+	{"five",	"Keyboard Five",		11,	IDIT_BUTTON, NULL},
+	{"six",		"Keyboard Six",			12,	IDIT_BUTTON, NULL},
+	{"seven",	"Keyboard Seven",		13,	IDIT_BUTTON, NULL},
+	{"eight",	"Keyboard Eight",		14,	IDIT_BUTTON, NULL},
+	{"nine",	"Keyboard Nine",		15,	IDIT_BUTTON, NULL},
+	{"star",	"Keyboard Star",		16,	IDIT_BUTTON, NULL},
+	{"zero",	"Keyboard Zero",		17,	IDIT_BUTTON, NULL},
+	{"pound",	"Keyboard Pound",		18,	IDIT_BUTTON, NULL},
+
+	{"select",	"Select (Port 1 Only)",	19,	IDIT_BUTTON, NULL},
+	{"reset",	"Reset (Port 1 Only)",	20,	IDIT_BUTTON, NULL},
 };
 
 static InputDeviceInfoStruct InputDeviceInfoPort[] =
 {
-	{"none",	"none",		NULL,	0,	NULL},
-	{"gamepad", "Gamepad",	NULL,	9,	GamepadIDII},
+	{"none",		"none",			NULL,	0,	NULL},
+	{"gamepad",		"All Types",	NULL,	21,	GamepadIDII}
 };
 
 
@@ -341,6 +329,7 @@ InputInfoStruct		StellaInput =
 static FileExtensionSpecStruct	extensions[] = 
 {
 	{".a26", "Atari 2600 ROM"},
+	{".bin", "Atari 2600 ROM"},
 	{0, 0}
 };
 
