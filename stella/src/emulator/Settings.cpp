@@ -17,6 +17,7 @@
 // $Id: Settings.cxx 2245 2011-06-02 20:53:01Z stephena $
 //============================================================================
 
+//ROBO: Totally convert this to use mednafen for settings backend, diff with orig for details
 //ROBO: For mednafen settings
 #include "src/mednafen.h"
 #include "src/settings-driver.h"
@@ -28,24 +29,14 @@
 
 #include "bspf.hxx"
 
-//ROBO: No OSystem
-//#include "OSystem.hxx"
 #include "Version.hxx"
-
 #include "Settings.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//ROBO: No OSystem
-//Settings::Settings(OSystem* osystem)
-Settings::Settings(void* osystem)
-//  : myOSystem(osystem)
+Settings::Settings()
 {
-  // Add this settings object to the OSystem
-//ROBO: No OSystem
-//  myOSystem->attach(this);
-
   // Add options that are common to all versions of Stella
-  setInternal("video", "soft");
+/*  setInternal("video", "soft");
 
   // OpenGL specific options
   setInternal("gl_filter", "nearest");
@@ -142,183 +133,60 @@ Settings::Settings(void* osystem)
   // Debugger options
   setInternal("resolvedata", "auto");
   setInternal("gfxformat", "2");
-  setInternal("showaddr", "true");
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Settings::~Settings()
-{
-  myInternalSettings.clear();
-  myExternalSettings.clear();
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::loadConfig()
-{
-  //ROBO: Kill the body of this for brevity
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-string Settings::loadCommandLine(int argc, char** argv)
-{
-  //ROBO: Kill the body of this for brevity
-  return "";
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::validate()
-{
-  //ROBO: Kill the body of this for brevity
-  return;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::usage()
-{
-  //ROBO: Kill the body of this for brevity
-  return;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::saveConfig()
-{
-  //ROBO: Kill the body of this for brevity
-  return;
+  setInternal("showaddr", "true");*/
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Settings::setInt(const string& key, const int value)
 {
-  ostringstream stream;
-  stream << value;
-
-  if(int idx = getInternalPos(key) != -1)
-    setInternal(key, stream.str(), idx);
-  else
-    setExternal(key, stream.str());
+  stringstream strstr; strstr << value;
+  MDFNI_SetSetting((string("stella.") + key).c_str(), strstr.str().c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Settings::setFloat(const string& key, const float value)
 {
-  ostringstream stream;
-  stream << value;
-
-  if(int idx = getInternalPos(key) != -1)
-    setInternal(key, stream.str(), idx);
-  else
-    setExternal(key, stream.str());
+  stringstream strstr; strstr << value;
+  MDFNI_SetSetting((string("stella.") + key).c_str(), strstr.str().c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Settings::setBool(const string& key, const bool value)
 {
-  ostringstream stream;
-  stream << value;
-
-  if(int idx = getInternalPos(key) != -1)
-    setInternal(key, stream.str(), idx);
-  else
-    setExternal(key, stream.str());
+  stringstream strstr; strstr << value;
+  MDFNI_SetSetting((string("stella.") + key).c_str(), strstr.str().c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Settings::setString(const string& key, const string& value)
 {
-  setInternal(key, value);
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::getSize(const string& key, int& x, int& y) const
-{
-  char c;
-  string size = getString(key);
-  istringstream buf(size);
-  buf >> x >> c >> y;
-  if(c != 'x')
-    x = y = -1;
+  stringstream strstr; strstr << value;
+  MDFNI_SetSetting((string("stella.") + key).c_str(), strstr.str().c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int Settings::getInt(const string& key) const
 {
-  //ROBO: Use mednafen for the settings
-//  MDFN_GetSettingI(key.c_str());
+  return MDFN_GetSettingI((std::string("stella.") + key).c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 float Settings::getFloat(const string& key) const
 {
-  //ROBO: Use mednafen for the settings
-//  MDFN_GetSettingF(key.c_str());
+  return MDFN_GetSettingF((std::string("stella.") + key).c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool Settings::getBool(const string& key) const
 {
-  //ROBO: Use mednafen for the settings
-//  MDFN_GetSettingB(key.c_str());
+  return MDFN_GetSettingB((std::string("stella.") + key).c_str());
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const string& Settings::getString(const string& key) const
 {
-  // Try to find the named setting and answer its value
-  //ROBO: Use mednafen for the settings
-//  MDFN_GetSettingS(key.c_str());
+  static string result = MDFN_GetSettingS((std::string("stella.") + key).c_str());
+  return result;
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Settings::setSize(const string& key, const int value1, const int value2)
-{
-  ostringstream buf;
-  buf << value1 << "x" << value2;
-  setString(key, buf.str());
-}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int Settings::getInternalPos(const string& key) const
-{
-  //ROBO: Kill the body of this for brevity
-  return -1;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int Settings::getExternalPos(const string& key) const
-{
-  //ROBO: Kill the body of this for brevity
-  return -1;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int Settings::setInternal(const string& key, const string& value,
-                          int pos, bool useAsInitial)
-{
-	//ROBO: Use mednafen for the settings
-//	MDFNI_SetSetting(key.c_str(), value.c_str());
-
-	//ROBO: Kill the body of this for brevity
-	return -1;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int Settings::setExternal(const string& key, const string& value,
-                          int pos, bool useAsInitial)
-{
-	//ROBO: Kill the body of this for brevity
-//	assert(false);
-	return 0;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Settings::Settings(const Settings&)
-{
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Settings& Settings::operator = (const Settings&)
-{
-  assert(false);
-
-  return *this;
-}

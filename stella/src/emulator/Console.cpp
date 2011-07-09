@@ -224,6 +224,9 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
   myTIA->setHeight(height);
 
 
+//ROBO: Send a palette, whoever was supposed to do this is gone now
+  setPalette(stellaSettings.getString("palette"));
+
   const string& md5 = myProperties.get(Cartridge_MD5);
 
   // Add the real controllers for this system
@@ -423,6 +426,9 @@ void Console::togglePalette()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//ROBO: Function to receive palette
+extern void stellaSetPalette(const uInt32* palette);
+
 void Console::setPalette(const string& type)
 {
   // Look at all the palettes, since we don't know which one is
@@ -454,8 +460,9 @@ void Console::setPalette(const string& type)
     (myDisplayFormat.compare(0, 5, "SECAM") == 0) ? palettes[paletteNum][2] :
      palettes[paletteNum][0];
 
-//ROBO TODO: No Framebuffer
+//ROBO: Send palette to custom function
 //  myOSystem->frameBuffer().setTIAPalette(palette);
+  stellaSetPalette(palette);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
