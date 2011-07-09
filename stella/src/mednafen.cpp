@@ -14,24 +14,29 @@
 #include "MD5.hxx"
 #include "SoundSDL.hxx"
 
-struct		MDFNStella
+extern MDFNGI	StellaInfo;
+
+//Structure holding all of the objects needed for a stella instance
+struct					MDFNStella
 {
 	Console*			GameConsole;
-
-	Fir_Resampler<8>*	Resampler;		//The TIA gives shitty sound if the output rate doesn't equal the input rate, so resample here!
 	Settings			GameSettings;
-	SoundSDL			Sound;
-	uint8_t*			Port[2];
-	uint32_t			PortType[2];
+
 	const uInt32*		Palette;
 
-	MDFNStella() 	{Resampler = 0; GameConsole = 0; Port[0] = 0; Port[1] = 0; PortType[0] = 0; PortType[1] = 0; Palette = 0;}
+	SoundSDL			Sound;
+	Fir_Resampler<8>*	Resampler;		//The TIA gives shitty sound if the output rate doesn't equal the input rate, so resample here!
+
+	uint8_t*			Port[2];
+	uint32_t			PortType[2];
+
+	MDFNStella() 	{GameConsole = 0; Palette = 0; Resampler = 0; Port[0] = 0; Port[1] = 0; PortType[0] = 0; PortType[1] = 0; }
 	~MDFNStella()	{delete Resampler; delete GameConsole;}
 };
 MDFNStella*				mdfnStella;
 
-//Function to receive emulator palette
-void		stellaMDFNSetPalette		(const uInt32* palette)
+//Set the palette for the current setlla instance
+void					stellaMDFNSetPalette		(const uInt32* palette)
 {
 	if(mdfnStella)
 	{
@@ -39,7 +44,8 @@ void		stellaMDFNSetPalette		(const uInt32* palette)
 	}
 }
 
-Settings&	stellaMDFNSettings			()
+//Get the settings from the current stella instance
+Settings&				stellaMDFNSettings			()
 {
 	if(mdfnStella)
 	{
@@ -50,7 +56,7 @@ Settings&	stellaMDFNSettings			()
 	abort();
 }
 
-
+//Define the available input types
 static struct
 {
 	const char*			Name;
@@ -69,7 +75,7 @@ static struct
 	"keyboard", 1, 14, {Event::KeyboardOne1, Event::KeyboardOne2, Event::KeyboardOne3, Event::KeyboardOne4, Event::KeyboardOne5, Event::KeyboardOne6, Event::KeyboardOne7, Event::KeyboardOne8, Event::KeyboardOne9, Event::KeyboardOneStar, Event::KeyboardOne0, Event::KeyboardOnePound, Event::ConsoleSelect, Event::ConsoleReset},
 };
 
-
+//Implement MDFNGI:
 int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
 	try
@@ -77,10 +83,8 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 		//Create the stella objects
 		mdfnStella = new MDFNStella();
 
-		//Get the cart's MD5 sum
-		string cartMD5 = MD5(fp->data, fp->size);
-
 		//Get the game properties
+		string cartMD5 = MD5(fp->data, fp->size);
 		PropertiesSet propslist(0);
 		Properties gameProperties;
 		propslist.getMD5(cartMD5, gameProperties);
@@ -102,6 +106,9 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 		//Init sound
 	    mdfnStella->Sound.open();
 
+		//Update MDFNGI's timing
+		StellaInfo.MasterClock = MDFN_MASTERCLOCK_FIXED(((uint32_t)mdfnStella->GameConsole->getFramerate()) * 100);
+
 		return 1;
 	}
 	catch(...)
@@ -113,8 +120,13 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 
 bool			StellaTestMagic			(const char *name, MDFNFILE *fp)
 {
-	//There is no reliable way to detect a 2600 game, so just go by extension
-	return true;
+	//There is no reliable way to detect a 2600 game, only support games listed in stella's properties file
+	string cartMD5 = MD5(fp->data, fp->size);
+	PropertiesSet propslist(0);
+	Properties gameProperties;
+	propslist.getMD5(cartMD5, gameProperties);
+
+	return gameProperties.get(Cartridge_MD5).length() != 0;
 }
 
 void			StellaCloseGame			(void)
@@ -145,25 +157,22 @@ int				StellaStateAction		(StateMem *sm, int load, int data_only)
 	try
 	{
 		//Can't load a state if there is no console.
-		if(!mdfnStella || !mdfnStella->GameConsole)
+		if(mdfnStella && mdfnStella->GameConsole)
 		{
-			return 0;
+			//Get the state stream
+			Serializer state(sm);
+
+			//Do the action
+			if(load)		mdfnStella->GameConsole->load(state);
+			else			mdfnStella->GameConsole->save(state);
+
+			//Done and done
+			return 1;
 		}
-
-		//Get the state stream
-		Serializer state(sm);
-
-		//Do the action
-		if(load)		mdfnStella->GameConsole->load(state);
-		else			mdfnStella->GameConsole->save(state);
-
-		//Done and done
-		return 1;
 	}
-	catch(...)
-	{
-		return 0;
-	}
+	catch(...){}
+
+	return 0;
 }
 
 void			StellaEmulate			(EmulateSpecStruct *espec)
@@ -171,7 +180,8 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 	//Only if we are open.
 	if(mdfnStella)
 	{
-		//Update the input
+		//INPUT
+		//Update stella's event structure
 		for(int i = 0; i != 2; i ++)
 		{
 			if(mdfnStella->Port[i])
@@ -184,32 +194,35 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 			}
 		}
 
+		//Tell all input devices to read their state from the event structure
 		mdfnStella->GameConsole->switches().update();
 		mdfnStella->GameConsole->controller(Controller::Left).update();
 		mdfnStella->GameConsole->controller(Controller::Right).update();
 
-
-		// Run the console for one frame
+		//EXECUTE
 		mdfnStella->GameConsole->tia().update();
 
 	//	if(myOSystem->eventHandler().frying())
 	//		myOSystem->GameConsole().fry();
 
-		// And update the screen
+		//VIDEO: TODO: Support other color formats
+		//Get the frame info from stella
 		uInt8* currentFrame = mdfnStella->GameConsole->tia().currentFrameBuffer();
-		uInt32 width  = mdfnStella->GameConsole->tia().width();
-		uInt32 height = mdfnStella->GameConsole->tia().height();
+		Int32 frameWidth = mdfnStella->GameConsole->tia().width();
+		Int32 frameHeight = mdfnStella->GameConsole->tia().height();
 
+		//Setup the output area for mednafen, never allow stella's size to excede mednafen's
 		espec->DisplayRect.x = 0;
 		espec->DisplayRect.y = 0;
-		espec->DisplayRect.w = width;
-		espec->DisplayRect.h = height;
+		espec->DisplayRect.w = std::min(frameWidth, espec->surface->w);
+		espec->DisplayRect.h = std::min(frameHeight, espec->surface->h);
 
-		for(int i = 0; i != height; i ++)
+		//Copy the frame from stella to mednafen
+		for(int i = 0; i != espec->DisplayRect.h; i ++)
 		{
-			for(int j = 0; j != width; j ++)
+			for(int j = 0; j != espec->DisplayRect.w; j ++)
 			{
-				espec->surface->pixels[i * 640 + j] = mdfnStella->Palette ? mdfnStella->Palette[currentFrame[i * width + j]] : 0;
+				espec->surface->pixels[i * espec->surface->pitchinpix + j] = mdfnStella->Palette ? mdfnStella->Palette[currentFrame[i * frameWidth + j]] : 0;
 			}
 		}
 
@@ -218,30 +231,29 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 		if(espec->SoundFormatChanged)
 		{
 			delete mdfnStella->Resampler;
+			mdfnStella->Resampler = 0;
 
+			//Only make a resampler if the sound rate is valid
 			if(espec->SoundRate > 1.0)
 			{
 				mdfnStella->Resampler = new Fir_Resampler<8>();
 				mdfnStella->Resampler->buffer_size(1600*2);
 				mdfnStella->Resampler->time_ratio(34100.0 / espec->SoundRate, 0.9965);
 			}
-			else
-			{
-				mdfnStella->Resampler = 0;
-			}
 		}
 
 		//Copy audio data
 		if(mdfnStella->Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
 		{
-			//HACK: 568 = 34100 / 60, update for framerate later
+			//Get the number of samples in a frame
+			uint32_t soundFrameSize = 34100.0f / mdfnStella->GameConsole->getFramerate();
 
 			//Process one frame of audio from stella
 			uint8_t samplebuffer[2048];
-			mdfnStella->Sound.processFragment(samplebuffer, 568);
+			mdfnStella->Sound.processFragment(samplebuffer, soundFrameSize);
 
 			//Convert and stash it in the resampler...
-			for(int i = 0; i != 568; i ++)
+			for(int i = 0; i != soundFrameSize; i ++)
 			{
 				int16_t sample = (samplebuffer[i] << 8);
 				sample -= 32768;
@@ -249,24 +261,27 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 				mdfnStella->Resampler->buffer()[i * 2 + 1] = sample;
 			}
 
-			mdfnStella->Resampler->write(568 * 2);
+			mdfnStella->Resampler->write(soundFrameSize * 2);
 
 			//Get the output
 			//TODO: Never overrun the output buffer...
 			espec->SoundBufSize = mdfnStella->Resampler->read(espec->SoundBuf, mdfnStella->Resampler->avail()) >> 1;
 		}
 
-		//TODO: Real timing
+		//TIMING
 		espec->MasterCycles = 1LL * 100;
 	}
 }
 
 void			StellaSetInput			(int port, const char *type, void *ptr)
 {
+	//Don't do anything if state isn't valid
 	if(mdfnStella && port >= 0 && port < 2)
 	{
+		//Copy the data pointer
 		mdfnStella->Port[port] = (uint8_t*)ptr;
 
+		//Search for the input device type
 		for(int i = 0; i != sizeof(stellaInputDefs) / sizeof(stellaInputDefs[0]); i ++)
 		{
 			if(strcmp(stellaInputDefs[i].Name, type) == 0 && stellaInputDefs[i].Port == port)
@@ -276,17 +291,15 @@ void			StellaSetInput			(int port, const char *type, void *ptr)
 			}
 		}
 
+		//The device wasn't found, this should never happen
 		mdfnStella->PortType[port] = 0;
 	}
 }
 
 void			StellaDoSimpleCommand	(int cmd)
 {
-	if(cmd == MDFN_MSC_RESET)
-	{
-		mdfnStella->GameConsole->system().reset();
-	}
-	else if(cmd == MDFN_MSC_POWER)
+	//Reset the game
+	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
 		mdfnStella->GameConsole->system().reset();
 	}
