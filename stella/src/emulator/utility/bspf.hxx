@@ -91,7 +91,9 @@ using namespace std;
   #define BSPF_snprintf _snprintf
   #define BSPF_vsnprintf _vsnprintf
 #else
-  #include <strings.h>
+//ROBO:
+//  #include <strings.h>
+  #include <string.h>
   #define BSPF_strcasecmp strcasecmp
   #define BSPF_strncasecmp strncasecmp
   #define BSPF_isblank(c) isblank(c)
