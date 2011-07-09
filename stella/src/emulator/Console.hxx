@@ -36,6 +36,9 @@ class Cartridge;
 //#include "FrameBuffer.hxx"
 #include "Serializable.hxx"
 
+//ROBO: For sound
+#include "Sound.hxx"
+
 /**
   Contains detailed info about a console.
 */
@@ -67,8 +70,8 @@ class Console : public Serializable
       @param cart     The cartridge to use with this console
       @param props    The properties for the cartridge  
     */
-//ROBO: No OSystem support
-    Console(void* osystem, Cartridge* cart, const Properties& props);
+//ROBO: No OSystem support, just Sound
+    Console(Sound& osystem, Cartridge* cart, const Properties& props);
 
     /**
       Create a new console object by copying another one

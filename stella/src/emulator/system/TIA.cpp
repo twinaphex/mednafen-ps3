@@ -42,11 +42,9 @@
 #define USE_MMR_LATCHES
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//HACK ROBO: No sound
-TIA::TIA(Console& console, Settings& settings)
+TIA::TIA(Console& console, Sound& sound, Settings& settings)
   : myConsole(console),
-//HACK ROBO: No Sound
-//    mySound(sound),
+    mySound(sound),
     mySettings(settings),
     myFrameWidth(160),
     myFrameYStart(34),
@@ -131,8 +129,7 @@ TIA::~TIA()
 void TIA::reset()
 {
   // Reset the sound device
-//HACK ROBO: No Sound
-//  mySound.reset();
+  mySound.reset();
 
   // Currently no objects are enabled or selectively disabled
   myEnabledObjects = 0;
@@ -268,8 +265,7 @@ void TIA::systemCyclesReset()
   uInt32 cycles = mySystem->cycles();
 
   // Adjust the sound cycle indicator
-//HACK ROBO: No sound
-//  mySound.adjustCycleCounter(-1 * cycles);
+  mySound.adjustCycleCounter(-1 * cycles);
 
   // Adjust the dump cycle
   myDumpDisabledCycle -= cycles;
@@ -406,8 +402,7 @@ bool TIA::save(Serializer& out) const
     out.putInt(myFrameCounter);
 
     // Save the sound sample stuff ...
-//HACK ROBO: No sound
-//    mySound.save(out);
+    mySound.save(out);
   }
   catch(const char* msg)
   {
@@ -516,8 +511,7 @@ bool TIA::load(Serializer& in)
     myFrameCounter = (Int32) in.getInt();
 
     // Load the sound sample stuff ...
-//HACK ROBO: No sound
-//    mySound.load(in);
+    mySound.load(in);
 
     // Reset TIA bits to be on
     enableBits(true);
@@ -1686,48 +1680,42 @@ bool TIA::poke(uInt16 addr, uInt8 value)
     case AUDC0:   // Audio control 0
     {
       myAUDC0 = value & 0x0f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
   
     case AUDC1:   // Audio control 1
     {
       myAUDC1 = value & 0x0f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
   
     case AUDF0:   // Audio frequency 0
     {
       myAUDF0 = value & 0x1f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
   
     case AUDF1:   // Audio frequency 1
     {
       myAUDF1 = value & 0x1f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
   
     case AUDV0:   // Audio volume 0
     {
       myAUDV0 = value & 0x0f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
   
     case AUDV1:   // Audio volume 1
     {
       myAUDV1 = value & 0x0f;
-//HACK ROBO: No sound
-//      mySound.set(addr, value, mySystem->cycles());
+      mySound.set(addr, value, mySystem->cycles());
       break;
     }
 
@@ -2322,8 +2310,7 @@ inline void TIA::applyPreviousHMOVEMotion(int hpos, Int16& pos, uInt8 motion)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TIA::TIA(const TIA& c)
   : myConsole(c.myConsole),
-//HACK ROBO: No sound
-//    mySound(c.mySound),
+    mySound(c.mySound),
     mySettings(c.mySettings)
 {
   assert(false);

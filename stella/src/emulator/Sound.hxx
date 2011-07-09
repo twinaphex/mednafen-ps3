@@ -20,7 +20,8 @@
 #ifndef SOUND_HXX
 #define SOUND_HXX
 
-class OSystem;
+//ROBO: No OSystem
+//class OSystem;
 
 #include "Serializable.hxx"
 #include "bspf.hxx"
@@ -39,7 +40,9 @@ class Sound : public Serializable
       Create a new sound object.  The init method must be invoked before
       using the object.
     */
-    Sound(OSystem* osystem) { myOSystem = osystem; }
+//ROBO: No OSystem
+//    Sound(OSystem* osystem) { myOSystem = osystem; }
+    Sound(void* osystem) { }
 
     /**
       Destructor
@@ -136,7 +139,8 @@ class Sound : public Serializable
 
   protected:
     // The OSystem for this sound object
-    OSystem* myOSystem;
+//ROBO: No OSystem
+//    OSystem* myOSystem;
 };
 
 #endif

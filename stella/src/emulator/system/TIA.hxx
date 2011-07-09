@@ -55,10 +55,7 @@ class TIA : public Device
       @param sound    The sound object the TIA is associated with
       @param settings The settings object for this TIA device
     */
-//HACK ROBO: No sond
-//    TIA(Console& console, Sound& sound, Settings& settings);
-    TIA(Console& console, Settings& settings);
-
+    TIA(Console& console, Sound& sound, Settings& settings);
  
     /**
       Destructor
@@ -372,8 +369,7 @@ class TIA : public Device
     Console& myConsole;
 
     // Sound object the TIA is associated with
-//HACK ROBO: No sound
-//    Sound& mySound;
+    Sound& mySound;
 
     // Settings object the TIA is associated with
     Settings& mySettings;
