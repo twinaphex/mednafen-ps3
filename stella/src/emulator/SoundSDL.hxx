@@ -19,18 +19,8 @@
 
 //ROBO: Totally convert, diff with orig for details
 
-//ROBO: Always
-//#ifdef SOUND_SUPPORT
-#if 1
-
 #ifndef SOUND_SDL_HXX
 #define SOUND_SDL_HXX
-
-//ROBO: No OSystem
-//class OSystem;
-
-//ROBO: No SDL
-//#include <SDL.h>
 
 #include "bspf.hxx"
 #include "TIASnd.hxx"
@@ -49,8 +39,6 @@ class SoundSDL : public Sound
       Create a new sound object.  The init method must be invoked before
       using the object.
     */
-//ROBO: No OSystem
-//    SoundSDL(OSystem* osystem);
     SoundSDL();
  
     /**
@@ -59,110 +47,28 @@ class SoundSDL : public Sound
     virtual ~SoundSDL();
 
   public:
-    /**
-      Enables/disables the sound subsystem.
-
-      @param state True or false, to enable or disable the sound system
-    */
-    void setEnabled(bool state) {};
-
-    /**
-      The system cycle counter is being adjusting by the specified amount. Any
-      members using the system cycle counter should be adjusted as needed.
-
-      @param amount The amount the cycle counter is being adjusted by
-    */
     void adjustCycleCounter(Int32 amount);
-
-    /**
-      Sets the number of channels (mono or stereo sound).
-
-      @param channels The number of channels
-    */
-    void setChannels(uInt32 channels);
-
-    /**
-      Sets the display framerate.  Sound generation for NTSC and PAL games
-      depends on the framerate, so we need to set it here.
-
-      @param framerate The base framerate depending on NTSC or PAL ROM
-    */
     void setFrameRate(float framerate);
-
-    /**
-      Initializes the sound device.  This must be called before any
-      calls are made to derived methods.
-    */
     void open();
-
-    /**
-      Should be called to close the sound device.  Once called the sound
-      device can be started again using the open method.
-    */
-    void close() {};
-
-    /**
-      Return true iff the sound device was successfully initialized.
-
-      @return true iff the sound device was successfully initialized.
-    */
-    bool isSuccessfullyInitialized() const {return true;};
-
-    /**
-      Set the mute state of the sound object.  While muted no sound is played.
-
-      @param state Mutes sound if true, unmute if false
-    */
-    void mute(bool state) {};
-
-    /**
-      Reset the sound device.
-    */
     void reset();
-
-    /**
-      Sets the sound register to a given value.
-
-      @param addr  The register address
-      @param value The value to save into the register
-      @param cycle The system cycle at which the register is being updated
-    */
     void set(uInt16 addr, uInt8 value, Int32 cycle);
 
+	//Dummy functions
     void setVolume(Int32 percent) {};
     void adjustVolume(Int8 direction) {};
+    void close() {};
+    bool isSuccessfullyInitialized() const {return true;};
+    void mute(bool state) {};
+    void setChannels(uInt32 channels) {};
+    void setEnabled(bool state) {};
+
+	//Process
+    void processFragment(uInt8* stream, Int32 length);
 
   public:
-    /**
-      Saves the current state of this device to the given Serializer.
-
-      @param out The serializer device to save to.
-      @return The result of the save.  True on success, false on failure.
-    */
     bool save(Serializer& out) const;
-
-    /**
-      Loads the current state of this device from the given Serializer.
-
-      @param in The Serializer device to load from.
-      @return The result of the load.  True on success, false on failure.
-    */
     bool load(Serializer& in);
-
-    /**
-      Get a descriptor for this console class (used in error checking).
-
-      @return The name of the object
-    */
     string name() const { return "TIASound"; }
-
-    /**
-      Invoked by the sound callback to process the next sound fragment.
-
-      @param stream Pointer to the start of the fragment
-      @param length Length of the fragment
-    */
-    void processFragment(uInt8* stream, Int32 length);
 
   protected:
     // Struct to hold information regarding a TIA sound register write
@@ -249,16 +155,10 @@ class SoundSDL : public Sound
     // Indicates the base framerate depending on if the ROM is NTSC or PAL
     float myDisplayFrameRate;
 
-    // Indicates the number of channels (mono or stereo)
-    uInt32 myNumChannels;
-
-    // Log base 2 of the selected fragment size
-    double myFragmentSizeLogBase2;
-
     // Queue of TIA register writes
     RegWriteQueue myRegWriteQueue;
 };
 
 #endif
 
-#endif  // SOUND_SUPPORT
+

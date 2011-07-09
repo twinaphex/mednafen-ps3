@@ -66,7 +66,7 @@
 #include "Console.hxx"
 
 //ROBO: External global settings
-extern Settings stellaSettings;
+extern Settings& stellaMDFNSettings();
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //ROBO: No OSystem, just sound
@@ -119,8 +119,8 @@ Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
 //ROBO: External global settings
 //myRiot = new M6532(*this, myOSystem->settings());
 //myTIA  = new TIA(*this, myOSystem->sound(), myOSystem->settings());
-  myRiot = new M6532(*this, stellaSettings);
-  myTIA  = new TIA(*this, sound, stellaSettings);
+  myRiot = new M6532(*this, stellaMDFNSettings());
+  myTIA  = new TIA(*this, sound, stellaMDFNSettings());
 
 
   mySystem->attach(m6502);
@@ -140,7 +140,7 @@ Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
   if(myDisplayFormat == "AUTO-DETECT" ||
 //ROBO: External global settings
 //     myOSystem->settings().getBool("rominfo"))
-     stellaSettings.getBool("rominfo"))
+     stellaMDFNSettings().getBool("rominfo"))
   {
     // Run the system for 60 frames, looking for PAL scanline patterns
     // We turn off the SuperCharger progress bars, otherwise the SC BIOS
@@ -149,8 +149,8 @@ Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
 //ROBO: External global settings
 //    bool fastscbios = myOSystem->settings().getBool("fastscbios");
 //    myOSystem->settings().setBool("fastscbios", true);
-    bool fastscbios = stellaSettings.getBool("fastscbios");
-    stellaSettings.setBool("fastscbios", true);
+    bool fastscbios = stellaMDFNSettings().getBool("fastscbios");
+    stellaMDFNSettings().setBool("fastscbios", true);
 
     mySystem->reset(true);  // autodetect in reset enabled
     int palCount = 0;
@@ -167,7 +167,7 @@ Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
     // Don't forget to reset the SC progress bars again
 //ROBO: External global settings
 //    myOSystem->settings().setBool("fastscbios", fastscbios);
-    stellaSettings.setBool("fastscbios", fastscbios);
+    stellaMDFNSettings().setBool("fastscbios", fastscbios);
   }
   myConsoleInfo.DisplayFormat = myDisplayFormat + autodetected;
 
@@ -224,7 +224,7 @@ Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
 
 
 //ROBO: Send a palette, whoever was supposed to do this is gone now
-  setPalette(stellaSettings.getString("palette"));
+  setPalette(stellaMDFNSettings().getString("palette"));
 
   const string& md5 = myProperties.get(Cartridge_MD5);
 
@@ -357,7 +357,7 @@ void Console::toggleFormat()
 //  myOSystem->frameBuffer().showMessage(message);
 //ROBO: External global settings
 //  setPalette(myOSystem->settings().getString("palette"));
-  setPalette(stellaSettings.getString("palette"));
+  setPalette(stellaMDFNSettings().getString("palette"));
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -366,8 +366,8 @@ void Console::toggleColorLoss()
 //ROBO: Global settings
 //  bool colorloss = !myOSystem->settings().getBool("colorloss");
 //  myOSystem->settings().setBool("colorloss", colorloss);
-  bool colorloss = !stellaSettings.getBool("colorloss");
-  stellaSettings.setBool("colorloss", colorloss);
+  bool colorloss = !stellaMDFNSettings().getBool("colorloss");
+  stellaMDFNSettings().setBool("colorloss", colorloss);
   myTIA->enableColorLoss(colorloss);
 
 //ROBO: No Framebuffer Messages
@@ -382,7 +382,7 @@ void Console::togglePalette()
   string palette, message;
 //ROBO: External settings
 //  palette = myOSystem->settings().getString("palette");
-  palette = stellaSettings.getString("palette");
+  palette = stellaMDFNSettings().getString("palette");
  
   if(palette == "standard")       // switch to z26
   {
@@ -417,7 +417,7 @@ void Console::togglePalette()
 
 //ROBO: External settings
 //  myOSystem->settings().setString("palette", palette);
-  stellaSettings.setString("palette", palette);
+  stellaMDFNSettings().setString("palette", palette);
 //ROBO: No FrameBuffer Messages
 //  myOSystem->frameBuffer().showMessage(message);
 
@@ -426,7 +426,7 @@ void Console::togglePalette()
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //ROBO: Function to receive palette
-extern void stellaSetPalette(const uInt32* palette);
+extern void stellaMDFNSetPalette(const uInt32* palette);
 
 void Console::setPalette(const string& type)
 {
@@ -461,7 +461,7 @@ void Console::setPalette(const string& type)
 
 //ROBO: Send palette to custom function
 //  myOSystem->frameBuffer().setTIAPalette(palette);
-  stellaSetPalette(palette);
+  stellaMDFNSetPalette(palette);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
