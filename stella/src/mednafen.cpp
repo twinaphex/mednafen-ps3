@@ -11,6 +11,7 @@
 #include "Event.hxx"
 #include "Switches.hxx"
 #include "MD5.hxx"
+#include "SoundSDL.hxx"
 
 //Function to receive emulator palette
 const uInt32* stellaPalette;
@@ -19,11 +20,12 @@ void stellaSetPalette(const uInt32* palette)
 	stellaPalette = palette;
 }
 
-
 Settings		stellaSettings;
+SoundSDL		stellaSound;
 Console*		stellaConsole;
 uint8_t*		stellaPort[2];
 uint32_t		stellaPortType[2];
+uint8_t			stellaSampleBuffer[48000];
 
 static struct
 {
@@ -68,7 +70,9 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 		}
 
 		//Create the console
-		stellaConsole = new Console(0, stellaCart, gameProperties);
+		stellaConsole = new Console(stellaSound, stellaCart, gameProperties);
+
+	    stellaSound.open();
 		return 1;
 	}
 	catch(...)
@@ -175,6 +179,18 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 		{
 			espec->surface->pixels[i * 640 + j] = stellaPalette ? stellaPalette[currentFrame[i * width + j]] : 0;
 		}
+	}
+
+	//Get the audio
+	if(espec->SoundBuf && espec->SoundBufMaxSize)
+	{
+		//HACK
+		stellaSound.processFragment(stellaSampleBuffer, 1600);
+		for(int i = 0; i != 1600; i ++)
+		{
+			espec->SoundBuf[i] = (stellaSampleBuffer[i] << 8) - 32768;
+		}
+		espec->SoundBufSize = 800;
 	}
 
 	//TODO: Real timing
@@ -291,11 +307,11 @@ MDFNGI	StellaInfo =
 /*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
 /*	fps:				*/	0,
 /*	multires:			*/	true,
-/*	lcm_width:			*/	640,	//?
-/*	lcm_height:			*/	480,	//?
+/*	lcm_width:			*/	160,	//?
+/*	lcm_height:			*/	5250,	//?
 /*	dummy_separator:	*/	0,
-/*	nominal_width:		*/	640,	//?
-/*	nominal_height:		*/	480,	//?
+/*	nominal_width:		*/	320,	//?
+/*	nominal_height:		*/	250,	//?
 /*	fb_width:			*/	640,
 /*	fb_height:			*/	480,
 /*	soundchan:			*/	2

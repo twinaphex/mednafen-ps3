@@ -69,9 +69,9 @@
 extern Settings stellaSettings;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//ROBO: No OSystem
+//ROBO: No OSystem, just sound
 //Console::Console(OSystem* osystem, Cartridge* cart, const Properties& props)
-Console::Console(void* osystem, Cartridge* cart, const Properties& props)
+Console::Console(Sound& sound, Cartridge* cart, const Properties& props)
 //: //myOSystem(osystem),
   : 
     myProperties(props),
@@ -117,11 +117,10 @@ Console::Console(void* osystem, Cartridge* cart, const Properties& props)
 
   myCart = cart;
 //ROBO: External global settings
-//ROBO HACK: No Sound on TIA
 //myRiot = new M6532(*this, myOSystem->settings());
 //myTIA  = new TIA(*this, myOSystem->sound(), myOSystem->settings());
   myRiot = new M6532(*this, stellaSettings);
-  myTIA  = new TIA(*this, stellaSettings);
+  myTIA  = new TIA(*this, sound, stellaSettings);
 
 
   mySystem->attach(m6502);
