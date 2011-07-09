@@ -36,48 +36,58 @@ class Event
       console and controller event types as well as events that aren't
       technically part of the emulation core
     */
+	//ROBO: Hack this up to make mednafen input easier
     enum Type
     {
       NoType,
+
+//ROBO: These are physically on the console
       ConsoleOn, ConsoleOff, ConsoleColor, ConsoleBlackWhite,
       ConsoleLeftDiffA, ConsoleLeftDiffB,
       ConsoleRightDiffA, ConsoleRightDiffB,
       ConsoleSelect, ConsoleReset,
 
+//ROBO: Joystick.
       JoystickZeroUp, JoystickZeroDown, JoystickZeroLeft, JoystickZeroRight,
-        JoystickZeroFire1, JoystickZeroFire2, JoystickZeroFire3,
-      JoystickOneUp, JoystickOneDown, JoystickOneLeft, JoystickOneRight,
-        JoystickOneFire1, JoystickOneFire2, JoystickOneFire3,
+      JoystickZeroFire1, JoystickZeroFire2, JoystickZeroFire3,
 
-      PaddleZeroDecrease, PaddleZeroIncrease, PaddleZeroAnalog, PaddleZeroFire,
-      PaddleOneDecrease, PaddleOneIncrease, PaddleOneAnalog, PaddleOneFire,
-      PaddleTwoDecrease, PaddleTwoIncrease, PaddleTwoAnalog, PaddleTwoFire,
-      PaddleThreeDecrease, PaddleThreeIncrease, PaddleThreeAnalog, PaddleThreeFire,
-
+//ROBO: These are all used by keyboard controllers, 1 thru 3 are used by 'KidVid' too
       KeyboardZero1, KeyboardZero2, KeyboardZero3,
       KeyboardZero4, KeyboardZero5, KeyboardZero6,
       KeyboardZero7, KeyboardZero8, KeyboardZero9,
       KeyboardZeroStar, KeyboardZero0, KeyboardZeroPound,
 
+//ROBO: These are used only by paddle controllers
+      PaddleZeroDecrease, PaddleZeroIncrease, PaddleZeroAnalog, PaddleZeroFire,
+      PaddleOneDecrease, PaddleOneIncrease, PaddleOneAnalog, PaddleOneFire,
+
+//ROBO: Move port 2's crap down here
+      JoystickOneUp, JoystickOneDown, JoystickOneLeft, JoystickOneRight,
+      JoystickOneFire1, JoystickOneFire2, JoystickOneFire3,
       KeyboardOne1, KeyboardOne2, KeyboardOne3,
       KeyboardOne4, KeyboardOne5, KeyboardOne6,
       KeyboardOne7, KeyboardOne8, KeyboardOne9,
       KeyboardOneStar, KeyboardOne0, KeyboardOnePound,
+      PaddleTwoDecrease, PaddleTwoIncrease, PaddleTwoAnalog, PaddleTwoFire,
+      PaddleThreeDecrease, PaddleThreeIncrease, PaddleThreeAnalog, PaddleThreeFire,
 
-      Combo1, Combo2, Combo3, Combo4, Combo5, Combo6, Combo7, Combo8,
-      Combo9, Combo10, Combo11, Combo12, Combo13, Combo14, Combo15, Combo16,
+
+//ROBO: Not used
+//      Combo1, Combo2, Combo3, Combo4, Combo5, Combo6, Combo7, Combo8,
+//      Combo9, Combo10, Combo11, Combo12, Combo13, Combo14, Combo15, Combo16,
   
+//ROBO: Used for axis inputs, I'm not sure if these provide any features that don't duplicate something in the Joystick group
       SALeftAxis0Value, SALeftAxis1Value,
       SARightAxis0Value, SARightAxis1Value,
-
       MouseAxisXValue, MouseAxisYValue, MouseButtonValue,
 
-      ChangeState, LoadState, SaveState, TakeSnapshot, Quit,
-      PauseMode, MenuMode, CmdMenuMode, DebuggerMode, LauncherMode,
-      Fry, VolumeDecrease, VolumeIncrease,
+//ROBO: More unused types (the GUI is GONE)
+//      ChangeState, LoadState, SaveState, TakeSnapshot, Quit,
+//      PauseMode, MenuMode, CmdMenuMode, DebuggerMode, LauncherMode,
+//      Fry, VolumeDecrease, VolumeIncrease,
 
-      UIUp, UIDown, UILeft, UIRight, UIHome, UIEnd, UIPgUp, UIPgDown,
-      UISelect, UINavPrev, UINavNext, UIOK, UICancel, UIPrevDir,
+//      UIUp, UIDown, UILeft, UIRight, UIHome, UIEnd, UIPgUp, UIPgDown,
+//      UISelect, UINavPrev, UINavNext, UIOK, UICancel, UIPrevDir,
 
       LastType
     };
