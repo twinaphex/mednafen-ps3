@@ -11,20 +11,33 @@
 #include "core/api/NstApiUser.hpp"
 #include "core/api/NstApiFds.hpp"
 #include "core/api/NstApiCartridge.hpp"
+#include "core/api/NstApiSound.hpp"
+
 
 #include "settings.h"
 #include "mednafen.h"
 #include "fileio.h"
 #include "input.h"
-#include "sound.h"
-#include "video.h"
 
 namespace nestMDFN
 {
-	EmulateSpecStruct*			ESpec;
-	bool						GameOpen = false;
+	bool						UseNTSC;						//Is the NTSC filter enabled?
+	const int					NTSCSettingsArray[][3] =	 	//Various contants for the NTSC engine
+	{
+		{Video::DEFAULT_SHARPNESS_COMP,			Video::DEFAULT_SHARPNESS_SVIDEO,		Video::DEFAULT_SHARPNESS_RGB},
+		{Video::DEFAULT_COLOR_RESOLUTION_COMP,	Video::DEFAULT_COLOR_RESOLUTION_SVIDEO,	Video::DEFAULT_COLOR_RESOLUTION_RGB},
+		{Video::DEFAULT_COLOR_BLEED_COMP,		Video::DEFAULT_COLOR_BLEED_SVIDEO,		Video::DEFAULT_COLOR_BLEED_RGB},
+		{Video::DEFAULT_COLOR_ARTIFACTS_COMP,	Video::DEFAULT_COLOR_ARTIFACTS_SVIDEO,	Video::DEFAULT_COLOR_ARTIFACTS_RGB},
+		{Video::DEFAULT_COLOR_FRINGING_COMP,	Video::DEFAULT_COLOR_FRINGING_SVIDEO,	Video::DEFAULT_COLOR_FRINGING_RGB}
+	};
 
+	bool						GameOpen = false;
 	Nes::Api::Emulator			Nestopia;
+	Sound::Output*				NESAudio;
+
+	Video::Output 				NESVideo;
+
+	uint32_t					NESSamples[48000];
 }
 
 using namespace nestMDFN;
@@ -159,7 +172,7 @@ extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC()
 	return &NestInfo;
 }
 
-
+//Implement MDFNGI:
 int				NestLoad				(const char *name, MDFNFILE *fp)
 {
 	if(GameOpen)
@@ -226,6 +239,9 @@ void			NestCloseGame			(void)
 		Machine(Nestopia).Power(false);
 		Machine(Nestopia).Unload();
 
+		delete NESAudio;
+		NESAudio = 0;
+
 		GameOpen = false;
 	}
 }
@@ -283,27 +299,88 @@ int				NestStateAction			(StateMem *sm, int load, int data_only)
 
 void			NestEmulate				(EmulateSpecStruct *espec)
 {
-	ESpec = espec;
-
+	//PREP VIDEO
 	if(espec->VideoFormatChanged || NestopiaSettings.NeedRefresh)
 	{
-		SetupVideo(32, espec->surface->format.Rshift, espec->surface->format.Gshift, espec->surface->format.Bshift);
+		//Set ntsc mode settings, note that NTSC mode can only be used with a specific color format
+		int ntscmode = NestopiaSettings.NTSCMode > 2 ? 0 : NestopiaSettings.NTSCMode;
+		Video(Nestopia).SetSharpness(NTSCSettingsArray[0][ntscmode]);
+		Video(Nestopia).SetColorResolution(NTSCSettingsArray[1][ntscmode]);
+		Video(Nestopia).SetColorBleed(NTSCSettingsArray[2][ntscmode]);
+		Video(Nestopia).SetColorArtifacts(NTSCSettingsArray[3][ntscmode]);
+		Video(Nestopia).SetColorFringing(NTSCSettingsArray[4][ntscmode]);
+		UseNTSC = NestopiaSettings.EnableNTSC && espec->surface->format.Rshift == 16 && espec->surface->format.Gshift == 8 && espec->surface->format.Bshift == 0;
+
+		//Setup color
+		//TODO: Support 16-bit, and YUV, limit output size based on mednafen frame buffer to avoid issues
+	    Video::RenderState renderState;
+    	renderState.bits.count = 32;
+	    renderState.bits.mask.r = 0xFF << espec->surface->format.Rshift;
+    	renderState.bits.mask.g = 0xFF << espec->surface->format.Gshift;
+	    renderState.bits.mask.b = 0xFF << espec->surface->format.Bshift;
+		renderState.filter = UseNTSC ? Video::RenderState::FILTER_NTSC : Video::RenderState::FILTER_NONE;
+		renderState.width = UseNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH;
+		renderState.height = Video::Output::HEIGHT;
+
+		//Send the render state to nestopia
+    	if(NES_FAILED(Video(Nestopia).SetRenderState(renderState)))
+		{
+			MDFND_PrintError("nest: Failed to set render state");
+		}
 	}
 
+	//Set video buffers
+	NESVideo.pixels = espec->surface->pixels;
+	NESVideo.pitch = espec->surface->pitchinpix * 4;
+	Video(Nestopia).EnableUnlimSprites(NestopiaSettings.DisableSpriteLimit);
+
+	//PREP AUDIO
 	if(espec->SoundFormatChanged || NestopiaSettings.NeedRefresh)
 	{
-		SetupAudio(espec->SoundRate);
+		//Delete any old audio interface
+		delete NESAudio;
+		NESAudio = 0;
+
+		//If sound is enabled
+		if(espec->SoundRate > 1.0)
+		{
+			//Create a new audio interface
+			NESAudio = new Sound::Output();
+			NESAudio->samples[0] = (void*)NESSamples;
+			NESAudio->length[0] = (uint32_t)espec->SoundRate / NestopiaSettings.FPS;
+			NESAudio->samples[1] = NULL;
+			NESAudio->length[1] = 0;
+
+			//Set nestopia sound properties, give a default sample rate if sound is unavailable
+			Sound(Nestopia).SetSampleBits(16);
+			Sound(Nestopia).SetSampleRate((uint32)espec->SoundRate);
+			Sound(Nestopia).SetVolume(Sound::ALL_CHANNELS, 100);
+			Sound(Nestopia).SetSpeaker(Sound::SPEAKER_MONO);
+		}
 	}
 
 	NestopiaSettings.NeedRefresh = false;
 
-	SetBuffer(ESpec->surface->pixels, ESpec->surface->pitch32 * 4);
+	//INPUT
 	UpdateControllers();
 
-	Nestopia.Execute(espec->skip ? 0 : GetVideo(), GetAudio(), GetControllers());
+	//EXECUTE
+	Nestopia.Execute(espec->skip ? 0 : &NESVideo, NESAudio, GetControllers());
 
-	SetFrame(&espec->DisplayRect);
-	CopyAudio(espec->SoundBuf, espec->SoundBufMaxSize, espec->SoundBufSize);
+	//FINISH VIDEO: Set the display area rectangle
+	uint32_t widthhelp = UseNTSC ? 0 : 8;
+	espec->DisplayRect.x = NestopiaSettings.ClipSides ? widthhelp : 0;
+	espec->DisplayRect.y = NestopiaSettings.ScanLineStart;
+	espec->DisplayRect.w = (UseNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH) - (NestopiaSettings.ClipSides ? widthhelp : 0);
+	espec->DisplayRect.h = NestopiaSettings.ScanLineEnd - NestopiaSettings.ScanLineStart;
+
+	//FINISH AUDIO: Copy the samples into mednafen's sound buffer
+	espec->SoundBufSize = 0;
+	if(NESAudio && espec->SoundBuf && espec->SoundBufMaxSize >= ((uint32_t)espec->SoundRate) / NestopiaSettings.FPS)
+	{
+		espec->SoundBufSize = ((uint32_t)espec->SoundRate) / NestopiaSettings.FPS;
+		memcpy(espec->SoundBuf, NESSamples, espec->SoundBufSize * 2);
+	}
 
 	//TODO: Real timing
 	espec->MasterCycles = 1LL * 100;
