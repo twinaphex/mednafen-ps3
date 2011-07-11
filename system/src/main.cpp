@@ -59,20 +59,22 @@ void				InitES					(void (*aExitFunction)())
 	ESNetwork::Initialize();
 	ESVideo::Initialize();
 	ESAudio::Initialize();
-	ESInput::Initialize();
 
 	FontManager::InitFonts();
 	ImageManager::SetDirectory(es_paths->Build("assets/png/"));
+
+	ESInput::Initialize();
 
 	es_log = smartptr::make_shared<Logger>(Area(10, 10, 80, 80));
 }
 
 void				QuitES					()
 {
+	ESInput::Shutdown();
+
 	FontManager::QuitFonts();
 	ImageManager::Purge();
 
-	ESInput::Shutdown();
 	ESAudio::Shutdown();
 	ESVideo::Shutdown();
 	ESNetwork::Shutdown();

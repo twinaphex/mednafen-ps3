@@ -11,7 +11,7 @@ namespace SDLInputConfig
 
 		if(!configFile)
 		{
-			memset(aData, 0, 14 * 4);
+			Get(aData);
 		}
 		else
 		{
