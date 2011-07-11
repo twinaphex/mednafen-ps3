@@ -12,7 +12,6 @@ class												FileSelect
 		bool										HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow);
 
 		std::string									GetFile							();
-		bool										IsValid							() {return Valid;}
 
 	private:
 		void										LoadList						(const std::string& aPath);
