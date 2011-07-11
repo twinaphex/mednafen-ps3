@@ -2,6 +2,7 @@
 #include <src/git.h>
 #include <src/driver.h>
 #include <src/general.h>
+#include <src/mempatcher.h>
 
 namespace VBAM{
 using namespace VBAM;
@@ -9,6 +10,7 @@ using namespace VBAM;
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
+#include "gba/Globals.h"
 #include "gba/Flash.h"
 #include "gba/RTC.h"
 #include "gba/Sound.h"
@@ -26,8 +28,6 @@ namespace mdfn
 {
 	EmulateSpecStruct*					ESpec;
 
-	bool								GameLoaded = false;
-
 	uint8_t*							Ports[4];
 	uint32_t							SoundFrame;
 }
@@ -38,22 +38,9 @@ void								InitSystem								();
 void								sdlApplyPerImagePreferences				();
 extern struct EmulatedSystem		emulator;
 
-
-int				VbamLoad				(const char *name, MDFNFILE *fp);
-bool			VbamTestMagic			(const char *name, MDFNFILE *fp);
-void			VbamCloseGame			(void);
-void			VbamEmulate				(EmulateSpecStruct *espec);
-void			VbamSetInput			(int port, const char *type, void *ptr);
-void			VbamDoSimpleCommand		(int cmd);
-int				VbamStateAction			(StateMem *sm, int load, int data_only);
-
+//Implement MDFNGI:
 int				VbamLoad				(const char *name, MDFNFILE *fp)
 {
-	if(GameLoaded)
-	{
-		VbamCloseGame();
-	}
-
 	//Setup sound
 	soundInit();
 	soundSetSampleRate(48000);
@@ -85,7 +72,10 @@ int				VbamLoad				(const char *name, MDFNFILE *fp)
 	//This refreshes timer and generates colormaps
 	InitSystem();
 
-	GameLoaded = true;
+	//Map the memory for cheats
+	MDFNMP_Init(0x8000, (1 << 28) / 0x8000);
+	MDFNMP_AddRAM(0x40000, 0x2 << 24, workRAM);
+	MDFNMP_AddRAM(0x08000, 0x3 << 24, internalRAM);
 
 	return 1;
 }
@@ -98,16 +88,11 @@ bool			VbamTestMagic			(const char *name, MDFNFILE *fp)
 
 void			VbamCloseGame			(void)
 {
-	if(GameLoaded)
-	{
-		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-		emulator.emuWriteBattery(filename.c_str());
-
-		emulator.emuCleanUp();
-	}
-
+	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+	emulator.emuWriteBattery(filename.c_str());
+	emulator.emuCleanUp();
 	emulating = 0;
-	GameLoaded = false;
+	MDFNMP_Kill();
 }
 
 
@@ -120,6 +105,9 @@ void			VbamEmulate				(EmulateSpecStruct *espec)
 	{
 		soundSetSampleRate((ESpec->SoundRate > 1.0) ? ESpec->SoundRate : 22050);
 	}
+
+	//Cheat
+	MDFNMP_ApplyPeriodicCheats();
 
 	//TODO: Support color shift
 	systemFrameSkip = ESpec->skip;
@@ -151,11 +139,7 @@ void			VbamSetInput			(int port, const char *type, void *ptr)
 
 void			VbamDoSimpleCommand		(int cmd)
 {
-	if(cmd == MDFN_MSC_RESET)
-	{
-		CPUReset();
-	}
-	else if(cmd == MDFN_MSC_POWER)
+	if(cmd == MDFN_MSC_RESET || cmd == MDFN_MSC_POWER)
 	{
 		CPUReset();
 	}
