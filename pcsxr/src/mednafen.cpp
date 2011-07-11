@@ -8,6 +8,9 @@
 #include <stdarg.h>
 #include "config.h"
 
+#include "src/mempatcher.h"
+
+
 namespace
 {
 	uint8_t*					Ports[8];
@@ -23,8 +26,12 @@ extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
 //Definitions for PCSX
 extern "C"
 {
+	//Pointer to the PSX's memory, for cheats
+	extern int8_t*		psxM;
+
+
 	//Return the filname of a memory card
-	const char*	GetMemoryCardName		(int aSlot)
+	const char*			GetMemoryCardName		(int aSlot)
 	{
 		static char slots[2][MAXPATHLEN];
 
@@ -35,7 +42,7 @@ extern "C"
 	}
 
 	//Return the filename of the BIOS
-	const char*	GetBiosName				()
+	const char*			GetBiosName				()
 	{
 		static char name[MAXPATHLEN];
 
@@ -45,19 +52,19 @@ extern "C"
 	}
 
 	//Return the value of the recompiler setting
-	int32_t		GetRecompiler			()
+	int32_t				GetRecompiler			()
 	{
 		return MDFN_GetSettingB("pcsxr.recompiler");
 	}
 
 	//From main.c
-	void		SysLoad					();
-	void		SysClose				();
-	void		SysReset				();
-	void		SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aInputPort1, uint32_t aInputPort2, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
+	void				SysLoad					();
+	void				SysClose				();
+	void				SysReset				();
+	void				SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aInputPort1, uint32_t aInputPort2, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
 
 	//Printing functions needed by libpcsxcore
-	void		SysPrintf				(const char *fmt, ...)
+	void				SysPrintf				(const char *fmt, ...)
 	{
 		char buffer[2048];
 		va_list args;
@@ -68,7 +75,7 @@ extern "C"
 		MDFND_Message(buffer);
 	}
 
-	void		SysMessage				(const char *fmt, ...)
+	void				SysMessage				(const char *fmt, ...)
 	{
 		char buffer[2048];
 		va_list args;
@@ -93,6 +100,10 @@ int				PcsxrLoad				()
 
 	//TODO: Set the clock if the machine is PAL
 
+	//Just say two 1M pages, for fun not profit
+	MDFNMP_Init(1024 * 1024, 2);
+	MDFNMP_AddRAM(1024 * 1024 * 2, 0, (uint8_t*)psxM);
+
 	return 1;
 }
 
@@ -108,6 +119,9 @@ void			PcsxrCloseGame			(void)
 {
 	//Call the C function in main.c
 	SysClose();
+
+	//Close the cheat engine
+	MDFNMP_Kill();
 }
 
 //FAKE ZLIB HACK
@@ -186,6 +200,9 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
     {
 		//TODO
     }
+
+	//Apply cheats
+	MDFNMP_ApplyPeriodicCheats();
 
 	//Fetch the list of pressed buttons
 	uint32_t input1 = Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0;
