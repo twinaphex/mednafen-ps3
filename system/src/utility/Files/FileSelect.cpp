@@ -11,13 +11,17 @@ namespace
 }
 
 
-										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
+										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook) :
 	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
 	Header(aHeader),
 	BookMarks(aBookMarks)
 {
-	Interface->SetHook(aInputHook);
+	if(aInputHook)
+	{
+		Interface->AttachConduit(aInputHook);
+	}
+
 	Interface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
 
 	Paths.push(aPath);

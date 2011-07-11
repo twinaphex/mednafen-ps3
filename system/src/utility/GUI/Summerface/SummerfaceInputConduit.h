@@ -10,9 +10,17 @@ class													SummerfaceInputConduit
 class													SummerfaceStaticConduit	: public SummerfaceInputConduit
 {
 	public:
-														SummerfaceStaticConduit			(int (*aCallback)(void*, Summerface_Ptr aInterface, const std::string&), void* aUserData);
+														SummerfaceStaticConduit			(int (*aCallback)(void*, Summerface_Ptr aInterface, const std::string&), void* aUserData) :
+			Callback(aCallback),
+			UserData(aUserData)
+			{
 
-		virtual int										HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow);
+			}
+
+		virtual int										HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow)
+		{
+			return Callback ? Callback(UserData, aInterface, aWindow) : 0;
+		}
 
 	protected:
 		int												(*Callback)						(void*, Summerface_Ptr aInterface, const std::string&);
@@ -34,7 +42,6 @@ class													SummerfaceTemplateConduit : public SummerfaceInputConduit
 	protected:
 		T*												Data;
 };
-
 
 #endif
 
