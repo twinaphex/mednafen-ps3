@@ -2,26 +2,23 @@
 
 namespace
 {
-	class			MDFNInputHook : public MenuHook
+	int				FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 	{
-		public:
-			bool	Input	()
-			{
-				if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
-				{
-					SettingMenu().Do();
-				}
+		if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+		{
+			SettingMenu().Do();
+			return 1;
+		}
 
-				if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
-				{
-					Summerface::Create("Text", smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
-				}
+		if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
+		{
+			Summerface::Create("Text", smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
+			return 1;
+		}
 
-				return false;
-			}
-	};
+		return 0;
+	}
 
-	MDFNInputHook				InputHook;
 	FileSelect*					FileChooser = 0;
 	std::vector<std::string>	bookmarks;
 };
@@ -43,7 +40,7 @@ std::string			GetFile					()
 
 	if(FileChooser == 0)
 	{
-		FileChooser = new FileSelect("Select ROM", bookmarks, "", &InputHook);
+		FileChooser = new FileSelect("Select ROM", bookmarks, "", smartptr::make_shared<SummerfaceStaticConduit>(FileBrowserHook, (void*)0));
 	}
 
 	std::string result = FileChooser->GetFile();

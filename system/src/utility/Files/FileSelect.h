@@ -6,7 +6,7 @@ typedef std::vector<std::string>					BookmarkList;
 class												FileSelect
 {
 	public:
-													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook = 0);
+													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook = SummerfaceInputConduit_Ptr());
 		virtual										~FileSelect						() {};
 													
 		int											HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow);
@@ -27,3 +27,4 @@ class												FileSelect
 };
 
 #endif
+
