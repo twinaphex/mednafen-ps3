@@ -115,37 +115,34 @@ void			GmbtCloseGame			(void)
 
 int				GmbtStateAction			(StateMem *sm, int load, int data_only)
 {
-	//TODO:
 	if(!load)
 	{
+		//Get the state data from gambatte
 		std::ostringstream os(std::ios_base::out | std::ios_base::binary);
 		GambatteEmu->saveState(os);
 
-		void* buffer = malloc(os.str().size());
-		memcpy(buffer, os.str().data(), os.str().size());
-
+		//Feed it to medanfen and leave
 		smem_write32le(sm, os.str().size());
-		smem_write(sm, buffer, os.str().size());
-
-		free(buffer);
-
+		smem_write(sm, (char*)os.str().data(), os.str().size());
 		return 1;
 	}
 	else
 	{
+		//Get the size of the state
 		uint32_t size;
 		smem_read32le(sm, &size);
 
+		//Read it from mednafen
 		char* buffer = (char*)malloc(size);
 		smem_read(sm, buffer, size);
 
+		//Feed it to gambatte
 		std::istringstream iss(std::string((const char*)buffer, (size_t)size), std::ios_base::in | std::ios_base::binary);
 		GambatteEmu->loadState(iss);
 
+		//Clear up and leave
 		free(buffer);
-
 		SampleOverflow = 0;
-
 		return 1;
 	}
 	return 0;
@@ -155,14 +152,16 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 {
 	ESpec = espec;
 
+	//TODO: VIDEO PREP (Color Type, shifts)
+
 	//SOUND PREP
-	if(ESpec->SoundFormatChanged)
+	if(espec->SoundFormatChanged)
 	{
-		Resample->adjustRate(2097152, (ESpec->SoundRate > 1.0) ? ESpec->SoundRate : 22050);
+		Resample->adjustRate(2097152, (espec->SoundRate > 1.0) ? espec->SoundRate : 22050);
 	}
 
 	//INPUT
-	if(InputPort[0])
+	if(InputPort)
 	{
 		Input.inputs.startButton	= (*InputPort & 8) ? 1 : 0;
 		Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
@@ -179,7 +178,7 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 	SampleOverflow += samps;
 	SampleOverflow -= 35112;
 
-	//Grab sound
+	//SOUND COPY
 	uint32_t count = Resample->resample((short*)Resamples, (short*)Samples, samps);
 
 	if(espec->SoundBuf && (espec->SoundBufMaxSize >= count))
@@ -188,7 +187,7 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 		memcpy(espec->SoundBuf, Resamples, espec->SoundBufSize * 4);
 	}
 
-	//Set frame size
+	//VIDEO SIZE
 	espec->DisplayRect.x = 0;
 	espec->DisplayRect.y = 0;
 	espec->DisplayRect.w = 160;
