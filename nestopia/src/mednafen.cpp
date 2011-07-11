@@ -31,7 +31,6 @@ namespace nestMDFN
 		{Video::DEFAULT_COLOR_FRINGING_COMP,	Video::DEFAULT_COLOR_FRINGING_SVIDEO,	Video::DEFAULT_COLOR_FRINGING_RGB}
 	};
 
-	bool						GameOpen = false;
 	Nes::Api::Emulator			Nestopia;
 	Sound::Output*				NESAudio;
 
@@ -175,12 +174,8 @@ extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC()
 //Implement MDFNGI:
 int				NestLoad				(const char *name, MDFNFILE *fp)
 {
-	if(GameOpen)
-	{
-		NestCloseGame();
-	}
-
-	GameOpen = true;
+	//Start cheat engine
+	MDFNMP_Init(1024, 65536 / 1024);
 
 	//Get the settings
 	GetSettings();
@@ -234,16 +229,14 @@ bool			NestTestMagic			(const char *name, MDFNFILE *fp)
 
 void			NestCloseGame			(void)
 {
-	if(GameOpen)
-	{
-		Machine(Nestopia).Power(false);
-		Machine(Nestopia).Unload();
+	Machine(Nestopia).Power(false);
+	Machine(Nestopia).Unload();
 
-		delete NESAudio;
-		NESAudio = 0;
+	delete NESAudio;
+	NESAudio = 0;
 
-		GameOpen = false;
-	}
+	//Close cheats
+	MDFNMP_Kill();
 }
 
 int				NestStateAction			(StateMem *sm, int load, int data_only)
@@ -283,6 +276,9 @@ int				NestStateAction			(StateMem *sm, int load, int data_only)
 
 void			NestEmulate				(EmulateSpecStruct *espec)
 {
+	//CHEATS
+	MDFNMP_ApplyPeriodicCheats();
+
 	//PREP VIDEO
 	if(espec->VideoFormatChanged || NestopiaSettings.NeedRefresh)
 	{
