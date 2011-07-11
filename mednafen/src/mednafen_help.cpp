@@ -150,11 +150,12 @@ void						MednafenEmu::Quit				()
 	IsInitialized = false;
 }
 
-void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
+void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize, bool aIsFrontEnd)
 {
 	if(!IsLoaded && IsInitialized)
 	{
 		MDFNDES_BlockExit(false);
+		IsFrontEnd = aIsFrontEnd;
 
 		//Load the game
 		//TODO: Support other casing of '.cue'
@@ -493,10 +494,15 @@ void						MednafenEmu::DoCommands			()
 {
 	MDFND_Rumble(0, 0);
 
+	const char* optcommands[] =
+	{
+		"Change Game",			"DoReload",			"DoReload",
+		"Exit Game",			"DoExit",			"DoExit",
+	};
+
 	const char*	commands[] =
 	{
 		//Display name,			Image name,			Command name
-		"Change Game",			"DoReload",			"DoReload",
 		"Reset Game",			"DoReset",			"DoReset",
 		"Show Text File",		"DoTextFile",		"DoTextFile",
 		"Connect Netplay",		"DoNetplay",		"DoNetplay",
@@ -514,9 +520,16 @@ void						MednafenEmu::DoCommands			()
 	grid->SetView(smartptr::make_shared<GridListView>(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
 	grid->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
-	for(int i = 0; i != 12; i ++)
+
+	//Add either a reload or exit command depending on mode
+	SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(optcommands[IsFrontEnd ? 3 : 0], optcommands[IsFrontEnd ? 4 : 1]);
+	item->Properties["COMMAND"] = optcommands[IsFrontEnd ? 5 : 2];
+	grid->AddItem(item);
+
+	//Add other commands
+	for(int i = 0; i != 11; i ++)
 	{
-		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
+		item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
 		item->Properties["COMMAND"] = commands[i * 3 + 2];
 		grid->AddItem(item);
 	}
@@ -724,6 +737,7 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 bool						MednafenEmu::IsPaused = false;
+bool						MednafenEmu::IsFrontEnd = false;
 	
 Texture_Ptr					MednafenEmu::Buffer;
 MDFN_Surface_Ptr			MednafenEmu::Surface ;
