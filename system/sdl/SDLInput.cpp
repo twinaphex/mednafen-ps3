@@ -42,7 +42,7 @@ void				ESInput::Refresh						()
 		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
 		{
 			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
-			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 1]);
+			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);
 			buttonIndex += 2;
 		}
 
