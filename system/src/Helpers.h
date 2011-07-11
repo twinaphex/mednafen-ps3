@@ -109,7 +109,8 @@ class				Utility
 #endif
 		}
 
-		static bool						ListDirectory				(const std::string& aPath, std::vector<std::string>& aOutput)
+		template<typename T>
+		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
 		{
 #ifndef NO_READDIR
 #ifndef S_ISDIR
@@ -142,7 +143,7 @@ class				Utility
 				return false;
 			}
 #else
-			return PlatformHelpers::ListDirectory(aPath, aOutput);
+			return PlatformHelpers::ListDirectory<T>(aPath, aOutput);
 #endif
 		}
 	

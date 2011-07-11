@@ -23,8 +23,6 @@ class												FileSelect
 		Summerface_Ptr								Interface;
 		std::stack<std::string>						Paths;
 
-		bool										Valid;
-
 		std::string									Header;
 		BookmarkList&								BookMarks;
 };

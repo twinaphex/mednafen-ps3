@@ -10,143 +10,10 @@ namespace
 	}
 }
 
-class									FlowListView : public ListView
-{
-	public:
-										FlowListView					(SummerfaceList_WeakPtr aWeakList) : WeakList(aWeakList) {}
-		virtual							~FlowListView					() {}
-	
-		virtual bool					Input							();
-		bool							DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected);
-		virtual bool					Draw							();
-
-	private:
-		SummerfaceList_WeakPtr			WeakList;
-		static const int				Columns = 5;
-		static const int				Rows = 2;
-};
-
-bool									FlowListView::Input				()
-{
-	if(!WeakList.expired())
-	{
-		SummerfaceList_Ptr List = WeakList.lock();
-
-		int32_t oldIndex = List->GetSelection();
-		if(List->GetItemCount() != 0)
-		{
-			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? Rows : 0);
-			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? Rows : 0);
-			oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
-			List->SetSelection(oldIndex);
-		}
-
-		if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
-		{
-			List->SetCanceled(true);
-			return true;
-		}
-
-		if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
-		{
-			List->SetCanceled(false);
-			return true;
-		}
-		
-		return false;
-	}
-	else
-	{
-		return true;
-	}	
-}
-
-bool									FlowListView::DrawItem			(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
-{
-	Texture* image = ImageManager::GetImage(aItem->GetImage());
-	if(Utility::FileExists(aItem->Properties["THUMB"]))
-	{
-		image = ImageManager::LoadImage(aItem->Properties["THUMB"], aItem->Properties["THUMB"]);
-	}
-
-	if(image && aWidth && aHeight)
-	{
-		Area ImageArea(0, 0, image->GetWidth(), image->GetHeight());
-
-		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
-		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
-		ESVideo::PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
-	}
-}
-
-bool							FlowListView::Draw						()
-{
-//	ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
-//	ESVideo::FillRectangle(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()), 0x000080FF);
-
-	if(!WeakList.expired())
-	{
-		SummerfaceList_Ptr List = WeakList.lock();
-
-		List->SetHeader("");
-
-		uint32_t iconWidth = ESVideo::GetClip().Width / Columns;
-		uint32_t iconHeight = ESVideo::GetClip().Height / Rows;
-		uint32_t expandWidth = ESVideo::GetClip().Width / 16;
-		uint32_t expandHeight = ESVideo::GetClip().Height / 16;
-
-		int onitem = (List->GetSelection() - (List->GetSelection() % Rows)) - (Rows * (Columns / 2));
-		int selection = -1, selectionx = 0, selectiony = 0;
-
-		for(int i = 0; i != Columns; i ++)
-		{
-			for(int j = 0; j != Rows; j ++)
-			{
-				if(onitem < 0 || onitem >= List->GetItemCount())
-				{
-					onitem ++;
-					continue;
-				}
-
-				DrawItem(List->GetItem(onitem), i * iconWidth, j * iconHeight, iconWidth, iconHeight, List->GetSelection() == onitem);
-
-				if(List->GetSelection() == onitem)
-				{
-					selection = onitem;
-					selectionx = i;
-					selectiony = j;
-				}
-				onitem ++;
-			}
-		}
-		
-		if(selection >= 0)
-		{
-			Area clipp = ESVideo::GetClip();
-
-			uint32_t textY = (clipp.Y + ((selectiony * iconHeight) - expandHeight) < ESVideo::GetScreenHeight() / 3) ? ESVideo::GetClip().Height - FontManager::GetBigFont()->GetHeight() - 16 : 16;
-			FontManager::GetBigFont()->PutString(List->GetSelected()->GetText().c_str(), 32, textY, 0x000000FF);
-
-			ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
-			DrawItem(List->GetItem(selection), (clipp.X + selectionx * iconWidth) - expandWidth, (clipp.Y + selectiony * iconHeight) - expandHeight, iconWidth + expandWidth * 2, iconHeight + expandHeight * 2, true);
-		}
-
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-
 
 										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, MenuHook* aInputHook) :
 	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
-	Valid(true),
 	Header(aHeader),
 	BookMarks(aBookMarks)
 {
@@ -159,6 +26,7 @@ bool							FlowListView::Draw						()
 
 bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
 {
+	//Use the input conduit to toggle bookmarks
 	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
 	{
 		SummerfaceItem_Ptr item = List->GetSelected();
@@ -183,66 +51,61 @@ bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::s
 
 std::string								FileSelect::GetFile					()
 {
-	if(Valid)
-	{
-		std::string result;
-	
-		while(!WantToDie())
-		{
-			Interface->Do();
+	std::string result;
 
-			if(List->WasCanceled())
+	while(!WantToDie())
+	{
+		//Run the list
+		Interface->Do();
+
+		//If the list was canceled; try to move up the stack
+		if(List->WasCanceled())
+		{
+			//Go to parent directory
+			if(Paths.size() > 1)
 			{
-				if(Paths.size() > 1)
-				{
-					Paths.pop();
-					LoadList(Paths.top().c_str());
-					continue;
-				}
-				else
-				{
-					return "";
-				}
+				Paths.pop();
+				LoadList(Paths.top().c_str());
+				continue;
 			}
-			
-			if(List->GetSelected()->IntProperties["DIRECTORY"])
-			{
-				Paths.push(List->GetSelected()->Properties["PATH"]);
-				LoadList(Paths.top());
-			}
+			//No parent, return empty string
 			else
 			{
-				return List->GetSelected()->Properties["PATH"];
-				break;
+				return "";
 			}
 		}
-	
-		return "";
+		
+		//If a directory was selected, list it
+		if(List->GetSelected()->IntProperties["DIRECTORY"])
+		{
+			Paths.push(List->GetSelected()->Properties["PATH"]);
+			LoadList(Paths.top());
+		}
+		//If a file was selected, return it
+		else
+		{
+			return List->GetSelected()->Properties["PATH"];
+			break;
+		}
 	}
-	else
-	{
-		ErrorCheck(0, "FileSelect::GetFile: FileSelect object is invalid.");
-	}
+
+	return "";
 }
 
 void								FileSelect::LoadList						(const std::string& aPath)
 {
+	//Prep the list for this directory
 	List->ClearItems();
 	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
+	List->SetView(smartptr::make_shared<AnchoredListView>(List, true));
 
-	if(Utility::DirectoryExists(aPath + "/__images"))
-	{
-		List->SetView(smartptr::make_shared<FlowListView>(List));
-	}
-	else
-	{
-		List->SetView(smartptr::make_shared<AnchoredListView>(List, true));
-	}
-
+	//If the path is empty, list the drive selection and bookmarks
+	//TODO: Support drive selection on windows
 	if(aPath.empty())
 	{
 		List->AddItem(MakeItem("Local Files", "/", true, false));
 
+		//Load bookmarks
 		for(BookmarkList::iterator i = BookMarks.begin(); i != BookMarks.end(); i ++)
 		{
 			if(!i->empty())
@@ -268,12 +131,12 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	}
 	else
 	{
-		std::vector<std::string> items;
+		std::list<std::string> items;
 		Utility::ListDirectory(aPath, items);
 
-		for(int i = 0; i != items.size(); i ++)
+		for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 		{
-			List->AddItem(MakeItem(items[i], aPath + items[i], items[i][items[i].length() - 1] == '/', items[i][items[i].length() - 1] != '/'));
+			List->AddItem(MakeItem(*i, aPath + *i, i->length() - 1 == '/', i->length() - 1 != '/'));
 		}
 
 		List->Sort(AlphaSortDirectory);
