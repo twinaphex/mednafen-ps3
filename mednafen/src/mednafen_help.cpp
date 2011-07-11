@@ -272,6 +272,7 @@ void						MednafenEmu::CloseGame			()
 		Buffer.reset();
 		Surface.reset();
 
+
 #ifndef NO_LUA
 		delete Lua;
 #endif
@@ -519,7 +520,6 @@ void						MednafenEmu::DoCommands			()
 	SummerfaceList_Ptr grid = smartptr::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
 	grid->SetView(smartptr::make_shared<GridListView>(grid, 4, 3, true, false));
 	grid->SetHeader("Choose Action");
-	grid->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
 
 	//Add either a reload or exit command depending on mode
 	SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(optcommands[IsFrontEnd ? 3 : 0], optcommands[IsFrontEnd ? 4 : 1]);
@@ -534,10 +534,12 @@ void						MednafenEmu::DoCommands			()
 		grid->AddItem(item);
 	}
 
-	Summerface::Create("Grid", grid)->Do();
+	Summerface_Ptr sface = Summerface::Create("Grid", grid);
+	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
+	sface->Do();
 }
 
-bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	std::string command;
 
@@ -552,7 +554,7 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	}
 	else
 	{
-		return false;
+		return 0;
 	}
 
 	if(IsLoaded)
@@ -644,10 +646,10 @@ bool						MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 		
 		Inputs->ReadSettings();
-		return true;
+		return -1;
 	}
 
-	return false;
+	return 0;
 }
 
 void						MednafenEmu::SetPause			(bool aPause)

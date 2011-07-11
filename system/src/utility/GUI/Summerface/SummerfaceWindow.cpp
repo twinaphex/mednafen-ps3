@@ -10,7 +10,6 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion, bool aBorder) :
 	Interface(Summerface_WeakPtr()),
-	InputHandler(SummerfaceInputConduit_Ptr()),
 	UseBorder(aBorder)
 {
 	Region = Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0));;
@@ -56,14 +55,7 @@ bool										SummerfaceWindow::PrepareDraw						()
 
 bool										SummerfaceWindow::Input								()
 {
-	if(InputHandler)
-	{
-		return InputHandler->HandleInput(GetInterface(), GetName());
-	}
-	else
-	{
-		return ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
-	}
+	return ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
 }
 
 void										SummerfaceWindow::SetInterface						(Summerface_Ptr aInterface, const std::string& aName)
