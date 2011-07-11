@@ -126,9 +126,9 @@ MDFNGI	NestInfo =
 /*	CloseGame:			*/	NestCloseGame,
 /*	ToggleLayer:		*/	0,
 /*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	NestInstallReadPatch,
-/*	RemoveReadPatches:	*/	NestRemoveReadPatches,
-/*	MemRead:			*/	NestMemRead,
+/*	InstallReadPatch:	*/	0,
+/*	RemoveReadPatches:	*/	0,
+/*	MemRead:			*/	0,
 /*	StateAction:		*/	NestStateAction,
 /*	Emulate:			*/	NestEmulate,
 /*	SetInput:			*/	NestSetInput,
@@ -244,22 +244,6 @@ void			NestCloseGame			(void)
 
 		GameOpen = false;
 	}
-}
-
-void			NestInstallReadPatch	(uint32 address)
-{
-	//TODO:
-}
-
-void			NestRemoveReadPatches	(void)
-{
-	//TODO:
-}
-
-uint8			NestMemRead				(uint32 addr)
-{
-	//TODO:
-	return 0;
 }
 
 int				NestStateAction			(StateMem *sm, int load, int data_only)

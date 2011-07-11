@@ -110,22 +110,6 @@ void			PcsxrCloseGame			(void)
 	SysClose();
 }
 
-void			PcsxrInstallReadPatch	(uint32 address)
-{
-	//TODO:
-}
-
-void			PcsxrRemoveReadPatches	(void)
-{
-	//TODO:
-}
-
-uint8			PcsxrMemRead			(uint32 addr)
-{
-	//TODO:
-	return 0;
-}
-
 //FAKE ZLIB HACK
 static StateMem* stateMemory;
 
@@ -324,9 +308,9 @@ MDFNGI	PcsxrInfo =
 /*	CloseGame:			*/	PcsxrCloseGame,
 /*	ToggleLayer:		*/	0,
 /*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	PcsxrInstallReadPatch,
-/*	RemoveReadPatches:	*/	PcsxrRemoveReadPatches,
-/*	MemRead:			*/	PcsxrMemRead,
+/*	InstallReadPatch:	*/	0,
+/*	RemoveReadPatches:	*/	0,
+/*	MemRead:			*/	0,
 /*	StateAction:		*/	PcsxrStateAction,
 /*	Emulate:			*/	PcsxrEmulate,
 /*	SetInput:			*/	PcsxrSetInput,

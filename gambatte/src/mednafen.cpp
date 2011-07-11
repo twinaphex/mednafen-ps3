@@ -109,9 +109,6 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp);
 bool			GmbtTestMagic			(const char *name, MDFNFILE *fp);
 void			GmbtCloseGame			(void);
 bool			GmbtToggleLayer			(int which);
-void			GmbtInstallReadPatch	(uint32 address);
-void			GmbtRemoveReadPatches	(void);
-uint8			GmbtMemRead				(uint32 addr);
 int				GmbtStateAction			(StateMem *sm, int load, int data_only);
 void			GmbtEmulate				(EmulateSpecStruct *espec);
 void			GmbtSetInput			(int port, const char *type, void *ptr);
@@ -156,22 +153,6 @@ void			GmbtCloseGame			(void)
 	ROMData = 0;
 
 	GameLoaded = false;
-}
-
-void			GmbtInstallReadPatch	(uint32 address)
-{
-	//TODO:
-}
-
-void			GmbtRemoveReadPatches	(void)
-{
-	//TODO:
-}
-
-uint8			GmbtMemRead				(uint32 addr)
-{
-	//TODO:
-	return 0;
 }
 
 int				GmbtStateAction			(StateMem *sm, int load, int data_only)
@@ -324,9 +305,9 @@ static MDFNGI	GmbtInfo =
 /*	CloseGame:*/		GmbtCloseGame,
 /*	ToggleLayer:*/		0,
 /*	LayerNames:*/		0,
-/*	InstallReadPatch:*/	GmbtInstallReadPatch,
-/*	RemoveReadPatches:*/GmbtRemoveReadPatches,
-/*	MemRead:*/			GmbtMemRead,
+/*	InstallReadPatch:*/	0,
+/*	RemoveReadPatches:*/0,
+/*	MemRead:*/			0,
 /*	StateAction:*/		GmbtStateAction,
 /*	Emulate:*/			GmbtEmulate,
 /*	SetInput:*/			GmbtSetInput,
