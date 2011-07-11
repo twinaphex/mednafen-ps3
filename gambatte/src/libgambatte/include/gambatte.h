@@ -37,14 +37,13 @@ class GB {
 	CPU *const z80;
 	int stateNo;
 
+//ROBO: Take stream
+//	void loadState(const char *filepath, bool osdMessage);
 	void loadState(std::istream& filename, bool osdMessage);
 
 public:
 	GB();
 	~GB();
-
-//ROBO: Link support
-	void setSide(unsigned gside);
 
 //ROBO: Load from memory
 //	bool load(const char* romfile, bool forceDmg = false);	
