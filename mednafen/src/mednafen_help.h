@@ -12,7 +12,7 @@ class	MednafenEmu
 		static void						Init				();
 		static void						Quit				();
 							
-		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
+		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0, bool aFrontEnd = false);
 		static void						CloseGame			();
 		
 		static bool						Frame				();
@@ -44,7 +44,8 @@ class	MednafenEmu
 		static bool						IsInitialized;
 		static bool						IsLoaded;
 		static bool						IsPaused;
-	
+		static bool						IsFrontEnd;	
+
 		static Texture_Ptr				Buffer;
 		static MDFN_Surface_Ptr			Surface;
 		static bool						SuspendDraw;

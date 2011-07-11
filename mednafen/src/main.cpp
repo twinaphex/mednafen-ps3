@@ -54,6 +54,7 @@ std::string			GetFile					()
 
 void				ReloadEmulator			(const std::string& aFileName)
 {
+	bool FrontEnd = !aFileName.empty();
 	std::string filename = aFileName.empty() ? GetFile() : aFileName;
 
 	if(filename.empty() && !MednafenEmu::IsGameLoaded())
@@ -112,7 +113,7 @@ void				ReloadEmulator			(const std::string& aFileName)
 
 			//Load the game into mednafen
 			MednafenEmu::CloseGame();
-			MednafenEmu::LoadGame(filename, data, size);
+			MednafenEmu::LoadGame(filename, data, size, FrontEnd);
 		}
 		else
 		{
