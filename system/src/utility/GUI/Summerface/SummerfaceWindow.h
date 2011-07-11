@@ -3,8 +3,6 @@
 
 class	Summerface;
 
-#include	"SummerfaceInputConduit.h"
-
 class													SummerfaceWindow
 {
 	public:
@@ -25,16 +23,12 @@ class													SummerfaceWindow
 		virtual void									SetHeader						(const std::string& aHeader, ...); //External
 		virtual std::string								GetHeader						() const {return Header;};
 
-		virtual void									SetInputConduit					(SummerfaceInputConduit_Ptr aInputConduit) {InputHandler = aInputConduit;}
-		virtual SummerfaceInputConduit_Ptr				GetInputConduit					() const {return InputHandler;};
-
 		virtual bool									SetBorder						(bool aEnable) {UseBorder = aEnable;}
 
 	private:
 		static const uint32_t							BorderWidth = 4;
 
 		Summerface_WeakPtr								Interface;
-		SummerfaceInputConduit_Ptr						InputHandler;
 
 		std::string										Name;
 		std::string										Header;

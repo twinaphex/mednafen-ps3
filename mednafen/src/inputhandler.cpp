@@ -114,7 +114,6 @@ void							InputHandler::Configure				()
 
 	//Create the window to receive input
 	SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
-	button->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 	//Add the window to any existing summerface, or create a new one if needed 
 	if(sface)
@@ -125,6 +124,9 @@ void							InputHandler::Configure				()
 	{
 		sface = Summerface::Create("InputWindow", button);
 	}
+
+	//Attach the conduit
+	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 	//Attach any available layout images
 	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
@@ -292,7 +294,7 @@ void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char
 	}
 }
 
-bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+int								InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	//Conduit for config interface
 	static bool gotbutton = true;
@@ -300,7 +302,7 @@ bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterfa
 	//Don't continue until all buttons are released
 	if(gotbutton && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
 	{
-		return false;
+		return 0;
 	}
 
 	//Note that no buttons are pressed
@@ -312,7 +314,7 @@ bool							InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterfa
 
 	//Note wheather a button has beed pressed for next call
 	gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
-	return gotbutton;
+	return gotbutton ? -1 : 0;
 }
 
 

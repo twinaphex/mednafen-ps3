@@ -37,13 +37,13 @@ namespace SDLInputConfig
 		fclose(configFile);
 	}
 
-	bool					GetButton			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+	int						GetButton			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 	{
 		static bool gotbutton = true;
 
 		if(gotbutton && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
 		{
-			return false;
+			return 0;
 		}
 
 		gotbutton = false;
@@ -51,7 +51,7 @@ namespace SDLInputConfig
 		uint32_t* button = (uint32_t*)aUserData;
 		button[0] = ESInput::GetAnyButton(0);
 		gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
-		return gotbutton;
+		return gotbutton ? -1 : 0;
 	}
 
 	void					Get					(uint32_t* aData)
@@ -67,9 +67,9 @@ namespace SDLInputConfig
 
 		uint32_t buttonID;
 		SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
-		button->SetInputConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 		Summerface_Ptr sface = Summerface::Create("InputWindow", button);
+		sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
 
 		for(int j = 0; j != 14; j ++)
 		{

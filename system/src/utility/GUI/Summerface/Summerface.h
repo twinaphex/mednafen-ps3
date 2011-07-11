@@ -4,6 +4,8 @@
 
 class													Summerface : public Menu, public smartptr::enable_shared_from_this<Summerface>
 {
+	typedef std::set<SummerfaceInputConduit_Ptr>		ConduitSet;
+
 	public: //Do not call!
 														Summerface						() {};
 
@@ -21,9 +23,14 @@ class													Summerface : public Menu, public smartptr::enable_shared_from_
 		SummerfaceWindow_Ptr							GetWindow						(const std::string& aName);
 		void											SetActiveWindow					(const std::string& aName);
 
+		void											AttachConduit					(SummerfaceInputConduit_Ptr aConduit) {Handlers.insert(aConduit);}
+		void											DetachConduit					(SummerfaceInputConduit_Ptr aConduit) {Handlers.erase(aConduit);}
+
 		static void										SetDrawBackground				(bool (*aCallback)()) {BackgroundCallback = aCallback;};
-		
+
 	private:
+		ConduitSet										Handlers;
+
 		std::map<std::string, SummerfaceWindow_Ptr>		Windows;
 		std::string										ActiveWindow;
 

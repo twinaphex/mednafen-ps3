@@ -64,6 +64,17 @@ bool										Summerface::Input									()
 {
 	if(Windows.find(ActiveWindow) != Windows.end())
 	{
+		//Check for conduits
+		for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
+		{
+			int result = (*i)->HandleInput(shared_from_this(), ActiveWindow);
+
+			if(result)
+			{
+				return (result > 0) ? false : true;
+			}
+		}
+
 		return Windows[ActiveWindow]->Input();
 	}
 

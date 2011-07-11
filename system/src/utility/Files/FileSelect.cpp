@@ -18,13 +18,13 @@ namespace
 	BookMarks(aBookMarks)
 {
 	Interface->SetHook(aInputHook);
-	List->SetInputConduit(smartptr::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
+	Interface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
 
 	Paths.push(aPath);
 	LoadList(aPath);
 }
 
-bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
+int										FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
 {
 	//Use the input conduit to toggle bookmarks
 	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
@@ -44,9 +44,12 @@ bool									FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::s
 			item->IntProperties["BOOKMARK"] = 1;
 			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
 		}
+
+		//Eat the input
+		return 1;
 	}
 
-	return false;
+	return 0;
 }
 
 std::string								FileSelect::GetFile					()
@@ -136,7 +139,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 
 		for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 		{
-			List->AddItem(MakeItem(*i, aPath + *i, i->length() - 1 == '/', i->length() - 1 != '/'));
+			List->AddItem(MakeItem(*i, aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/'));
 		}
 
 		List->Sort(AlphaSortDirectory);

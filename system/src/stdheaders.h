@@ -13,6 +13,7 @@
 #include <stack>
 #include <list>
 #include <map>
+#include <set>
 #include <exception>
 #include <string>
 #include <sstream>

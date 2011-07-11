@@ -133,17 +133,10 @@ bool										GridListView::Input									()
 		List->SetHeader(List->GetSelected()->GetText());
 	}
 
-//TODO: Handle conduits better!
-
 	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
-	}
-
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
 	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
@@ -309,8 +302,6 @@ bool										AnchoredListView::Input								()
 		}
 	}
 
-//TODO: Handle conduits better!
-
 	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
@@ -323,11 +314,6 @@ bool										AnchoredListView::Input								()
 		return true;
 	}
 
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
-	}
-	
 	return false;
 }
 
@@ -382,17 +368,10 @@ bool										CleanListView::Input								()
 		List->SetSelection(oldIndex);
 	}
 
-//TODO: Handle conduits better!
-
 	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
 	{
 		List->SetCanceled(true);
 		return true;
-	}
-
-	if(List->GetInputConduit() && List->GetSelection() < List->GetItemCount())
-	{
-		return List->GetInputConduit()->HandleInput(List->GetInterface(), List->GetName()); 
 	}
 
 	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
