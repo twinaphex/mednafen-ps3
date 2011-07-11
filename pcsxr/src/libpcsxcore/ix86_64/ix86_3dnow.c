@@ -1,6 +1,9 @@
 // stop compiling if NORECBUILD build (only for Visual Studio)
 #if !(defined(_MSC_VER) && defined(PCSX2_NORECBUILD))
 
+//ROBO: Only for 64-bit
+#ifdef __x86_64__
+
 #include "ix86-64.h"
 
 /**********************/
@@ -175,4 +178,5 @@ void PFMINRtoR( x86IntRegType to, x86IntRegType from )
 	write8( 0x94 );
 }
 
+#endif
 #endif
