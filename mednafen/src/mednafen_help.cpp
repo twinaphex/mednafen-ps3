@@ -78,7 +78,7 @@ namespace
 
 	MDFNSetting SystemSettings[] = 
 	{
-		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "-50", "50" },
+		{"underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertunetop", MDFNSF_NOFLAGS, "Fine tune underscan at top of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertunebottom", MDFNSF_NOFLAGS, "Fine tune underscan at bottom of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"undertuneleft", MDFNSF_NOFLAGS, "Fine tune underscan at left of screen.", NULL, MDFNST_INT, "0", "-50", "50" },
@@ -95,6 +95,7 @@ namespace
 
 	MDFNSetting ESSettings[] =
 	{
+		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "-50", "50" },
 		{"es.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
 		{"net.es.username", MDFNSF_NOFLAGS, "User name for netplay.", NULL, MDFNST_STRING, "Me" },		
 		{"net.es.password", MDFNSF_NOFLAGS, "Password for the netplay Server.", NULL, MDFNST_STRING, "sexybeef" },
@@ -271,6 +272,7 @@ void						MednafenEmu::CloseGame			()
 		Inputs.reset();
 		Buffer.reset();
 		Surface.reset();
+
 
 
 #ifndef NO_LUA
@@ -686,7 +688,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
-		UnderscanSetting = MDFN_GetSettingI(SETTINGNAME("underscan"));
+		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("underscanadjust"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 
 		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))

@@ -6,7 +6,11 @@ static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr 
 	if(a->GetText().find(".enable") != std::string::npos)												return true;
 	if(b->GetText().find(".enable") != std::string::npos)												return false;
 
-	//Keep ps3 system settings above others
+	//Undertune items at the bottom
+	if(a->GetText().find("undertune") != std::string::npos)												return false;
+	if(b->GetText().find("undertune") != std::string::npos)												return true;
+
+	//Keep es system settings above others
 	if(a->GetText().find(".es.") != std::string::npos && b->GetText().find(".es.") != std::string::npos)	return a->GetText() < b->GetText();
 	if(a->GetText().find(".es.") != std::string::npos)													return true;
 	if(b->GetText().find(".es.") != std::string::npos)													return false;
@@ -223,6 +227,12 @@ bool							SettingLineView::Input							()
 	{
 		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
 		item->Properties["CATEGORY"] = i->first;
+
+		if(item->Properties["CATEGORY"] == aDefaultCategory)
+		{
+			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+		}
+
 		CategoryList->AddItem(item);
 	}
 
