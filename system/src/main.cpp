@@ -22,6 +22,7 @@ std::string			ESSUB_GetBaseDirectory	();
 void				ESSUB_Error				(const char* aMessage)
 {
 	SummerfaceLabel_Ptr text = smartptr::make_shared<SummerfaceLabel>(Area(10, 10, 80, 20), aMessage);
+	text->SetWordWrap(true);
 	Summerface::Create("Error", text)->Do();
 }
 #endif
