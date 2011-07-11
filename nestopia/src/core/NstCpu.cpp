@@ -22,6 +22,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 
+//ROBO: Cheats
+#include <src/mednafen.h>
+#include <src/mempatcher.h>
+
 #include <cstring>
 #include "NstCpu.hpp"
 #include "NstHook.hpp"
@@ -164,11 +168,17 @@ namespace Nes
 		void Cpu::PowerOff()
 		{
 			Reset( false, true );
+
+			//ROBO: Add workram to cheats
+			MDFNMP_AddRAM(0x0800, 0x0000, ram.mem);
 		}
 
 		void Cpu::Reset(bool hard)
 		{
 			Reset( true, hard );
+
+			//ROBO: Add workram to cheats
+			MDFNMP_AddRAM(0x0800, 0x0000, ram.mem);
 		}
 
 		void Cpu::Reset(const bool on,const bool hard)
