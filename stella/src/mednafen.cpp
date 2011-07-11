@@ -117,22 +117,6 @@ void			StellaCloseGame			(void)
 	mdfnStella = 0;
 }
 
-void			StellaInstallReadPatch	(uint32 address)
-{
-	//TODO:
-}
-
-void			StellaRemoveReadPatches	(void)
-{
-	//TODO:
-}
-
-uint8			StellaMemRead			(uint32 addr)
-{
-	//TODO:
-	return 0;
-}
-
 int				StellaStateAction		(StateMem *sm, int load, int data_only)
 {
 	try
@@ -362,9 +346,9 @@ MDFNGI	StellaInfo =
 /*	CloseGame:			*/	StellaCloseGame,
 /*	ToggleLayer:		*/	0,
 /*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	StellaInstallReadPatch,
-/*	RemoveReadPatches:	*/	StellaRemoveReadPatches,
-/*	MemRead:			*/	StellaMemRead,
+/*	InstallReadPatch:	*/	0,
+/*	RemoveReadPatches:	*/	0,
+/*	MemRead:			*/	0,
 /*	StateAction:		*/	StellaStateAction,
 /*	Emulate:			*/	StellaEmulate,
 /*	SetInput:			*/	StellaSetInput,

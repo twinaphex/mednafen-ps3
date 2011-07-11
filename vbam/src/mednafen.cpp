@@ -45,9 +45,6 @@ void			VbamCloseGame			(void);
 void			VbamEmulate				(EmulateSpecStruct *espec);
 void			VbamSetInput			(int port, const char *type, void *ptr);
 void			VbamDoSimpleCommand		(int cmd);
-void			VbamInstallReadPatch	(uint32 address);
-void			VbamRemoveReadPatches	(void);
-uint8			VbamMemRead				(uint32 addr);
 int				VbamStateAction			(StateMem *sm, int load, int data_only);
 
 int				VbamLoad				(const char *name, MDFNFILE *fp)
@@ -166,10 +163,6 @@ void			VbamDoSimpleCommand		(int cmd)
 
 
 //STUBS
-void			VbamInstallReadPatch	(uint32 address)							{}
-void			VbamRemoveReadPatches	(void)										{}
-uint8			VbamMemRead				(uint32 addr)								{return 0;}
-
 char	 		StateData[1024*512];
 int				VbamStateAction			(StateMem *sm, int load, int data_only)
 {
@@ -262,9 +255,9 @@ static MDFNGI	VbamInfo =
 /*	CloseGame:			*/	VbamCloseGame,
 /*	ToggleLayer:		*/	0,
 /*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	VbamInstallReadPatch,
-/*	RemoveReadPatches:	*/	VbamRemoveReadPatches,
-/*	MemRead:			*/	VbamMemRead,
+/*	InstallReadPatch:	*/	0,
+/*	RemoveReadPatches:	*/	0,
+/*	MemRead:			*/	0,
 /*	StateAction:		*/	VbamStateAction,
 /*	Emulate:			*/	VbamEmulate,
 /*	SetInput:			*/	VbamSetInput,
