@@ -17,10 +17,12 @@ class													SummerfaceLabel : public SummerfaceWindow
 		virtual void									SetMessage						(const std::string& aMessage);
 
 		virtual void									AppendMessage					(const std::string& aMessage);
-		
+
+		void											SetWordWrap						(bool aOn) {Wrap = aOn;}
 
 	private:
 		std::string										Message;
+		bool											Wrap;
 };
 
 #endif
