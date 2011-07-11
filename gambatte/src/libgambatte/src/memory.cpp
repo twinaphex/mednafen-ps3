@@ -16,11 +16,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-//ROBO: Link support
-//ROBO: LinkSupport
-#include "../../mdfngmbt.h"
-using namespace mdfngmbt;
-
 //ROBO: Mednafen MDFN_MakeFName
 #include <src/mednafen.h>
 #include <src/mednafen-driver.h>
@@ -278,19 +273,6 @@ void Memory::update_irqEvents(const unsigned long cc) {
 		case SERIAL:
 			next_serialtime = COUNTER_DISABLED;
 			ioamhram[0x101] = 0xFF;
-			//ROBO: Link support
-			if(SideB && side == 0)
-			{
-				ioamhram[0x101] = SideB->ShiftOutByte;
-				SideB->ShiftOutByte = 0xFF;
-				SideA->ShiftOutWait = false;
-			}
-			else if(SideB)
-			{
-				ioamhram[0x101] = SideA->ShiftOutByte;
-				SideA->ShiftOutByte = 0xFF;
-				SideB->ShiftOutWait = false;
-			}
 			ioamhram[0x102] &= 0x7F;
 			ioamhram[0x10F] |= 8;
 			break;
@@ -917,34 +899,10 @@ void Memory::nontrivial_ff_write(const unsigned P, unsigned data, const unsigned
 	case 0x02:
 		update_irqEvents(cycleCounter);
 
-		//ROBO: Link Support
-		if ((data & 0x80)) {
-			if(data & 1)
-			{
-				next_serialtime = cycleCounter;
-				next_serialtime += (isCgb() && (data & 0x2)) ? 128 : 4096;
-				set_irqEvent();
-
-				if(SideB && side == 0)
-				{
-					SideA->ShiftOutValid = true;
-					SideA->ShiftOutClock = (isCgb() && (data & 0x2)) ? 128 : 4096;
-				}
-				else if(SideB)
-				{
-					SideB->ShiftOutValid = true;
-					SideB->ShiftOutClock = (isCgb() && (data & 0x2)) ? 128 : 4096;
-				}
-			}
-
-			if(SideB && side == 0)
-			{
-				SideA->ShiftOutByte = ioamhram[0x101];
-			}
-			else if(SideB)
-			{
-				SideB->ShiftOutByte = ioamhram[0x101];
-			}
+		if ((data & 0x81) == 0x81) {
+			next_serialtime = cycleCounter;
+			next_serialtime += (isCgb() && (data & 0x2)) ? 128 : 4096;
+			set_irqEvent();
 		}
 
 		rescheduleIrq(cycleCounter);

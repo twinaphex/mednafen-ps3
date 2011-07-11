@@ -16,17 +16,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-//ROBO: LinkSupport
-#include "../../mdfngmbt.h"
-using namespace mdfngmbt;
-
 #include "cpu.h"
 #include "memory.h"
 #include "savestate.h"
 
 CPU::CPU() :
-//ROBO: LinkSupport
-side(0),
 memory(Interrupter(SP, PC_, halted)),
 cycleCounter_(0),
 PC_(0x100),
@@ -2839,42 +2833,8 @@ void CPU::process(const unsigned long cycles) {
 				break;
 //     default: break;
 			}
-
-			//ROBO: Link support
-			if(SideB)
-			{
-				if(side == 0)
-				{
-					SideA->CycleCounter = cycleCounter;
-					if(((int32_t)SideB->CycleCounter - (int32_t)SideA->CycleCounter) < 32)
-					{
-						co_switch(SideB->Thread);
-					}
-
-					if(SideB->ShiftOutValid)
-					{
-						memory.setupShiftIRQ(cycleCounter, SideB->ShiftOutClock);
-						SideB->ShiftOutValid = 0;
-					}
-
-				}
-				else
-				{
-					SideB->CycleCounter = cycleCounter;
-					if(((int32_t)SideA->CycleCounter - (int32_t)SideB->CycleCounter) < 32)
-					{
-						co_switch(SideA->Thread);
-					}
-
-					if(SideA->ShiftOutValid)
-					{
-						memory.setupShiftIRQ(cycleCounter, SideA->ShiftOutClock);
-						SideA->ShiftOutValid = 0;
-					}
-				}
-			}
 		}
-		
+
 		PC_ = PC;
 		cycleCounter = memory.event(cycleCounter);
 	}

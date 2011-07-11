@@ -44,6 +44,7 @@ class File {
   bool fail() const { return stream.fail(); }
 };
 
+//ROBO: Add a MemoryFile class
 class MemoryFile {
   private:
   //ROBO: Are there any side effects of storing a reference here?

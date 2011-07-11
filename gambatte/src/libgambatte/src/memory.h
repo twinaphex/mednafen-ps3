@@ -144,11 +144,6 @@ public:
 	Memory(const Interrupter &interrupter);
 	~Memory();
 
-//ROBO: Link support
-	int side;
-	void setSide(unsigned gside){side = gside;}
-	void setupShiftIRQ(unsigned long cc, unsigned long cycleTime){update_irqEvents(cc);next_serialtime = cc + cycleTime; set_irqEvent(); rescheduleIrq(cc); set_event();}
-
 	void setStatePtrs(SaveState &state);
 	unsigned long saveState(SaveState &state, unsigned long cc);
 	void loadState(const SaveState &state, unsigned long oldCc);
