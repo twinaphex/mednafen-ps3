@@ -497,41 +497,34 @@ void						MednafenEmu::DoCommands			()
 {
 	MDFND_Rumble(0, 0);
 
-	const char* optcommands[] =
-	{
-		"Change Game",			"DoReload",			"DoReload",
-		"Exit Game",			"DoExit",			"DoExit",
-	};
-
 	const char*	commands[] =
 	{
 		//Display name,			Image name,			Command name
+		"Change Game",			"DoReload",			"DoReload",
 		"Reset Game",			"DoReset",			"DoReset",
 		"Show Text File",		"DoTextFile",		"DoTextFile",
 		"Connect Netplay",		"DoNetplay",		"DoNetplay",
+		"Change Disk Side",		"DoDiskSide", 		"DoDiskSide",
 		"Save State",			"DoSaveState",		"DoSaveStateMenu",
 		"Load State",			"DoLoadState",		"DoLoadStateMenu",
 		"Take Screen Shot",		"DoScreenShot",		"DoScreenShot",
-		"Change Disk Side",		"DoDiskSide", 		"DoDiskSide",
 		"Settings",				"DoSettings",		"DoSettings",
 		"Configure Controls",	"DoInputConfig",	"DoInputConfig",
 		"Record Video",			"DoRecordVideo",	"DoToggleRecordVideo",
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
+		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch",
+		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch2",
+		"Exit Game",			"DoExit",			"DoExit",
 	};
 
 	SummerfaceList_Ptr grid = smartptr::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
-	grid->SetView(smartptr::make_shared<GridListView>(grid, 4, 3, true, false));
+	grid->SetView(smartptr::make_shared<GridListView>(grid, 5, 3, true, false));
 	grid->SetHeader("Choose Action");
 
-	//Add either a reload or exit command depending on mode
-	SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(optcommands[IsFrontEnd ? 3 : 0], optcommands[IsFrontEnd ? 4 : 1]);
-	item->Properties["COMMAND"] = optcommands[IsFrontEnd ? 5 : 2];
-	grid->AddItem(item);
-
 	//Add other commands
-	for(int i = 0; i != 11; i ++)
+	for(int i = 0; i != 15; i ++)
 	{
-		item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
+		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
 		item->Properties["COMMAND"] = commands[i * 3 + 2];
 		grid->AddItem(item);
 	}
@@ -540,6 +533,8 @@ void						MednafenEmu::DoCommands			()
 	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
 	sface->Do();
 }
+
+#include "cheatsearcher.h"
 
 int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {
@@ -561,6 +556,8 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 	if(IsLoaded)
 	{
+		if(0 == strcmp(command.c_str(), "DoCheatSearch"))		{CheatSearcher::Do();};
+
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator("");
 		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}

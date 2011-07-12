@@ -4,6 +4,7 @@
 #include "src/mednafen.h"
 #include "src/driver.h"
 #include "src/general.h"
+#include "src/mempatcher-driver.h"
 
 #include <es_system.h>
 

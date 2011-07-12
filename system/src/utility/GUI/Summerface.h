@@ -2,7 +2,7 @@ DEFINE_PTR_TYPE(Summerface);
 DEFINE_PTR_TYPE(SummerfaceWindow);
 DEFINE_PTR_TYPE(SummerfaceItem);
 DEFINE_PTR_TYPE(SummerfaceLabel);
-DEFINE_PTR_TYPE(SUmmerfaceNumber);
+DEFINE_PTR_TYPE(SummerfaceNumber);
 DEFINE_PTR_TYPE(SummerfaceImage);
 DEFINE_PTR_TYPE(SummerfaceList);
 DEFINE_PTR_TYPE(Keyboard);
