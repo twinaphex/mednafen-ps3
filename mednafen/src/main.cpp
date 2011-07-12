@@ -1,4 +1,6 @@
 #include <mednafen_includes.h>
+#include "mednafen_help.h"
+#include "settingmenu.h"
 
 namespace
 {

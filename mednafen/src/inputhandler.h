@@ -1,5 +1,4 @@
-#ifndef INPUT_HANDLER_H
-#define INPUT_HANDLER_H
+#pragma once
 
 class												InputHandler
 {
@@ -41,5 +40,4 @@ class												InputHandler
 		uint32_t									RapidCount;
 };
 
-#endif
 
