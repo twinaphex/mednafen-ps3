@@ -292,7 +292,7 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		///@param aPosition Position of digit to increment.
 		void											IncPosition						(uint32_t aPosition)
 		{
-			if(aPosition < 32)
+			if(aPosition >= (32 - Digits) && aPosition < 32)
 			{
 				Value[aPosition] ++;
 
@@ -325,7 +325,7 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		///@param aPosition Position of digit to decrement.
 		void											DecPosition						(uint32_t aPosition)
 		{
-			if(aPosition < 32)
+			if(aPosition >= (32 - Digits) && aPosition < 32)
 			{
 				Value[aPosition] --;
 
@@ -345,18 +345,6 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 					Value[aPosition] = '9';
 				}
 			}
-
-/*
-			if(aPosition < 32)
-			{
-				Value[aPosition] --;
-
-				if(Value[aPosition] == '0' - 1)
-				{
-					Value[aPosition] = '9';
-					DecPosition(aPosition - 1);
-				}
-			}*/
 		}
 
 		char											Value[33];						///<The Value stored in the widget.
