@@ -135,6 +135,21 @@ class							CheatMenu
 				return 1;
 			}
 
+			//Delete a cheat
+			if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
+			{
+				//Ask for confirmation
+				std::stringstream str;
+				str << "Really delete cheat: " << cheat->GetText();
+
+				//Is accepted, delete the cheat and exit
+				if(ESSUB_Confirm(str.str().c_str()))
+				{
+					MDFNI_DelCheat(CheatList->GetSelection());
+					return -1;	//TODO: Don't leave, reorder the list and continue
+				}
+			}
+
 			//Add a new cheat
 			if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
 			{
