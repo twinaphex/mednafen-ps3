@@ -299,24 +299,14 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 				//Going past 9
 				if(Value[aPosition] == '9' + 1)
 				{
-					//If not hex, roll over to 0
-					if(!Hex)
-					{
-						Value[aPosition] = '0';
-						IncPosition(aPosition - 1);
-					}
-					//Otherwise to A
-					else
-					{
-						Value[aPosition] = 'A';
-					}
+					//Goto proper value
+					Value[aPosition] = Hex ? 'A' : '0';
 				}
 
 				//Going past F in hex
 				if(Hex && Value[aPosition] == 'F' + 1)
 				{
 					Value[aPosition] = '0';
-					IncPosition(aPosition - 1);
 				}
 			}
 		}
@@ -334,9 +324,6 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 				{
 					//Goto appropriate value base on mode
 					Value[aPosition] = Hex ? 'F' : '9';
-
-					//Borrow
-					DecPosition(aPosition - 1);
 				}
 
 				//Going below A in hex
