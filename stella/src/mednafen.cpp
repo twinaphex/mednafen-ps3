@@ -1,4 +1,5 @@
 #include <src/mednafen.h>
+#include <src/mempatcher.h>
 #include <src/git.h>
 #include <include/Fir_Resampler.h>
 
@@ -61,6 +62,9 @@ int				StellaLoad				(const char *name, MDFNFILE *fp)
 {
 	try
 	{
+		//Setup cheats
+		MDFNMP_Init(128, 65536 / 128);
+
 		//Create the stella objects
 		mdfnStella = new MDFNStella();
 
@@ -115,6 +119,9 @@ void			StellaCloseGame			(void)
 	//TODO: Is anything else needed here?
 	delete mdfnStella;
 	mdfnStella = 0;
+
+	//Stop cheats
+	MDFNMP_Kill();
 }
 
 int				StellaStateAction		(StateMem *sm, int load, int data_only)
@@ -145,6 +152,9 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 	//Only if we are open.
 	if(mdfnStella)
 	{
+		//CHEATS
+		MDFNMP_ApplyPeriodicCheats();
+
 		//INPUT
 		//Update stella's event structure
 		for(int i = 0; i != 2; i ++)
