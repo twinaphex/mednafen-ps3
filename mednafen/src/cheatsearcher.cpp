@@ -31,12 +31,12 @@ int							CheatSearcher::DoSearchFilterMenu		()
 	SearchFilterMenu->Do();
 
 	SummerfaceList_Ptr plist = smartptr::static_pointer_cast<SummerfaceList>(SearchFilterMenu->GetWindow("TYPES"));
-	return plist->WasCanceled() ? -1 : plist->GetSelection();
+	return plist->WasCanceled() ? -1 : plist->GetSelection() * 100;
 }
 
-bool						CheatSearcher::GetNumber				(int64_t& aValue, const char* aHeader)
+bool						CheatSearcher::GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits)
 {
-	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 10, 80, 80), aValue, 10);
+	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits);
 	number->SetHeader(aHeader);
 	Summerface::Create("NUMB", number)->Do();
 
@@ -58,6 +58,7 @@ bool						CheatSearcher::DoResultList				()
 	//Build the list
 	SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
 	list->SetView(smartptr::make_shared<AnchoredListView>(list, true));
+	list->SetHeader("Next Step: Choose a cheat, if any, that you want to install.");
 
 	for(ResultList::iterator i = Results.begin(); i != Results.end(); i ++)
 	{
@@ -67,6 +68,15 @@ bool						CheatSearcher::DoResultList				()
 	}
 
 	Summerface::Create("TYPES", list)->Do();
+
+	//If the list was not canceld
+	if(!list->WasCanceled())
+	{
+		const Result& item = Results.at(list->GetSelection());
+		MDFNI_AddCheat("TEST", item.Address, 12, 0, 'R', 1, false);
+	}
+
+	return false;
 }
 
 void						CheatSearcher::Do						()
@@ -84,37 +94,62 @@ void						CheatSearcher::Do						()
 		return;
 	}
 	
-	if(State == 0)	//"Original == V1 && Changed == V2",
+	if(State == 0 || State == 100 || State == 200 || State == 300 || State == 400 || State == 500)
 	{
 		//Get the original value
-		if(!GetNumber(Original, "Step 2: Enter Original Value"))
+		if(State <= 100)
 		{
-			State = -1;
-			return;
+			if(!GetNumber(Original, "Next Step: Enter Original Value"))
+			{
+				State = -1;
+				return;
+			}
+		}
+		else
+		{
+			Original = 0;
 		}
 
 		//Inform
-		ESSUB_Error("Step 3: Come back when the value has changed");
+		ESSUB_Error("Next Step: Come back when the value has changed");
 		MDFNI_CheatSearchBegin();
 		State ++;
+		return;
 	}
-	else if(State == 1)
+	else if(State == 1 || State == 101 || State == 201 || State == 301 || State == 401 || State == 501)
 	{
-		//Get the changed value
-		if(!GetNumber(Changed, "Step 4: Enter Changed Value"))
+		if(State <= 201)
+		{
+			//Get the changed value
+			if(!GetNumber(Changed, "Next Step: Enter Changed Value"))
+			{
+				State = -1;
+				return;
+			}
+		}
+		else
+		{
+			Changed = 0;
+		}
+
+		//Get the byte length
+		int64_t bytelen;
+		if(!GetNumber(bytelen, "Next Step: How many bytes are in this value?", 1))
 		{
 			State = -1;
 			return;
 		}
 
 		//Search
-		MDFNI_CheatSearchEnd(0, Original, Changed, 1, false);
+		MDFNI_CheatSearchEnd(State / 100, Original, Changed, bytelen, false);
 
 		//Inform
 		DoResultList();
 
 		//Reset
 		Reset();
+
+		return;
 	}
 }
 

@@ -10,7 +10,7 @@ class								CheatSearcher
 			int64_t					Changed;
 		};
 
-		typedef std::list<Result>	ResultList;
+		typedef std::vector<Result>	ResultList;
 		static ResultList			Results;
 		static int					GetResults				(uint32_t aAddress, uint64_t aOriginal, uint64_t aValue, void* aData)
 		{
@@ -22,7 +22,7 @@ class								CheatSearcher
 
 	public:
 		static int					DoSearchFilterMenu		();
-		static bool					GetNumber				(int64_t& aValue, const char* aHeader);
+		static bool					GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits = 10);
 		static bool					DoResultList			();
 
 		static void					Do						();

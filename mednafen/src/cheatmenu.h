@@ -101,7 +101,7 @@ class							CheatMenu
 			if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 			{
 				//Get a new value for the cheat
-				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 10, 80, 80), cheat->Value, 10);
+				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), cheat->Value, 10);
 				number->SetHeader("Input new value for cheat.");
 				Summerface::Create("NUMB", number)->Do();
 
