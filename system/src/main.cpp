@@ -36,6 +36,26 @@ std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& 
 }
 #endif
 
+#ifndef HAVE_ESSUB_CONFIRM
+bool				ESSUB_Confirm			(const char* aMessage)
+{
+	//Create the list
+	SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
+	list->SetView(boost::make_shared<AnchoredListView>(list, 0));
+	list->SetHeader(aMessage);
+
+	//Add the items
+	list->AddItem(smartptr::make_shared<SummerfaceItem>("Yes", "CheckIMAGE"));
+	list->AddItem(smartptr::make_shared<SummerfaceItem>("No", "ErrorIMAGE"));
+
+	//Run the interface
+	Summerface::Create("Confirm", list)->Do();
+
+	//Return the result
+	return !list->WasCanceled() && list->GetSelected()->GetText() == "Yes";
+}
+#endif
+
 void				Abort					(const char* aMessage)
 {
 	printf("ABORT: %s\n", aMessage);

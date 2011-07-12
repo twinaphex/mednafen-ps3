@@ -20,3 +20,4 @@ volatile bool			WantToSleep				();
 void					Abort					(const char* aMessage);
 void					ESSUB_Error				(const char* aMessage);
 std::string				ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage);
+bool					ESSUB_Confirm			(const char* aMessage);

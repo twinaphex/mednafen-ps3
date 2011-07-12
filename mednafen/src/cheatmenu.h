@@ -135,22 +135,35 @@ class							CheatMenu
 				return 1;
 			}
 
+			//Add a new cheat
 			if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
 			{
+				//Get the address to patch
 				int64_t address = 0;
-				if(GetNumber(address, "Enter address to patch (in hex)", 8, true))
+				while(GetNumber(address, "Enter address to patch (in hex)", 8, true))
 				{
+					//Get the new value
 					int64_t value = 0;
-					if(GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
+					while(GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
 					{
-						int64_t bytes = 0;
-						if(GetNumber(bytes, "Enter number of bytes to patch", 1, false))
+						//Get the number of bytes
+						int64_t bytes = 1;
+						while(GetNumber(bytes, "Enter number of bytes to patch", 1, false))
 						{
-							std::string name = ESSUB_GetString("Enter name for the cheat", "");
-							if(!name.empty())
+							//Handle case where bytes is invalid
+							if(bytes == 0 || bytes > 8)
 							{
-								MDFNI_AddCheat(name.c_str(), address, value, 0, 'R', bytes, false);
-								return -1; //Close the cheat menu to hide the fact that this cheat won't be visible until it's reloaded...
+								ESSUB_Error("Bytes value must be between 1 and 8 inclusive.");
+							}
+							else
+							{
+								bool bigendian = ESSUB_Confirm("Is memory big-endian?");
+								std::string name = ESSUB_GetString("Enter name for the cheat", "");
+								if(!name.empty())
+								{
+									MDFNI_AddCheat(name.c_str(), address, value, 0, 'R', bytes, bigendian);
+									return -1; //Close the cheat menu to hide the fact that this cheat won't be visible until it's reloaded...
+								}
 							}
 						}
 					}
