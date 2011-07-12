@@ -17,6 +17,10 @@
 // $Id: M6532.cxx 2199 2011-01-01 16:04:32Z stephena $
 //============================================================================
 
+//ROBO: For cheats
+#include <src/mednafen.h>
+#include <src/mempatcher.h>
+
 #include <cassert>
 #include <iostream>
 
@@ -48,6 +52,9 @@ void M6532::reset()
       myRAM[t] = mySystem->randGenerator().next();
   else
     memset(myRAM, 0, 128);
+
+  //ROBO: Map memory for cheats
+  MDFNMP_AddRAM(128, 128, myRAM);
 
   // The timer absolutely cannot be initialized to zero; some games will
   // loop or hang (notably Solaris and H.E.R.O.)
