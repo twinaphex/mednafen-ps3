@@ -1,4 +1,5 @@
 #include <mednafen_includes.h>
+#include "ers.h"
 
 // Typical call sequence(example not done completely):
 //  NeedFrameSkip()

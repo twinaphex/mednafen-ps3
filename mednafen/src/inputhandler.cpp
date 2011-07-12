@@ -1,4 +1,5 @@
 #include <mednafen_includes.h>
+#include "inputhandler.h"
 
 namespace
 {

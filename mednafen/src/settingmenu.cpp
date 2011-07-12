@@ -1,4 +1,6 @@
 #include <mednafen_includes.h>
+#include "mednafen_help.h"
+#include "settingmenu.h"
 
 static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
 {

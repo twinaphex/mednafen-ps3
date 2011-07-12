@@ -1,17 +1,13 @@
 #ifndef MEDNAFEN_INCLUDES_H
 #define	MEDNAFEN_INCLUDES_H 
 
+//Main Mednafen includes, relativly static
 #include "src/mednafen.h"
 #include "src/driver.h"
 #include "src/general.h"
 #include "src/mempatcher-driver.h"
 
 #include <es_system.h>
-
-#include "ers.h"
-#include "inputhandler.h"
-#include "mednafen_help.h"
-#include "settingmenu.h"
 
 void							ReloadEmulator			(const std::string& aFileName);
 void							Exit					();

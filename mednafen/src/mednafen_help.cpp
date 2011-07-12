@@ -1,6 +1,11 @@
 #include <mednafen_includes.h>
 #include "savestates.h"
 #include "cheatmenu.h"
+#include "cheatsearcher.h"
+#include "ers.h"
+#include "inputhandler.h"
+#include "mednafen_help.h"
+#include "settingmenu.h"
 
 //HACK
 #ifndef NO_LUA
@@ -533,8 +538,6 @@ void						MednafenEmu::DoCommands			()
 	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
 	sface->Do();
 }
-
-#include "cheatsearcher.h"
 
 int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
 {

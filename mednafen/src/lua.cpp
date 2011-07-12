@@ -3,6 +3,8 @@
 #ifndef NO_LUA
 
 #include <mednafen_includes.h>
+#include "mednafen_help.h"
+#include "inputhandler.h"
 
 extern "C"
 {

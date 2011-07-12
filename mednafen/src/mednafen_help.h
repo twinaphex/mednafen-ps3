@@ -1,5 +1,5 @@
-#ifndef MEDNAFEN_HELP_H
-#define MEDNAFEN_HELP_H
+#pragma once
+#include "ers.h"
 
 DEFINE_PTR_TYPE(MDFN_Surface);
 DEFINE_PTR_TYPE(Texture);
@@ -85,7 +85,5 @@ class	MednafenEmu
 		static bool						VsyncSetting;
 		static std::string				BorderSetting;
 };
-
-#endif
 
 

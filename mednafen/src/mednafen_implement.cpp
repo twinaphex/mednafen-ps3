@@ -1,4 +1,5 @@
 #include <mednafen_includes.h>
+#include "mednafen_help.h"
 
 //How to implement these?
 static bool	BlockExit = false;
