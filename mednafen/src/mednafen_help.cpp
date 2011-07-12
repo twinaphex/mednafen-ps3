@@ -92,7 +92,6 @@ namespace
 		{"display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" },
 		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 },
-		{"shader.prescale", MDFNSF_NOFLAGS, "Integer scale factor to apply before passing to shader", NULL, MDFNST_INT, "1", "1", "4" },
 		{"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" },
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
@@ -463,25 +462,31 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 {
 	if(IsInitialized && (aPixels || IsLoaded))
 	{
-		//Get the output area
-		Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+		//Map the ES texture
 		uint32_t* pixels = Buffer->Map();
 		uint32_t pitch = Buffer->GetPitch();
 
+		//Display either the frame from mednafen or the frame passed on the command line
+		Area output;
 		if(aPixels)
 		{
 			output = Area(0, 0, aWidth, aHeight);
-			pixels = aPixels;
-			pitch = aPitch;
+			for(int i = 0; i != output.Height; i ++)
+			{
+				memcpy(&pixels[(output.Y + i) * pitch + output.X], &aPixels[(output.Y + i) * aPitch + output.X], output.Width * 4);
+			}
 		}
-
-		for(int i = 0; i != output.Height; i ++)
+		else
 		{
-			memcpy(&pixels[(output.Y + i) * pitch + output.X], &Surface->pixels[(output.Y + i) * pitch + output.X], output.Width * 4);
+			output = Area(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
+			for(int i = 0; i != output.Height; i ++)
+			{
+				memcpy(&pixels[(output.Y + i) * pitch + output.X], &Surface->pixels[(output.Y + i) * Surface->pitchinpix + output.X], output.Width * 4);
+			}
 		}
 
+		//Unmap and present the texture
 		Buffer->Unmap();
-
 		ESVideo::PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
 
 #ifndef NO_LUA
@@ -708,11 +713,10 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			}
 		}
 
-		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset")) || ShaderPrescaleSetting != MDFN_GetSettingI(SETTINGNAME("shader.prescale"))))
+		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
-			ShaderPrescaleSetting = MDFN_GetSettingI(SETTINGNAME("shader.prescale"));
-			ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), ShaderPrescaleSetting);
+			ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
 		}
 	}
 }
@@ -776,7 +780,6 @@ bool						MednafenEmu::DisplayFPSSetting = false;
 int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
 std::string					MednafenEmu::ShaderSetting = "";
-uint32_t					MednafenEmu::ShaderPrescaleSetting = 1;
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 bool						MednafenEmu::VsyncSetting = true;
 std::string					MednafenEmu::BorderSetting = "";
