@@ -1,5 +1,23 @@
 #pragma once
 
+namespace
+{
+	bool						GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
+	{
+		SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, aHex);
+		number->SetHeader(aHeader);
+		Summerface::Create("NUMB", number)->Do();
+
+		if(!number->WasCanceled())
+		{
+			aValue = number->GetValue();
+			return true;
+		}
+
+		return false;
+	}
+}
+
 ///Class holding and editing the cheats for the loaded game.
 class							CheatMenu
 {
@@ -115,6 +133,28 @@ class							CheatMenu
 				cheat->Value = number->GetValue();
 				cheat->Insert(CheatList->GetSelection());
 				return 1;
+			}
+
+			if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
+			{
+				int64_t address = 0;
+				if(GetNumber(address, "Enter address to patch (in hex)", 8, true))
+				{
+					int64_t value = 0;
+					if(GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
+					{
+						int64_t bytes = 0;
+						if(GetNumber(bytes, "Enter number of bytes to patch", 1, false))
+						{
+							std::string name = ESSUB_GetString("Enter name for the cheat", "");
+							if(!name.empty())
+							{
+								MDFNI_AddCheat(name.c_str(), address, value, 0, 'R', bytes, false);
+								return -1; //Close the cheat menu to hide the fact that this cheat won't be visible until it's reloaded...
+							}
+						}
+					}
+				}
 			}
 
 			return 0;

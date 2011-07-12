@@ -36,7 +36,7 @@ int							CheatSearcher::DoSearchFilterMenu		()
 
 bool						CheatSearcher::GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits)
 {
-	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits);
+	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, false);
 	number->SetHeader(aHeader);
 	Summerface::Create("NUMB", number)->Do();
 

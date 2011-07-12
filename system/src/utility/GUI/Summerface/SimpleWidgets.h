@@ -306,6 +306,7 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 						IncPosition(aPosition - 1);
 					}
 					//Otherwise to A
+					else
 					{
 						Value[aPosition] = 'A';
 					}
