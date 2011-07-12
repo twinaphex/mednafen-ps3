@@ -13,7 +13,6 @@ namespace
 											SummerfaceList::SummerfaceList						(const Area& aRegion) : 
 	SummerfaceWindow(aRegion),
 	SelectedIndex(0),
-	Canceled(false),
 	LabelFont(FontManager::GetBigFont()),
 	View(smartptr::make_shared<ListView>())
 {
@@ -75,7 +74,6 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr,
 	WeakList(aList),
 	Width(aWidth),
 	Height(aHeight),
-	FirstItem(0),
 	DrawHeader(aHeader),
 	RefreshHeader(true),
 	DrawLabels(aLabels)
@@ -86,95 +84,59 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr,
 
 bool										GridListView::Input									()
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	uint32_t oldIndex = List->GetSelection();
-	int32_t XSelection = List->GetSelection() % Width;
-	int32_t YSelection = (List->GetSelection() - FirstItem) / Width;
-
-	XSelection += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	XSelection -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
-	XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
-
-	YSelection += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
-	YSelection -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
-
-	if((FirstItem + (YSelection * Width + XSelection)) < List->GetItemCount())
+	if(!WeakList.expired())
 	{
-		while(YSelection < 0)
+		SummerfaceList_Ptr List = WeakList.lock();
+
+		uint32_t oldIndex = List->GetSelection();
+		int32_t XSelection = oldIndex % Width;
+		int32_t YSelection = oldIndex / Width;
+
+		XSelection += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+		XSelection -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
+		XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
+
+		YSelection += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
+		YSelection -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
+		YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
+
+		if(YSelection * Width + XSelection != oldIndex)
 		{
-			YSelection ++;
-			FirstItem -= Width;
-		}	
-			
-		while(YSelection >= Height)
-		{
-			YSelection --;
-			FirstItem += Width;
-		}
-		
-		while(FirstItem >= 0 && (FirstItem + (Width * Height) >= List->GetItemCount() + Width))
-		{
-			FirstItem -= Width;
+			List->SetSelection(YSelection * Width + XSelection);
 		}
 
-		while(FirstItem < 0)
+		if(DrawHeader && (oldIndex != List->GetSelection() || RefreshHeader))
 		{
-			FirstItem += Width;
+			RefreshHeader = false;
+			List->SetHeader(List->GetSelected()->GetText());
 		}
 
-		List->SetSelection(FirstItem + (YSelection * Width + XSelection));
+		List->SetCanceled(ESInput::ButtonPressed(0, ES_BUTTON_CANCEL));
 	}
 
-	if(DrawHeader && (oldIndex != List->GetSelection() || RefreshHeader))
-	{
-		RefreshHeader = false;
-		List->SetHeader(List->GetSelected()->GetText());
-	}
-
-	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
-	{
-		List->SetCanceled(true);
-		return true;
-	}
-
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		List->SetCanceled(false);
-		return true;
-	}
-
-	return false;
+	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT) || ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
 }
 
-bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
+bool										GridListView::DrawItem								(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
-	
+
 	if(image && aWidth && aHeight)
 	{
 		Area ImageArea(0, 0, image->GetWidth(), image->GetHeight());
-
-		if(DrawLabels)
-		{
-			aHeight -= List->GetFont()->GetHeight();
-		}
+		aHeight -= DrawLabels ? aList->GetFont()->GetHeight() : 0;
 
 		uint32_t x = aX, y = aY, w = aWidth, h = aHeight;
 		Utility::CenterAndScale(x, y, w, h, ImageArea.Width, ImageArea.Height);
-		
-		ESVideo::PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
-
-		if(DrawLabels)
-		{
-			List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor(), true);
-		}
-	}
 	
+		ESVideo::PlaceTexture(image, Area(x, y, w, h), ImageArea, 0xFFFFFFFF);
+	}
+
+	if(DrawLabels)
+	{
+		aList->GetFont()->PutString(aItem->GetText().c_str(), aX, aY + aHeight, aItem->GetNormalColor(), true);
+	}
+
 	if(aSelected)
 	{
 		ESVideo::FillRectangle(Area(aX, aY, aWidth - 2, aHeight - 2), Colors::SpecialBackGround);
@@ -185,25 +147,21 @@ bool										GridListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t 
 
 bool										GridListView::Draw									()
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	uint32_t iconWidth = ESVideo::GetClip().Width / Width - 4;
-	uint32_t iconHeight = ESVideo::GetClip().Height / Height - 4;	
-
-	uint32_t XSelection = List->GetSelection() % Width;
-	uint32_t YSelection = List->GetSelection() / Width;
-
-	for(int i = 0; i != Height; i ++)
+	if(!WeakList.expired())
 	{
-		for(int j = 0; j != Width; j ++)
+		SummerfaceList_Ptr List = WeakList.lock();
+
+		uint32_t iconWidth = ESVideo::GetClip().Width / Width - 4;
+		uint32_t iconHeight = ESVideo::GetClip().Height / Height - 4;	
+
+		for(int i = 0; i != Width * Height; i ++)
 		{
-			if(FirstItem + (i * Width + j) >= List->GetItemCount())
+			if(i >= List->GetItemCount())
 			{
 				break;
 			}
 		
-			DrawItem(List->GetItem(FirstItem + (i * Width + j)), j * iconWidth + 4, i * iconHeight + 4, iconWidth, iconHeight, List->GetSelection() == FirstItem + (i * Width + j));
+			DrawItem(List, List->GetItem(i), (i % Width) * iconWidth + 4, (i / Width) * iconHeight + 4, iconWidth, iconHeight, List->GetSelection() == i);
 		}
 	}
 	
@@ -219,47 +177,46 @@ bool										GridListView::Draw									()
 {
 }
 
-bool										AnchoredListView::DrawItem							(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool										AnchoredListView::DrawItem							(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
 	Texture* image = ImageManager::GetImage(aItem->GetImage());
 
 	if(image)
 	{
-		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(List->GetFont()->GetHeight() - 4) / (double)image->GetHeight()));
+		uint32_t width = (uint32_t)((double)image->GetWidth() * ((double)(aList->GetFont()->GetHeight() - 4) / (double)image->GetHeight()));
 
-		ESVideo::PlaceTexture(image, Area(aX, aY + 2, width, List->GetFont()->GetHeight() - 4), Area(0, 0, image->GetWidth(), image->GetHeight()), 0xFFFFFFFF);
+		ESVideo::PlaceTexture(image, Area(aX, aY + 2, width, aList->GetFont()->GetHeight() - 4), Area(0, 0, image->GetWidth(), image->GetHeight()), 0xFFFFFFFF);
 		aX += width;
 	}
 
-	List->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	aList->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 
 	return false;
 }
 
 bool										AnchoredListView::Draw								()
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	if(List->GetItemCount() != 0)
+	if(!WeakList.expired())
 	{
-		uint32_t itemheight = List->GetFont()->GetHeight();
-		LinesDrawn = ESVideo::GetClip().Height / itemheight;
-		
-		uint32_t online = 0;
-		int onitem = Anchored ? List->GetSelection() - LinesDrawn / 2 : FirstLine;
+		SummerfaceList_Ptr List = WeakList.lock();
 
-		for(int i = 0; i != LinesDrawn + 2; i ++, onitem ++, online ++)
+		if(List->GetItemCount() != 0)
 		{
-			if(onitem < 0 || onitem >= List->GetItemCount())
+			uint32_t itemheight = List->GetFont()->GetHeight();
+			LinesDrawn = ESVideo::GetClip().Height / itemheight;
+		
+			uint32_t online = 0;
+			int onitem = Anchored ? List->GetSelection() - LinesDrawn / 2 : FirstLine;
+
+			for(int i = 0; i != LinesDrawn + 2; i ++, onitem ++, online ++)
 			{
-				continue;
-			}
+				if(onitem < 0 || onitem >= List->GetItemCount())
+				{
+					continue;
+				}
 	
-			DrawItem(List->GetItem(onitem), 16, (online * itemheight), onitem == List->GetSelection());
+				DrawItem(List, List->GetItem(onitem), 16, (online * itemheight), onitem == List->GetSelection());
+			}
 		}
 	}
 
@@ -268,118 +225,45 @@ bool										AnchoredListView::Draw								()
 
 bool										AnchoredListView::Input								()
 {
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	int32_t oldIndex = List->GetSelection();
-	if(List->GetItemCount() != 0)
+	if(!WeakList.expired())
 	{
-		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
-		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
+		SummerfaceList_Ptr List = WeakList.lock();
+
+		int32_t oldIndex = List->GetSelection();
+		if(List->GetItemCount() != 0)
+		{
+			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
+			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
+			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
+			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
 	
-		if(Wrap)
-		{
-			oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
-			oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
-		}
-
-		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
-		List->SetSelection(oldIndex);
-
-		if(List->GetItemCount() != 1 && !Anchored)
-		{
-			if(oldIndex >= FirstLine + LinesDrawn)
+			if(Wrap)
 			{
-				FirstLine = oldIndex - LinesDrawn;
+				oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
+				oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
 			}
 
-			if(oldIndex < FirstLine)
+			oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
+			List->SetSelection(oldIndex);
+
+			if(List->GetItemCount() != 1 && !Anchored)
 			{
-				FirstLine = oldIndex;
+				if(oldIndex >= FirstLine + LinesDrawn)
+				{
+					FirstLine = oldIndex - LinesDrawn;
+				}
+
+				if(oldIndex < FirstLine)
+				{
+					FirstLine = oldIndex;
+				}
 			}
 		}
+
+		List->SetCanceled(ESInput::ButtonPressed(0, ES_BUTTON_CANCEL));
 	}
 
-	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
-	{
-		List->SetCanceled(true);
-		return true;
-	}
-
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		List->SetCanceled(false);
-		return true;
-	}
-
-	return false;
+	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT) || ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
 }
 
-											CleanListView::CleanListView						(SummerfaceList_WeakPtr aList) :
-	WeakList(aList)
-{
-	SummerfaceList_Ptr List = WeakList.lock();
-	List->SetBorder(false);
-}
-
-bool										CleanListView::DrawItem								(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
-{
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-	List->GetFont()->PutStringCenter(aItem->GetText().c_str(), Area(aX, aY, ESVideo::GetClip().Width, 0), aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
-
-	return false;
-}
-
-bool										CleanListView::Draw									()
-{
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	if(List->GetItemCount() != 0)
-	{
-		uint32_t itemheight = List->GetFont()->GetHeight();
-
-		for(int i = 0; i != List->GetItemCount(); i ++)
-		{
-			DrawItem(List->GetItem(i), 0, (i * itemheight), i == List->GetSelection());
-		}
-	}
-
-	return false;
-}
-
-bool										CleanListView::Input								()
-{
-//TODO: Error check
-	SummerfaceList_Ptr List = WeakList.lock();
-
-	int32_t oldIndex = List->GetSelection();
-	if(List->GetItemCount() != 0)
-	{
-		oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-		oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-		oldIndex = (oldIndex < 0) ? List->GetItemCount() - 1 : oldIndex;
-		oldIndex = (oldIndex >= List->GetItemCount()) ? 0 : oldIndex;
-
-		oldIndex = Utility::Clamp(oldIndex, 0, List->GetItemCount() - 1);
-		List->SetSelection(oldIndex);
-	}
-
-	if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
-	{
-		List->SetCanceled(true);
-		return true;
-	}
-
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
-	{
-		List->SetCanceled(false);
-		return true;
-	}
-
-	return false;
-}
 

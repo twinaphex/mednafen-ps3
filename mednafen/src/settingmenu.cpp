@@ -34,9 +34,9 @@ void							SettingLineView::DoHeaderRefresh				()
 	}
 }
 
-bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool							SettingLineView::DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
-	AnchoredListView::DrawItem(aItem, aX, aY, aSelected);
+	AnchoredListView::DrawItem(aList, aItem, aX, aY, aSelected);
 
 	const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
 

@@ -9,7 +9,7 @@ class								SettingLineView : public AnchoredListView
 		bool						Input								();
 
 		void						DoHeaderRefresh						();
-		virtual bool				DrawItem							(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected);
+		virtual bool				DrawItem							(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected);
 
 		bool						HandleBool							(const MDFNCS& aSetting);
 		bool						HandleInt							(const MDFNCS& aSetting);
