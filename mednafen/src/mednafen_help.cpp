@@ -1,5 +1,6 @@
 #include <mednafen_includes.h>
 #include "savestates.h"
+#include "cheatmenu.h"
 
 //HACK
 #ifndef NO_LUA
@@ -151,12 +152,11 @@ void						MednafenEmu::Quit				()
 	IsInitialized = false;
 }
 
-void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize, bool aIsFrontEnd)
+void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
 	if(!IsLoaded && IsInitialized)
 	{
 		MDFNDES_BlockExit(false);
-		IsFrontEnd = aIsFrontEnd;
 
 		//Load the game
 		//TODO: Support other casing of '.cue'
@@ -513,8 +513,8 @@ void						MednafenEmu::DoCommands			()
 		"Record Video",			"DoRecordVideo",	"DoToggleRecordVideo",
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
 		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch",
-		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch2",
-		"Exit Game",			"DoExit",			"DoExit",
+		"Cheat Menu",			"DoCheatMenu",		"DoCheatMenu",
+		"Exit Game",			"ErrorIMAGE",		"DoExit",
 	};
 
 	SummerfaceList_Ptr grid = smartptr::make_shared<SummerfaceList>(Area(25, 25, 50, 50));
@@ -557,7 +557,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	if(IsLoaded)
 	{
 		if(0 == strcmp(command.c_str(), "DoCheatSearch"))		{CheatSearcher::Do();};
-
+		if(0 == strcmp(command.c_str(), "DoCheatMenu"))			{CheatMenu().Do();};
 		if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 		if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator("");
 		if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu(GameInfo->shortname).Do();}
@@ -738,7 +738,6 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 bool						MednafenEmu::IsPaused = false;
-bool						MednafenEmu::IsFrontEnd = false;
 	
 Texture_Ptr					MednafenEmu::Buffer;
 MDFN_Surface_Ptr			MednafenEmu::Surface ;
