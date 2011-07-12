@@ -219,10 +219,11 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		///@param aRegion Screen Area in % for the widget.
 		///@param aValue Initial value for the widget.
 		///@param aDigits Maximum number of digits allowed in the number.
-														SummerfaceNumber				(const Area& aRegion, int64_t aValue, uint32_t aDigits = 10) :
+														SummerfaceNumber				(const Area& aRegion, int64_t aValue, uint32_t aDigits = 10, bool aHex = false) :
 			SummerfaceWindow(aRegion),
 			SelectedIndex(31),
-			Digits(aDigits)
+			Digits(aDigits),
+			Hex(aHex)
 		{
 			SetValue(aValue);
 		}
@@ -264,20 +265,26 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		///@return An integer representation of the widget's value.
 		int64_t											GetValue						()
 		{
+			//Strip leading zeroes
 			const char* pvalue = Value;
 			while(*pvalue != 0 && *pvalue == '0')
 			{
 				pvalue ++;
 			}
 
-			return atoi(pvalue);
+			//Get value based on mode
+			int64_t value;
+			sscanf(pvalue, Hex ? "%llX" : "%lld", (long long int*)&value);
+
+			return value;
 		}
 
 		///Set the value stored in the widget.
 		///@param aValue The widget's new value.
 		void											SetValue						(int64_t aValue)
 		{
-			snprintf(Value, 33, "%032lld", (long long int)aValue);
+			//Print base on mode
+			snprintf(Value, 33, Hex ? "%032llX" : "%032lld", (long long int)aValue);
 		}
 
 	private:
@@ -289,7 +296,23 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 			{
 				Value[aPosition] ++;
 
+				//Going past 9
 				if(Value[aPosition] == '9' + 1)
+				{
+					//If not hex, roll over to 0
+					if(!Hex)
+					{
+						Value[aPosition] = '0';
+						IncPosition(aPosition - 1);
+					}
+					//Otherwise to A
+					{
+						Value[aPosition] = 'A';
+					}
+				}
+
+				//Going past F in hex
+				if(Hex && Value[aPosition] == 'F' + 1)
 				{
 					Value[aPosition] = '0';
 					IncPosition(aPosition - 1);
@@ -305,17 +328,40 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 			{
 				Value[aPosition] --;
 
+				//Going below 0
+				if(Value[aPosition] == '0' - 1)
+				{
+					//Goto appropriate value base on mode
+					Value[aPosition] = Hex ? 'F' : '9';
+
+					//Borrow
+					DecPosition(aPosition - 1);
+				}
+
+				//Going below A in hex
+				if(Hex && Value[aPosition] == 'A' - 1)
+				{
+					Value[aPosition] = '9';
+				}
+			}
+
+/*
+			if(aPosition < 32)
+			{
+				Value[aPosition] --;
+
 				if(Value[aPosition] == '0' - 1)
 				{
 					Value[aPosition] = '9';
 					DecPosition(aPosition - 1);
 				}
-			}
+			}*/
 		}
 
 		char											Value[33];						///<The Value stored in the widget.
 		int32_t											SelectedIndex;					///<The currently selected digit in the widget.
 		uint32_t										Digits;							///<The total number of digits in the widget.
+		bool											Hex;							///<True if the input is in hex.
 };
 
 
