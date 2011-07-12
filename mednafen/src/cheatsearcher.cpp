@@ -49,7 +49,7 @@ bool						CheatSearcher::GetNumber				(int64_t& aValue, const char* aHeader, uin
 	return false;
 }
 
-bool						CheatSearcher::DoResultList				()
+bool						CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 {
 	//Get the cheat results
 	Results.clear();
@@ -69,11 +69,21 @@ bool						CheatSearcher::DoResultList				()
 
 	Summerface::Create("TYPES", list)->Do();
 
-	//If the list was not canceld
+	//If the list was not canceled
 	if(!list->WasCanceled())
 	{
 		const Result& item = Results.at(list->GetSelection());
-		MDFNI_AddCheat("TEST", item.Address, 12, 0, 'R', 1, false);
+
+		int64_t value = 0;
+		while(GetNumber(value, "Enter value to patch to (in decimal)", 10))
+		{
+			std::string name = ESSUB_GetString("Enter name for the cheat", "");
+			if(!name.empty())
+			{
+				MDFNI_AddCheat(name.c_str(), item.Address, value, 0, 'R', aBytes, aBigEndian);
+				return false;
+			}
+		}
 	}
 
 	return false;
@@ -82,26 +92,25 @@ bool						CheatSearcher::DoResultList				()
 void						CheatSearcher::Do						()
 {
 	//Get the search type
-	if(State == -1)
+	if(Mode == -1)
 	{
-		State = DoSearchFilterMenu();
-	}
-
-	//Handle the search type
-	if(State == -1)
-	{
-		//Cancled
-		return;
+		if((Mode = DoSearchFilterMenu()) == -1)
+		{
+			//Search filter menu canceled
+			return;
+		}
 	}
 	
-	if(State == 0 || State == 100 || State == 200 || State == 300 || State == 400 || State == 500)
+	//Get the first value
+	if(0 == State)
 	{
-		//Get the original value
-		if(State <= 100)
+		//Get an original value if needed
+		if(Mode <= 1)
 		{
+			//Get the value, but leave if canceled
 			if(!GetNumber(Original, "Next Step: Enter Original Value"))
 			{
-				State = -1;
+				Reset();
 				return;
 			}
 		}
@@ -110,20 +119,20 @@ void						CheatSearcher::Do						()
 			Original = 0;
 		}
 
-		//Inform
-		ESSUB_Error("Next Step: Come back when the value has changed");
+		//Reset the cheat search and tell the user to come back later!
 		MDFNI_CheatSearchBegin();
+		ESSUB_Error("Next Step: Come back when the value has changed");
 		State ++;
 		return;
 	}
-	else if(State == 1 || State == 101 || State == 201 || State == 301 || State == 401 || State == 501)
+	else if(State == 1)
 	{
-		if(State <= 201)
+		//Get a changed value if needed
+		if(State <= 2)
 		{
-			//Get the changed value
+			//Get the value, but leave if canceled
 			if(!GetNumber(Changed, "Next Step: Enter Changed Value"))
 			{
-				State = -1;
 				return;
 			}
 		}
@@ -133,21 +142,28 @@ void						CheatSearcher::Do						()
 		}
 
 		//Get the byte length
-		int64_t bytelen;
-		if(!GetNumber(bytelen, "Next Step: How many bytes are in this value?", 1))
+		int64_t bytes = 0;
+		while(GetNumber(bytes, "Enter number of bytes to patch", 1))
 		{
-			State = -1;
-			return;
+			//Handle case where bytes is invalid
+			if(bytes == 0 || bytes > 8)
+			{
+				ESSUB_Error("Bytes value must be between 1 and 8 inclusive.");
+			}
+			else
+			{
+				//Get the endian state if needed
+				bool bigendian = (bytes == 1) ? false : ESSUB_Confirm("Is memory big-endian?");
+
+				//End the search
+				MDFNI_CheatSearchEnd(State / 100, Original, Changed, bytes, bigendian);
+				DoResultList(bytes, bigendian);
+				Reset();
+
+				//Leave
+				return;
+			}
 		}
-
-		//Search
-		MDFNI_CheatSearchEnd(State / 100, Original, Changed, bytelen, false);
-
-		//Inform
-		DoResultList();
-
-		//Reset
-		Reset();
 
 		return;
 	}
@@ -155,11 +171,13 @@ void						CheatSearcher::Do						()
 
 void						CheatSearcher::Reset					()
 {
+	Mode = -1;
 	State = -1;
 }
 
 CheatSearcher::ResultList	CheatSearcher::Results;
-int32_t						CheatSearcher::State = -1;
+int32_t						CheatSearcher::Mode = -1;
+int32_t						CheatSearcher::State = 0;
 Summerface_Ptr				CheatSearcher::SearchFilterMenu;
 int64_t						CheatSearcher::Original;
 int64_t						CheatSearcher::Changed;
