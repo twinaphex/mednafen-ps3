@@ -16,8 +16,6 @@ DEFINE_PTR_TYPE(GridListView);
 #include "Summerface/SummerfaceWindow.h"
 #include "Summerface/SummerfaceInputConduit.h"
 #include "Summerface/SummerfaceItem.h"
-#include "Summerface/SummerfaceLabel.h"
-#include "Summerface/SummerfaceNumber.h"
-#include "Summerface/SummerfaceImage.h"
+#include "Summerface/SimpleWidgets.h"
 #include "Summerface/SummerfaceList.h"
 
