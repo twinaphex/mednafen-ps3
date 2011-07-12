@@ -270,6 +270,7 @@ void						MednafenEmu::CloseGame			()
 		//Close the game
 		MDFNI_CloseGame();
 
+
 		//Clean up
 		MDFND_Rumble(0, 0);
 		

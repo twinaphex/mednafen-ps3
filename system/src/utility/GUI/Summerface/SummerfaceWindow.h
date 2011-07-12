@@ -6,6 +6,8 @@ class	Summerface;
 class													SummerfaceCancelable
 {
 	public:
+														SummerfaceCancelable			() {Canceled = false;}
+		virtual											~SummerfaceCancelable			() {}
 		bool											WasCanceled						() {return Canceled;}
 		void											SetCanceled						(bool aCanceled) {Canceled = aCanceled;}
 

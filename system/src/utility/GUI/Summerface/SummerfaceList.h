@@ -11,29 +11,13 @@ class													ListView
 		virtual bool									Draw							() {return false;};
 };
 
-class													CleanListView : public ListView
-{
-	public:
-														CleanListView					(SummerfaceList_WeakPtr aList); //External
-														~CleanListView					() {};
-														
-		virtual bool									DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
-														
-		virtual bool									Input							(); //External
-		virtual bool									Draw							(); //External
-
-	protected:
-		SummerfaceList_WeakPtr							WeakList;
-};
-
-
 class													AnchoredListView : public ListView
 {
 	public:
 														AnchoredListView				(SummerfaceList_WeakPtr aList, bool aAnchored = true, bool aWrap = false); //External
 														~AnchoredListView				() {};
 														
-		virtual bool									DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
+		virtual bool									DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
 														
 		virtual bool									Input							(); //External
 		virtual bool									Draw							(); //External
@@ -53,7 +37,7 @@ class													GridListView : public ListView
 														GridListView					(SummerfaceList_WeakPtr aList, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false); //External
 		virtual											~GridListView					() {};
 		
-		virtual bool									DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected); //External
+		virtual bool									DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected); //External
 		
 		virtual bool									Input							(); //External
 		virtual bool									Draw							(); //External
@@ -64,14 +48,12 @@ class													GridListView : public ListView
 		uint32_t										Width;
 		uint32_t										Height;
 		
-		int32_t											FirstItem;
-
 		bool											DrawHeader;
 		bool											RefreshHeader;
 		bool											DrawLabels;
 };
 
-class													SummerfaceList : public SummerfaceWindow
+class													SummerfaceList : public SummerfaceWindow, public SummerfaceCancelable
 {
 	public:
 														SummerfaceList					(const Area& aRegion); //External
@@ -92,8 +74,6 @@ class													SummerfaceList : public SummerfaceWindow
 		virtual void									ClearItems						(); //External
 
 		uint32_t										GetItemCount					() const {return Items.size();}
-		bool											WasCanceled						() const {return Canceled;};
-		void											SetCanceled						(bool aCanceled) {Canceled = aCanceled;};
 
 		void											SetFont							(Font* aFont); //External
 		Font*											GetFont							() const {return LabelFont;}
@@ -105,7 +85,6 @@ class													SummerfaceList : public SummerfaceWindow
 
 	private:
 		uint32_t										SelectedIndex;
-		bool											Canceled;
 
 		Font*											LabelFont;
 		

@@ -79,16 +79,25 @@ class							CheatMenu
 
 	public:
 		///Create a new CheatMenu.
-								CheatMenu				()
+								CheatMenu				() :
+			CheatList(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+			Blank(false)
 		{
 			//Make the menu
-			CheatList = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
+			
 			CheatList->SetView(smartptr::make_shared<AnchoredListView>(CheatList, true));
 			CheatList->SetHeader("Available Cheats");
 
 			//Insert all of the cheats
 			//NOTE: These MUST NOT be sorted, their index in the list is passed to mednafen
 			MDFNI_ListCheats(AttachCheat, (void*)this);
+
+			//Note if none were found
+			if(CheatList->GetItemCount() == 0)
+			{
+				Blank = true;
+				CheatList->AddItem(smartptr::make_shared<SummerfaceItem>("No Cheats Available", ""));
+			}
 		}
 
 		///Run the CheatMenu.
@@ -116,7 +125,7 @@ class							CheatMenu
 				return 1;
 			}
 
-			if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+			if(!Blank && ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
 			{
 				//Get a new value for the cheat
 				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), cheat->Value, 10);
@@ -199,6 +208,7 @@ class							CheatMenu
 
 	private:
 		SummerfaceList_Ptr		CheatList;				///<List of Cheats.
+		bool					Blank;					///<True if no Cheats were found.
 };
 
 
