@@ -2,6 +2,7 @@ DEFINE_PTR_TYPE(Summerface);
 DEFINE_PTR_TYPE(SummerfaceWindow);
 DEFINE_PTR_TYPE(SummerfaceItem);
 DEFINE_PTR_TYPE(SummerfaceLabel);
+DEFINE_PTR_TYPE(SUmmerfaceNumber);
 DEFINE_PTR_TYPE(SummerfaceImage);
 DEFINE_PTR_TYPE(SummerfaceList);
 DEFINE_PTR_TYPE(Keyboard);
@@ -16,6 +17,7 @@ DEFINE_PTR_TYPE(GridListView);
 #include "Summerface/SummerfaceInputConduit.h"
 #include "Summerface/SummerfaceItem.h"
 #include "Summerface/SummerfaceLabel.h"
+#include "Summerface/SummerfaceNumber.h"
 #include "Summerface/SummerfaceImage.h"
 #include "Summerface/SummerfaceList.h"
 
