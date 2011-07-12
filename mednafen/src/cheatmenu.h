@@ -40,6 +40,13 @@ class							CheatMenu
 					return Status ? "CheckIMAGE" : "ErrorIMAGE";
 				}
 
+				///Insert the cheats values into mednafen.
+				///@param aIndex Index of cheat to write to.
+				void			Insert					(uint32_t aIndex)
+				{
+					MDFNI_SetCheat(aIndex, Name.c_str(), Address, Value, Compare, Status, Type, Length, BigEndian);
+				}
+
 			public:
 				std::string		Name;
 				uint32_t		Address;
@@ -80,12 +87,33 @@ class							CheatMenu
 		///@return 0: Ignore, 1: Eat, -1: Close Interface
 		int						HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
 		{
+			//Get a pointer to the selected cheat
+			smartptr::shared_ptr<Cheat> cheat = smartptr::static_pointer_cast<Cheat>(CheatList->GetSelected());
+
 			if(ESInput::ButtonDown(0, ES_BUTTON_LEFT) || ESInput::ButtonDown(0, ES_BUTTON_RIGHT))
 			{
-				smartptr::shared_ptr<Cheat> cheat = smartptr::static_pointer_cast<Cheat>(CheatList->GetSelected());
+				//Toggle it's status
 				cheat->Status = !cheat->Status;
-
 				MDFNI_ToggleCheat(CheatList->GetSelection());
+				return 1;
+			}
+
+			if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+			{
+				//Get a new value for the cheat
+				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 10, 80, 80), cheat->Value, 10);
+				number->SetHeader("Input new value for cheat.");
+				Summerface::Create("NUMB", number)->Do();
+
+				//Do nothing if the input was canceled
+				if(number->WasCanceled())
+				{
+					return 1;
+				}
+
+				//Tell mednafen about the new value
+				cheat->Value = number->GetValue();
+				cheat->Insert(CheatList->GetSelection());
 				return 1;
 			}
 
