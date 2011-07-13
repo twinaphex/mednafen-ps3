@@ -16,7 +16,7 @@ class													Summerface : public Menu, public smartptr::enable_shared_from_
 		virtual											~Summerface						() {};
 
 		virtual bool									Draw							();
-		virtual bool									Input							();
+		virtual bool									Input							(uint32_t aButton);
 
 		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow);
 		void											RemoveWindow					(const std::string& aName);

@@ -37,7 +37,7 @@ namespace SDLInputConfig
 		fclose(configFile);
 	}
 
-	int						GetButton			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+	int						GetButton			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 	{
 		static bool gotbutton = true;
 
@@ -70,6 +70,7 @@ namespace SDLInputConfig
 
 		Summerface_Ptr sface = Summerface::Create("InputWindow", button);
 		sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
+		sface->SetInputWait(false);
 
 		for(int j = 0; j != 14; j ++)
 		{

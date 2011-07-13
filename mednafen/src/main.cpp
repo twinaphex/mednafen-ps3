@@ -4,15 +4,15 @@
 
 namespace
 {
-	int				FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+	int				FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 	{
-		if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+		if(aButton == ES_BUTTON_AUXRIGHT3)
 		{
 			SettingMenu().Do();
 			return 1;
 		}
 
-		if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
+		if(aButton == ES_BUTTON_AUXLEFT3)
 		{
 			Summerface::Create("Text", smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
 			return 1;

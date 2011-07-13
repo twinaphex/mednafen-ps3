@@ -60,14 +60,14 @@ bool										Summerface::Draw									()
 	return false;
 }
 
-bool										Summerface::Input									()
+bool										Summerface::Input									(uint32_t aButton)
 {
 	if(Windows.find(ActiveWindow) != Windows.end())
 	{
 		//Check for conduits
 		for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
 		{
-			int result = (*i)->HandleInput(shared_from_this(), ActiveWindow);
+			int result = (*i)->HandleInput(shared_from_this(), ActiveWindow, aButton);
 
 			if(result)
 			{
@@ -75,7 +75,7 @@ bool										Summerface::Input									()
 			}
 		}
 
-		return Windows[ActiveWindow]->Input();
+		return Windows[ActiveWindow]->Input(aButton);
 	}
 
 	return false;

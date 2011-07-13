@@ -10,7 +10,7 @@ class					StateLabel : public SummerfaceLabel
 
 		void			SetSlot					(uint32_t aSlot);
 
-		bool			Input					();
+		bool			Input					(uint32_t aButton);
 		bool			PrepareDraw				();
 
 		void			FillScratch				(uint32_t aSlot);

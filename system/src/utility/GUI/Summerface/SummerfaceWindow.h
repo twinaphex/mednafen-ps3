@@ -24,7 +24,7 @@ class													SummerfaceWindow
 		virtual bool									PrepareDraw						(); //External
 
 		virtual bool									Draw							() = 0; //Pure virtual
-		virtual bool									Input							(); //External
+		virtual bool									Input							(uint32_t aButton); //External
 
 		virtual void									SetInterface					(Summerface_Ptr aInterface, const std::string& aName); //External
 		virtual Summerface_Ptr							GetInterface					(); //External

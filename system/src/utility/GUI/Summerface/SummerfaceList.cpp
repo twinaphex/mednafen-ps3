@@ -82,7 +82,7 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr,
 }
 
 
-bool										GridListView::Input									()
+bool										GridListView::Input									(uint32_t aButton)
 {
 	if(!WeakList.expired())
 	{
@@ -92,12 +92,12 @@ bool										GridListView::Input									()
 		int32_t XSelection = oldIndex % Width;
 		int32_t YSelection = oldIndex / Width;
 
-		XSelection += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
-		XSelection -= ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? 1 : 0;
+		XSelection += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
+		XSelection -= (aButton == ES_BUTTON_LEFT) ? 1 : 0;
 		XSelection = Utility::Clamp(XSelection, 0, (int32_t)Width - 1);
 
-		YSelection += ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0;
-		YSelection -= ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0;
+		YSelection += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
+		YSelection -= (aButton == ES_BUTTON_UP) ? 1 : 0;
 		YSelection = Utility::Clamp(YSelection, 0, (int32_t)Height - 1);
 
 		if(YSelection * Width + XSelection != oldIndex)
@@ -111,10 +111,10 @@ bool										GridListView::Input									()
 			List->SetHeader(List->GetSelected()->GetText());
 		}
 
-		List->SetCanceled(ESInput::ButtonPressed(0, ES_BUTTON_CANCEL));
+		List->SetCanceled(aButton == ES_BUTTON_CANCEL);
 	}
 
-	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT) || ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
+	return aButton == ES_BUTTON_ACCEPT || aButton == ES_BUTTON_CANCEL;
 }
 
 bool										GridListView::DrawItem								(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected)
@@ -223,7 +223,7 @@ bool										AnchoredListView::Draw								()
 	return false;
 }
 
-bool										AnchoredListView::Input								()
+bool										AnchoredListView::Input								(uint32_t aButton)
 {
 	if(!WeakList.expired())
 	{
@@ -232,10 +232,10 @@ bool										AnchoredListView::Input								()
 		int32_t oldIndex = List->GetSelection();
 		if(List->GetItemCount() != 0)
 		{
-			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_DOWN) ? 1 : 0);
-			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_UP) ? 1 : 0);
-			oldIndex += (ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? LinesDrawn : 0);
-			oldIndex -= (ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? LinesDrawn : 0);
+			oldIndex += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
+			oldIndex -= (aButton == ES_BUTTON_UP) ? 1 : 0;
+			oldIndex += (aButton == ES_BUTTON_RIGHT) ? LinesDrawn : 0;
+			oldIndex -= (aButton == ES_BUTTON_LEFT) ? LinesDrawn : 0;
 	
 			if(Wrap)
 			{
@@ -260,10 +260,10 @@ bool										AnchoredListView::Input								()
 			}
 		}
 
-		List->SetCanceled(ESInput::ButtonPressed(0, ES_BUTTON_CANCEL));
+		List->SetCanceled(aButton == ES_BUTTON_CANCEL);
 	}
 
-	return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT) || ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
+	return aButton == ES_BUTTON_ACCEPT || aButton == ES_BUTTON_CANCEL;
 }
 
 

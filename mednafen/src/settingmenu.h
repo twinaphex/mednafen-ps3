@@ -6,14 +6,14 @@ class								SettingLineView : public AnchoredListView
 									SettingLineView						(SummerfaceList_WeakPtr aList) : AnchoredListView(aList), RefreshHeader(true) {}
 		virtual						~SettingLineView					() {}
 
-		bool						Input								();
+		bool						Input								(uint32_t aButton);
 
 		void						DoHeaderRefresh						();
 		virtual bool				DrawItem							(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected);
 
-		bool						HandleBool							(const MDFNCS& aSetting);
-		bool						HandleInt							(const MDFNCS& aSetting);
-		bool						HandleEnum							(const MDFNCS& aSetting);
+		bool						HandleBool							(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleInt							(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleEnum							(uint32_t aButton, const MDFNCS& aSetting);
 
 	private:
 		bool RefreshHeader;

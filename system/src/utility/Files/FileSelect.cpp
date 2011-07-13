@@ -28,10 +28,10 @@ namespace
 	LoadList(aPath);
 }
 
-int										FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
+int										FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	//Use the input conduit to toggle bookmarks
-	if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT2))
+	if(aButton == ES_BUTTON_AUXRIGHT2)
 	{
 		SummerfaceItem_Ptr item = List->GetSelected();
 		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->Properties["PATH"]);

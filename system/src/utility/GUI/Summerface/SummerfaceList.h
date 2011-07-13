@@ -7,7 +7,7 @@ class													ListView
 	public:
 		virtual											~ListView						() {}
 	
-		virtual bool									Input							() {return false;};
+		virtual bool									Input							(uint32_t aButton) {return false;};
 		virtual bool									Draw							() {return false;};
 };
 
@@ -19,7 +19,7 @@ class													AnchoredListView : public ListView
 														
 		virtual bool									DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected); //External
 														
-		virtual bool									Input							(); //External
+		virtual bool									Input							(uint32_t aButton); //External
 		virtual bool									Draw							(); //External
 
 	protected:
@@ -39,7 +39,7 @@ class													GridListView : public ListView
 		
 		virtual bool									DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight, bool aSelected); //External
 		
-		virtual bool									Input							(); //External
+		virtual bool									Input							(uint32_t aButton); //External
 		virtual bool									Draw							(); //External
 		
 	protected:
@@ -60,7 +60,7 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 		virtual											~SummerfaceList					() {};
 
 		virtual bool									Draw							() {return View->Draw();};
-		virtual bool									Input							() {return View->Input();};
+		virtual bool									Input							(uint32_t aButton) {return View->Input(aButton);};
 
 
 		uint32_t										GetSelection					() const {return SelectedIndex;};

@@ -9,7 +9,7 @@ class												FileSelect
 													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook = SummerfaceInputConduit_Ptr());
 		virtual										~FileSelect						() {};
 													
-		int											HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow);
+		int											HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton);
 
 		std::string									GetFile							();
 

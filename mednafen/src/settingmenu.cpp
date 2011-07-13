@@ -53,26 +53,26 @@ bool							SettingLineView::DrawItem						(SummerfaceList_Ptr aList, SummerfaceI
 	return false;
 }
 
-bool							SettingLineView::HandleBool						(const MDFNCS& aSetting)
+bool							SettingLineView::HandleBool						(uint32_t aButton, const MDFNCS& aSetting)
 {
-	if(ESInput::ButtonDown(0, ES_BUTTON_LEFT) || ESInput::ButtonDown(0, ES_BUTTON_RIGHT) || ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
 	{
 		MDFNI_SetSettingB(aSetting.name, MDFN_GetSettingB(aSetting.name) == 0);
 		MednafenEmu::ReadSettings();
 		return true;
 	}
 
-	return ESInput::ButtonDown(0, ES_BUTTON_TAB); //Using file browser for a bool is nonsense;
+	return aButton == ES_BUTTON_TAB; //Using file browser for a bool is nonsense;
 }
 
-bool							SettingLineView::HandleEnum						(const MDFNCS& aSetting)
+bool							SettingLineView::HandleEnum						(uint32_t aButton, const MDFNCS& aSetting)
 {
 	const MDFNSetting_EnumList* values = aSetting.desc->enum_list;
 
-	if(ESInput::ButtonPressed(0, ES_BUTTON_LEFT) || ESInput::ButtonPressed(0, ES_BUTTON_RIGHT)) //Cycle values
+	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT) //Cycle values
 	{
-		int32_t value = ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? -1 : 0;
-		value = ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : value;
+		int32_t value = (aButton == ES_BUTTON_LEFT) ? -1 : 0;
+		value = (aButton == ES_BUTTON_RIGHT) ? 1 : value;
 		std::string oldvalue = MDFN_GetSettingS(aSetting.name);
 
 		while(values && values->string && strcmp(values->string, oldvalue.c_str()))
@@ -93,7 +93,7 @@ bool							SettingLineView::HandleEnum						(const MDFNCS& aSetting)
 			}
 		}
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT)) //Choose from list
+	else if(aButton == ES_BUTTON_ACCEPT) //Choose from list
 	{
 		SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
 		list->SetView(smartptr::make_shared<AnchoredListView>(list));
@@ -115,13 +115,13 @@ bool							SettingLineView::HandleEnum						(const MDFNCS& aSetting)
 		return true;
 	}
 
-	return ESInput::ButtonDown(0, ES_BUTTON_TAB); //Using file browser for an enumeration is nonsense
+	return aButton == ES_BUTTON_TAB; //Using file browser for an enumeration is nonsense
 }
 
-bool							SettingLineView::HandleInt						(const MDFNCS& aSetting)
+bool							SettingLineView::HandleInt						(uint32_t aButton, const MDFNCS& aSetting)
 {
-	int32_t value = ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? -1 : 0;
-	value = ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : value;
+	int32_t value = (aButton == ES_BUTTON_LEFT) ? -1 : 0;
+	value = (aButton == ES_BUTTON_RIGHT) ? 1 : value;
 
 	if(value != 0)
 	{
@@ -140,10 +140,10 @@ bool							SettingLineView::HandleInt						(const MDFNCS& aSetting)
 		return true;
 	}
 
-	return ESInput::ButtonDown(0, ES_BUTTON_TAB); //Using file browser for an int is nonsense
+	return aButton == ES_BUTTON_TAB; //Using file browser for an int is nonsense
 }
 
-bool							SettingLineView::Input							()
+bool							SettingLineView::Input							(uint32_t aButton)
 {
 	if(!WeakList.expired())
 	{
@@ -153,31 +153,31 @@ bool							SettingLineView::Input							()
 
 		DoHeaderRefresh();
 
-		if(Setting.desc->type == MDFNST_BOOL && HandleBool(Setting))
+		if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
 		{
 			return false;
 		}
-		else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(Setting))
+		else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(aButton, Setting))
 		{
 			return false;
 		}
-		else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(Setting))
+		else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(aButton, Setting))
 		{
 			return false;
 		}
 
-		if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT)) //Use Keyboard
+		if(aButton == ES_BUTTON_ACCEPT) //Use Keyboard
 		{
 			std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
 			MDFNI_SetSetting(Setting.name, result.c_str());
 			return false;
 		}
-		else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT)) //Reset to default
+		else if(aButton == ES_BUTTON_SHIFT) //Reset to default
 		{
 			MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
 			return false;
 		}
-		else if(ESInput::ButtonDown(0, ES_BUTTON_TAB)) //Select from file browser
+		else if(aButton == ES_BUTTON_TAB) //Select from file browser
 		{
 			std::vector<std::string> nomarks;
 			FileSelect browse("Select File", nomarks, "");
@@ -193,10 +193,10 @@ bool							SettingLineView::Input							()
 			return false;
 		}
 
-		if(!ESInput::ButtonPressed(0, ES_BUTTON_LEFT) && !ESInput::ButtonPressed(0, ES_BUTTON_RIGHT)) //Don't allow underlying list view to use left and right
+		if(!aButton == ES_BUTTON_LEFT && !aButton == ES_BUTTON_RIGHT) //Don't allow underlying list view to use left and right
 		{
 			SummerfaceItem_Ptr selected = List->GetSelected();
-			bool output = AnchoredListView::Input();
+			bool output = AnchoredListView::Input(aButton);
 
 			if(selected != List->GetSelected())
 			{

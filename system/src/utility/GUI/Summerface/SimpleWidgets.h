@@ -172,7 +172,7 @@ class													SummerfaceImage : public SummerfaceWindow
 			}
 
 		///Destructor for SummerfaceImage. Does nothing.
-		virtual											~SummerfaceImage				();
+		virtual											~SummerfaceImage				() {};
 
 		///Draw the content of the widget.
 		///@return True to end processing of the interface, false to continue.
@@ -248,17 +248,17 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 
 		///Process input of the widget.
 		///@return True to end processing of the interface, false to continue.
-		virtual bool									Input							()
+		virtual bool									Input							(uint32_t aButton)
 		{
-			SelectedIndex += ESInput::ButtonPressed(0, ES_BUTTON_LEFT) ? -1 : 0;
-			SelectedIndex += ESInput::ButtonPressed(0, ES_BUTTON_RIGHT) ? 1 : 0;
+			SelectedIndex += (aButton == ES_BUTTON_LEFT) ? -1 : 0;
+			SelectedIndex += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
 			SelectedIndex = Utility::Clamp(SelectedIndex, 32 - Digits, 31);
 
-			if(ESInput::ButtonPressed(0, ES_BUTTON_UP)) IncPosition(SelectedIndex);
-			if(ESInput::ButtonPressed(0, ES_BUTTON_DOWN)) DecPosition(SelectedIndex);
+			if(aButton == ES_BUTTON_UP) IncPosition(SelectedIndex);
+			if(aButton == ES_BUTTON_DOWN) DecPosition(SelectedIndex);
 
-			Canceled = ESInput::ButtonPressed(0, ES_BUTTON_CANCEL);
-			return ESInput::ButtonDown(0, ES_BUTTON_ACCEPT) || ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
+			Canceled = (aButton == ES_BUTTON_CANCEL);
+			return aButton == ES_BUTTON_ACCEPT || aButton == ES_BUTTON_CANCEL;
 		}
 
 		///Get the value stored in the widget.

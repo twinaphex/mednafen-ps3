@@ -15,6 +15,8 @@ class				ESInput
 	public:
 		static void							Initialize				();
 		static void							Shutdown				();
+
+		static inline uint32_t				WaitForESKey			(uint32_t aPad, bool aGuarantee); //Below
 					
 		static uint32_t						PadCount				() {return Joysticks.size() ? Joysticks.size() : 1;};
 		static inline void					Reset					(); //Below
@@ -50,6 +52,46 @@ class				ESInput
 };
 
 //Inlines
+void										SetExit					();
+uint32_t									ESInput::WaitForESKey	(uint32_t aPad, bool aGuarantee)
+{
+	while(!WantToDie())
+	{
+		//Scan the input
+		Refresh();
+
+		//Look for a press
+		for(uint32_t i = ES_BUTTON_UP; i != ES_BUTTON_AUXRIGHT3; i ++)
+		{
+			if(ButtonDown(aPad, i))
+			{
+				return i;
+			}
+		}
+
+		if(aGuarantee)
+		{
+			SDL_Event event;
+			while(SDL_PollEvent(&event))
+			{
+				if(event.type == SDL_QUIT)
+				{
+					SetExit();
+				}
+			}
+
+			if(ESInput::ButtonDown(0, 0x80000000 | SDLK_F10))
+			{
+				SetExit();
+			}
+		}
+		else
+		{
+			return 0xFFFFFFFF;
+		}
+	}
+}
+
 void										ESInput::Reset			()
 {
 	memset(HeldState, 0xFF, sizeof(HeldState));
