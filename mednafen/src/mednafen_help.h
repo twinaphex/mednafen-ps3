@@ -19,7 +19,7 @@ class	MednafenEmu
 		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0, bool aDummy = false);
 
 		static void						DoCommands			();
-		static int						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow);
+		static int						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton = 0xFFFFFFFF);
 		static void						SetPause			(bool aPause);
 		static uint32_t					GetPixel			(uint32_t aX, uint32_t aY);
 

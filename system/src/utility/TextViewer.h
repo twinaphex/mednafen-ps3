@@ -8,7 +8,7 @@ class							TextViewer : public SummerfaceWindow
 		virtual					~TextViewer					();
 		
 		virtual bool			Draw						();
-		virtual bool			Input						();
+		virtual bool			Input						(uint32_t aButton);
 		
 	protected:
 		void					LoadStream					(std::istream* aStream);

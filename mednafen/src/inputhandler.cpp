@@ -137,6 +137,9 @@ void							InputHandler::Configure				()
 		sface->SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
 	}
 
+	//Clear the input wait flag
+	sface->SetInputWait(false);
+
 	//Grab all of the buttons
 	for(int j = 0; j != inputs.size(); j ++)
 	{
@@ -295,7 +298,7 @@ void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char
 	}
 }
 
-int								InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+int								InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	//Conduit for config interface
 	static bool gotbutton = true;

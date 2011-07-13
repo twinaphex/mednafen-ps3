@@ -271,6 +271,7 @@ void						MednafenEmu::CloseGame			()
 		MDFNI_CloseGame();
 
 
+
 		//Clean up
 		MDFND_Rumble(0, 0);
 		
@@ -545,11 +546,11 @@ void						MednafenEmu::DoCommands			()
 	sface->Do();
 }
 
-int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow)
+int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	std::string command;
 
-	if(aInterface && aInterface->GetWindow(aWindow) && ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(aInterface && aInterface->GetWindow(aWindow) && aButton == ES_BUTTON_ACCEPT)
 	{
 		SummerfaceList_Ptr list = smartptr::static_pointer_cast<SummerfaceList>(aInterface->GetWindow(aWindow));
 		command = list->GetSelected()->Properties["COMMAND"];

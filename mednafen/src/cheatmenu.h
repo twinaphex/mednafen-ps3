@@ -58,6 +58,13 @@ class							CheatMenu
 					return Status ? "CheckIMAGE" : "ErrorIMAGE";
 				}
 
+				///Add as a new Cheat to Mednafen. Cheat is always enabled after adding.
+				void			Add						()
+				{
+					Status = 1;
+					MDFNI_AddCheat(Name.c_str(), Address, Value, Compare, Type, Length, BigEndian);
+				}
+
 				///Insert the cheats values into mednafen.
 				///@param aIndex Index of cheat to write to.
 				void			Insert					(uint32_t aIndex)
@@ -84,7 +91,6 @@ class							CheatMenu
 			Blank(false)
 		{
 			//Make the menu
-			
 			CheatList->SetView(smartptr::make_shared<AnchoredListView>(CheatList, true));
 			CheatList->SetHeader("Available Cheats");
 
@@ -112,20 +118,20 @@ class							CheatMenu
 		///@param aInterface Pointer to Summerface making the call.
 		///@param aWindow Name of the active SummerfaceWindow.
 		///@return 0: Ignore, 1: Eat, -1: Close Interface
-		int						HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow)
+		int						HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 		{
 			//Get a pointer to the selected cheat
 			smartptr::shared_ptr<Cheat> cheat = smartptr::static_pointer_cast<Cheat>(CheatList->GetSelected());
 
-			if(ESInput::ButtonDown(0, ES_BUTTON_LEFT) || ESInput::ButtonDown(0, ES_BUTTON_RIGHT))
+			if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
 			{
-				//Toggle it's status
+				//Toggle its status
 				cheat->Status = !cheat->Status;
 				MDFNI_ToggleCheat(CheatList->GetSelection());
 				return 1;
 			}
 
-			if(!Blank && ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+			if(!Blank && aButton == ES_BUTTON_ACCEPT)
 			{
 				//Get a new value for the cheat
 				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), cheat->Value, 10);
@@ -145,7 +151,7 @@ class							CheatMenu
 			}
 
 			//Delete a cheat
-			if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
+			if(aButton == ES_BUTTON_SHIFT)
 			{
 				//Ask for confirmation
 				std::stringstream str;
@@ -160,7 +166,7 @@ class							CheatMenu
 			}
 
 			//Add a new cheat
-			if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
+			if(aButton == ES_BUTTON_TAB)
 			{
 				//Get the address to patch
 				int64_t address = 0;

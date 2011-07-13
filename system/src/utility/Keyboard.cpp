@@ -46,32 +46,32 @@ bool						Keyboard::Draw									()
 }
 
 //TODO: This code can be dangerous
-bool						Keyboard::Input									()
+bool						Keyboard::Input									(uint32_t aButton)
 {
-	Row += ESInput::ButtonDown(0, ES_BUTTON_DOWN) ? 1 : 0;
-	Row -= ESInput::ButtonDown(0, ES_BUTTON_UP) ? 1 : 0;
+	Row += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
+	Row -= (aButton == ES_BUTTON_UP) ? 1 : 0;
 	Row = Utility::Clamp(Row, 0, 4);
 	
-	Column += ESInput::ButtonDown(0, ES_BUTTON_RIGHT) ? 1 : 0;
-	Column -= ESInput::ButtonDown(0, ES_BUTTON_LEFT) ? 1 : 0;
+	Column += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
+	Column -= (aButton == ES_BUTTON_LEFT) ? 1 : 0;
 	Column = Utility::Clamp(Column, 0, strlen(Chars[0][Row]) - 1);
 
-	if(ESInput::ButtonDown(0, ES_BUTTON_ACCEPT))
+	if(aButton == ES_BUTTON_ACCEPT)
 	{
 		Text.push_back(Chars[Shift][Row][Column]);
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_SHIFT))
+	else if(aButton == ES_BUTTON_SHIFT)
 	{
 		Shift = Shift == 0 ? 1 : 0;
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_TAB))
+	else if(aButton == ES_BUTTON_TAB)
 	{
 		if(!Text.empty())
 		{
 			Text.erase(Text.length() - 1);
 		}
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_CANCEL))
+	else if(aButton == ES_BUTTON_CANCEL)
 	{
 		return true;
 	}

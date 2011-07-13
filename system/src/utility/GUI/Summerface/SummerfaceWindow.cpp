@@ -53,9 +53,9 @@ bool										SummerfaceWindow::PrepareDraw						()
 }
 
 
-bool										SummerfaceWindow::Input								()
+bool										SummerfaceWindow::Input								(uint32_t aButton)
 {
-	return ESInput::ButtonDown(0, ES_BUTTON_CANCEL);
+	return aButton == ES_BUTTON_CANCEL;
 }
 
 void										SummerfaceWindow::SetInterface						(Summerface_Ptr aInterface, const std::string& aName)

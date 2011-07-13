@@ -12,6 +12,8 @@ class								ESInput
 	public:
 		static void					Initialize				(); //External
 		static void					Shutdown				() {cellPadEnd();};
+
+		static inline uint32_t		WaitForESKey			(uint32_t aPad, bool aGuarantee); //Below
 					
 		static uint32_t				PadCount				() {return PadInfo.now_connect;};
 		static inline void			Reset					(); //Below
@@ -47,6 +49,30 @@ class								ESInput
 };
 
 //Inlines
+uint32_t									ESInput::WaitForESKey	(uint32_t aPad, bool aGuarantee)
+{
+	//List of ES_INPUT buttons
+	static const uint32_t inputlist[] = {6, 7, 8, 9, 3, 5, 2, 4, 10, 13, 11, 14, 12, 15};
+
+	do
+	{
+		//Scan the input
+		Refresh();
+
+		//Look for a press
+		for(uint32_t i = 0; i != 14; i ++)
+		{
+			if(ButtonDown(aPad, inputlist[i]))
+			{
+				return inputlist[i];
+			}
+		}
+	}	while(!WantToDie() && !WantToSleep() && aGuarantee);
+
+	//Give a default
+	return 0xFFFFFFFF;
+}
+
 void								ESInput::Reset			()
 {
 	for(int i = 0; i != PadCount(); i ++)

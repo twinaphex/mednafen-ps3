@@ -8,7 +8,7 @@ class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 		virtual								~Keyboard				();
 
 		bool								Draw					();
-		bool								Input					();
+		bool								Input					(uint32_t aButton);
 				
 		std::string							GetText					()								{return Text;};
 		void								SetText					(const std::string& aText)		{Text = aText;};
