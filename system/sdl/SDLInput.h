@@ -61,7 +61,7 @@ uint32_t									ESInput::WaitForESKey	(uint32_t aPad, bool aGuarantee)
 		Refresh();
 
 		//Look for a press
-		for(uint32_t i = ES_BUTTON_UP; i != ES_BUTTON_AUXRIGHT3; i ++)
+		for(uint32_t i = ES_BUTTON_UP; i != ES_BUTTON_AUXRIGHT3 + 1; i ++)
 		{
 			if(ButtonDown(aPad, i))
 			{
