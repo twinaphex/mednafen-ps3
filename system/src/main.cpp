@@ -37,7 +37,7 @@ std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& 
 #endif
 
 #ifndef HAVE_ESSUB_CONFIRM
-bool				ESSUB_Confirm			(const char* aMessage)
+bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 {
 	//Create the list
 	SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
@@ -52,6 +52,7 @@ bool				ESSUB_Confirm			(const char* aMessage)
 	Summerface::Create("Confirm", list)->Do();
 
 	//Return the result
+	if(aCancel) *aCancel = list->WasCanceled();
 	return !list->WasCanceled() && list->GetSelected()->GetText() == "Yes";
 }
 #endif

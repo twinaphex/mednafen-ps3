@@ -39,7 +39,7 @@ class													Summerface : public Menu, public smartptr::enable_shared_from_
 		///If aWindow is an empty pointer the window will be removed.
 		///@param aName Name of the window.
 		///@param aWindow Pointer to the window.
-		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow) {Windows[aName] = aWindow;}
+		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow) {Windows[aName] = aWindow; ActiveWindow = aName;}
 
 		///Remove a SummerfaceWindow from the interface. The operation does nothing if a name window does not exist.
 		///@param aName Name of the window.

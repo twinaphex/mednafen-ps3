@@ -47,7 +47,7 @@ class							CheatMenu
 					BigEndian(aBigEndian)
 				{
 					std::stringstream str;
-					str << Name << " (" << std::hex << Address << "->" << Value << ":" << Compare << ")";
+					str << Name << " (" << std::hex << std::uppercase << Address << std::dec << "->" << Value << ":" << Compare << ")";
 					SetText(str.str());
 				}
 
@@ -123,7 +123,7 @@ class							CheatMenu
 			//Get a pointer to the selected cheat
 			smartptr::shared_ptr<Cheat> cheat = smartptr::static_pointer_cast<Cheat>(CheatList->GetSelected());
 
-			if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
+			if(!Blank && aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
 			{
 				//Toggle its status
 				cheat->Status = !cheat->Status;
@@ -131,6 +131,7 @@ class							CheatMenu
 				return 1;
 			}
 
+			//Add a cheat
 			if(!Blank && aButton == ES_BUTTON_ACCEPT)
 			{
 				//Get a new value for the cheat
@@ -151,7 +152,7 @@ class							CheatMenu
 			}
 
 			//Delete a cheat
-			if(aButton == ES_BUTTON_SHIFT)
+			if(!Blank && aButton == ES_BUTTON_SHIFT)
 			{
 				//Ask for confirmation
 				std::stringstream str;
@@ -187,7 +188,18 @@ class							CheatMenu
 							}
 							else
 							{
-								bool bigendian = ESSUB_Confirm("Is memory big-endian?");
+								//Get endianess
+								bool bigendian = false, canceled = false;
+								if(bytes != 1)
+								{
+									bigendian = ESSUB_Confirm("Is memory big-endian?", &canceled);
+									if(canceled)
+									{
+										continue;
+									}
+								}
+
+								//Get name and add it
 								std::string name = ESSUB_GetString("Enter name for the cheat", "");
 								if(!name.empty())
 								{
@@ -207,8 +219,12 @@ class							CheatMenu
 		///Static callback function for MDFNI_ListCheats.
 		static int				AttachCheat				(char* aName, uint32_t aAddress, uint64_t aValue, uint64_t aCompare, int aStatus, char aType, uint32_t aLength, bool aBigEndian, void* aData)
 		{
-			CheatMenu* menu = (CheatMenu*)aData;
-			menu->CheatList->AddItem(smartptr::make_shared<Cheat>(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
+			if(aData)
+			{
+				CheatMenu* menu = (CheatMenu*)aData;
+				menu->CheatList->AddItem(smartptr::make_shared<Cheat>(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
+			}
+
 			return 1;
 		}
 
