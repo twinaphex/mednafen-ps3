@@ -71,7 +71,7 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr,
 
 
 											GridListView::GridListView							(SummerfaceList_WeakPtr aList, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
-	WeakList(aList),
+	ListView(aList),
 	Width(aWidth),
 	Height(aHeight),
 	DrawHeader(aHeader),
@@ -84,10 +84,9 @@ void										SummerfaceList::Sort								(bool (*aCallback)(SummerfaceItem_Ptr,
 
 bool										GridListView::Input									(uint32_t aButton)
 {
-	if(!WeakList.expired())
+	SummerfaceList_Ptr List;
+	if(TryGetList(List))
 	{
-		SummerfaceList_Ptr List = WeakList.lock();
-
 		uint32_t oldIndex = List->GetSelection();
 		int32_t XSelection = oldIndex % Width;
 		int32_t YSelection = oldIndex / Width;
@@ -147,7 +146,8 @@ bool										GridListView::DrawItem								(SummerfaceList_Ptr aList, Summerfac
 
 bool										GridListView::Draw									()
 {
-	if(!WeakList.expired())
+	SummerfaceList_Ptr List;
+	if(TryGetList(List))
 	{
 		SummerfaceList_Ptr List = WeakList.lock();
 
@@ -169,7 +169,7 @@ bool										GridListView::Draw									()
 }
 
 											AnchoredListView::AnchoredListView					(SummerfaceList_WeakPtr aList, bool aAnchored, bool aWrap) :
-	WeakList(aList),
+	ListView(aList),
 	FirstLine(0),
 	LinesDrawn(0),
 	Anchored(aAnchored),
@@ -196,10 +196,9 @@ bool										AnchoredListView::DrawItem							(SummerfaceList_Ptr aList, Summer
 
 bool										AnchoredListView::Draw								()
 {
-	if(!WeakList.expired())
+	SummerfaceList_Ptr List;
+	if(TryGetList(List))
 	{
-		SummerfaceList_Ptr List = WeakList.lock();
-
 		if(List->GetItemCount() != 0)
 		{
 			uint32_t itemheight = List->GetFont()->GetHeight();
@@ -225,10 +224,9 @@ bool										AnchoredListView::Draw								()
 
 bool										AnchoredListView::Input								(uint32_t aButton)
 {
-	if(!WeakList.expired())
+	SummerfaceList_Ptr List;
+	if(TryGetList(List))
 	{
-		SummerfaceList_Ptr List = WeakList.lock();
-
 		int32_t oldIndex = List->GetSelection();
 		if(List->GetItemCount() != 0)
 		{

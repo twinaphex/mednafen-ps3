@@ -23,11 +23,9 @@ static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr 
 
 bool							SettingLineView::Input							(uint32_t aButton)
 {
-	if(!WeakList.expired())
+	SummerfaceList_Ptr List;
+	if(TryGetList(List))
 	{
-		//Get a pointer to the list
-		SummerfaceList_Ptr List = WeakList.lock();
-
 		//Leave if there is no list item
 		if(!List->GetSelected() || !List->GetSelected()->IntProperties["MDFNCS"] || !List->GetInterface())
 		{
