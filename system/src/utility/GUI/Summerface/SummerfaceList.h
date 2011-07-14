@@ -2,13 +2,67 @@
 
 class													SummerfaceList;
 
+///Base class to provide input and output for SummerfaceList.
 class													ListView
 {
 	public:
+		///Create a new, empty, ListView object.
+														ListView						()	{}
+
+		///Create a new ListView object.
+		///@param aList List the view should use for drawing.
+														ListView						(SummerfaceList_WeakPtr aList) : WeakList(aList) {}
+
+		///Empty virtual destructor for ListView.
 		virtual											~ListView						() {}
 	
-		virtual bool									Input							(uint32_t aButton) {return false;};
-		virtual bool									Draw							() {return false;};
+		///Handle input for the list. This implementation does nothing.
+		///@param aButton System button that was pressed.
+		///@return True to end processing of the parent interface.
+		virtual bool									Input							(uint32_t aButton)
+		{
+			return false;
+		}
+
+		///Handle drawing for the list. This implementation does nothing.
+		///@param aButton System button that was pressed.
+		///@return True to end processing of the parent interface.
+		virtual bool									Draw							()
+		{
+			return false;
+		}
+
+		///Return a shared_ptr to the processed list, asserting if the list is invalid.
+		///@return A shared_ptr to the processed list.
+		SummerfaceList_Ptr								GetList							()
+		{
+			assert(!WeakList.expired());
+			return WeakList.lock();
+		}
+
+		///Determine if the processed list is valid, and get a shared_ptr to it.
+		///@param aResult [out] A reference that is set to the processed list. This value is not modified if the list is not valid.
+		///@return True if the processed list is valid.
+		bool											TryGetList						(SummerfaceList_Ptr& aResult)
+		{
+			if(!WeakList.expired())
+			{
+				aResult = WeakList.lock();
+				return true;
+			}
+
+			return false;
+		}
+
+		///Determine if the processed list is valid.
+		///@return True if the processed list is valid.
+		bool											ListValid						()
+		{
+			return !WeakList.expired();
+		}
+
+	protected:
+		SummerfaceList_WeakPtr							WeakList;						///<A weak_ptr to the processed list.
 };
 
 class													AnchoredListView : public ListView
@@ -23,7 +77,6 @@ class													AnchoredListView : public ListView
 		virtual bool									Draw							(); //External
 
 	protected:
-		SummerfaceList_WeakPtr							WeakList;
 		int32_t											FirstLine;
 		uint32_t										LinesDrawn;
 
@@ -43,8 +96,6 @@ class													GridListView : public ListView
 		virtual bool									Draw							(); //External
 		
 	protected:
-		SummerfaceList_WeakPtr							WeakList;
-
 		uint32_t										Width;
 		uint32_t										Height;
 		
