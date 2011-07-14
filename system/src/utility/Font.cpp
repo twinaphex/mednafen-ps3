@@ -33,17 +33,27 @@ extern "C"
 	FT_Done_Face(FontFace);
 }
 
-void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
+uint32_t				Font::PutString				(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
 {
+	return PutString(aString, 0xFFFFFFFF, aX, aY, aColor, aDropShadow, aShadowColor, aShadowXOffset, aShadowYOffset);
+}
+
+uint32_t				Font::PutString				(const char* aString, uint32_t aMaxCharacters, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
+{
+	//Draw any drop shadow
 	if(aDropShadow)
 	{
-		PutString(aString, aX + aShadowXOffset, aY + aShadowYOffset, 0x00000080, false);
+		PutString(aString, aMaxCharacters, aX + aShadowXOffset, aY + aShadowYOffset, aShadowColor, false);
 	}
 
+	//Begin decoding the string
 	utf8_decode_init(aString, strlen(aString));
 
-	for(int thischar = utf8_decode_next(); thischar != UTF8_END; thischar = utf8_decode_next())
+	//Draw until aMax or the end
+	uint32_t drawnChars = 0;
+	for(int thischar = utf8_decode_next(); thischar != UTF8_END && drawnChars != aMaxCharacters; thischar = utf8_decode_next(), drawnChars ++)
 	{
+		//Only draw those in range
 		if(thischar >= 32 || thischar == 9)
 		{
 			//TODO: Support real tab stops
@@ -60,6 +70,9 @@ void					Font::PutString					(const char* aString, uint32_t aX, uint32_t aY, uin
 			}
 		}
 	}
+
+	//Done
+	return drawnChars;
 }
 
 void					Font::PutStringCenter		(const char* aString, const Area& aRegion, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)

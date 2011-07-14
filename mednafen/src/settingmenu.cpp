@@ -2,7 +2,7 @@
 #include "mednafen_help.h"
 #include "settingmenu.h"
 
-static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
+static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smartptr::shared_ptr<SettingItem> b)
 {
 	//Keep enable at the top
 	if(a->GetText().find(".enable") != std::string::npos)												return true;
@@ -21,21 +21,91 @@ static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr 
 	return a->GetText() < b->GetText();
 }
 
-bool							SettingLineView::Input							(uint32_t aButton)
+								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
+	List(smartptr::make_shared<AnchoredListView<SettingItem> >(Area(10, 10, 80, 80))),
+	CategoryList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
+	Interface(Summerface::Create("Categories", CategoryList))
+{
+	//Cache the setting values from mednafen
+	LoadSettings();
+
+	//Setup the category list
+	CategoryList->SetHeader("Choose Setting Category");
+
+	//Stuff the category list
+	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
+	{
+		//Create the item
+		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
+		item->Properties["CATEGORY"] = i->first;
+
+		//Highlight it if it is the default category
+		if(item->Properties["CATEGORY"] == aDefaultCategory)
+		{
+			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+		}
+
+		//Stash it in the list
+		CategoryList->AddItem(item);
+	}
+
+	//Sort the list and choose the default selection
+	CategoryList->Sort();
+	CategoryList->SetSelection(TranslateCategory(aDefaultCategory.c_str()));
+}
+
+void							SettingMenu::Do									()
+{
+	while(!WantToDie())
+	{
+		//Run the category list
+		Interface->Do();
+
+		//Leave if the category list is canceld and everything checks out
+		if(!CategoryList->WasCanceled() && CategoryList->GetSelected() && !CategoryList->GetSelected()->Properties["CATEGORY"].empty())
+		{
+			//Clear the setting list
+			List->ClearItems();
+
+			//Add all settings from the catagory
+			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->Properties["CATEGORY"]];
+			for(int i = 0; i != items.size(); i ++)
+			{
+				List->AddItem(smartptr::make_shared<SettingItem>(items[i]));
+			}
+
+			//Sort the setting list
+			List->Sort(CompareItems);
+
+			//HACK: Create the interface without input wait until the header is update
+			Summerface_Ptr sface = Summerface::Create("SettingList", List);
+			sface->SetInputWait(false);
+			sface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<SettingMenu> >(this));
+			sface->Do();
+		}
+		else
+		{
+			//Done
+			return;
+		}
+	}
+}
+
+int								SettingMenu::HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	//Leave if there is no list item
-	if(!GetSelected() || !GetSelected()->IntProperties["MDFNCS"] || !GetInterface())
+	if(!List || !List->GetSelected() || !aInterface)
 	{
-		return false;
+		return 0;
 	}
 
 	//Get a refence to the setting
-	const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+	const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->Setting;
 
 	//HACK: Set the input wait flag if no header refresh is waiting
-	if(RefreshHeader == false && GetInterface())
+	if(RefreshHeader == false && List->GetInterface())
 	{
-		GetInterface()->SetInputWait(true);
+		List->GetInterface()->SetInputWait(true);
 	}
 
 	//Refresh the header
@@ -44,15 +114,15 @@ bool							SettingLineView::Input							(uint32_t aButton)
 	//Check for and handle setting types
 	if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
 	{
-		return false;
+		return 1;
 	}
 	else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(aButton, Setting))
 	{
-		return false;
+		return 1;
 	}
 	else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(aButton, Setting))
 	{
-		return false;
+		return 1;
 	}
 
 	//Fire up the keyboard (may be canceled by setting handlers)
@@ -69,7 +139,7 @@ bool							SettingLineView::Input							(uint32_t aButton)
 	{
 		MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
 		MednafenEmu::ReadSettings();
-		return false;
+		return 1;
 	}
 	//Browse for a file and use its path as the setting value (may be canceled by setting handlers)
 	else if(aButton == ES_BUTTON_TAB)
@@ -84,66 +154,24 @@ bool							SettingLineView::Input							(uint32_t aButton)
 			MednafenEmu::ReadSettings();
 		}
 
-		return false;
+		return 1;
 	}
 
 	//If the button isn't left or right pass it to the AnchoredListView class.
-	if(aButton != ES_BUTTON_LEFT && aButton != ES_BUTTON_RIGHT)
-	{
-		//Cache the selected item
-		SummerfaceItem_Ptr selected = GetSelected();
-
-		//Pass it to the base
-		if(!AnchoredListView::Input(aButton))
-		{
-			//Schedule a header update if needed
-			if(selected != GetSelected())
-			{
-				RefreshHeader = true;
-				DoHeaderRefresh();
-			}
-
-			return false;
-		}
-		//The base list view said to exit
-		else
-		{
-			return true;
-		}
-	}
-
-	//Default return value
-	return false;
+	return (aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT) ? 1 : 0;
 }
 
-void							SettingLineView::DoHeaderRefresh				()
+void							SettingMenu::DoHeaderRefresh					()
 {
 	//If a refresh is scheduled and a list item is available
-	if(RefreshHeader && GetSelected() && GetSelected()->IntProperties["MDFNCS"])
+	if(RefreshHeader && List->GetSelected() && List->GetSelected()->Setting)
 	{
 		//Set the header
-		const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
-		SetHeader(Setting.desc->description);
+		List->SetHeader(List->GetSelected()->Setting->desc->description);
 	}
 }
 
-bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
-{
-	//Tell the base class to do its part
-	AnchoredListView::DrawItem(aItem, aX, aY, aSelected);
-
-	//Get a pointer to the setting and, if valid, draw it
-	const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
-	if(setting)
-	{
-		//Draw using special casing for bools
-		GetFont()->PutString((setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(setting->name).c_str(), aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
-	}
-
-	return false;
-}
-
-bool							SettingLineView::HandleBool						(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingMenu::HandleBool							(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Toggle if the button is left, right, or accept
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
@@ -157,7 +185,7 @@ bool							SettingLineView::HandleBool						(uint32_t aButton, const MDFNCS& aSe
 	return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
 }
 
-bool							SettingLineView::HandleInt						(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingMenu::HandleInt							(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Get the change to be applied
 	int32_t value = (aButton == ES_BUTTON_LEFT) ? -1 : 0;
@@ -187,7 +215,7 @@ bool							SettingLineView::HandleInt						(uint32_t aButton, const MDFNCS& aSet
 	return aButton == ES_BUTTON_TAB;
 }
 
-bool							SettingLineView::HandleEnum						(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Get a poitner to the enumeration values
 	const MDFNSetting_EnumList* values = aSetting.desc->enum_list;
@@ -257,78 +285,6 @@ bool							SettingLineView::HandleEnum						(uint32_t aButton, const MDFNCS& aSe
 	return aButton == ES_BUTTON_TAB;
 }
 
-
-
-								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(smartptr::make_shared<SettingLineView>(Area(10, 10, 80, 80))),
-	CategoryList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
-	Interface(Summerface::Create("Categories", CategoryList))
-{
-	//Cache the setting values from mednafen
-	LoadSettings();
-
-	//Setup the category list
-	CategoryList->SetHeader("Choose Setting Category");
-
-	//Stuff the category list
-	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
-	{
-		//Create the item
-		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
-		item->Properties["CATEGORY"] = i->first;
-
-		//Highlight it if it is the default category
-		if(item->Properties["CATEGORY"] == aDefaultCategory)
-		{
-			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
-		}
-
-		//Stash it in the list
-		CategoryList->AddItem(item);
-	}
-
-	//Sort the list and choose the default selection
-	CategoryList->Sort();
-	CategoryList->SetSelection(TranslateCategory(aDefaultCategory.c_str()));
-}
-
-void							SettingMenu::Do									()
-{
-	while(!WantToDie())
-	{
-		//Run the category list
-		Interface->Do();
-
-		//Leave if the category list is canceld and everything checks out
-		if(!CategoryList->WasCanceled() && CategoryList->GetSelected() && !CategoryList->GetSelected()->Properties["CATEGORY"].empty())
-		{
-			//Clear the setting list
-			List->ClearItems();
-
-			//Add all settings from the catagory
-			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->Properties["CATEGORY"]];
-			for(int i = 0; i != items.size(); i ++)
-			{
-				SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(items[i]->name, "");
-				item->IntProperties["MDFNCS"] = (uint64_t)items[i];
-				List->AddItem(item);
-			}
-
-			//Sort the setting list
-			List->Sort(CompareItems);
-
-			//HACK: Create the interface without input wait until the header is update
-			Summerface_Ptr sface = Summerface::Create("SettingList", List);
-			sface->SetInputWait(false);
-			sface->Do();
-		}
-		else
-		{
-			//Done
-			return;
-		}
-	}
-}
 
 void							SettingMenu::LoadSettings						()
 {
