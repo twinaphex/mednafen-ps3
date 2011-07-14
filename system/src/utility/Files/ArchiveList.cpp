@@ -1,7 +1,7 @@
 #include <es_system.h>
 
 											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : 
-	SummerfaceList(aRegion),
+	AnchoredListView(aRegion),
 	FileName(aFileName),
 	Archive(0)
 {

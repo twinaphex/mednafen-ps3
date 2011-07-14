@@ -2,17 +2,29 @@
 
 namespace
 {
-	bool								AlphaSortDirectory					(SummerfaceItem_Ptr a, SummerfaceItem_Ptr b)
+	bool								AlphaSortDirectory					(FileSelect::DirectoryItem_Ptr a, FileSelect::DirectoryItem_Ptr b)
 	{
-		if(a->IntProperties["DIRECTORY"] == 1 && b->IntProperties["DIRECTORY"] == 0)		return true;
-		if(a->IntProperties["DIRECTORY"] == 0 && b->IntProperties["DIRECTORY"] == 1)		return false;
+		if(a->IsDirectory && !b->IsDirectory)		return true;
+		if(!a->IsDirectory && b->IsDirectory)		return false;
 		return a->GetText() < b->GetText();
 	}
 }
 
 
+								FileSelect::DirectoryItem::DirectoryItem	(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile, bool aBookMark) :
+	Name(aName),
+	Extension(Utility::GetExtension(aPath)),
+	Image(aDirectory ? "FolderICON" : (ImageManager::GetImage(Extension + "ICON") ? Extension + "ICON" : "FileICON")),
+	Path(aPath),
+	IsDirectory(aDirectory),
+	IsFile(aFile),
+	IsBookMark(aBookMark)
+{
+}
+
+
 										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook) :
-	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+	List(smartptr::make_shared<DirectoryList>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("List", List)),
 	Header(aHeader),
 	BookMarks(aBookMarks)
@@ -33,20 +45,17 @@ int										FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::s
 	//Use the input conduit to toggle bookmarks
 	if(aButton == ES_BUTTON_AUXRIGHT2)
 	{
-		SummerfaceItem_Ptr item = List->GetSelected();
-		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), item->Properties["PATH"]);
+		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), List->GetSelected()->Path);
 		
 		if(bookmark != BookMarks.end())
 		{
 			BookMarks.erase(bookmark);
-			item->IntProperties["BOOKMARK"] = 0;
-			item->SetColors(Colors::Normal, Colors::HighLight);
+			List->GetSelected()->IsBookMark = false;
 		}
 		else
 		{
-			BookMarks.push_back(item->Properties["PATH"]);
-			item->IntProperties["BOOKMARK"] = 1;
-			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
+			BookMarks.push_back(List->GetSelected()->Path);
+			List->GetSelected()->IsBookMark = true;
 		}
 
 		//Eat the input
@@ -83,15 +92,15 @@ std::string								FileSelect::GetFile					()
 		}
 		
 		//If a directory was selected, list it
-		if(List->GetSelected()->IntProperties["DIRECTORY"])
+		if(List->GetSelected()->IsDirectory)
 		{
-			Paths.push(List->GetSelected()->Properties["PATH"]);
+			Paths.push(List->GetSelected()->Path);
 			LoadList(Paths.top());
 		}
 		//If a file was selected, return it
 		else
 		{
-			return List->GetSelected()->Properties["PATH"];
+			return List->GetSelected()->Path;
 			break;
 		}
 	}
@@ -104,13 +113,12 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	//Prep the list for this directory
 	List->ClearItems();
 	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
-	List->SetView(smartptr::make_shared<AnchoredListView>(List, true));
 
 	//If the path is empty, list the drive selection and bookmarks
 	//TODO: Support drive selection on windows
 	if(aPath.empty())
 	{
-		List->AddItem(MakeItem("Local Files", "/", true, false));
+		List->AddItem(boost::make_shared<DirectoryItem>("Local Files", "/", true, false, std::find(BookMarks.begin(), BookMarks.end(), "/") != BookMarks.end()));
 
 		//Load bookmarks
 		for(BookmarkList::iterator i = BookMarks.begin(); i != BookMarks.end(); i ++)
@@ -132,7 +140,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 						directory = true;
 				}
 				
-				List->AddItem(MakeItem(nicename, *i, directory, !directory));
+				List->AddItem(boost::make_shared<DirectoryItem>(nicename, *i, directory, !directory, true));
 			}
 		}
 	}
@@ -143,29 +151,10 @@ void								FileSelect::LoadList						(const std::string& aPath)
 
 		for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 		{
-			List->AddItem(MakeItem(*i, aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/'));
+			List->AddItem(boost::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
 		}
 
 		List->Sort(AlphaSortDirectory);
 	}
-}
-
-SummerfaceItem_Ptr					FileSelect::MakeItem						(const std::string& aName, const std::string& aPath, bool aDirectory, bool aFile)
-{
-	std::string extension = Utility::GetExtension(aPath);
-
-	SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(aName, aDirectory ? "FolderICON" : (ImageManager::GetImage(extension + "ICON") ? extension + "ICON" : "FileICON"));
-	item->IntProperties["DIRECTORY"] = aDirectory;
-	item->IntProperties["FILE"] = aFile;
-	item->IntProperties["BOOKMARK"] = std::find(BookMarks.begin(), BookMarks.end(), aPath) != BookMarks.end();
-	item->Properties["PATH"] = aPath;
-	item->Properties["THUMB"] = Utility::GetDirectory(aPath) + "/__images/" + Utility::GetFileName(aPath) + ".png";
-
-	if(item->IntProperties["BOOKMARK"])
-	{
-		item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
-	}
-
-	return item;
 }
 

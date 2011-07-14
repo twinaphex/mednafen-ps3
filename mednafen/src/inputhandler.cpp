@@ -77,14 +77,13 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
-	Summerface_Ptr sface;
+	Summerface_Ptr sface = Summerface::Create();
 
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
 		//More than one type, run a list to choose
-		SummerfaceList_Ptr linelist = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 20));
-		linelist->SetView(smartptr::make_shared<AnchoredListView>(linelist));
+		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > linelist = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 20));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
@@ -93,7 +92,7 @@ void							InputHandler::Configure				()
 			linelist->AddItem(item);
 		}
 
-		sface = Summerface::Create("Categories", linelist);
+		sface->AddWindow("Categories", linelist);
 		sface->Do();
 
 		PadType = linelist->GetSelected()->Properties["REALNAME"];
@@ -116,18 +115,10 @@ void							InputHandler::Configure				()
 	//Create the window to receive input
 	SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
 
-	//Add the window to any existing summerface, or create a new one if needed 
-	if(sface)
-	{
-		sface->AddWindow("InputWindow", button);
-	}
-	else
-	{
-		sface = Summerface::Create("InputWindow", button);
-	}
-
-	//Attach the conduit
+	//Add the window to the interface and attach the input hook
+	sface->AddWindow("InputWindow", button);
 	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
+	sface->SetInputWait(false);
 
 	//Attach any available layout images
 	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
@@ -136,9 +127,6 @@ void							InputHandler::Configure				()
 		sface->AddWindow("InputImage", smartptr::make_shared<SummerfaceImage>(Area(10, 50, 80, 40), imagename));
 		sface->SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
 	}
-
-	//Clear the input wait flag
-	sface->SetInputWait(false);
 
 	//Grab all of the buttons
 	for(int j = 0; j != inputs.size(); j ++)

@@ -1,7 +1,7 @@
 #ifndef SYSTEM__ARCHIVE_H
 #define SYSTEM__ARCHIVE_H
 
-class												ArchiveList : public SummerfaceList
+class												ArchiveList : public AnchoredListView<SummerfaceItem>
 {
 	public:
 													ArchiveList						(const Area& aRegion, const std::string& aFileName); //External

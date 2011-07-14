@@ -87,11 +87,10 @@ class							CheatMenu
 	public:
 		///Create a new CheatMenu.
 								CheatMenu				() :
-			CheatList(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+			CheatList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
 			Blank(false)
 		{
 			//Make the menu
-			CheatList->SetView(smartptr::make_shared<AnchoredListView>(CheatList, true));
 			CheatList->SetHeader("Available Cheats");
 
 			//Insert all of the cheats
@@ -229,7 +228,7 @@ class							CheatMenu
 		}
 
 	private:
-		SummerfaceList_Ptr		CheatList;				///<List of Cheats.
+		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> >	CheatList;				///<List of Cheats.
 		bool					Blank;					///<True if no Cheats were found.
 };
 

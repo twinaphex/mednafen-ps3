@@ -1,12 +1,12 @@
 #pragma once
 
 ///ListView subclass for handling a SettingLineView's input.
-class								SettingLineView : public AnchoredListView
+class								SettingLineView : public AnchoredListView<SummerfaceItem>
 {
 	public:
 		///Create a new SettingLineView.
 		///@param aList Weak pointer to the view's parent SummerfaceList.
-									SettingLineView						(SummerfaceList_WeakPtr aList) : AnchoredListView(aList), RefreshHeader(true) {}
+									SettingLineView						(const Area& aRegion) : AnchoredListView(aRegion), RefreshHeader(true) {}
 
 		///Blank virtual destructor for SettingLineView.
 		virtual						~SettingLineView					() {}
@@ -18,7 +18,7 @@ class								SettingLineView : public AnchoredListView
 
 		///Refresh the parent list's header if needed.
 		///@param aList The parent list.
-		void						DoHeaderRefresh						(SummerfaceList_Ptr aList);
+		void						DoHeaderRefresh						();
 
 		///Implement a DrawItem method for AnchoredListView.
 		///@param aList Parent list.
@@ -26,7 +26,7 @@ class								SettingLineView : public AnchoredListView
 		///@param aX X position to draw the item.
 		///@param aY Y position to draw the item.
 		///@param aSelected True if this item is the currently selected item.
-		virtual bool				DrawItem							(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected);
+		virtual bool				DrawItem							(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected);
 
 		///Handle changing a boolean setting.
 		///@param aButton System button that was pressed.
@@ -74,8 +74,8 @@ class								SettingMenu
 		std::string					TranslateCategory					(const char* aCategory);
 
 	private:
-		SummerfaceList_Ptr			List;								///<SummerfaceList used for displaying a category of settings.
-		SummerfaceList_Ptr			CategoryList;						///<SummerfaceList used for displaying all categories.
+		smartptr::shared_ptr<SettingLineView>		List;								///<SummerfaceList used for displaying a category of settings.
+		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> >			CategoryList;						///<SummerfaceList used for displaying all categories.
 		Summerface_Ptr				Interface;							///<Summerface object used for the CategoryList.
 
 		SettingCollection			Settings;							///<The cache of settings from mednafen.
