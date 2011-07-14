@@ -6,8 +6,7 @@ int							CheatSearcher::DoSearchFilterMenu		()
 {
 	if(!SearchFilterMenu)
 	{
-		SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
-		list->SetView(smartptr::make_shared<AnchoredListView>(list, true));
+		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
 		list->SetHeader("Step 1: Choose Cheat Search Type");
 
 		const char *const types[6] =
@@ -30,7 +29,7 @@ int							CheatSearcher::DoSearchFilterMenu		()
 
 	SearchFilterMenu->Do();
 
-	SummerfaceList_Ptr plist = smartptr::static_pointer_cast<SummerfaceList>(SearchFilterMenu->GetWindow("TYPES"));
+	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > plist = smartptr::static_pointer_cast<AnchoredListView<SummerfaceItem> >(SearchFilterMenu->GetWindow("TYPES"));
 	return plist->WasCanceled() ? -1 : plist->GetSelection() * 100;
 }
 
@@ -56,8 +55,7 @@ bool						CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 	MDFNI_CheatSearchGet(GetResults, 0);
 
 	//Build the list
-	SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
-	list->SetView(smartptr::make_shared<AnchoredListView>(list, true));
+	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
 	list->SetHeader("Next Step: Choose a cheat, if any, that you want to install.");
 
 	for(ResultList::iterator i = Results.begin(); i != Results.end(); i ++)

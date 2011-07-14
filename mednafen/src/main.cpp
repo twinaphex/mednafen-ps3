@@ -68,7 +68,6 @@ void				ReloadEmulator			(const std::string& aFileName)
 		//Load file as an archive
 //		ArchiveList_Ptr archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
 		smartptr::shared_ptr<ArchiveList> archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
-		archive->SetView(smartptr::make_shared<AnchoredListView>(archive, true));
 		Summerface_Ptr sface = Summerface::Create("Archive", archive);
 
 		//If there are no items we are lost

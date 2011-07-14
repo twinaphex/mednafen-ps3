@@ -23,96 +23,92 @@ static bool						CompareItems									(SummerfaceItem_Ptr a, SummerfaceItem_Ptr 
 
 bool							SettingLineView::Input							(uint32_t aButton)
 {
-	SummerfaceList_Ptr List;
-	if(TryGetList(List))
+	//Leave if there is no list item
+	if(!GetSelected() || !GetSelected()->IntProperties["MDFNCS"] || !GetInterface())
 	{
-		//Leave if there is no list item
-		if(!List->GetSelected() || !List->GetSelected()->IntProperties["MDFNCS"] || !List->GetInterface())
-		{
-			return false;
-		}
+		return false;
+	}
 
-		//Get a refence to the setting
-		const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->IntProperties["MDFNCS"];
+	//Get a refence to the setting
+	const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
 
-		//HACK: Set the input wait flag if no header refresh is waiting
-		if(RefreshHeader == false && List->GetInterface())
-		{
-			List->GetInterface()->SetInputWait(true);
-		}
+	//HACK: Set the input wait flag if no header refresh is waiting
+	if(RefreshHeader == false && GetInterface())
+	{
+		GetInterface()->SetInputWait(true);
+	}
 
-		//Refresh the header
-		DoHeaderRefresh(List);
+	//Refresh the header
+	DoHeaderRefresh();
 
-		//Check for and handle setting types
-		if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
-		{
-			return false;
-		}
-		else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(aButton, Setting))
-		{
-			return false;
-		}
-		else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(aButton, Setting))
-		{
-			return false;
-		}
+	//Check for and handle setting types
+	if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
+	{
+		return false;
+	}
+	else if((Setting.desc->type == MDFNST_UINT || Setting.desc->type == MDFNST_INT) && HandleInt(aButton, Setting))
+	{
+		return false;
+	}
+	else if(Setting.desc->type == MDFNST_ENUM && HandleEnum(aButton, Setting))
+	{
+		return false;
+	}
 
-		//Fire up the keyboard (may be canceled by setting handlers)
-		if(aButton == ES_BUTTON_ACCEPT)
+	//Fire up the keyboard (may be canceled by setting handlers)
+	if(aButton == ES_BUTTON_ACCEPT)
+	{
+		//TODO: Error Checking?
+		std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
+		MDFNI_SetSetting(Setting.name, result.c_str());
+		MednafenEmu::ReadSettings();
+		return false;
+	}
+	//Set setting back to its default
+	else if(aButton == ES_BUTTON_SHIFT)
+	{
+		MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
+		MednafenEmu::ReadSettings();
+		return false;
+	}
+	//Browse for a file and use its path as the setting value (may be canceled by setting handlers)
+	else if(aButton == ES_BUTTON_TAB)
+	{
+		std::vector<std::string> nomarks;
+		FileSelect browse("Select File", nomarks, "");
+		
+		std::string result = browse.GetFile();
+		if(result.length() != 0)
 		{
-			//TODO: Error Checking?
-			std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
 			MDFNI_SetSetting(Setting.name, result.c_str());
 			MednafenEmu::ReadSettings();
-			return false;
 		}
-		//Set setting back to its default
-		else if(aButton == ES_BUTTON_SHIFT)
+
+		return false;
+	}
+
+	//If the button isn't left or right pass it to the AnchoredListView class.
+	if(aButton != ES_BUTTON_LEFT && aButton != ES_BUTTON_RIGHT)
+	{
+		//Cache the selected item
+		SummerfaceItem_Ptr selected = GetSelected();
+
+		//Pass it to the base
+		if(!AnchoredListView::Input(aButton))
 		{
-			MDFNI_SetSetting(Setting.name, Setting.desc->default_value);
-			MednafenEmu::ReadSettings();
-			return false;
-		}
-		//Browse for a file and use its path as the setting value (may be canceled by setting handlers)
-		else if(aButton == ES_BUTTON_TAB)
-		{
-			std::vector<std::string> nomarks;
-			FileSelect browse("Select File", nomarks, "");
-			
-			std::string result = browse.GetFile();
-			if(result.length() != 0)
+			//Schedule a header update if needed
+			if(selected != GetSelected())
 			{
-				MDFNI_SetSetting(Setting.name, result.c_str());
-				MednafenEmu::ReadSettings();
+				RefreshHeader = true;
+				DoHeaderRefresh();
 			}
 
 			return false;
 		}
-
-		//If the button isn't left or right pass it to the AnchoredListView class.
-		if(aButton != ES_BUTTON_LEFT && aButton != ES_BUTTON_RIGHT)
+		//The base list view said to exit
+		else
 		{
-			//Cache the selected item
-			SummerfaceItem_Ptr selected = List->GetSelected();
-
-			//Pass it to the base
-			if(!AnchoredListView::Input(aButton))
-			{
-				//Schedule a header update if needed
-				if(selected != List->GetSelected())
-				{
-					RefreshHeader = true;
-					DoHeaderRefresh(List);
-				}
-
-				return false;
-			}
-			//The base list view said to exit
-			else
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 
@@ -120,28 +116,28 @@ bool							SettingLineView::Input							(uint32_t aButton)
 	return false;
 }
 
-void							SettingLineView::DoHeaderRefresh				(SummerfaceList_Ptr aList)
+void							SettingLineView::DoHeaderRefresh				()
 {
 	//If a refresh is scheduled and a list item is available
-	if(RefreshHeader && aList && aList->GetSelected() && aList->GetSelected()->IntProperties["MDFNCS"])
+	if(RefreshHeader && GetSelected() && GetSelected()->IntProperties["MDFNCS"])
 	{
 		//Set the header
-		const MDFNCS& Setting = *(const MDFNCS*)aList->GetSelected()->IntProperties["MDFNCS"];
-		aList->SetHeader(Setting.desc->description);
+		const MDFNCS& Setting = *(const MDFNCS*)GetSelected()->IntProperties["MDFNCS"];
+		SetHeader(Setting.desc->description);
 	}
 }
 
-bool							SettingLineView::DrawItem						(SummerfaceList_Ptr aList, SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
+bool							SettingLineView::DrawItem						(SummerfaceItem_Ptr aItem, uint32_t aX, uint32_t aY, bool aSelected)
 {
 	//Tell the base class to do its part
-	AnchoredListView::DrawItem(aList, aItem, aX, aY, aSelected);
+	AnchoredListView::DrawItem(aItem, aX, aY, aSelected);
 
 	//Get a pointer to the setting and, if valid, draw it
 	const MDFNCS* setting = (const MDFNCS*)aItem->IntProperties["MDFNCS"];
 	if(setting)
 	{
 		//Draw using special casing for bools
-		aList->GetFont()->PutString((setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(setting->name).c_str(), aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+		GetFont()->PutString((setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(setting->name).c_str(), aX + (ESVideo::GetClip().Width / 3) * 2, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
 	}
 
 	return false;
@@ -233,8 +229,7 @@ bool							SettingLineView::HandleEnum						(uint32_t aButton, const MDFNCS& aSe
 	else if(aButton == ES_BUTTON_ACCEPT)
 	{
 		//Create the list
-		SummerfaceList_Ptr list = smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80));
-		list->SetView(smartptr::make_shared<AnchoredListView>(list));
+		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
 		list->SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
 
 		//Place all settings into the list
@@ -265,19 +260,15 @@ bool							SettingLineView::HandleEnum						(uint32_t aButton, const MDFNCS& aSe
 
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
-	CategoryList(smartptr::make_shared<SummerfaceList>(Area(10, 10, 80, 80))),
+	List(smartptr::make_shared<SettingLineView>(Area(10, 10, 80, 80))),
+	CategoryList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("Categories", CategoryList))
 {
 	//Cache the setting values from mednafen
 	LoadSettings();
 
 	//Setup the category list
-	CategoryList->SetView(smartptr::make_shared<AnchoredListView>(CategoryList));
 	CategoryList->SetHeader("Choose Setting Category");
-
-	//Setup the setting list
-	List->SetView(smartptr::make_shared<SettingLineView>(List));
 
 	//Stuff the category list
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)

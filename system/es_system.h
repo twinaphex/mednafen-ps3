@@ -20,6 +20,8 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #endif
 }
 
+#define ESShared(a) smartptr::shared_ptr<a >
+
 #include "src/ESThreads.h"
 #include "src/ESTexture.h"
 #include "src/ESVideo.h"
