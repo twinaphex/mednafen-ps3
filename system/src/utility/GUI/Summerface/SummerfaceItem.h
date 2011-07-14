@@ -1,25 +1,38 @@
-#ifndef SYSTEM__SUMMERFACE_ITEM_H
-#define SYSTEM__SUMMERFACE_ITEM_H
+#pragma once
 
-class													SummerfaceItem
+template <typename T>
+class													SummerfaceItemUser
 {
 	public:
-														SummerfaceItem					(const std::string& aText, const std::string& aImage, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight);
-		virtual											~SummerfaceItem					();
+														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight)
+		{
+			SetText(aText);
+			SetImage(aImage);
+			SetColors(aNormalColor, aHighLightColor);
+		}
 
-		virtual void									SetText							(const std::string& aText);
-		virtual void									SetImage						(const std::string& aImage);
+														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, const T& aValue, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight)
+		{
+			SetText(aText);
+			SetImage(aImage);
+			SetColors(aNormalColor, aHighLightColor);
+			UserData = aValue;
+		}
 
-		virtual std::string								GetText							();
-		virtual std::string								GetImage						();
+		virtual											~SummerfaceItemUser				() {}
 
-		virtual void									SetColors						(uint32_t aNormalColor, uint32_t aSpecialColor);
-		virtual uint32_t								GetNormalColor					();
-		virtual uint32_t								GetHighLightColor				();
+		virtual void									SetText							(const std::string& aText) {Text = aText;}
+		virtual void									SetImage						(const std::string& aImage) {Image = aImage;}
 
-	public:
-		std::map<std::string, std::string>				Properties;
-		std::map<std::string, uint64_t>					IntProperties;
+		virtual std::string								GetText							() {return Text;}
+		virtual std::string								GetImage						() {return Image;}
+
+		virtual void									SetColors						(uint32_t aNormalColor, uint32_t aSpecialColor) {NormalColor = aNormalColor; SpecialColor = aSpecialColor;}
+
+		virtual uint32_t								GetNormalColor					() {return NormalColor;}
+		virtual uint32_t								GetHighLightColor				() {return SpecialColor;}
+
+		T												UserData;
 
 	private:
 		std::string										Text;
@@ -29,6 +42,5 @@ class													SummerfaceItem
 		uint32_t										SpecialColor;
 };
 
-
-#endif
-
+typedef SummerfaceItemUser<int>							SummerfaceItem;
+typedef smartptr::shared_ptr<SummerfaceItem>			SummerfaceItem_Ptr;

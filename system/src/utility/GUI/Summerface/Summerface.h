@@ -35,32 +35,54 @@ class													Summerface : public Menu, public smartptr::enable_shared_from_
 		///@return True to stop interface processing.
 		virtual bool									Input							(uint32_t aButton);
 
-		///Add a new SummerfaceWindow to the interface, The window will overwrite any window with the same name.
-		///If aWindow is an empty pointer the window will be removed.
-		///@param aName Name of the window.
-		///@param aWindow Pointer to the window.
-		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow) {Windows[aName] = aWindow; ActiveWindow = aName;}
+		///Add a new SummerfaceWindow to the interface.
+		///@param aName Name of the window. It is an error if a window matching aName is already present.
+		///@param aWindow Pointer to the window. Must be a valid pointer to a SummerfaceWindow object.
+		void											AddWindow						(const std::string& aName, SummerfaceWindow_Ptr aWindow)
+		{
+			assert(Windows.find(aName) == Windows.end());
+			assert(aWindow);
+			Windows[aName] = aWindow; ActiveWindow = aName;
+		}
 
-		///Remove a SummerfaceWindow from the interface. The operation does nothing if a name window does not exist.
-		///@param aName Name of the window.
-		void											RemoveWindow					(const std::string& aName) {Windows.erase(aName);};
+		///Remove a SummerfaceWindow from the interface.
+		///@param aName Name of the window. It is an error if a matching window is not found.
+		void											RemoveWindow					(const std::string& aName)
+		{
+			assert(Windows.find(aName) != Windows.end());
+			Windows.erase(aName);
+		}
 
 		///Get a SummerfaceWindow from the interface.
-		///@param aName Name of the window.
-		///@return A pointer to the SummerfaceWindow, or an empty pointer if the window is invalid.
-		SummerfaceWindow_Ptr							GetWindow						(const std::string& aName) {return Windows[aName];}
+		///@param aName Name of the window. It is an error if a matching window is not found.
+		///@return A pointer to the SummerfaceWindow.
+		SummerfaceWindow_Ptr							GetWindow						(const std::string& aName)
+		{
+			assert(Windows.find(aName) != Windows.end());
+			return Windows[aName];
+		}
 
 		///Set the SummerfaceWindow that receives input from the interface.
-		///@param aName Name of the window. If aWindow is invalid no window will receive input, only the input chain.
-		void											SetActiveWindow					(const std::string& aName) {ActiveWindow = aName;};
+		///@param aName Name of the window. It is an error if a matching window is not found.
+		void											SetActiveWindow					(const std::string& aName)
+		{
+			assert(Windows.find(aName) != Windows.end());
+			ActiveWindow = aName;
+		}
 
 		///Attach a new SummerfaceInputConduit to the interfaces input chain.
 		///@param aConduit Pointer to a SummerfaceInputConduit. Apply the same conduit more than once has no effect.
-		void											AttachConduit					(SummerfaceInputConduit_Ptr aConduit) {Handlers.insert(aConduit);}
+		void											AttachConduit					(SummerfaceInputConduit_Ptr aConduit)
+		{
+			Handlers.insert(aConduit);
+		}
 
 		///Remove a SummerfaceInputConduit from the interfaces input chain.
 		///@param aConduit Pointer to a SummerfaceInputConduit to remove. There is no effect if the conduit is not present.
-		void											DetachConduit					(SummerfaceInputConduit_Ptr aConduit) {Handlers.erase(aConduit);}
+		void											DetachConduit					(SummerfaceInputConduit_Ptr aConduit)
+		{
+			Handlers.erase(aConduit);
+		}
 
 		///Static function to set the callback for drawing the backgroun.
 		///@param aCallback Function called to draw the background.
