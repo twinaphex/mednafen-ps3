@@ -8,6 +8,10 @@ DEFINE_PTR_TYPE(Filter);
 
 class	MednafenEmu
 {
+	typedef SummerfaceItemUser<std::string>			CommandItem;
+	typedef smartptr::shared_ptr<CommandItem>		CommandItem_Ptr;
+	typedef GridListView<CommandItem>				CommandList;
+
 	public:
 		static void						Init				();
 		static void						Quit				();

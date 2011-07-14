@@ -273,6 +273,7 @@ void						MednafenEmu::CloseGame			()
 
 
 
+
 		//Clean up
 		MDFND_Rumble(0, 0);
 		
@@ -530,15 +531,13 @@ void						MednafenEmu::DoCommands			()
 		"Exit Game",			"ErrorIMAGE",		"DoExit",
 	};
 
-	smartptr::shared_ptr<GridListView<SummerfaceItem> > grid = smartptr::make_shared<GridListView<SummerfaceItem> >(Area(25, 25, 50, 50), 5, 3, true, false);
+	smartptr::shared_ptr<CommandList> grid = smartptr::make_shared<CommandList>(Area(25, 25, 50, 50), 5, 3, true, false);
 	grid->SetHeader("Choose Action");
 
 	//Add other commands
 	for(int i = 0; i != 15; i ++)
 	{
-		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(commands[i * 3], commands[i * 3 + 1]);
-		item->Properties["COMMAND"] = commands[i * 3 + 2];
-		grid->AddItem(item);
+		grid->AddItem(boost::make_shared<CommandItem>(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
 	}
 
 	Summerface_Ptr sface = Summerface::Create("Grid", grid);
@@ -553,7 +552,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	if(aInterface && aInterface->GetWindow(aWindow) && aButton == ES_BUTTON_ACCEPT)
 	{
 		smartptr::shared_ptr<GridListView<SummerfaceItem> > list = smartptr::static_pointer_cast<GridListView<SummerfaceItem> >(aInterface->GetWindow(aWindow));
-		command = list->GetSelected()->Properties["COMMAND"];
+		command = list->GetSelected()->UserData;
 	}
 	else if(!aInterface)
 	{

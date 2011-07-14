@@ -1,11 +1,15 @@
 #pragma once
 
+///Abstract class for displaying a list of items. Not complete until inherited by a view.
+///@tparam T Type of item stored in the list.
 template <typename T>
 class													SummerfaceList : public SummerfaceWindow, public SummerfaceCancelable
 {
-	typedef smartptr::shared_ptr<T>						Item_Ptr;
+	typedef smartptr::shared_ptr<T>						Item_Ptr;						///<The type of item in the list.
 
 	public:
+		///Create a new SummerfaceList.
+		///@param aRegion Area in % of the screen covered by the list.
 														SummerfaceList					(const Area& aRegion) :
 			SummerfaceWindow(aRegion),
 			SelectedIndex(0),
@@ -13,18 +17,47 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 		{
 		}
 
-		virtual											~SummerfaceList					() {};
+		///Empty virtual destructor.
+		virtual											~SummerfaceList					()
+		{
+		}
 
+		///Return the index of the currently selected item, it is safe to assume the returned item is always a valid item.
+		//It is an error if the index is not currently valid, it is the responsibility of the caller to ensure the list is not empty before calling.
+		///@return The index of the currently selected item. 
 		uint32_t										GetSelection					() const
 		{
+			assert(Items.size() != 0 && SelectedIndex < Items.size());
 			return SelectedIndex;
 		}
 
+		///Return a pointer to the currently selected item, it is safe to assume the returned item is always a valid item.
+		///It is an error if the list selection is not currently valid, it is the responsibility of the caller to ensure the list is not empty before calling.
+		Item_Ptr										GetSelected						() const
+		{
+			assert(Items.size() != 0 && SelectedIndex < Items.size());
+			return Items[SelectedIndex];
+		}
+
+		///Return a pointer to the item at a given index, it is safe to assume the returned item is always a valid item.
+		//It is an error if aIndex is not currently valid.
+		Item_Ptr										GetItem							(uint32_t aIndex)
+		{
+			assert(Items.size() != 0 && aIndex < Items.size());
+			return Items[aIndex];
+		}
+
+		///Set the lists selection to the specified index. If aIndex is invalid the index is set to zero.
+		///@param aIndex Item index in the list to select.
 		void											SetSelection					(uint32_t aIndex)
 		{
 			SelectedIndex = (aIndex < Items.size()) ? aIndex : 0;
 		}
 
+		///Set the lists selection to the item with the specified name. If no item is invalid the index is set
+		///is found the selection is set to zero. If more than one item shares the same name the first will be
+		///selected.
+		///@param aName Name of the item to select.
 		void											SetSelection					(const std::string& aText)
 		{
 			for(int i = 0; i != Items.size(); i ++)
@@ -39,20 +72,23 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 			SelectedIndex = 0;
 		}
 
-		Item_Ptr										GetSelected						() const {return (SelectedIndex < Items.size()) ? Items[SelectedIndex] : Item_Ptr();};
-		Item_Ptr										GetItem							(uint32_t aIndex) {return (aIndex < Items.size()) ? Items[aIndex] : Item_Ptr();};
-
+		///Add a new item to the list. It is an error if the item is null.
+		///@param aItem Item to add.
 		virtual void									AddItem							(Item_Ptr aItem)
 		{
+			assert(aItem);
 			Items.push_back(aItem);
 		}
 
+		///Remove all items from the list.
 		virtual void									ClearItems						()
 		{
 			Items.clear();
 			SelectedIndex = 0;
 		}
 
+		///Get the number of items currently in the list.
+		///@return The number of items in the list.
 		uint32_t										GetItemCount					() const
 		{
 			return Items.size();

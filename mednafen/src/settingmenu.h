@@ -20,6 +20,14 @@ class								SettingMenu
 {
 	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;	///<Collection type for the Settings cache
 
+	typedef SummerfaceItemUser<std::string>						CategoryListItem;
+	typedef smartptr::shared_ptr<CategoryListItem>				CategoryListItem_Ptr;
+	typedef AnchoredListView<CategoryListItem>					CategoryListType;
+	typedef smartptr::shared_ptr<CategoryListType>				CategoryListType_Ptr;
+
+	typedef AnchoredListView<SettingItem>						SettingListType;
+	typedef smartptr::shared_ptr<SettingListType>				SettingListType_Ptr;
+
 	public:
 		///Create a new SettingMenu.
 		///@param aDefaultCategory The name of the default category. This category will be selected at load, and shaded in a special color.
@@ -62,8 +70,8 @@ class								SettingMenu
 		std::string					TranslateCategory					(const char* aCategory);
 
 	private:
-		smartptr::shared_ptr<AnchoredListView<SettingItem> >			List;								///<SummerfaceList used for displaying a category of settings.
-		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> >			CategoryList;						///<SummerfaceList used for displaying all categories.
+		SettingListType_Ptr			List;								///<SummerfaceList used for displaying a category of settings.
+		CategoryListType_Ptr		CategoryList;						///<SummerfaceList used for displaying all categories.
 		Summerface_Ptr				Interface;							///<Summerface object used for the CategoryList.
 
 		SettingCollection			Settings;							///<The cache of settings from mednafen.

@@ -2,6 +2,10 @@
 
 class												InputHandler
 {
+	typedef SummerfaceItemUser<std::string>			InputItem;
+	typedef smartptr::shared_ptr<InputItem>			InputItem_Ptr;
+	typedef AnchoredListView<InputItem>				InputList;
+
 	public:
 													InputHandler					(MDFNGI* aGameInfo);
 		virtual										~InputHandler					() {};

@@ -83,19 +83,17 @@ void							InputHandler::Configure				()
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
 		//More than one type, run a list to choose
-		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > linelist = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 20));
+		smartptr::shared_ptr<InputList> linelist = smartptr::make_shared<InputList>(Area(10, 10, 80, 20));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
-			SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "");
-			item->Properties["REALNAME"] = GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName;
-			linelist->AddItem(item);
+			linelist->AddItem(smartptr::make_shared<InputItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "", GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName));
 		}
 
 		sface->AddWindow("Categories", linelist);
 		sface->Do();
 
-		PadType = linelist->GetSelected()->Properties["REALNAME"];
+		PadType = linelist->GetSelected()->UserData;
 	}
 	else
 	{

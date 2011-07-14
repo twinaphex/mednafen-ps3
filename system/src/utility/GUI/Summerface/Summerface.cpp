@@ -3,7 +3,9 @@
 
 Summerface_Ptr								Summerface::Create									()
 {
-	return smartptr::make_shared<Summerface>();
+	Summerface_Ptr sface = smartptr::make_shared<Summerface>();
+	assert(sface);
+	return sface;
 }
 
 
@@ -11,6 +13,9 @@ Summerface_Ptr								Summerface::Create									(const std::string& aName, Summ
 {
 	Summerface_Ptr sface = smartptr::make_shared<Summerface>();
 	sface->AddWindow(aName, aWindow);
+
+	assert(sface);
+
 	return sface;
 }
 
@@ -42,7 +47,7 @@ bool										Summerface::Draw									()
 	//Draw the windows
 	for(std::map<std::string, SummerfaceWindow_Ptr>::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
-		if(i->second && i->second->PrepareDraw())
+		if(i->second->PrepareDraw())
 		{
 			//Window said to stop processing
 			return true;
@@ -55,6 +60,8 @@ bool										Summerface::Draw									()
 
 bool										Summerface::Input									(uint32_t aButton)
 {
+	assert(Windows[ActiveWindow]);
+
 	//Check for conduits
 	for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
 	{
@@ -69,7 +76,7 @@ bool										Summerface::Input									(uint32_t aButton)
 		}
 	}
 
-	return Windows[ActiveWindow] && Windows[ActiveWindow]->Input(aButton);
+	return Windows[ActiveWindow]->Input(aButton);
 }
 
 bool										(*Summerface::BackgroundCallback)					() = 0;

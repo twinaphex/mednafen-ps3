@@ -22,8 +22,8 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 }
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(smartptr::make_shared<AnchoredListView<SettingItem> >(Area(10, 10, 80, 80))),
-	CategoryList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
+	List(smartptr::make_shared<SettingListType>(Area(10, 10, 80, 80))),
+	CategoryList(smartptr::make_shared<CategoryListType>(Area(10, 10, 80, 80))),
 	Interface(Summerface::Create("Categories", CategoryList))
 {
 	//Cache the setting values from mednafen
@@ -35,18 +35,7 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 	//Stuff the category list
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
 	{
-		//Create the item
-		SummerfaceItem_Ptr item = smartptr::make_shared<SummerfaceItem>(TranslateCategory(i->first.c_str()), "");
-		item->Properties["CATEGORY"] = i->first;
-
-		//Highlight it if it is the default category
-		if(item->Properties["CATEGORY"] == aDefaultCategory)
-		{
-			item->SetColors(Colors::SpecialNormal, Colors::SpecialHighLight);
-		}
-
-		//Stash it in the list
-		CategoryList->AddItem(item);
+		CategoryList->AddItem(smartptr::make_shared<CategoryListItem>(TranslateCategory(i->first.c_str()), "", i->first));
 	}
 
 	//Sort the list and choose the default selection
@@ -62,13 +51,13 @@ void							SettingMenu::Do									()
 		Interface->Do();
 
 		//Leave if the category list is canceld and everything checks out
-		if(!CategoryList->WasCanceled() && CategoryList->GetSelected() && !CategoryList->GetSelected()->Properties["CATEGORY"].empty())
+		if(!CategoryList->WasCanceled())
 		{
 			//Clear the setting list
 			List->ClearItems();
 
 			//Add all settings from the catagory
-			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->Properties["CATEGORY"]];
+			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->UserData];
 			for(int i = 0; i != items.size(); i ++)
 			{
 				List->AddItem(smartptr::make_shared<SettingItem>(items[i]));
