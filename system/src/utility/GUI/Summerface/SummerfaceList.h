@@ -81,9 +81,7 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 
 	private:
 		uint32_t										SelectedIndex;
-
 		Font*											LabelFont;
-		
 		std::vector<Item_Ptr>							Items;
 };
 
@@ -163,8 +161,6 @@ class													GridListView : public ListView<T>
 };
 
 ///Implement
-
-
 template <typename T>
 											GridListView<T>::GridListView						(const Area& aRegion, uint32_t aWidth, uint32_t aHeight, bool aHeader, bool aLabels) :
 	ListView<T>(aRegion),
@@ -279,7 +275,25 @@ bool										AnchoredListView<T>::DrawItem						(Item_Ptr aItem, uint32_t aX, u
 		aX += width;
 	}
 
-	this->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	//Get the text
+	const std::string text = aItem->GetText();
+
+	//No tab, just draw
+	if(aItem->GetText().find("\t") == std::string::npos)
+	{
+		this->GetFont()->PutString(aItem->GetText().c_str(), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	}
+	//Draw parts after tab right aligned
+	else
+	{
+		//Put first part
+		uint32_t count = this->GetFont()->PutString(text.c_str(), text.find("\t"), aX, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+
+		//Put second part
+		std::string second = text.substr(count + 1);
+		int32_t x = ESVideo::GetClip().Width - this->GetFont()->MeasureString(second.c_str()) - 10;
+		this->GetFont()->PutString(second.c_str(), x, aY, aSelected ? aItem->GetHighLightColor() : aItem->GetNormalColor(), true);
+	}
 
 	return false;
 }
