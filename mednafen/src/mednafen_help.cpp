@@ -551,7 +551,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 	if(aInterface && aInterface->GetWindow(aWindow) && aButton == ES_BUTTON_ACCEPT)
 	{
-		smartptr::shared_ptr<GridListView<SummerfaceItem> > list = smartptr::static_pointer_cast<GridListView<SummerfaceItem> >(aInterface->GetWindow(aWindow));
+		smartptr::shared_ptr<CommandList> list = smartptr::static_pointer_cast<CommandList>(aInterface->GetWindow(aWindow));
 		command = list->GetSelected()->UserData;
 	}
 	else if(!aInterface)
