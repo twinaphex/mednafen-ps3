@@ -17,55 +17,48 @@ Summerface_Ptr								Summerface::Create									(const std::string& aName, Summ
 
 bool										Summerface::Draw									()
 {
+	//Get the screen size and reset the clip
 	uint32_t screenW = ESVideo::GetScreenWidth();
 	uint32_t screenH = ESVideo::GetScreenHeight();
-
 	ESVideo::SetClip(Area(0, 0, screenW, screenH));
 
-	if(BackgroundCallback && BackgroundCallback())
-	{
-		Texture* tex = ImageManager::GetImage("GUIOverlay");
+	//Draw the background
+	bool used_background = BackgroundCallback && BackgroundCallback();
 
-		if(!tex)
-		{
-			ESVideo::FillRectangle(Area(0, 0, screenW, screenH), 0x00000080);		
-		}
-		else
-		{
-			ESVideo::PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFF80);
-		}
+	//Search for a background image
+	Texture* tex = ImageManager::GetImage(used_background ? "GUIOverlay" : "GUIBackground");
+
+	//No backgound image, use a solid color
+	if(!tex)
+	{
+		ESVideo::FillRectangle(Area(0, 0, screenW, screenH), used_background ? 0x00000080 : Colors::Border);
 	}
+	//Draw the backgound image
 	else
 	{
-		Texture* tex = ImageManager::GetImage("GUIBackground");
-
-		if(!tex)
-		{
-			ESVideo::FillRectangle(Area(0, 0, screenW, screenH), Colors::Border);		
-		}
-		else
-		{
-			ESVideo::PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFFFF);
-		}
+		ESVideo::PlaceTexture(tex, Area(0, 0, screenW, screenH), Area(0, 0, tex->GetWidth(), tex->GetHeight()), 0xFFFFFF80);
 	}
 
+	//Draw the windows
 	for(std::map<std::string, SummerfaceWindow_Ptr>::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
 		if(i->second && i->second->PrepareDraw())
 		{
+			//Window said to stop processing
 			return true;
 		}
 	}
 
+	//Continue processing
 	return false;
 }
 
 bool										Summerface::Input									(uint32_t aButton)
 {
-	if(Windows.find(ActiveWindow) != Windows.end())
+	//Check for conduits
+	for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
 	{
-		//Check for conduits
-		for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
+		if(*i)
 		{
 			int result = (*i)->HandleInput(shared_from_this(), ActiveWindow, aButton);
 
@@ -74,39 +67,9 @@ bool										Summerface::Input									(uint32_t aButton)
 				return (result > 0) ? false : true;
 			}
 		}
-
-		return Windows[ActiveWindow]->Input(aButton);
 	}
 
-	return false;
-}
-
-void										Summerface::AddWindow								(const std::string& aName, SummerfaceWindow_Ptr aWindow)
-{
-	ErrorCheck(!!aWindow, "Summerface::AddWindow: Window is not a valid pointer. [Name: %s]", aName.c_str());
-	ErrorCheck(Windows.find(aName) == Windows.end(), "Summerface::AddWindow: Window with name is already present. [Name: %s]", aName.c_str());
-
-	Windows[aName] = aWindow;
-	aWindow->SetInterface(shared_from_this(), aName);
-	ActiveWindow = aName;
-}
-
-void										Summerface::RemoveWindow							(const std::string& aName)
-{
-	ErrorCheck(Windows.find(aName) != Windows.end(), "Summerface::RemoveWindow: Window with name is not present. [Name: %s]", aName.c_str());
-	Windows.erase(aName);
-}
-
-SummerfaceWindow_Ptr						Summerface::GetWindow								(const std::string& aName)
-{
-	ErrorCheck(Windows.find(aName) != Windows.end(), "Summerface::GetWindow: Window with name is not present. [Name: %s]", aName.c_str());
-	return Windows[aName];
-}
-
-void										Summerface::SetActiveWindow							(const std::string& aName)
-{
-	ErrorCheck(Windows.find(aName) != Windows.end(), "Summerface::SetActiveWindow: Window with name is not present. [Name: %s]", aName.c_str());
-	ActiveWindow = aName;
+	return Windows[ActiveWindow] && Windows[ActiveWindow]->Input(aButton);
 }
 
 bool										(*Summerface::BackgroundCallback)					() = 0;
