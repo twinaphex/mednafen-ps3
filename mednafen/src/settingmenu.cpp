@@ -24,7 +24,7 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
 	List(smartptr::make_shared<SettingListType>(Area(10, 10, 80, 80))),
 	CategoryList(smartptr::make_shared<CategoryListType>(Area(10, 10, 80, 80))),
-	Interface(Summerface::Create("Categories", CategoryList))
+	CategoryInterface(Summerface::Create("Categories", CategoryList))
 {
 	//Cache the setting values from mednafen
 	LoadSettings();
@@ -48,16 +48,16 @@ void							SettingMenu::Do									()
 	while(!WantToDie())
 	{
 		//Run the category list
-		Interface->Do();
+		CategoryInterface->Do();
 
-		//Leave if the category list is canceld and everything checks out
+		//Leave if the category list is canceled and everything checks out
 		if(!CategoryList->WasCanceled())
 		{
 			//Clear the setting list
 			List->ClearItems();
 
 			//Add all settings from the catagory
-			std::vector<const MDFNCS*> items = Settings[CategoryList->GetSelected()->UserData];
+			const std::vector<const MDFNCS*>& items = Settings[CategoryList->GetSelected()->UserData];
 			for(int i = 0; i != items.size(); i ++)
 			{
 				List->AddItem(smartptr::make_shared<SettingItem>(items[i]));
@@ -66,7 +66,7 @@ void							SettingMenu::Do									()
 			//Sort the setting list
 			List->Sort(CompareItems);
 
-			//HACK: Create the interface without input wait until the header is update
+			//HACK: Create the interface without input wait until the header is updated
 			Summerface_Ptr sface = Summerface::Create("SettingList", List);
 			sface->SetInputWait(false);
 			sface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<SettingMenu> >(this));
@@ -82,19 +82,15 @@ void							SettingMenu::Do									()
 
 int								SettingMenu::HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 {
-	//Leave if there is no list item
-	if(!List || !List->GetSelected() || !aInterface)
-	{
-		return 0;
-	}
+	assert(List && List->GetItemCount() != 0);
 
 	//Get a refence to the setting
 	const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->Setting;
 
 	//HACK: Set the input wait flag if no header refresh is waiting
-	if(RefreshHeader == false && List->GetInterface())
+	if(RefreshHeader == false)
 	{
-		List->GetInterface()->SetInputWait(true);
+		aInterface->SetInputWait(true);
 	}
 
 	//Refresh the header
@@ -146,14 +142,14 @@ int								SettingMenu::HandleInput						(Summerface_Ptr aInterface, const std::
 		return 1;
 	}
 
-	//If the button isn't left or right pass it to the AnchoredListView class.
+	//Eat any left and right buttons, to prevent paging the list
 	return (aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT) ? 1 : 0;
 }
 
 void							SettingMenu::DoHeaderRefresh					()
 {
 	//If a refresh is scheduled and a list item is available
-	if(RefreshHeader && List->GetSelected() && List->GetSelected()->Setting)
+	if(RefreshHeader)
 	{
 		//Set the header
 		List->SetHeader(List->GetSelected()->Setting->desc->description);
@@ -208,6 +204,7 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 {
 	//Get a poitner to the enumeration values
 	const MDFNSetting_EnumList* values = aSetting.desc->enum_list;
+	assert(values);
 
 	//Cycle values with left and right
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
@@ -246,7 +243,7 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 	else if(aButton == ES_BUTTON_ACCEPT)
 	{
 		//Create the list
-		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
+		EnumListType_Ptr list = smartptr::make_shared<EnumListType>(Area(10, 10, 80, 80));
 		list->SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
 
 		//Place all settings into the list
@@ -255,6 +252,8 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 			list->AddItem(smartptr::make_shared<SummerfaceItem>(values->string, ""));
 			values ++;
 		}
+
+		assert(list->GetItemCount() != 0);
 
 		//Run the list
 		Summerface::Create("List", list)->Do();
@@ -270,7 +269,7 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 		return true;
 	}
 
-	//Block using the file browser to set an int value
+	//Block using the file browser to set an enum value
 	return aButton == ES_BUTTON_TAB;
 }
 
@@ -279,6 +278,7 @@ void							SettingMenu::LoadSettings						()
 {
 	//Get the settings map from mednafen
 	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
+	assert(settings);
 
 	//Iterate it and get all of the settings
 	for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
