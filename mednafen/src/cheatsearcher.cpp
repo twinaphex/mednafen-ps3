@@ -2,12 +2,13 @@
 
 #include "cheatsearcher.h"
 
-int							CheatSearcher::DoSearchFilterMenu		()
+int									CheatSearcher::DoSearchFilterMenu		()
 {
-	if(!SearchFilterMenu)
+	//Create the list if needed
+	if(!SearchFilterList)
 	{
-		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
-		list->SetHeader("Step 1: Choose Cheat Search Type");
+		SearchFilterList = smartptr::make_shared<ModeListType>(Area(10, 10, 80, 80));
+		SearchFilterList->SetHeader("Step 1: Choose Cheat Search Type");
 
 		const char *const types[6] =
 		{
@@ -21,58 +22,61 @@ int							CheatSearcher::DoSearchFilterMenu		()
 
 		for(int i = 0; i != 6; i ++)
 		{
-			list->AddItem(smartptr::make_shared<SummerfaceItem>(types[i], ""));
+			SearchFilterList->AddItem(smartptr::make_shared<SummerfaceItem>(types[i], "", i));
 		}
-
-		SearchFilterMenu = Summerface::Create("TYPES", list);
 	}
 
-	SearchFilterMenu->Do();
-
-	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > plist = smartptr::static_pointer_cast<AnchoredListView<SummerfaceItem> >(SearchFilterMenu->GetWindow("TYPES"));
-	return plist->WasCanceled() ? -1 : plist->GetSelection() * 100;
+	//Run it and return the result
+	Summerface::Create("TYPES", SearchFilterList)->Do();
+	return SearchFilterList->WasCanceled() ? -1 : SearchFilterList->GetSelected()->UserData;
 }
 
-bool						CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
+bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 {
-	//Get the cheat results
-	Results.clear();
-	MDFNI_CheatSearchGet(GetResults, 0);
-
-	//Build the list
-	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80));
-	list->SetHeader("Next Step: Choose a cheat, if any, that you want to install.");
-
-	for(ResultList::iterator i = Results.begin(); i != Results.end(); i ++)
+	//Create a list if needed
+	if(!ResultList)
 	{
-		std::stringstream name;
-		name << std::hex << i->Address << std::dec << " " << i->Original << " " << i->Changed;
-		list->AddItem(smartptr::make_shared<SummerfaceItem>(name.str(), ""));
+		ResultList = smartptr::make_shared<ResultListType>(Area(10, 10, 80, 80));
+		ResultList->SetHeader("Next Step: Choose a cheat, if any, that you want to install.");
 	}
 
-	Summerface::Create("TYPES", list)->Do();
-
-	//If the list was not canceled
-	if(!list->WasCanceled())
+	//If there are any results, show them
+	if(MDFNI_CheatSearchGetCount() > 0)
 	{
-		const Result& item = Results.at(list->GetSelection());
+		//Get the cheat results
+		ResultList->ClearItems();
+		MDFNI_CheatSearchGet(GetResults, 0);
 
-		int64_t value = 0;
-		while(ESSUB_GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
+		//Run the list
+		Summerface::Create("TYPES", ResultList)->Do();
+
+		//If the list was not canceled
+		if(!ResultList->WasCanceled())
 		{
-			std::string name = ESSUB_GetString("Enter name for the cheat", "");
-			if(!name.empty())
+			//Get a value for the cheat
+			int64_t value = 0;
+			while(ESSUB_GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
 			{
-				MDFNI_AddCheat(name.c_str(), item.Address, value, 0, 'R', aBytes, aBigEndian);
-				return false;
+				//Get a name for the cheat
+				std::string name = ESSUB_GetString("Enter name for the cheat", "");
+				if(!name.empty())
+				{
+					MDFNI_AddCheat(name.c_str(), ResultList->GetSelected()->UserData.Address, value, 0, 'R', aBytes, aBigEndian);
+					return false;
+				}
 			}
 		}
+	}
+	else
+	{
+		ESSUB_Error("Search produced no results.");
+		return false;
 	}
 
 	return false;
 }
 
-void						CheatSearcher::Do						()
+void								CheatSearcher::Do						()
 {
 	//Get the search type
 	if(Mode == -1)
@@ -111,7 +115,7 @@ void						CheatSearcher::Do						()
 	else if(State == 1)
 	{
 		//Get a changed value if needed
-		if(State <= 2)
+		if(Mode <= 2)
 		{
 			//Get the value, but leave if canceled
 			if(!ESSUB_GetNumber(Changed, "Next Step: Enter Changed Value", 10, false))
@@ -152,16 +156,16 @@ void						CheatSearcher::Do						()
 	}
 }
 
-void						CheatSearcher::Reset					()
+void								CheatSearcher::Reset					()
 {
 	Mode = -1;
-	State = -1;
+	State = 0;
 }
 
-CheatSearcher::ResultList	CheatSearcher::Results;
-int32_t						CheatSearcher::Mode = -1;
-int32_t						CheatSearcher::State = 0;
-Summerface_Ptr				CheatSearcher::SearchFilterMenu;
-int64_t						CheatSearcher::Original;
-int64_t						CheatSearcher::Changed;
+CheatSearcher::ResultListType_Ptr	CheatSearcher::ResultList;
+int32_t								CheatSearcher::Mode = -1;
+int32_t								CheatSearcher::State = 0;
+CheatSearcher::ModeListType_Ptr		CheatSearcher::SearchFilterList;
+int64_t								CheatSearcher::Original;
+int64_t								CheatSearcher::Changed;
 

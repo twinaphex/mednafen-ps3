@@ -1,21 +1,34 @@
 #pragma once
 
-class								CheatSearcher
+class													CheatSearcher
 {
 	private:
-		struct						Result
+		struct											Result
 		{
-			uint32_t				Address;
-			int64_t					Original;
-			int64_t					Changed;
+			uint32_t									Address;
+			int64_t										Original;
+			int64_t										Changed;
 		};
 
-		typedef std::vector<Result>	ResultList;
-		static ResultList			Results;
-		static int					GetResults				(uint32_t aAddress, uint64_t aOriginal, uint64_t aValue, void* aData)
+		typedef AnchoredListView<SummerfaceItem>		ModeListType;
+		typedef smartptr::shared_ptr<ModeListType>		ModeListType_Ptr;	
+		typedef SummerfaceItemUser<Result>				ResultListItem;
+		typedef AnchoredListView<ResultListItem>		ResultListType;
+		typedef smartptr::shared_ptr<ResultListType>	ResultListType_Ptr;	
+
+		static ResultListType_Ptr						ResultList;
+		static int										GetResults				(uint32_t aAddress, uint64_t aOriginal, uint64_t aValue, void* aData)
 		{
+			//The name
+			std::stringstream name;
+			name << std::hex << aAddress << std::dec << " " << aOriginal << " " << aValue;
+
+			//The value
 			Result r = {aAddress, aOriginal, aValue};
-			Results.push_back(r);
+
+			//Add to list
+			ResultList->AddItem(boost::make_shared<ResultListItem>(name.str(), "", r));
+
 			return 1;
 		}
 
@@ -32,7 +45,7 @@ class								CheatSearcher
 		static int32_t				Mode;
 		static int32_t				State;
 
-		static Summerface_Ptr		SearchFilterMenu;
+		static ModeListType_Ptr		SearchFilterList;
 
 		static int64_t				Original;
 		static int64_t				Changed;
