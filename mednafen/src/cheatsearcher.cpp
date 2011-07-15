@@ -33,21 +33,6 @@ int							CheatSearcher::DoSearchFilterMenu		()
 	return plist->WasCanceled() ? -1 : plist->GetSelection() * 100;
 }
 
-bool						CheatSearcher::GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits)
-{
-	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, false);
-	number->SetHeader(aHeader);
-	Summerface::Create("NUMB", number)->Do();
-
-	if(!number->WasCanceled())
-	{
-		aValue = number->GetValue();
-		return true;
-	}
-
-	return false;
-}
-
 bool						CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 {
 	//Get the cheat results
@@ -73,7 +58,7 @@ bool						CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 		const Result& item = Results.at(list->GetSelection());
 
 		int64_t value = 0;
-		while(GetNumber(value, "Enter value to patch to (in decimal)", 10))
+		while(ESSUB_GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
 		{
 			std::string name = ESSUB_GetString("Enter name for the cheat", "");
 			if(!name.empty())
@@ -106,7 +91,7 @@ void						CheatSearcher::Do						()
 		if(Mode <= 1)
 		{
 			//Get the value, but leave if canceled
-			if(!GetNumber(Original, "Next Step: Enter Original Value"))
+			if(!ESSUB_GetNumber(Original, "Next Step: Enter Original Value", 10, false))
 			{
 				Reset();
 				return;
@@ -129,7 +114,7 @@ void						CheatSearcher::Do						()
 		if(State <= 2)
 		{
 			//Get the value, but leave if canceled
-			if(!GetNumber(Changed, "Next Step: Enter Changed Value"))
+			if(!ESSUB_GetNumber(Changed, "Next Step: Enter Changed Value", 10, false))
 			{
 				return;
 			}
@@ -141,7 +126,7 @@ void						CheatSearcher::Do						()
 
 		//Get the byte length
 		int64_t bytes = 0;
-		while(GetNumber(bytes, "Enter number of bytes to patch", 1))
+		while(ESSUB_GetNumber(bytes, "Enter number of bytes to patch", 1, false))
 		{
 			//Handle case where bytes is invalid
 			if(bytes == 0 || bytes > 8)
