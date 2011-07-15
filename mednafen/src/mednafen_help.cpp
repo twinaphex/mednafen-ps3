@@ -7,23 +7,6 @@
 #include "mednafen_help.h"
 #include "settingmenu.h"
 
-//HACK
-#ifndef NO_LUA
-extern "C"
-{
-	#include <src/lua/lua.h>
-	#include <src/lua/lauxlib.h>
-	#include <src/lua/lualib.h>
-}
-
-extern luaL_reg emulib[];
-extern luaL_reg romlib[];
-extern luaL_reg joypadlib[];
-extern luaL_reg guilib[];
-extern luaL_reg memorylib[];
-extern uint32_t gui_array[1024 * 768];
-#endif
-
 namespace
 {
 	const MDFNSetting_EnumList	AspectEnumList[] =
@@ -180,9 +163,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 			Exit();
 		}
 
-		ROMData = (uint8_t*)aData;
-		ROMSize = aSize;
-
 		//HACK: Attach a default border
 		ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
 
@@ -191,10 +171,8 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//Reset states
 		MDFND_NetworkClose();
 		SkipCount = 0;
-		FrameCount = 0;
 		SkipNext = false;
 		IsLoaded = true;
-		IsPaused = false;
 		SuspendDraw = false;
 		RecordingVideo = false;
 		RecordingWave = false;
@@ -209,29 +187,6 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		Buffer->Clear(0);
 
-#ifndef NO_LUA
-		//HACK: Setup lua
-		std::string luafile = es_paths->Build(std::string("assets/lua/") + Utility::GetFileName(aFileName) + ".lua");
-		if(Utility::FileExists(luafile))
-		{
-			Lua = new LuaScripter();
-			Lua->RegisterLibrary("emu", emulib);
-			Lua->RegisterLibrary("rom", romlib);
-			Lua->RegisterLibrary("joypad", joypadlib);
-			Lua->RegisterLibrary("gui", guilib);
-			Lua->RegisterLibrary("memory", memorylib);
-
-			lua_State *thread = lua_newthread(Lua->LuaState);
-			Lua->LoadScript(luafile);
-			lua_xmove(Lua->LuaState, thread, 1);
-			lua_setfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
-		}
-		else
-		{
-			Lua = 0;
-		}
-#endif
-
 		//Load automatic state
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
@@ -240,6 +195,9 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Display emulator name	
 		MDFND_DispMessage((UTF8*)GameInfo->fullname);
+
+		//Free the ROM
+		free(aData);
 	}
 }
 
@@ -270,26 +228,12 @@ void						MednafenEmu::CloseGame			()
 		//Close the game
 		MDFNI_CloseGame();
 
-
-
-
-
 		//Clean up
 		MDFND_Rumble(0, 0);
 		
 		Inputs.reset();
 		Buffer.reset();
 		Surface.reset();
-
-
-
-#ifndef NO_LUA
-		delete Lua;
-#endif
-
-		free(ROMData);
-		ROMData = 0;
-		ROMSize = 0;
 
 		IsLoaded = false;
 	}
@@ -299,170 +243,99 @@ bool						MednafenEmu::Frame				()
 {
 	if(IsInitialized && IsLoaded)
 	{
-		if(!IsPaused)
+		MDFNI_EnableStateRewind(RewindSetting);
+
+		Inputs->Process();
+
+		if(NetplayOn)
 		{
-			MDFNI_EnableStateRewind(RewindSetting);
+			Syncher.Sync();
+		}
 
-			Inputs->Process();
-	
-			if(NetplayOn)
-			{
-				Syncher.Sync();
-			}
+		//Emulate frame
+		memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
+		memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
+		EmulatorSpec.surface = Surface.get(); //It's a shared pointer now
+		EmulatorSpec.LineWidths = VideoWidths;
+		EmulatorSpec.soundmultiplier = NetplayOn ? 1 : Counter.GetSpeed();
+		EmulatorSpec.SoundRate = 48000;
+		EmulatorSpec.SoundBuf = Samples;
+		EmulatorSpec.SoundBufMaxSize = 24000;
+		EmulatorSpec.SoundVolume = 1;
+		EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
+		EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
+		MDFNI_Emulate(&EmulatorSpec);
 
-			//Emulate frame
-			memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
-			memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
-			EmulatorSpec.surface = Surface.get(); //It's a shared pointer now
-			EmulatorSpec.LineWidths = VideoWidths;
-			EmulatorSpec.soundmultiplier = NetplayOn ? 1 : Counter.GetSpeed();
-			EmulatorSpec.SoundRate = 48000;
-			EmulatorSpec.SoundBuf = Samples;
-			EmulatorSpec.SoundBufMaxSize = 24000;
-			EmulatorSpec.SoundVolume = 1;
-			EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-			EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
-			MDFNI_Emulate(&EmulatorSpec);
+		Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
+		Counter.Tick(EmulatorSpec.skip);
 
-			Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
-			Counter.Tick(EmulatorSpec.skip);
-			FrameCount ++;
-
-//HACK
-#ifndef NO_LUA
-			if(Lua)
-			{
-				lua_settop(Lua->LuaState, 0);
-				lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
-				lua_State *thread = lua_tothread(Lua->LuaState, 1);
-				if(LUA_YIELD != lua_resume(thread, 0))
-				{
-					char buffer[1024];
-					snprintf(buffer, 1024, "Lua Error: %s", lua_tostring(thread, -1));
-					MDFND_DispMessage((UTF8*)buffer);
-					delete Lua;
-					Lua = 0;
-				}
-			}
-#endif
-
-			//Handle inputs
-			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
-			{
-				MDFND_NetworkClose();
-			}
-			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
-			{
-				DoCommands();
-				return false;
-			}
-			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
-			{
-				SetPause(true);
-			}
-			else
-			{
-				//VIDEO
-				if(!EmulatorSpec.skip)
-				{
-					SkipCount = 0;
-					Blit();
-
-					//Show FPS
-					if(DisplayFPSSetting)
-					{
-						char buffer[128];
-
-#if defined(__CELLOS_LV2__) && defined(CELL_MEM_WATCH)
-						sys_memory_info_t mit;
-						sys_memory_get_user_memory_size(&mit);
-						snprintf(buffer, 128, "%d/%d", mit.available_user_memory / 1024 / 1024, mit.total_user_memory / 1024 / 1024);
-#else
-						uint32_t fps, skip;
-						fps = Counter.GetFPS(&skip);
-						snprintf(buffer, 128, "%d (%d)", fps, skip);
-#endif
-						FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
-					}
-
-					//Show message
-					if(MDFND_GetTime() - MessageTime < 5000)
-					{
-						FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
-					}
-				}
-
-				//AUDIO
-				uint32_t* realsamps = (uint32_t*)Samples;
-
-				if(GameInfo->soundchan == 1)
-				{
-					for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
-					{
-						SamplesUp[i * 2] = Samples[i];
-						SamplesUp[i * 2 + 1] = Samples[i];
-					}
-
-					realsamps = (uint32_t*)SamplesUp;
-				}
-
-				SkipNext = ESAudio::GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
-				ESAudio::AddSamples(realsamps, EmulatorSpec.SoundBufSize);
-			}
-
-			return !EmulatorSpec.skip;
+		//Handle inputs
+		if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
+		{
+			MDFND_NetworkClose();
+		}
+		else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+		{
+			DoCommands();
+			return false;
 		}
 		else
 		{
-			Inputs->Process();
-
-//HACK:
-#ifndef NO_LUA
-			if(Lua)
+			//VIDEO
+			if(!EmulatorSpec.skip)
 			{
-				lua_settop(Lua->LuaState, 0);
-				lua_getfield(Lua->LuaState, LUA_REGISTRYINDEX, "emu.FrameAdvance");
-				lua_State *thread = lua_tothread(Lua->LuaState, 1);
-				if(LUA_YIELD != lua_resume(thread, 0))
+				SkipCount = 0;
+				Blit();
+
+				//Show FPS
+				if(DisplayFPSSetting)
 				{
-					char buffer[1024];
-					snprintf(buffer, 1024, "Lua Error: %s", lua_tostring(thread, -1));
-					MDFND_DispMessage((UTF8*)buffer);
-					delete Lua;
-					Lua = 0;
+					char buffer[128];
+
+#if defined(__CELLOS_LV2__) && defined(CELL_MEM_WATCH)
+					sys_memory_info_t mit;
+					sys_memory_get_user_memory_size(&mit);
+					snprintf(buffer, 128, "%d/%d", mit.available_user_memory / 1024 / 1024, mit.total_user_memory / 1024 / 1024);
+#else
+					uint32_t fps, skip;
+					fps = Counter.GetFPS(&skip);
+					snprintf(buffer, 128, "%d (%d)", fps, skip);
+#endif
+					FontManager::GetBigFont()->PutString(buffer, 10, 10, 0xFFFFFFFF);
+				}
+
+				//Show message
+				if(MDFND_GetTime() - MessageTime < 5000)
+				{
+					FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
 				}
 			}
-#endif
 
-			if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
-			{
-				MDFND_NetworkClose();
-			}
-			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
-			{
-				DoCommands();
-				return false;
-			}
-			else if(ESInput::ButtonDown(0, ES_BUTTON_AUXLEFT3))
-			{
-				SetPause(false);
-			}
+			//AUDIO
+			uint32_t* realsamps = (uint32_t*)Samples;
 
-			Blit();
-			//Show message
-			if(MDFND_GetTime() - MessageTime < 5000)
+			if(GameInfo->soundchan == 1)
 			{
-				FontManager::GetBigFont()->PutString(Message.c_str(), 10, 10 + FontManager::GetBigFont()->GetHeight(), 0xFFFFFFFF);
+				for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
+				{
+					SamplesUp[i * 2] = Samples[i];
+					SamplesUp[i * 2 + 1] = Samples[i];
+				}
+
+				realsamps = (uint32_t*)SamplesUp;
 			}
 
-			return true;
+			SkipNext = ESAudio::GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
+			ESAudio::AddSamples(realsamps, EmulatorSpec.SoundBufSize);
 		}
+
+		return !EmulatorSpec.skip;
 	}
 
 	return false;
 }
 
-void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch, bool aDummy)
+void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)
 {
 	if(IsInitialized && (aPixels || IsLoaded))
 	{
@@ -492,18 +365,6 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 		//Unmap and present the texture
 		Buffer->Unmap();
 		ESVideo::PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, UndertuneSetting);
-
-#ifndef NO_LUA
-		if(!aPixels && Lua)
-		{
-			static Texture_Ptr tex(ESVideo::CreateTexture(1024, 768));
-			uint32_t* pix = tex->Map();
-			memcpy(pix, gui_array, 1024 * 768 * 4);
-			memset(gui_array, 0, sizeof(gui_array));
-			tex->Unmap();
-			ESVideo::PlaceTexture(tex.get(), Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()), Area(0, 0, 1024, 768), 0xFFFFFFFF);
-		}
-#endif
 	}
 }
 
@@ -660,33 +521,6 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	return 0;
 }
 
-void						MednafenEmu::SetPause			(bool aPause)
-{
-	IsPaused = aPause;
-
-	if(IsPaused)
-	{
-		MDFND_DispMessage((UTF8*)"Game Paused");
-	}
-	else
-	{
-		MDFND_DispMessage((UTF8*)"Game Unpaused");
-	}
-}
-
-uint32_t					MednafenEmu::GetPixel			(uint32_t aX, uint32_t aY)
-{
-	Area output(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-	if(aX < output.Width && aY < output.Height)
-	{
-		//TODO: This can't possibly be correct, the offsets from the output area should be included?
-		return Surface->pixels[aY * Surface->pitchinpix + aX];
-	}
-
-	//?
-	return 0xFF00FF00;
-}
-
 void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
 	if(IsGameLoaded())
@@ -745,21 +579,15 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
-bool						MednafenEmu::IsPaused = false;
 	
 Texture_Ptr					MednafenEmu::Buffer;
 MDFN_Surface_Ptr			MednafenEmu::Surface ;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
-uint8_t*					MednafenEmu::ROMData = 0;
-uint32_t					MednafenEmu::ROMSize = 0;
 InputHandler_Ptr			MednafenEmu::Inputs;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
-#ifndef NO_LUA
-LuaScripter*				MednafenEmu::Lua = 0;
-#endif
 
 std::string					MednafenEmu::Message;
 uint32_t					MednafenEmu::MessageTime = 0;
@@ -774,7 +602,6 @@ int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
-uint32_t					MednafenEmu::FrameCount = 0;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
