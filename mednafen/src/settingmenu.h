@@ -3,15 +3,27 @@
 ///ListItem class for settings.
 struct								SettingItem
 {
-									SettingItem							(const MDFNCS* aSetting) : Setting(aSetting){}
+	///Create a new SettingItem.
+	///@param aSetting Pointer to setting data. May not be NULL.
+									SettingItem							(const MDFNCS* aSetting) : Setting(aSetting){assert(aSetting);}
 
+	///Return a string containing the settings name and value.
+	///@return The settings name and value, separated by a tab character.
 	std::string						GetText								() {return std::string(Setting->name) + "\t" + ((Setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(Setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(Setting->name));}
+
+	///Returns an empty string.
+	///@return An empty string.
 	std::string						GetImage							() {return "";}
 
+	///Retruns Colors::Normal.
+	///@return Colors::Normal.
 	uint32_t						GetNormalColor						() {return Colors::Normal;}
+
+	///Retruns Colors::HighLight.
+	///@return Colors::HighLight.
 	uint32_t						GetHighLightColor					() {return Colors::HighLight;}
 
-	const MDFNCS*					Setting;
+	const MDFNCS*					Setting;							///<A pointer to the managed setting.
 };
 
 
@@ -27,6 +39,9 @@ class								SettingMenu
 
 	typedef AnchoredListView<SettingItem>						SettingListType;
 	typedef smartptr::shared_ptr<SettingListType>				SettingListType_Ptr;
+
+	typedef AnchoredListView<SummerfaceItem>					EnumListType;
+	typedef smartptr::shared_ptr<EnumListType>					EnumListType_Ptr;
 
 	public:
 		///Create a new SettingMenu.
@@ -72,7 +87,7 @@ class								SettingMenu
 	private:
 		SettingListType_Ptr			List;								///<SummerfaceList used for displaying a category of settings.
 		CategoryListType_Ptr		CategoryList;						///<SummerfaceList used for displaying all categories.
-		Summerface_Ptr				Interface;							///<Summerface object used for the CategoryList.
+		Summerface_Ptr				CategoryInterface;					///<Summerface object used for the CategoryList.
 
 		SettingCollection			Settings;							///<The cache of settings from mednafen.
 
