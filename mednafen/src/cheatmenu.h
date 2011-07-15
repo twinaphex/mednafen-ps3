@@ -1,31 +1,32 @@
 #pragma once
 
-namespace
-{
-	bool						GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
-	{
-		SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, aHex);
-		number->SetHeader(aHeader);
-		Summerface::Create("NUMB", number)->Do();
-
-		if(!number->WasCanceled())
-		{
-			aValue = number->GetValue();
-			return true;
-		}
-
-		return false;
-	}
-}
-
 ///Class holding and editing the cheats for the loaded game.
 class							CheatMenu
 {
+	class											Cheat;
+	typedef AnchoredListView<Cheat>					CheatListType;
+	typedef smartptr::shared_ptr<CheatListType>		CheatListType_Ptr;
+
 	private:
 		///Class describing a Cheat as a SummerfaceItem.
 		class					Cheat : public SummerfaceItem
 		{
 			public:
+				///Create an empty cheat item with text indicating that no cheats are available.
+								Cheat					() :
+					SummerfaceItem("No Cheats Found", ""),
+					Name(""),
+					Address(0),
+					Value(0),
+					Compare(0),
+					Status(0),
+					Type(0),
+					Length(0),
+					BigEndian(false),
+					SpaceHolder(true)
+				{
+				}
+
 				///Create a new Cheat item.
 				///@param aName Display name of the Cheat.
 				///@param aAddress Memory address of the Cheat.
@@ -44,7 +45,8 @@ class							CheatMenu
 					Status(aStatus),
 					Type(aType),
 					Length(aLength),
-					BigEndian(aBigEndian)
+					BigEndian(aBigEndian),
+					SpaceHolder(false)
 				{
 					std::stringstream str;
 					str << Name << " (" << std::hex << std::uppercase << Address << std::dec << "->" << Value << ":" << Compare << ")";
@@ -55,12 +57,14 @@ class							CheatMenu
 				///@return "CheckIMAGE" if the Cheat is enabled, "ErrorIMAGE" if it is disabled.
 				std::string		GetImage				()
 				{
-					return Status ? "CheckIMAGE" : "ErrorIMAGE";
+					return SpaceHolder ? "" : (Status ? "CheckIMAGE" : "ErrorIMAGE");
 				}
 
 				///Add as a new Cheat to Mednafen. Cheat is always enabled after adding.
 				void			Add						()
 				{
+					assert(!SpaceHolder);
+
 					Status = 1;
 					MDFNI_AddCheat(Name.c_str(), Address, Value, Compare, Type, Length, BigEndian);
 				}
@@ -69,25 +73,27 @@ class							CheatMenu
 				///@param aIndex Index of cheat to write to.
 				void			Insert					(uint32_t aIndex)
 				{
+					assert(!SpaceHolder);
 					MDFNI_SetCheat(aIndex, Name.c_str(), Address, Value, Compare, Status, Type, Length, BigEndian);
 				}
 
 			public:
-				std::string		Name;
-				uint32_t		Address;
-				uint64_t		Value;
-				uint64_t		Compare;
-				int				Status;
-				int8_t			Type;
-				uint32_t		Length;
-				bool			BigEndian;
+				std::string		Name;					///<Friendly name of the cheat.
+				uint32_t		Address;				///<Address to patch.
+				uint64_t		Value;					///<Value to patch.
+				uint64_t		Compare;				///<Condition of the cheat.
+				int				Status;					///<True to enable cheat.
+				int8_t			Type;					///<??
+				uint32_t		Length;					///<Number of bytes to patch.
+				bool			BigEndian;				///<Memory order of bytes.
+				bool			SpaceHolder;			///<True for a fake cheat. Used to display messages.
 		};
 
 
 	public:
 		///Create a new CheatMenu.
 								CheatMenu				() :
-			CheatList(smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 80))),
+			CheatList(smartptr::make_shared<CheatListType>(Area(10, 10, 80, 80))),
 			Blank(false)
 		{
 			//Make the menu
@@ -101,7 +107,7 @@ class							CheatMenu
 			if(CheatList->GetItemCount() == 0)
 			{
 				Blank = true;
-				CheatList->AddItem(smartptr::make_shared<SummerfaceItem>("No Cheats Available", ""));
+				CheatList->AddItem(smartptr::make_shared<Cheat>());
 			}
 		}
 
@@ -113,18 +119,18 @@ class							CheatMenu
 			sface->Do();
 		}
 
-		///Handle input on the CheatMenu.
+		///Implement SummerfaceInputConduit to handle the CheatMenu.
 		///@param aInterface Pointer to Summerface making the call.
 		///@param aWindow Name of the active SummerfaceWindow.
 		///@return 0: Ignore, 1: Eat, -1: Close Interface
 		int						HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 		{
 			//Get a pointer to the selected cheat
-			smartptr::shared_ptr<Cheat> cheat = smartptr::static_pointer_cast<Cheat>(CheatList->GetSelected());
+			smartptr::shared_ptr<Cheat> cheat = CheatList->GetSelected();
 
+			//Toggle a cheat's status
 			if(!Blank && aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
 			{
-				//Toggle its status
 				cheat->Status = !cheat->Status;
 				MDFNI_ToggleCheat(CheatList->GetSelection());
 				return 1;
@@ -133,20 +139,13 @@ class							CheatMenu
 			//Add a cheat
 			if(!Blank && aButton == ES_BUTTON_ACCEPT)
 			{
-				//Get a new value for the cheat
-				SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), cheat->Value, 10);
-				number->SetHeader("Input new value for cheat.");
-				Summerface::Create("NUMB", number)->Do();
-
-				//Do nothing if the input was canceled
-				if(number->WasCanceled())
+				//Get a new value for the cheat and tell mednafen about it
+				int64_t value = cheat->Value;
+				if(ESSUB_GetNumber(value, "Input new value for cheat.", 10, false))
 				{
-					return 1;
+					cheat->Value = value;
+					cheat->Insert(CheatList->GetSelection());
 				}
-
-				//Tell mednafen about the new value
-				cheat->Value = number->GetValue();
-				cheat->Insert(CheatList->GetSelection());
 				return 1;
 			}
 
@@ -170,15 +169,15 @@ class							CheatMenu
 			{
 				//Get the address to patch
 				int64_t address = 0;
-				while(GetNumber(address, "Enter address to patch (in hex)", 8, true))
+				while(ESSUB_GetNumber(address, "Enter address to patch (in hex)", 8, true))
 				{
 					//Get the new value
 					int64_t value = 0;
-					while(GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
+					while(ESSUB_GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
 					{
 						//Get the number of bytes
 						int64_t bytes = 1;
-						while(GetNumber(bytes, "Enter number of bytes to patch", 1, false))
+						while(ESSUB_GetNumber(bytes, "Enter number of bytes to patch", 1, false))
 						{
 							//Handle case where bytes is invalid
 							if(bytes == 0 || bytes > 8)
@@ -228,7 +227,7 @@ class							CheatMenu
 		}
 
 	private:
-		smartptr::shared_ptr<AnchoredListView<SummerfaceItem> >	CheatList;				///<List of Cheats.
+		CheatListType_Ptr		CheatList;				///<List of Cheats.
 		bool					Blank;					///<True if no Cheats were found.
 };
 

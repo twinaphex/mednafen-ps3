@@ -56,6 +56,23 @@ bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 }
 #endif
 
+#ifndef HAVE_ESSUB_GETNUMBER
+bool				ESSUB_GetNumber			(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
+{
+	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, aHex);
+	number->SetHeader(aHeader);
+	Summerface::Create("NUMB", number)->Do();
+
+	if(!number->WasCanceled())
+	{
+		aValue = number->GetValue();
+		return true;
+	}
+
+	return false;
+}
+#endif
+
 void				Abort					(const char* aMessage)
 {
 	printf("ABORT: %s\n", aMessage);

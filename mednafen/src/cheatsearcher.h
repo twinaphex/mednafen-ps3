@@ -22,7 +22,6 @@ class								CheatSearcher
 
 	public:
 		static int					DoSearchFilterMenu		();
-		static bool					GetNumber				(int64_t& aValue, const char* aHeader, uint32_t aDigits = 10);
 		static bool					DoResultList			(uint32_t aBytes, bool aBigEndian);
 
 		static void					Do						();
