@@ -16,24 +16,27 @@ class	MednafenEmu
 		///Initialize the mednafen core and perform all one time startup functions. Must be called before any other function.
 		static void						Init				();
 
-		///Shut down the mednafen core and delete all objects created by Init(). Must be called at shutdown.
+		///Close any running game, shut down the mednafen core and delete all objects created by Init(). Must be called at shutdown. It is not
+		///possible to call Init again after this function.
 		static void						Quit				();
 
 		///Load a new game into mednafen. If aData is non zero MednafenEmu will call free on it after it is done with it.
+		///Does nothing if a game is already loaded, CloseGame should be called before this if intending to load a new game.
 		///@param aFileName Name of the file to load. If aData and aSize are non-zero this is only informational.
 		///@param aData Preloaded data for the ROM. If set to 0 the file from aFileName is loaded from disk.
 		///@param aSize Size of preloaded ROM data.
 		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
 
-		///Close any running game.
+		///Close any running game. Does nothing if no game is loaded.
 		static void						CloseGame			();
 	
-		///Run the emulator for one frame.
+		///Run the emulator for one frame. It is an error to call this function before a game is loaded.
 		///@return True if the screen needs to be updated. False if the emulator skipped drawing the frame.
 		static bool						Frame				();
 
 		///Present an image to the screen. By default this will use the internal structures from the emulator,
-		///but specific data can be provided (used by the SaveState menu to show previews).
+		///but specific data can be provided (used by the SaveState menu to show previews). It is an error to
+		///call this function before a game is loaded.
 		///@param aPixels Pointer to a 32-bit RGBA image to draw.
 		///@param aWidth Width of the image.
 		///@param aHeight Height of the image.
@@ -41,7 +44,14 @@ class	MednafenEmu
 		static void						Blit				(uint32_t* aPixels = 0, uint32_t aWidth = 0, uint32_t aHeight = 0, uint32_t aPitch = 0);
 
 		static void						DoCommands			();
+
+		///Tell the emulator to perform a command. It is an error to call this function before a game is loaded.
 		static int						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton = 0xFFFFFFFF);
+
+		///Reread list of settings, used by the driver, from the mednafen core. It is an error to call this function before a game is loaded.
+		///@param aOnLoad Set to force certain settings to update. Used when loading a new game to prevent stale settings from
+		///carrying over.
+		static void						ReadSettings		(bool aOnLoad = false);
 
 	public:		//Inlines
 		///Return a value indication whether a game has been loaded.
@@ -57,14 +67,9 @@ class	MednafenEmu
 		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
 		///Tell the emulator core to redraw the last emulated frame. Used to keep the game image in the background while
-		///the GUI is active.
+		///the GUI is active. It is OK to call this function before a game is loaded.
 		///@return True if a frame was actually drawn, false otherwise (e.g. No game was loaded)
 		static bool						DummyFrame			() {if(IsGameLoaded() && !SuspendDraw){Blit(0, 0, 0, 0); return true;} return false;}
-
-		///Reread list of settings, used by the driver, from the mednafen core.
-		///@param aOnLoad Set to force certain settings to update. Used when loading a new game to prevent stale settings from
-		///carrying over.
-		static void						ReadSettings		(bool aOnLoad = false);
 
 	protected:	//Internals
 		static void						GenerateSettings	(std::vector<MDFNSetting>& aSettings);
