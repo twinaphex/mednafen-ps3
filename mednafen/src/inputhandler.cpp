@@ -36,7 +36,6 @@ namespace
 	}
 
 	Configure();
-	ReadSettings();
 }
 
 void							InputHandler::Process					()
@@ -151,6 +150,8 @@ void							InputHandler::Configure				()
 			}
 		}
 	}
+
+	ReadSettings();
 }
 
 void							InputHandler::ReadSettings			()
