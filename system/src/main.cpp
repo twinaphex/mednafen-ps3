@@ -40,7 +40,7 @@ std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& 
 bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 {
 	//Create the list
-	boost::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 20));
+	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 20));
 	list->SetHeader(aMessage);
 
 	//Add the items
