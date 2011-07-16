@@ -118,6 +118,30 @@ void			lsnesCloseGame			(void)
 	mdfnLsnes = 0;
 }
 
+int				lsnesStateAction		(StateMem *sm, int load, int data_only)
+{
+	uint32_t size = snes_serialize_size();
+	uint8_t* buffer = (uint8_t*)malloc(size);
+	bool result;
+	
+	if(load)
+	{
+		smem_read(sm, buffer, size);
+		result = snes_unserialize(buffer, size);
+	}
+	else
+	{
+		result = snes_serialize(buffer, size);
+
+		if(result)
+		{
+			smem_write(sm, buffer, size);
+		}
+	}
+
+	free(buffer);
+	return result;
+}
 
 void			lsnesEmulate			(EmulateSpecStruct *espec)
 {
@@ -174,14 +198,6 @@ void			lsnesDoSimpleCommand	(int cmd)
 		snes_power();
 	}
 }
-
-
-//STUBS
-int				lsnesStateAction		(StateMem *sm, int load, int data_only)
-{
-	return 0;
-}
-
 
 
 //SYSTEM DESCRIPTIONS
