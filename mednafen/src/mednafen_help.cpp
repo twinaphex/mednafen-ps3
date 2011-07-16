@@ -224,6 +224,7 @@ void						MednafenEmu::CloseGame			()
 
 		//Close the game
 		MDFNI_CloseGame();
+		GameInfo = 0;
 
 		//Clean up
 		MDFND_Rumble(0, 0);
@@ -231,6 +232,8 @@ void						MednafenEmu::CloseGame			()
 		Inputs.reset();
 		Buffer.reset();
 		Surface.reset();
+
+		IsLoaded = false;
 	}
 }
 
@@ -509,8 +512,6 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 		}
 	}
 
-	
-	Inputs->ReadSettings();
 	return -1;
 }
 
