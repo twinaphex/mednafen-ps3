@@ -40,7 +40,7 @@ namespace lsnes
 			for(int j = 0; j != width && j != mdfnLsnes->ESpec->surface->w; j ++)
 			{
 				//Convert 16-bit->32-bit color
-				uint16_t source = data[i * 1024 + j];	//TODO: Is it allways 1024?
+				uint16_t source = data[i * 1024 + j];	//TODO: Is it always 1024?
 				uint8_t a = (source & 0x3F) << 3;
 				uint8_t b = ((source >> 5) & 0x3F) << 3;
 				uint8_t c = ((source >> 10) & 0x3F) << 3;
@@ -61,7 +61,7 @@ namespace lsnes
 
 		if(mdfnLsnes->SampleBufferCount ++ < mdfnLsnes->SampleBufferSize)
 		{
-			if(mdfnLsnes->Resampler)
+			if(mdfnLsnes->Resampler && mdfnLsnes->Resampler->max_write() >= 2)
 			{
 				mdfnLsnes->Resampler->buffer()[0] = left;
 				mdfnLsnes->Resampler->buffer()[1] = right;
@@ -74,14 +74,13 @@ namespace lsnes
 		}
 	}
 
-	void					InputPollCallback		()
-	{
-
-	}
-
 	int16_t					InputStateCallback		(bool port, unsigned device, unsigned index, unsigned id)
 	{
-		return 0;
+		assert(mdfnLsnes);
+
+		uint8_t* thisPort = mdfnLsnes->Ports[port ? 1 : 0];
+		uint16_t portData = thisPort ? (thisPort[0] | (thisPort[1] << 8)) : 0;
+		return (portData & (1 << id)) ? 1 : 0;
 	}
 }
 using namespace lsnes;
@@ -94,7 +93,6 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 	snes_init();
 	snes_set_video_refresh(VideoRefreshCallback);
 	snes_set_audio_sample(AudioSampleCallback);
-	snes_set_input_poll(InputPollCallback);
 	snes_set_input_state(InputStateCallback);
 
 	snes_load_cartridge_normal(0, fp->data, fp->size);
@@ -183,6 +181,7 @@ void			lsnesSetInput			(int port, const char *type, void *ptr)
 
 	if(port >= 0 && port <= 4)
 	{
+		snes_set_controller_port_device(0, SNES_DEVICE_JOYPAD);
 		mdfnLsnes->Ports[port] = (uint8_t*)ptr;
 	}
 }
@@ -226,6 +225,7 @@ static InputDeviceInfoStruct InputDeviceInfo[] =
 static const InputPortInfoStruct PortInfo[] =
 {
 	{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
 };
 
 static InputInfoStruct lsnesInput =
