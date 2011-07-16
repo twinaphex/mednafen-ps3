@@ -85,6 +85,58 @@ namespace lsnes
 }
 using namespace lsnes;
 
+//SYSTEM DESCRIPTIONS
+static const InputDeviceInputInfoStruct GamepadIDII[] =
+{
+	{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
+	{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
+	{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
+	{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
+	{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
+	{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
+	{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
+	{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
+};
+
+static InputDeviceInfoStruct InputDeviceInfo[] =
+{
+	{"none",	"none",		NULL,	0,															NULL			},
+	{"gamepad", "Gamepad",	NULL,	sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),	GamepadIDII,	},
+};
+
+static const InputPortInfoStruct PortInfo[] =
+{
+	{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+};
+
+static InputInfoStruct lsnesInput =
+{
+	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
+};
+
+static MDFNSetting lsnesSettings[] =
+{
+	{NULL}
+};
+
+static FileExtensionSpecStruct extensions[] =
+{
+	{".smc", "Super Magicom ROM Image"},
+	{".swc", "Super Wildcard ROM Image"},
+	{".sfc", "Cartridge ROM Image"},
+	{".fig", "Cartridge ROM Image"},
+
+	{".bs", "BS-X EEPROM Image"},
+	{".st", "Sufami Turbo Cartridge ROM Image"},
+
+	{NULL, NULL}
+};
+
 //Implement MDFNGI:
 int				lsnesLoad				(const char *name, MDFNFILE *fp)
 {
@@ -181,7 +233,18 @@ void			lsnesSetInput			(int port, const char *type, void *ptr)
 
 	if(port >= 0 && port <= 4)
 	{
-		snes_set_controller_port_device(0, SNES_DEVICE_JOYPAD);
+		//Search for the device
+		unsigned pluggeddevice = 0;
+		for(int i = 0; i != sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct); i ++)
+		{
+			if(strcmp(type, InputDeviceInfo[i].ShortName) == 0)
+			{
+				pluggeddevice = i;
+			}
+		}
+
+		//Plug it in
+		snes_set_controller_port_device(0, pluggeddevice);
 		mdfnLsnes->Ports[port] = (uint8_t*)ptr;
 	}
 }
@@ -198,61 +261,7 @@ void			lsnesDoSimpleCommand	(int cmd)
 	}
 }
 
-
-//SYSTEM DESCRIPTIONS
-static const InputDeviceInputInfoStruct IDII[] =
-{
-	{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
-	{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
-	{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
-	{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
-	{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
-	{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
-	{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
-	{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
-};
-
-static InputDeviceInfoStruct InputDeviceInfo[] =
-{
-	{"none", "none", NULL, 0, NULL},
-	{"gamepad", "Gamepad", NULL, sizeof(IDII) / sizeof(InputDeviceInputInfoStruct), IDII,},
-};
-
-static const InputPortInfoStruct PortInfo[] =
-{
-	{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
-	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
-};
-
-static InputInfoStruct lsnesInput =
-{
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
-};
-
-static MDFNSetting lsnesSettings[] =
-{
-	{NULL}
-};
-
-
-static FileExtensionSpecStruct extensions[] =
-{
-	{".smc", "Super Magicom ROM Image"},
-	{".swc", "Super Wildcard ROM Image"},
-	{".sfc", "Cartridge ROM Image"},
-	{".fig", "Cartridge ROM Image"},
-
-	{".bs", "BS-X EEPROM Image"},
-	{".st", "Sufami Turbo Cartridge ROM Image"},
-
-	{NULL, NULL}
-};
-
-//TODO: MasterClock and fps
+//GAME INFO
 static MDFNGI	lsnesInfo =
 {
 /*	shortname:			*/	"lsnes",
