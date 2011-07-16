@@ -27,11 +27,27 @@ class								SDLMutex : public ESMutex
 		SDL_mutex*					Mutex;
 };
 
+class								SDLSemaphore : public ESSemaphore
+{
+	public:
+									SDLSemaphore		(uint32_t aValue); //External
+		virtual						~SDLSemaphore		(); //External
+
+		virtual uint32_t			GetValue			(); //External
+		virtual void				Post				(); //External
+		virtual void				Wait				(); //External
+
+	private:
+		SDL_sem*					Semaphore;
+};
+
+
+
 class								SDLThreads : public ESThreads
 {
 	public:
 		virtual ESThread*			MakeThread			(ThreadFunction aThreadFunction, void* aUserData) {return new SDLThread(aThreadFunction, aUserData);};
 		virtual ESMutex*			MakeMutex			() {return new SDLMutex();};
-		virtual ESSemaphore*			MakeSemaphore			(uint32_t aValue) {return 0;};
+		virtual ESSemaphore*		MakeSemaphore		(uint32_t aValue) {return new SDLSemaphore(aValue);};
 };
 
