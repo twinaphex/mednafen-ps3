@@ -37,15 +37,3 @@ namespace smartptr = std;
 	typedef smartptr::shared_ptr<a>	a##_Ptr;	\
 	typedef smartptr::weak_ptr<a>	a##_WeakPtr;
 
-
-//Depends
-#include <png.h>
-
-extern "C"
-{
-	#include <ft2build.h>
-	#include FT_FREETYPE_H
-	#include FT_BITMAP_H
-	#include FT_GLYPH_H
-}
-

@@ -1,4 +1,4 @@
-#ifndef NO_LUA
+#ifdef USE_LUA
 
 #include <es_system.h>
 
@@ -122,4 +122,4 @@ uint32_t					LuaScripter::Call							(const std::string& aFunction, uint32_t aA,
 }
 
 
-#endif //NO_LUA
+#endif //USE_LUA

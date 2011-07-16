@@ -49,8 +49,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "sdl/SDLNetwork.h"
 #endif
 
-#include "src/fex/fex/fex.h"
-
 #include "src/Helpers.h"
 #include "src/utility/FastCounter.h"
 #include "src/utility/Font.h"

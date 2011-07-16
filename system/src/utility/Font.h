@@ -1,6 +1,12 @@
 #ifndef FONT_H_
 #define FONT_H_
 
+//Freetype declarations
+struct										FT_LibraryRec_;
+typedef struct FT_LibraryRec_*				FT_Library;
+struct										FT_FaceRec_;
+typedef struct FT_FaceRec_*					FT_Face;
+
 class										FontCharacter
 {
 	public:
