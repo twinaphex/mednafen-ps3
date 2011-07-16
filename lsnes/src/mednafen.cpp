@@ -3,6 +3,7 @@
 #include <src/driver.h>
 #include <src/general.h>
 #include <src/mempatcher.h>
+#include <src/md5.h>
 #include <include/Fir_Resampler.h>
 
 #include <stdio.h>
@@ -21,7 +22,7 @@ namespace lsnes
 		uint8_t*				Ports[4];
 
 		//Audio values
-		static const uint32_t	SampleBufferSize = 1600;
+		static const uint32_t	SampleBufferSize = 3200;
 		uint32_t				SampleBufferCount;
 		Fir_Resampler<8>*		Resampler;
 	};
@@ -144,6 +145,12 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 {
 	mdfnLsnes = new MDFNlsnes();
 
+	//Get Game MD5
+	md5_context md5;
+	md5.starts();
+	md5.update(fp->data, fp->size);
+	md5.finish(MDFNGameInfo->MD5);
+
 	//Setup libsnes
 	snes_init();
 	snes_set_video_refresh(VideoRefreshCallback);
@@ -153,6 +160,13 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 	//Load game
 	snes_load_cartridge_normal(0, fp->data, fp->size);
 
+	//Setup region
+	bool PAL = snes_get_region() != SNES_REGION_NTSC;
+	MDFNGameInfo->fps = PAL ? 838977920 : 1008307711;				//These lines taken from mednafen, plus that comment down there too
+	MDFNGameInfo->MasterClock = MDFN_MASTERCLOCK_FIXED(32040.40);	//MDFN_MASTERCLOCK_FIXED(21477272);	//PAL ? PAL_CPU : NTSC_CPU);
+	MDFNGameInfo->nominal_height = PAL ? 239 : 224;
+	MDFNGameInfo->lcm_height = MDFNGameInfo->nominal_height * 2;
+	
 	//Load save
 	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
 	uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
