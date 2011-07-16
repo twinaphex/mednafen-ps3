@@ -390,7 +390,7 @@ void						MednafenEmu::DoCommands			()
 	grid->SetHeader("Choose Action");
 	for(int i = 0; i != 15; i ++)
 	{
-		grid->AddItem(boost::make_shared<CommandItem>(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
+		grid->AddItem(smartptr::make_shared<CommandItem>(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
 	}
 
 	//Setupt and run the interface

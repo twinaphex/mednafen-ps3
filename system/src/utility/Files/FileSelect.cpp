@@ -118,7 +118,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	//TODO: Support drive selection on windows
 	if(aPath.empty())
 	{
-		List->AddItem(boost::make_shared<DirectoryItem>("Local Files", "/", true, false, std::find(BookMarks.begin(), BookMarks.end(), "/") != BookMarks.end()));
+		List->AddItem(smartptr::make_shared<DirectoryItem>("Local Files", "/", true, false, std::find(BookMarks.begin(), BookMarks.end(), "/") != BookMarks.end()));
 
 		//Load bookmarks
 		for(BookmarkList::iterator i = BookMarks.begin(); i != BookMarks.end(); i ++)
@@ -140,7 +140,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 						directory = true;
 				}
 				
-				List->AddItem(boost::make_shared<DirectoryItem>(nicename, *i, directory, !directory, true));
+				List->AddItem(smartptr::make_shared<DirectoryItem>(nicename, *i, directory, !directory, true));
 			}
 		}
 	}
@@ -151,7 +151,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 
 		for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 		{
-			List->AddItem(boost::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
+			List->AddItem(smartptr::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
 		}
 
 		List->Sort(AlphaSortDirectory);

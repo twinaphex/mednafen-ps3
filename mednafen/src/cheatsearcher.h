@@ -27,7 +27,7 @@ class													CheatSearcher
 			Result r = {aAddress, aOriginal, aValue};
 
 			//Add to list
-			ResultList->AddItem(boost::make_shared<ResultListItem>(name.str(), "", r));
+			ResultList->AddItem(smartptr::make_shared<ResultListItem>(name.str(), "", r));
 
 			return 1;
 		}
