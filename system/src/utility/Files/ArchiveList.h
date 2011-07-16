@@ -1,6 +1,9 @@
 #ifndef SYSTEM__ARCHIVE_H
 #define SYSTEM__ARCHIVE_H
 
+//Type for Fex
+class												fex_t;
+
 class												ArchiveList : public AnchoredListView<SummerfaceItem>
 {
 	public:

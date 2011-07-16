@@ -342,7 +342,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 }
 
 //
-#include "SimpleIni.h"
+#include "src/thirdparty/simpleini/SimpleIni.h"
 
 GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
 {

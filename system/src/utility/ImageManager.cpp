@@ -1,6 +1,8 @@
 #include <es_system.h>
 
 #ifndef ES_HAVE_LOADPNG
+#include <png.h>
+
 void										ESSUB_LoadPNG										(const std::string& aPath, Texture** aTexture)
 {
 	png_structp png_ptr;

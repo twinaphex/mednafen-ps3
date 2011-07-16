@@ -1,9 +1,14 @@
 #include <es_system.h>
 
-//TODO: This isn't thread safe
 extern "C"
 {
-	#include "utf8_decode.h"
+	//TODO: utf8_decode isn't thread safe
+	#include "src/thirdparty/utf8_decode/utf8_decode.h"
+
+	#include <ft2build.h>
+	#include FT_FREETYPE_H
+	#include FT_BITMAP_H
+	#include FT_GLYPH_H
 }
 
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
