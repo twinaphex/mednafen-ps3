@@ -11,19 +11,27 @@ void					ESAudio::Initialize				()
 
 	SDL_OpenAudio(&spec, &Format);
 	SDL_PauseAudio(0);
+
+	Semaphore = es_threads->MakeSemaphore(1);
 }
 
 
 void					ESAudio::Shutdown				()
 {
 	SDL_CloseAudio();
+	delete Semaphore;
 }
 
 void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 {
 	Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);
+
+	if(!Semaphore->GetValue())
+	{
+		Semaphore->Post();
+	}
 }
 
 SDL_AudioSpec			ESAudio::Format;
 AudioBuffer<>			ESAudio::Buffer;
-
+ESSemaphore*			ESAudio::Semaphore;

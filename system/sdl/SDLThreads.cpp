@@ -43,3 +43,30 @@ void					SDLMutex::Unlock				()
 {
 	SDL_mutexV(Mutex);
 }
+
+						SDLSemaphore::SDLSemaphore		(uint32_t aValue)
+{
+	Semaphore = SDL_CreateSemaphore(aValue);
+}
+
+						SDLSemaphore::~SDLSemaphore		()
+{
+	SDL_DestroySemaphore(Semaphore);
+}
+
+uint32_t				SDLSemaphore::GetValue			()
+{
+	return SDL_SemValue(Semaphore);
+}
+
+void					SDLSemaphore::Post				()
+{
+	SDL_SemPost(Semaphore);
+}
+
+void					SDLSemaphore::Wait				()
+{
+	SDL_SemWait(Semaphore);
+}
+
+

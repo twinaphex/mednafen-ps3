@@ -8,7 +8,7 @@ class								ESAudio
 		static void					Initialize				();
 		static void					Shutdown				();
 									
-		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount) {SDL_LockAudio(); Buffer.WriteData(aSamples, aCount); SDL_UnlockAudio();};
+		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount) {while(Buffer.GetBufferFree() < aCount) Semaphore->Wait(); SDL_LockAudio(); Buffer.WriteData(aSamples, aCount); SDL_UnlockAudio();};
 		static volatile int32_t		GetBufferAmount			() {return Buffer.GetBufferAmount();}
 		static volatile int32_t		GetBufferFree			() {return Buffer.GetBufferFree();}
 
@@ -19,5 +19,6 @@ class								ESAudio
 		static SDL_AudioSpec		Format;
 
 		static AudioBuffer<>		Buffer;
+		static ESSemaphore*			Semaphore;
 };
 
