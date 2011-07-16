@@ -5,6 +5,8 @@
 #include <src/mempatcher.h>
 #include <include/Fir_Resampler.h>
 
+#include <stdio.h>
+
 #include "libsnes.hpp"
 
 //SYSTEM
@@ -70,7 +72,7 @@ namespace lsnes
 		}
 		else
 		{
-			MDFND_PrintError("libsnes: SampleBuffer overflow!");
+			MDFN_PrintError("libsnes: SampleBuffer overflow!\n");
 		}
 	}
 
@@ -142,12 +144,43 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 {
 	mdfnLsnes = new MDFNlsnes();
 
+	//Setup libsnes
 	snes_init();
 	snes_set_video_refresh(VideoRefreshCallback);
 	snes_set_audio_sample(AudioSampleCallback);
 	snes_set_input_state(InputStateCallback);
 
+	//Load game
 	snes_load_cartridge_normal(0, fp->data, fp->size);
+
+	//Load save
+	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
+	uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
+	if(save_size && save_data)
+	{
+		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+		FILE* save_file = fopen(filename.c_str(), "rb");
+		if(save_file)
+		{
+			fseek(save_file, 0, SEEK_END);
+			if(ftell(save_file) == save_size)
+			{
+				fseek(save_file, 0, SEEK_SET);
+				if(save_size != fread(save_data, 1, save_size, save_file))
+				{
+					MDFN_PrintError("libsnes: Failed to read entire save game?\n");
+				}
+			}
+			else
+			{
+				MDFN_PrintError("libsnes: Save file incorrect size, expected %u got %ld\n", save_size, ftell(save_file));
+			}
+
+			fclose(save_file);
+		}
+	}
+
+	//Start emulator
 	snes_power();
 
 	return 1;
@@ -161,9 +194,29 @@ bool			lsnesTestMagic			(const char *name, MDFNFILE *fp)
 
 void			lsnesCloseGame			(void)
 {
+	//Write save
+	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
+	uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
+	if(save_size && save_data)
+	{
+		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+		FILE* save_file = fopen(filename.c_str(), "wb");
+		if(save_file)
+		{
+			fwrite(save_data, 1, save_size, save_file);
+			fclose(save_file);
+		}
+		else
+		{
+			MDFN_PrintError("libsnes: Failed to open save file for writing. Game will not be saved.\n");
+		}
+	}
+
+	//Close libsnes
 	snes_unload_cartridge();
 	snes_term();
 
+	//Clean up
 	delete mdfnLsnes;
 	mdfnLsnes = 0;
 }
