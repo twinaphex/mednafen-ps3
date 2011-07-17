@@ -4,13 +4,15 @@
 class				Colors
 {
 	public:
-		static const uint32_t			BackGround				= 0xD0D0D0C0;
-		static const uint32_t			Border					= 0x604040FF;
-		static const uint32_t			Normal 					= 0x202020FF;
-		static const uint32_t			HighLight				= 0xA02020FF;
-		static const uint32_t			SpecialNormal 			= 0x206020FF;
-		static const uint32_t			SpecialHighLight		= 0x20A020FF;
-		static const uint32_t			SpecialBackGround		= 0x40404040;
+		static void						LoadColors					();
+
+		static uint32_t					BackGround;
+		static uint32_t					Border;
+		static uint32_t					Normal;
+		static uint32_t					HighLight;
+		static uint32_t					SpecialNormal;
+		static uint32_t					SpecialHighLight;
+		static uint32_t					SpecialBackGround;
 };
 
 class				Utility

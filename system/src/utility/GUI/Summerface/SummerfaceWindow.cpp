@@ -21,18 +21,65 @@ bool										SummerfaceWindow::PrepareDraw						()
 {
 	if(UseBorder)
 	{
-		ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
+#if 0
+		if(ImageManager::GetImage("Window"))
+		{
+			Texture* tex = ImageManager::GetImage("Window");
+			tex->SetFilter(false);
 
-	//TODO: Make border color
-		ESVideo::FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
-		ESVideo::FillRectangle(Area(Region.X + BorderWidth, Region.Bottom(), Region.Width, BorderWidth), 0x00000080);
-		ESVideo::FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
+			Area scorner = Area(Region.X, Region.Y, 8, 8);
+			Area tcorner = Area(0, 0, 8, 8);
+			ESVideo::PlaceTexture(tex, scorner, tcorner, 0xFFFFFFFF);
 
-		ESVideo::FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
-		ESVideo::FillRectangle(Area(Region.Right(), Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth), 0x00000080);
-		ESVideo::FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+			scorner.X += Region.Width - 8;
+			tcorner.X += tex->GetWidth() - 8;
+			ESVideo::PlaceTexture(tex, scorner, tcorner, 0xFFFFFFFF);
 
-		ESVideo::FillRectangle(Client, Colors::BackGround);
+			scorner.Y += Region.Height - 8;
+			tcorner.Y += tex->GetHeight() - 8;
+			ESVideo::PlaceTexture(tex, scorner, tcorner, 0xFFFFFFFF);
+
+			scorner.X -= Region.Width - 8;
+			tcorner.X -= tex->GetWidth() - 8;
+			ESVideo::PlaceTexture(tex, scorner, tcorner, 0xFFFFFFFF);
+
+			Area swidther = Area(Region.X + 8, Region.Y, Region.Width - 16, 8);
+			Area twidther = Area(8, 0, tex->GetWidth() - 16, 8);
+			ESVideo::PlaceTexture(tex, swidther, twidther, 0xFFFFFFFF);
+
+			swidther.Y += Region.Height - 8;
+			twidther.Y += tex->GetHeight() - 8;
+			ESVideo::PlaceTexture(tex, swidther, twidther, 0xFFFFFFFF);
+
+			swidther = Area(Region.X, Region.Y + 8, 8, Region.Height - 16);
+			twidther = Area(0, 8, 8, tex->GetHeight() - 16);
+			ESVideo::PlaceTexture(tex, swidther, twidther, 0xFFFFFFFF);
+
+			swidther.X += Region.Width - 8;
+			twidther.X += tex->GetWidth() - 8;
+			ESVideo::PlaceTexture(tex, swidther, twidther, 0xFFFFFFFF);
+
+			Area sinner = Area(Region.X + 8, Region.Y + 8, Region.Width - 16, Region.Height - 16);
+			Area tinner = Area(8, 8, tex->GetWidth() - 16, tex->GetHeight() - 16);
+			ESVideo::PlaceTexture(tex, sinner, tinner, 0xFFFFFFFF);
+
+		}
+		else
+#endif
+		{
+			ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
+
+		//TODO: Make border color
+			ESVideo::FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
+			ESVideo::FillRectangle(Area(Region.X + BorderWidth, Region.Bottom(), Region.Width, BorderWidth), 0x00000080);
+			ESVideo::FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
+
+			ESVideo::FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+			ESVideo::FillRectangle(Area(Region.Right(), Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth), 0x00000080);
+			ESVideo::FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+
+			ESVideo::FillRectangle(Client, Colors::BackGround);
+		}
 
 		ESVideo::SetClip(Client);
 
