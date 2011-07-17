@@ -92,6 +92,7 @@ void				InitES					(void (*aExitFunction)())
 	ESSUB_Init();
 
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
+	Colors::LoadColors();
 
 	es_threads = ESSUB_MakeThreads();
 	ESNetwork::Initialize();
