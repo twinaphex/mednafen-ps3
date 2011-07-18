@@ -98,7 +98,7 @@ std::string								FileSelect::GetFile					()
 			LoadList(Paths.top());
 		}
 		//If a file was selected, return it
-		else
+		else if(List->GetSelected()->IsFile)
 		{
 			return List->GetSelected()->Path;
 			break;
@@ -147,14 +147,20 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	else
 	{
 		std::list<std::string> items;
-		Utility::ListDirectory(aPath, items);
 
-		for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
+		if(Utility::ListDirectory(aPath, items) && items.size())
 		{
-			List->AddItem(smartptr::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
-		}
+			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
+			{
+				List->AddItem(smartptr::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
+			}
 
-		List->Sort(AlphaSortDirectory);
+			List->Sort(AlphaSortDirectory);
+		}
+		else
+		{
+			List->AddItem(smartptr::make_shared<DirectoryItem>("Directory is empty", "", false, false, false));
+		}
 	}
 }
 

@@ -48,7 +48,7 @@ class	MednafenEmu
 		///Tell the emulator to perform a command. It is an error to call this function before a game is loaded.
 		static int						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton = 0xFFFFFFFF);
 
-		///Reread list of settings, used by the driver, from the mednafen core. It is an error to call this function before a game is loaded.
+		///Reread list of settings, used by the driver, from the mednafen core.
 		///@param aOnLoad Set to force certain settings to update. Used when loading a new game to prevent stale settings from
 		///carrying over.
 		static void						ReadSettings		(bool aOnLoad = false);
