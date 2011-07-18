@@ -69,52 +69,64 @@ class							Area
 		}
 };
 
-
-#if 0
+#include "../opengl_common/Shaders.h"
 
 class								ESVideo
 {
 	public:	
-									ESVideo								() : esBorder(0), LastAspect(0), LastUnderscan(0), LastUnderscanFine(0, 0, 0, 0), PresentArea(0, 0, 0, 0) {};
-		virtual						~ESVideo							() {};
+		static void					Initialize				(); //External
+		static void					Shutdown				(); //External
 
-		virtual void				EnableVsync							(bool aOn) {};
+		static void					EnableVsync				(bool aOn) {}
 	
-		virtual Texture*			CreateTexture						(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) = 0; //Pure Virtual
+		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new Texture(aWidth, aHeight);};
 	
-		virtual uint32_t			GetScreenWidth						() const {return esScreenWidth;}
-		virtual uint32_t			GetScreenHeight						() const {return esScreenHeight;}
-		virtual bool				IsWideScreen						() const {return esWideScreen;}
+		static void					SetScreenSize			(uint32_t aX, uint32_t aY); //External
+		static uint32_t				GetScreenWidth			() {return ScreenWidth;}
+		static uint32_t				GetScreenHeight			() {return ScreenHeight;}
+		static bool					IsWideScreen			() {return WideScreen;}
+
+		static inline void			SetClip					(const Area& aClip); //Below
+		static const Area&			GetClip					() {return Clip;}
 	
-		virtual inline void			SetClip								(const Area& aClip); //Defined Below
-		virtual const Area&			GetClip								() const {return esClip;}
-	
-		virtual void				Flip								() = 0; //Pure Virtual
+		static void					Flip					(); //External
 		
-		virtual void				PlaceTexture						(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor) = 0; //Pure Virtual
-		virtual void				FillRectangle						(const Area& aArea, uint32_t aColor) = 0; //Pure Virtual
-		virtual void				AttachBorder						(Texture* aTexture) {esBorder = aTexture;};
-		virtual void				PresentFrame						(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)) = 0; //Pure Virtual
+		static void					PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor);
+		static void					FillRectangle			(const Area& aArea, uint32_t aColor) {PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);}
+		static void					AttachBorder			(Texture* aTexture) {Border = aTexture;};
+		static void					PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0)); //External
 
-		virtual const ESFilterList&	GetFilters							() const {return esFilters;}
-		virtual void				SetFilter							(const std::string& aName, uint32_t aPrescale) {};
+		static void					SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = GLShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
+		
+	private:
+		static void					SetVertex				(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV);
+		static void					InitializeState			();
+		static void					EnterPresentState		();
+		static void					ExitPresentState		();
+		static const Area&			CalculatePresentArea	(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine);
 
 
-	protected:
-		Area						esClip;
-		uint32_t					esScreenWidth;
-		uint32_t					esScreenHeight;
-		bool						esWideScreen;
+	private:
+		static Texture*				FillerTexture;
 
-		ESFilterList				esFilters;
+		static CGcontext			ShaderContext;
+		static GLShader*			Presenter;
+		static const uint32_t		VertexSize = 9;
+		static const uint32_t		VertexBufferCount = 4;
+		static GLfloat*				VertexBuffer;
 
-		Texture*					esBorder;
+		static uint32_t				ScreenWidth;
+		static uint32_t				ScreenHeight;
+		static bool					WideScreen;
+		static Area					Clip;
+		static Texture*				Border;
 };
 
 //---Inlines
-void								ESVideo::SetClip					(const Area& aClip)
+void								ESVideo::SetClip		(const Area& aClip)
 {
-	esClip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
+	glScissor(Clip.X, GetScreenHeight() - Clip.Bottom(), Clip.Width, Clip.Height);
 }
 
-#endif
+

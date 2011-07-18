@@ -85,3 +85,4 @@ namespace SDLInputConfig
 		Running = false;
 	}
 };
+
