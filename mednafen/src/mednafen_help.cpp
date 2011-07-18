@@ -517,35 +517,36 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
-	assert(IsGameLoaded());
-
-	RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
-	DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
-	AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
-	UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("underscanadjust"));
-	UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
-
-	if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
+	if(IsGameLoaded())
 	{
-		VsyncSetting = MDFN_GetSettingB(SETTINGNAME("display.vsync"));
-		ESVideo::EnableVsync(VsyncSetting);
-	}
+		RewindSetting = MDFN_GetSettingB(SETTINGNAME("rewind"));;
+		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
+		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
+		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("underscanadjust"));
+		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
 
-	if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
-	{
-		BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
-		if(Utility::FileExists(BorderSetting))
+		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{
-			ImageManager::Purge();
-			ImageManager::LoadImage("GameBorderCustom", BorderSetting);
-			ESVideo::AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+			VsyncSetting = MDFN_GetSettingB(SETTINGNAME("display.vsync"));
+			ESVideo::EnableVsync(VsyncSetting);
 		}
-	}
 
-	if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
-	{
-		ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
-		ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
+		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
+		{
+			BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
+			if(Utility::FileExists(BorderSetting))
+			{
+				ImageManager::Purge();
+				ImageManager::LoadImage("GameBorderCustom", BorderSetting);
+				ESVideo::AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+			}
+		}
+
+		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
+		{
+			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
+			ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
+		}
 	}
 }
 
