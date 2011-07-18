@@ -8,7 +8,7 @@ class								ESVideo
 		static void					Initialize				(); //External
 		static void					Shutdown				(); //External
 
-		static inline void			EnableVsync				(bool aOn); //Below
+		static void					EnableVsync				(bool aOn) {}
 	
 		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new Texture(aWidth, aHeight);};
 	
@@ -47,13 +47,6 @@ class								ESVideo
 };
 
 //---Inlines
-void								ESVideo::EnableVsync	(bool aOn)
-{
-	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, aOn ? 1 : 0);
-//	Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
-}
-
 void								ESVideo::SetClip		(const Area& aClip)
 {
 	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
