@@ -1,74 +1,102 @@
 #include <es_system.h>
 
-void				ESInput::Initialize						()
+void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, ESInput::InputDeviceList& aSubDevices, uint32_t aESKeyIndex[14])
 {
 	for(int i = 0; i != SDL_NumJoysticks(); i ++)
 	{
 		Joysticks.push_back(SDL_JoystickOpen(i));
+
+		aDevices.push_back(ESInput::InputDevice());
+
+		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
+		{
+			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0));
+			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0));
+		}
+
+		for(int j = 0; j != SDL_JoystickNumHats(Joysticks[i]); j ++)
+		{
+			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_UP));
+			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_DOWN));
+			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_LEFT));
+			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_RIGHT));
+		}
+
+		for(int j = 0; j != SDL_JoystickNumButtons(Joysticks[i]); j ++)
+		{
+			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0));
+		}
 	}
 
-	SDLInputConfig::Load(ESInputs);
+	//Add a keyboard subdevice
+	aSubDevices.push_back(ESInput::InputDevice());
 
-	Reset();
+	int numkeys;
+	SDL_GetKeyState(&numkeys);
+	for(int j = 0; j != numkeys; j ++)
+	{
+		aSubDevices[0].push_back(ESInput::Button(FetchKey, j, 0, 0));
+	}
+
+	//Load ES Keys
+	SDLInputConfig::Load(aESKeyIndex);
 }
 
-void				ESInput::Shutdown						()
+void							ESInputPlatform::Shutdown				()
 {
 	for(int i = 0; i != Joysticks.size(); i ++)
 	{
 		SDL_JoystickClose(Joysticks[i]);
 	}
+
+	Joysticks.clear();
 }
 
-void				ESInput::Refresh						()
+void							SetExit									();
+void							ESInputPlatform::Refresh				()
+{
+	SDL_Event event;
+	while(SDL_PollEvent(&event))
+	{
+		if(event.type == SDL_QUIT)
+		{
+			SetExit();
+		}
+	}
+	
+	int numkeys;
+	if(SDL_GetKeyState(&numkeys)[SDLK_F10])
+	{
+		SetExit();
+	}
+}
+
+bool							ESInputPlatform::FetchKey				(uint32_t aKey, uint32_t aA, uint32_t aB)
 {
 	int numkeys;
-	uint8_t* keys = SDL_GetKeyState(&numkeys);
-
-	if(keys[SDLK_F11])
-	{
-		SDLInputConfig::Get(ESInputs);	
-	}
-
-	for(int j = 0; j != numkeys && j != MAXKEYS; j ++)
-	{
-		ESInputHelp::RefreshButton(keys[j], KeyState[j], KeySingle[j]);
-	}
-
-	for(int i = 0; i != Joysticks.size(); i ++)
-	{
-		uint32_t buttonIndex = 0;
-	
-		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
-		{
-			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) < -0x4000, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
-			ESInputHelp::RefreshButton(SDL_JoystickGetAxis(Joysticks[i], j) >  0x4000, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);
-			buttonIndex += 2;
-		}
-
-		for(int j = 0; j != SDL_JoystickNumHats(Joysticks[i]); j ++)
-		{
-			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_UP, HeldState[i][buttonIndex + 0], SingleState[i][buttonIndex + 0]);
-			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_DOWN, HeldState[i][buttonIndex + 1], SingleState[i][buttonIndex + 1]);			
-			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_LEFT, HeldState[i][buttonIndex + 2], SingleState[i][buttonIndex + 2]);
-			ESInputHelp::RefreshButton(SDL_JoystickGetHat(Joysticks[i], j) & SDL_HAT_RIGHT, HeldState[i][buttonIndex + 3], SingleState[i][buttonIndex + 3]);			
-			buttonIndex += 4;
-		}
-	
-		for(int j = 0; j != SDL_JoystickNumButtons(Joysticks[i]); j ++)
-		{
-			ESInputHelp::RefreshButton(SDL_JoystickGetButton(Joysticks[i], j), HeldState[i][j + buttonIndex], SingleState[i][j + buttonIndex]);
-		}
-	}
+	return SDL_GetKeyState(&numkeys)[aKey];
 }
-		
-std::vector<SDL_Joystick*>	ESInput::Joysticks;
-uint32_t			ESInput::ESInputs[14];
 
-uint32_t			ESInput::KeyState[MAXKEYS];
-uint32_t			ESInput::KeySingle[MAXKEYS];
+bool							ESInputPlatform::FetchAxisLow			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+{
+	return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) < -0x4000;
+}
 
-uint32_t			ESInput::HeldState[MAXPADS][BUTTONS];
-uint32_t			ESInput::SingleState[MAXPADS][BUTTONS];	
+bool							ESInputPlatform::FetchAxisHigh			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+{
+	return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) > 0x4000;
+}
+
+bool							ESInputPlatform::FetchHat				(uint32_t aPad, uint32_t aHat, uint32_t aDirection)
+{
+	return SDL_JoystickGetHat(Joysticks[aPad], aHat) & aDirection;
+}
+
+bool							ESInputPlatform::FetchButton			(uint32_t aPad, uint32_t aButton, uint32_t aA)
+{
+	return SDL_JoystickGetButton(Joysticks[aPad], aButton);
+}
+
+std::vector<SDL_Joystick*>		ESInputPlatform::Joysticks;
 
 

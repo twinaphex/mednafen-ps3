@@ -1,0 +1,117 @@
+#include <es_system.h>
+
+void							ESInput::Initialize				()
+{
+	ESInputPlatform::Initialize(Inputs, SubInputs, ESKeyIndex);
+}
+
+void							ESInput::Shutdown				()
+{
+	ESInputPlatform::Shutdown();
+	Inputs.clear();
+}
+
+uint32_t						ESInput::WaitForESKey			(uint32_t aPad, bool aGuarantee)
+{
+	do
+	{
+		//Scan the input
+		Refresh();
+
+		//Look for a press
+		for(uint32_t i = 0; i != 14; i ++)
+		{
+			if(ButtonDown(aPad, ES_BUTTON_UP + i))
+			{
+				return ES_BUTTON_UP + i;
+			}
+		}
+	}	while(!WantToDie() && !WantToSleep() && aGuarantee);
+
+	//Give a default
+	return 0xFFFFFFFF;
+}
+
+void							ESInput::Reset					()
+{
+	//Reset main devices
+	for(InputDeviceList::iterator i = Inputs.begin(); i != Inputs.end(); i ++)
+	{
+		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
+		{
+			j->Reset();
+		}
+	}
+
+	//Reset sub devices
+	for(InputDeviceList::iterator i = SubInputs.begin(); i != SubInputs.end(); i ++)
+	{
+		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
+		{
+			j->Reset();
+		}
+	}
+}
+
+void							ESInput::Refresh				()
+{
+	//Platform refresh
+	ESInputPlatform::Refresh();
+
+	//Refresh main devices
+	for(InputDeviceList::iterator i = Inputs.begin(); i != Inputs.end(); i ++)
+	{
+		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
+		{
+			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : false);
+		}
+	}
+
+	//Refresh sub devices
+	for(InputDeviceList::iterator i = SubInputs.begin(); i != SubInputs.end(); i ++)
+	{
+		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
+		{
+			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : false);
+		}
+	}
+}
+
+uint32_t						ESInput::GetAnyButton			(uint32_t aPad)
+{
+	Refresh();
+
+	//Check main devices
+	if(aPad < Inputs.size())
+	{
+		for(int i = 0; i != Inputs[aPad].size(); i ++)
+		{
+			if(Inputs[aPad][i].GetState())
+			{
+				return i;
+			}
+		}
+	}
+
+	//Check sub devices
+	for(int i = 0; i != SubInputs.size(); i ++)
+	{
+		for(int j = 0; j != SubInputs[i].size(); j ++)
+		{
+			if(SubInputs[i][j].GetState())
+			{
+				return 0x10000 + (0x10000 * i) + j;
+			}
+		}
+	}
+
+	return 0xFFFFFFFF;
+}
+
+void							ESInput::RumbleOn				(uint32_t aBig, uint32_t aSmall)
+{
+}
+
+ESInput::InputDeviceList		ESInput::Inputs;
+ESInput::InputDeviceList		ESInput::SubInputs;
+uint32_t						ESInput::ESKeyIndex[14];
