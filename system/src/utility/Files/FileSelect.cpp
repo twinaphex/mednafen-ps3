@@ -115,10 +115,24 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
 	//If the path is empty, list the drive selection and bookmarks
-	//TODO: Support drive selection on windows
 	if(aPath.empty())
 	{
-		List->AddItem(smartptr::make_shared<DirectoryItem>("Local Files", "/", true, false, std::find(BookMarks.begin(), BookMarks.end(), "/") != BookMarks.end()));
+		//List volumes
+		std::list<std::string> items;
+
+		if(Utility::ListVolumes(items) && items.size())
+		{
+			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
+			{
+				List->AddItem(smartptr::make_shared<DirectoryItem>((*i), (*i), true, false, false));
+			}
+
+			List->Sort(AlphaSortDirectory);
+		}
+		else
+		{
+			List->AddItem(smartptr::make_shared<DirectoryItem>("No Volumes Found", "", false, false, false));
+		}
 
 		//Load bookmarks
 		for(BookmarkList::iterator i = BookMarks.begin(); i != BookMarks.end(); i ++)
@@ -146,6 +160,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 	}
 	else
 	{
+		//List files
 		std::list<std::string> items;
 
 		if(Utility::ListDirectory(aPath, items) && items.size())

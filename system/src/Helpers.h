@@ -5,6 +5,7 @@ class				Colors
 {
 	public:
 		static void						LoadColors					();
+		static void						FillAreas					(const Area& aSource, Area aDest[9]);
 
 		static uint32_t					BackGround;
 		static uint32_t					Border;
@@ -13,6 +14,13 @@ class				Colors
 		static uint32_t					SpecialNormal;
 		static uint32_t					SpecialHighLight;
 		static uint32_t					SpecialBackGround;
+
+		static bool						WindowImageValid;
+		static Texture*					WindowImage;
+		static uint32_t					TopChop;
+		static uint32_t					BottomChop;
+		static uint32_t					LeftChop;
+		static uint32_t					RightChop;
 };
 
 class				Utility
@@ -110,6 +118,18 @@ class				Utility
 			return PlatformHelpers::FileExists(aPath);
 #endif
 		}
+
+		template<typename T>
+		static bool						ListVolumes					(T& aOutput)
+		{
+#ifndef COMPLEX_VOLUMES
+			aOutput.push_back("/");
+			return true;
+#else
+			return PlatformHelpers::ListVolumes<T>(aOutput);			
+#endif
+		}
+
 
 		template<typename T>
 		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
