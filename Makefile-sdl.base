@@ -22,7 +22,7 @@ LDFLAGS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_
 DEPSOPTIONS	=  -MMD -MP -MF $(DEPSDIR)/$*.d
 
 ifeq ($(strip $(TARGETPLATFORM)),windows)
-LDFLAGS		+= -lopengl32
+LDFLAGS		+= -lopengl32 -lglew32
 else
 LDFLAGS		+= -lGL
 endif

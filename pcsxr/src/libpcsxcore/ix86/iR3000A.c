@@ -24,11 +24,22 @@
 #ifdef __i386__
 
 #include "ix86.h"
-#include <sys/mman.h>
-
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
+//ROBO: Determine how to allocate executable pages
+//#include <sys/mman.h>
+//#ifndef MAP_ANONYMOUS
+//#define MAP_ANONYMOUS MAP_ANON
+//#endif
+#ifdef __WIN32__			//ROBO: VirtualAlloc on windows!
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# define exec_alloc(size) VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)
+# define exec_free(addr, size) VirtualFree(addr) VirtualFree(addr, MEM_RELEASE)
+#else						//ROBO: mman
+# include <sys/mman.h>
+# define exec_alloc(size) mmap(0, size, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)
+# define exec_free(addr, size) munmap(addr, size)
 #endif
+
 
 u32 *psxRecLUT;
 
@@ -359,6 +370,7 @@ void iDumpBlock(char *ptr) {
 }
 
 
+
 #define REC_FUNC(f) \
 void psx##f(); \
 static void rec##f() { \
@@ -398,8 +410,10 @@ static int recInit() {
 
 	psxRecLUT = (u32 *)malloc(0x010000 * 4);
 
-	recMem = mmap(0, RECMEM_SIZE + 0x1000,
-		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+//ROBO: Allocate executable pages in platform specific manner
+//	recMem = mmap(0, RECMEM_SIZE + 0x1000,
+//		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	exec_alloc(RECMEM_SIZE + 0x1000);
 
 	recRAM = (char *)malloc(0x200000);
 	recROM = (char *)malloc(0x080000);
@@ -433,7 +447,9 @@ static void recReset() {
 static void recShutdown() {
 	if (recMem == NULL) return;
 	free(psxRecLUT);
-	munmap(recMem, RECMEM_SIZE + 0x1000);
+//ROBO: Free executable pages in platform specific manner
+//	munmap(recMem, RECMEM_SIZE + 0x1000);
+	exec_free(recMem, RECMEM_SIZE + 0x1000);
 	free(recRAM);
 	free(recROM);
 	x86Shutdown();

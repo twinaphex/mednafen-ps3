@@ -24,13 +24,12 @@
 #include "psxmem.h"
 #include "r3000a.h"
 #include "psxhw.h"
-#ifndef __CELLOS_LV2__	//ROBO: No mman on ps3
-#include <sys/mman.h>
-#endif
 
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
-#endif
+//ROBO: No special method for allocating memory
+//#include <sys/mman.h>
+//#ifndef MAP_ANONYMOUS
+//#define MAP_ANONYMOUS MAP_ANON
+//#endif
 
 s8 *psxM = NULL; // Kernel & User Memory (2 Meg)
 s8 *psxP = NULL; // Parallel Port (64K)
@@ -67,12 +66,10 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-#ifndef __CELLOS_LV2__ //ROBO: No mmap on ps3
-	psxM = mmap(0, 0x00220000,
-		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-#else
+//ROBO: No special method for allocating memory
+//	psxM = mmap(0, 0x00220000,
+//		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	psxM = malloc(0x00220000);
-#endif
 
 	psxP = &psxM[0x200000];
 	psxH = &psxM[0x210000];
@@ -136,11 +133,9 @@ void psxMemReset() {
 }
 
 void psxMemShutdown() {
-#ifndef __CELLOS_LV2__ //ROBO: No munmap on ps3
-	munmap(psxM, 0x00220000);
-#else
+//ROBO: No special method for allocating memory
+//	munmap(psxM, 0x00220000);
 	free(psxM);
-#endif
 
 	free(psxR);
 	free(psxMemRLUT);
