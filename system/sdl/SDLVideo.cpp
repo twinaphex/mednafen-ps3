@@ -28,6 +28,10 @@ void					ESVideo::Initialize				()
 	ScreenHeight = dispinfo->current_h;
 	WideScreen = false;
 
+#ifdef __WIN32__
+	glewInit();
+#endif
+
 	//Some settings
 	OpenGLHelp::InitializeState();
 
