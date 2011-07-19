@@ -1,91 +1,65 @@
-ifeq ($(strip $(BOOST_PATH)),)
-ifeq ($(strip $(PLATFORM)),cell)
-$(error Set BOOST_PATH in environment)
-else
-$(warning Building as C++0x)
-SMARTPTRFLAGS	=	-DUSE_CPP0X_SMARTPTR -std=c++0x
-endif
-endif
-
 #RULES FOR COMPILE
-%.o: %.c
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-%.o: %.cpp
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CXX] $(notdir $<)"
-	@$(CXX) $(DEPSOPTIONS) $(CXXFLAGS) $(INCLUDES) $(SMARTPTRFLAGS) -c $< -o $@
-
-%.o: %.S
-	@[ -d $(CURDIR)/paul/ ] || mkdir -p $(CURDIR)/paul
-	@[ -d $(CURDIR)/paul/$(dir $<) ] || mkdir -p $(CURDIR)/paul/$(dir $<)
-	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) -x assembler-with-cpp $(ASFLAGS) $(INCLUDES) -c $< -o $@
-
 %.so:
 	@echo "[LD]  $(notdir $@)"
 	@$(LD) -shared -Wl,-soname,$(TARGET).so.1 -o $@ $^
 
 %.a:
 	@echo "[AR]  $(notdir $@)"
-	@$(AR) -rcs ../$(TARGET)-$(PLATFORM).a $^
+	@$(AR) -rcs $(TARGET).a $^
 
 %.elf:
 	@echo "[LD]  $(notdir $@)"
-	@$(LD) $^ $(LIBPATHS) $(LIBS) $(LDFLAGS) -o $@
+	@$(LD) $^ $(LDFLAGS) $(LIBS) -o $@
 
 ################
 
-ifneq ($(BUILD)-$(PLATFORM),$(notdir $(CURDIR)))
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)-$(PLATFORM)
-export VPATH	:=	../
-export BUILDDIR	:=	$(CURDIR)/$(BUILD)-$(PLATFORM)
-export DEPSDIR	:=	$(BUILDDIR)
-
+#Build object list
 CFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.c))
+HFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.h))
 CXXFILES	+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.cpp))
 SFILES		+= $(foreach dir,$(SOURCE),$(wildcard $(dir)/*.S))
+OFILES		+= $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
 
-export OFILES	:=	$(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(SFILES:.S=.o) 
-ifneq ($(strip $(BOOST_PATH)),)
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM) -I$(BOOST_PATH)
+#Final flags
+CFLAGS		+= $(DEPSOPTIONS)
+CXXFLAGS	+= $(DEPSOPTIONS)
+ASFLAGS		+= $(DEPSOPTIONS)
+CPPFLAGS	+= $(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir))
+LDFLAGS		+= $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
+
+#Determine smart pointer mode
+ifeq ($(strip $(BOOST_PATH)),)
+ ifeq ($(strip $(PLATFORM)),cell)
+  $(error Set BOOST_PATH in environment)
+ else
+  $(warning Building as C++0x)
+  CPPFLAGS += -DUSE_CPP0X_SMARTPTR -std=c++0x
+ endif
 else
-export INCLUDES	:=	$(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)-$(PLATFORM)
+ CPPFLAGS += -I$(BOOST_PATH)
 endif
-export LIBPATHS :=	$(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
-.PHONY: $(BUILD)-$(PLATFORM) clean
+#Determine output file type
+OUTTYPE				:=	elf
+ifeq ($(strip $(TYPE)),lib)
+ ifeq ($(strip $(PLATFORM)),dll)
+  OUTTYPE				:=	so
+ else
+  OUTTYPE				:=	a
+ endif
+endif
 
-$(BUILD)-$(PLATFORM):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD)-$(PLATFORM) -f $(CURDIR)/Makefile
+#Rules
+.PHONY: clean
+
+$(TARGET).$(OUTTYPE): $(OFILES)
 
 clean:
 	@echo Clean...
-	@rm -rf $(BUILD)-$(PLATFORM) $(OUTPUT).a $(OUTPUT).so $(OUTPUT).elf $(OUTPUT).self $(OUTPUT) $(OUTPUT).pkg
+	@rm -rf $(TARGET).$(OUTTYPE) $(OFILES)
 
+pch:
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pch.h -o pch.h.gch
 
-else
-
-DEPENDS	:= $(OFILES:.o=.d)
-
-OUTTYPE				:=	elf
-ifeq ($(strip $(TYPE)),lib)
-ifeq ($(strip $(PLATFORM)),dll)
-OUTTYPE				:=	so
-else
-OUTTYPE				:=	a
-endif
-endif
-
-$(OUTPUT).$(OUTTYPE): $(OFILES)
-
--include $(DEPENDS)
-
-endif
+-include $(OFILES:.o=.d)
 

@@ -1,5 +1,45 @@
 #include <es_system.h>
 
+#if defined(MDCELL)
+# include "cell/CellInput.h"
+#else
+# include "sdl/SDLInput.h"
+#endif
+
+void							ESInput::Button::SetState		(bool aPressed)
+{
+	//Update jammed state
+	Jammed = (Jammed && aPressed);
+
+	//Only if the state is changed
+	if(Pressed != aPressed)
+	{
+		Pressed = aPressed;
+		Inspected = false;
+		PressedTime = Utility::GetTicks();
+	}
+}
+
+bool							ESInput::Button::GetStateRepeat	()
+{
+	if(GetStateInspected())
+	{
+		PressedTime = Utility::GetTicks();
+		return true;
+	}
+	else if(GetState())
+	{
+		uint32_t time = Utility::GetTicks();
+		if((time - PressedTime) > 250)
+		{
+			PressedTime += 250;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void							ESInput::Initialize				()
 {
 	ESInputPlatform::Initialize(Inputs, SubInputs, ESKeyIndex);
@@ -21,7 +61,8 @@ uint32_t						ESInput::WaitForESKey			(uint32_t aPad, bool aGuarantee)
 		//Look for a press
 		for(uint32_t i = 0; i != 14; i ++)
 		{
-			if(ButtonDown(aPad, ES_BUTTON_UP + i))
+			Button* button = GetButton(aPad, ES_BUTTON_UP + i);
+			if(button && button->GetStateRepeat())
 			{
 				return ES_BUTTON_UP + i;
 			}
@@ -108,9 +149,6 @@ uint32_t						ESInput::GetAnyButton			(uint32_t aPad)
 	return 0xFFFFFFFF;
 }
 
-void							ESInput::RumbleOn				(uint32_t aBig, uint32_t aSmall)
-{
-}
 
 ESInput::InputDeviceList		ESInput::Inputs;
 ESInput::InputDeviceList		ESInput::SubInputs;
