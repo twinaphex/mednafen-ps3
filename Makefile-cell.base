@@ -11,6 +11,7 @@ LD			:=	$(CXX)
 PKG			:=	pkg.py
 MAKE_SELF_GH:= make_self_npdrm
 
+#Determine flags for freetype
 ifeq ($(strip $(FREETYPECONFIG)),)
 	FREETYPECFLAGS	:= -I$(CELL_SDK)/target/ppu/include/freetype2
 	FREETYPELIBS	:= -lfreetype
