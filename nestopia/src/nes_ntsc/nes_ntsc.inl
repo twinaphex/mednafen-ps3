@@ -83,7 +83,8 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 	float gamma_factor;
 	
 	if ( !setup )
-		setup = &nes_ntsc_composite;
+//ROBO: Prefix to prevent clashes with mednafen
+		setup = &nest_nes_ntsc_composite;
 	init( &impl, setup );
 	
 	/* setup fast gamma */
