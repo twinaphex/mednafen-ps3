@@ -28,7 +28,7 @@ SOURCE				:=	src src/src src/filters src/src/cdrom src/src/compress  src/src/hw_
 						src/src/sms src/src/sound src/src/string src/src/tremor src/src/trio src/src/vb src/src/video src/src/wswan src/src/md/cd 
 
 ##Maybe remove these later, they aren't used often
-MEDNAFENFLAGS		+=	-DWANT_GB_EMU -DWANT_NES_EMU -DWANT_PCE_FAST_EMU -DWANT_GBA_EMU -DWANT_SNES_EMU 
+CPPFLAGS			+=	-DWANT_GB_EMU -DWANT_NES_EMU -DWANT_PCE_FAST_EMU -DWANT_GBA_EMU -DWANT_SNES_EMU 
 SOURCE				+=	src/src/gb src/src/hw_sound/gb_apu src/src/pce_fast src/src/nes src/src/nes/boards src/src/nes/input src/src/nes/ntsc src/src/nes/ppu src/src/nes/ppu/palettes src/src/gba
 
 #Extra files for SNES

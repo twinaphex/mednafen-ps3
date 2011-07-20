@@ -33,7 +33,7 @@
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # define exec_alloc(size) VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)
-# define exec_free(addr, size) VirtualFree(addr) VirtualFree(addr, MEM_RELEASE)
+# define exec_free(addr, size) VirtualFree(addr, size, MEM_RELEASE)
 #else						//ROBO: mman
 # include <sys/mman.h>
 # define exec_alloc(size) mmap(0, size, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)
@@ -2096,6 +2096,7 @@ void recSWL() {
 
 #if 0
 		if ((t & 0x1fe0) == 0 && (t & 0x1fff) != 0) {
+
 			MOV32MtoR(EAX, (u32)&psxM[addr & 0x1ffffc]);
 			iSWLk(addr & 3);
 			MOV32RtoM((u32)&psxM[addr & 0x1ffffc], EAX);

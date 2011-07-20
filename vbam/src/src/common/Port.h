@@ -15,10 +15,6 @@ static inline u32 swap32(u32 v)
   return (v<<24)|((v<<8)&0xff0000)|((v>>8)&0xff00)|(v>>24);
 }
 
-#ifndef __i386__
-#define C_CORE
-#endif
-
 #ifdef WORDS_BIGENDIAN
 #if defined(__GNUC__) && defined(__ppc__)
 
