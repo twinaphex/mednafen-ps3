@@ -23,11 +23,22 @@ void				InitSystem								()
 {
 	start_time = MDFND_GetTime();
 
+	//GBA Colors
 	utilUpdateSystemColorMaps();
+
+	//DMG Colors
+	for(int i = 0; i < 24;)
+	{
+		systemGbPalette[i++] = (0x1f) | (0x1f << 5) | (0x1f << 10);
+		systemGbPalette[i++] = (0x15) | (0x15 << 5) | (0x15 << 10);
+		systemGbPalette[i++] = (0x0c) | (0x0c << 5) | (0x0c << 10);
+		systemGbPalette[i++] = 0;
+	}
 }
 
 namespace mdfn
 {
+	extern bool						GBAMode;
 	extern EmulateSpecStruct*		ESpec;
 	extern uint8_t*					Ports[4];
 	extern uint32_t					SoundFrame;
@@ -227,11 +238,11 @@ void				systemDrawScreen						()
 	uint32_t* screenimage = (uint32_t*)pix;
 	uint32_t* destimage = (uint32_t*)ESpec->surface->pixels;
 
-	for(int i = 0; i != 160; i ++)
+	for(int i = 0; i != (GBAMode ? 160 : 224); i ++)
 	{
-		for(int j = 0; j != 240; j ++)
+		for(int j = 0; j != (GBAMode ? 240 : 256); j ++)
 		{
-			destimage[i * ESpec->surface->pitch32 + j] = screenimage[i * 241 + j];
+			destimage[i * ESpec->surface->pitchinpix + j] = screenimage[i * (GBAMode ? 241 : 257) + j];
 		}
 	}
 }
