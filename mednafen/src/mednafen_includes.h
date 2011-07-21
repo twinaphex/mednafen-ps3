@@ -11,11 +11,11 @@
 
 void							ReloadEmulator			(const std::string& aFileName);
 void							Exit					();
-extern "C" MDFNGI*				nestGetEmulator			();
-extern "C" MDFNGI*				gmbtGetEmulator			();
-extern "C" MDFNGI*				vbamGetEmulator			();
-extern "C" MDFNGI*				pcsxGetEmulator			();
-extern "C" MDFNGI*				stellaGetEmulator		();
+extern "C" MDFNGI*				nestGetEmulator			(uint32_t aIndex);
+extern "C" MDFNGI*				gmbtGetEmulator			(uint32_t aIndex);
+extern "C" MDFNGI*				vbamGetEmulator			(uint32_t aIndex);
+extern "C" MDFNGI*				pcsxGetEmulator			(uint32_t aIndex);
+extern "C" MDFNGI*				stellaGetEmulator		(uint32_t aIndex);
 
 void							MDFNDES_BlockExit		(bool aExit);
 void							MDFND_NetStart			();
