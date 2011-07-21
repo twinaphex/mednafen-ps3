@@ -387,8 +387,8 @@ extern "C" DLL_PUBLIC	uint32_t		VERSION_FUNC()
 //	return MEDNAFEN_VERSION_NUMERIC;
 }
 	
-extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC()
+extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC(uint32_t aIndex)
 {
-	return &lsnesInfo;
+	return (aIndex == 0) ? &lsnesInfo : 0;
 }
 

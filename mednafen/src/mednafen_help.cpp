@@ -104,11 +104,12 @@ void						MednafenEmu::Init				()
 
 	//Get the external emulators
 	std::vector<MDFNGI*> externalSystems;
-	externalSystems.push_back(nestGetEmulator());
-	externalSystems.push_back(gmbtGetEmulator());
-	externalSystems.push_back(vbamGetEmulator());
-	externalSystems.push_back(pcsxGetEmulator());
-	externalSystems.push_back(stellaGetEmulator());
+	externalSystems.push_back(nestGetEmulator(0));
+	externalSystems.push_back(gmbtGetEmulator(0));
+	externalSystems.push_back(vbamGetEmulator(0));
+	externalSystems.push_back(vbamGetEmulator(1));
+	externalSystems.push_back(pcsxGetEmulator(0));
+	externalSystems.push_back(stellaGetEmulator(0));
 	MDFNI_InitializeModules(externalSystems);
 
 	//Put settings for the user interface
