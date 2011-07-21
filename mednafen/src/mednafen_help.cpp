@@ -98,48 +98,54 @@ extern bool					NetplayOn;
 
 void						MednafenEmu::Init				()
 {
-	assert(!IsInitialized && Settings.size() == 0);
-
-	//TODO: Build directory trees, if these don't exist we can't save games
-
-	//Get the external emulators
-	std::vector<MDFNGI*> externalSystems;
-	externalSystems.push_back(nestGetEmulator(0));
-	externalSystems.push_back(gmbtGetEmulator(0));
-	externalSystems.push_back(vbamGetEmulator(0));
-	externalSystems.push_back(vbamGetEmulator(1));
-	externalSystems.push_back(pcsxGetEmulator(0));
-	externalSystems.push_back(stellaGetEmulator(0));
-	MDFNI_InitializeModules(externalSystems);
-
-	//Put settings for the user interface
-	for(int i = 0; i != sizeof(ESSettings) / sizeof(MDFNSetting); i++)
+	if(!IsInitialized && Settings.size() == 0)
 	{
-		Settings.push_back(ESSettings[i]);
+		//TODO: Build directory trees, if these don't exist we can't save games
+
+		//Get the external emulators
+		std::vector<MDFNGI*> externalSystems;
+		externalSystems.push_back(nestGetEmulator(0));
+		externalSystems.push_back(gmbtGetEmulator(0));
+		externalSystems.push_back(vbamGetEmulator(0));
+		externalSystems.push_back(vbamGetEmulator(1));
+		externalSystems.push_back(pcsxGetEmulator(0));
+		externalSystems.push_back(stellaGetEmulator(0));
+		MDFNI_InitializeModules(externalSystems);
+
+		//Put settings for the user interface
+		for(int i = 0; i != sizeof(ESSettings) / sizeof(MDFNSetting); i++)
+		{
+			Settings.push_back(ESSettings[i]);
+		}
+
+		//Make settings for each system
+		GenerateSettings(Settings);
+		InputHandler::GenerateSettings(Settings);
+
+		//Initialize mednafen and go
+		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
+		IsInitialized = true;
 	}
-
-	//Make settings for each system
-	GenerateSettings(Settings);
-	InputHandler::GenerateSettings(Settings);
-
-	//Initialize mednafen and go
-	MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
-	IsInitialized = true;
 }
 
 void						MednafenEmu::Quit				()
 {
-	assert(IsInitialized);
-
-	CloseGame();
-	MDFNI_Kill();
-	IsInitialized = false;
+	if(IsInitialized)
+	{
+		CloseGame();
+		MDFNI_Kill();
+	}
 }
 
-void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
+bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
 {
-	if(IsInitialized && !IsLoaded)
+	if(IsInitialized)
 	{
+		if(IsLoaded)
+		{
+			CloseGame();
+		}
+
 		MDFNDES_BlockExit(false);
 
 		//Load the game
@@ -157,7 +163,7 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		if(!GameInfo)
 		{
 			Summerface::Create("Log", es_log)->Do();
-			Exit();
+			return false;
 		}
 
 		//HACK: Attach a default border
@@ -196,6 +202,9 @@ void						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Free the ROM
 		free(aData);
+
+		//Done
+		return true;
 	}
 }
 
