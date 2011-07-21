@@ -72,7 +72,7 @@ class soundy : public SoundDriver
 void rtcEnableWarioRumble(bool e);
 void 				sdlApplyPerImagePreferences				()
 {
-	FILE *f = fopen(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbam.vbaover").c_str()).c_str(), "r");
+	FILE *f = fopen(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbamgba.vbaover").c_str()).c_str(), "r");
 	if(!f)
 	{
 		return;
