@@ -24,6 +24,11 @@ extern "C"
 	#include "cdbase.h"
 	#include "scsp.h"
 	#include "m68kcore.h"
+	#include "sndmdfn.h"
+
+	extern int16_t *mdfnyab_stereodata16;
+	extern uint32_t mdfnyab_soundcount;
+
 
 	void								YuiSwapBuffers				()
 	{
@@ -34,35 +39,41 @@ extern "C"
 	//	MDFN_printf("%s\n", string);
 	}
 
-	M68K_struct * M68KCoreList[] = {
-	&M68KC68K,
-	0
+	M68K_struct * M68KCoreList[] =
+	{
+		&M68KC68K,
+		0
 	};
 
-	SH2Interface_struct *SH2CoreList[] = {
-	&SH2Interpreter,
-	0,
+	SH2Interface_struct *SH2CoreList[] =
+	{
+		&SH2Interpreter,
+		0,
 	};
 
-	PerInterface_struct *PERCoreList[] = {
-	&PERDummy,
-	0
+	PerInterface_struct *PERCoreList[] =
+	{
+		&PERDummy,
+		0
 	};
 
-	CDInterface *CDCoreList[] = {
-	&DummyCD,
-	&ISOCD,
-	0
+	CDInterface *CDCoreList[] =
+	{
+		&DummyCD,
+		&ISOCD,
+		0
 	};
 
-	SoundInterface_struct *SNDCoreList[] = {
-	&SNDDummy,
-	NULL
+	SoundInterface_struct *SNDCoreList[] =
+	{
+		&SNDMDFN,
+		NULL
 	};
 
-	VideoInterface_struct *VIDCoreList[] = {
-	&VIDSoft,
-	NULL
+	VideoInterface_struct *VIDCoreList[] =
+	{
+		&VIDSoft,
+		NULL
 	};
 }
 //SYSTEM DESCRIPTIONS
@@ -125,9 +136,9 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 	yinit.percoretype = PERCORE_DEFAULT;
 	yinit.sh2coretype = SH2CORE_DEFAULT;
 	yinit.vidcoretype = VIDCORE_SOFT;
-	yinit.sndcoretype = SNDCORE_DEFAULT;
+	yinit.sndcoretype = SNDCORE_MDFN;
 	yinit.cdcoretype = CDCORE_ISO;
-	yinit.m68kcoretype = M68KCORE_DEFAULT;
+	yinit.m68kcoretype = 1;
 	yinit.carttype = CART_NONE;
 	yinit.regionid = REGION_AUTODETECT;
 	yinit.biospath = "test.bios";
@@ -143,6 +154,9 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 		MDFN_printf("yabause: Failed to init?\n");
 		return 0;
 	}
+
+	ScspSetVolume(100);
+	ScspUnMuteAudio();
 
 	return 1;
 }
@@ -182,6 +196,11 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 			dest[i * espec->surface->pitchinpix + j] = dispbuffer[i * width + j];
 		}
 	}
+
+	//AUDIO
+	espec->SoundBufSize = mdfnyab_soundcount;
+	memcpy(espec->SoundBuf, mdfnyab_stereodata16, mdfnyab_soundcount * 4);
+	mdfnyab_soundcount = 0;
 }
 
 static void			yabauseSetInput				(int port, const char *type, void *ptr)
