@@ -12,10 +12,18 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 	if(a->GetText().find("undertune") != std::string::npos)												return false;
 	if(b->GetText().find("undertune") != std::string::npos)												return true;
 
+	//Tblus items at the bottom
+	if(a->GetText().find("tblur") != std::string::npos)													return false;
+	if(b->GetText().find("tblur") != std::string::npos)													return true;
+
+	//Force mono items at the bottom
+	if(a->GetText().find("forcemono") != std::string::npos)												return false;
+	if(b->GetText().find("forcemono") != std::string::npos)												return true;
+
 	//Keep es system settings above others
 	if(a->GetText().find(".es.") != std::string::npos && b->GetText().find(".es.") != std::string::npos)	return a->GetText() < b->GetText();
-	if(a->GetText().find(".es.") != std::string::npos)													return true;
-	if(b->GetText().find(".es.") != std::string::npos)													return false;
+	if(a->GetText().find(".es.") != std::string::npos)													return false;
+	if(b->GetText().find(".es.") != std::string::npos)													return true;
 
 	//Standard items at the bottom
 	return a->GetText() < b->GetText();
