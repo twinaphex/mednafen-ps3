@@ -104,7 +104,7 @@ namespace lsnes
 using namespace lsnes;
 
 //SYSTEM DESCRIPTIONS
-static const InputDeviceInputInfoStruct GamepadIDII[] =
+static const InputDeviceInputInfoStruct		GamepadIDII[] =
 {
 	{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
 	{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
@@ -120,7 +120,7 @@ static const InputDeviceInputInfoStruct GamepadIDII[] =
 	{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
 };
 
-static InputDeviceInfoStruct InputDeviceInfo[] =
+static InputDeviceInfoStruct 				InputDeviceInfo[] =
 {
 	{"none",	"none",		NULL,	0,															NULL			},
 	{"gamepad", "Gamepad",	NULL,	sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),	GamepadIDII,	},
@@ -132,19 +132,19 @@ static const InputPortInfoStruct PortInfo[] =
 	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
 };
 
-static InputInfoStruct lsnesInput =
+static InputInfoStruct 						lsnesInput =
 {
 	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
 };
 
-static MDFNSetting lsnesSettings[] =
+static MDFNSetting							lsnesSettings[] =
 {
 	{"lsnes.sgbbios",		MDFNSF_EMU_STATE,	"Path to Super Game Boy ROM image.",	NULL,	MDFNST_STRING,	"supergb.bin"},
 	{"lsnes.usesupergb",	MDFNSF_EMU_STATE,	"Enable use of Super Game Boy.",		NULL,	MDFNST_BOOL,	"0"},
 	{NULL}
 };
 
-static FileExtensionSpecStruct extensions[] =
+static FileExtensionSpecStruct				lsnesExtensions[] =
 {
 	{".smc",	"Super Magicom ROM Image"			},
 	{".swc",	"Super Wildcard ROM Image"			},
@@ -378,8 +378,8 @@ static MDFNGI				lsnesInfo =
 {
 /*	shortname:			*/	"lsnes",
 /*	fullname:			*/	"libsnes Wrapper",
-/*	FileExtensions:		*/	extensions,
-/*	ModulePriority:		*/	(ModPrio)(MODPRIO_EXTERNAL_HIGH + 3),
+/*	FileExtensions:		*/	lsnesExtensions,
+/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,
 /*	InputInfo:			*/	&lsnesInput,
 
