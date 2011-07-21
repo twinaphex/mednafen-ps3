@@ -29,6 +29,21 @@ namespace lsnes
 
 	MDFNlsnes*				mdfnLsnes;
 
+	int						DetermineGameType		(MDFNFILE* fp)
+	{
+		if(MDFN_GetSettingB("lsnes.usesupergb"))
+		{
+			static const uint8 GBMagic[8] = { 0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B };
+			if(fp->size > 0x10C && !memcmp(fp->data + 0x104, GBMagic, 8))
+			{
+				return 1;
+			}
+		}
+
+		//Straight from mednafen
+		return (!(strcasecmp(fp->ext, "smc") && strcasecmp(fp->ext, "swc") && strcasecmp(fp->ext, "sfc") && strcasecmp(fp->ext, "fig") && strcasecmp(fp->ext, "bs") && strcasecmp(fp->ext, "st"))) ? 0 : -1;
+	}
+
 	void					VideoRefreshCallback	(const uint16_t *data, unsigned width, unsigned height)
 	{
 		assert(data && width && height);
@@ -124,24 +139,26 @@ static InputInfoStruct lsnesInput =
 
 static MDFNSetting lsnesSettings[] =
 {
+	{"lsnes.sgbbios",		MDFNSF_EMU_STATE,	"Path to Super Game Boy ROM image.",	NULL,	MDFNST_STRING,	"supergb.bin"},
+	{"lsnes.usesupergb",	MDFNSF_EMU_STATE,	"Enable use of Super Game Boy.",		NULL,	MDFNST_BOOL,	"0"},
 	{NULL}
 };
 
 static FileExtensionSpecStruct extensions[] =
 {
-	{".smc", "Super Magicom ROM Image"},
-	{".swc", "Super Wildcard ROM Image"},
-	{".sfc", "Cartridge ROM Image"},
-	{".fig", "Cartridge ROM Image"},
+	{".smc",	"Super Magicom ROM Image"			},
+	{".swc",	"Super Wildcard ROM Image"			},
+	{".sfc",	"Cartridge ROM Image"				},
+	{".fig",	"Cartridge ROM Image"				},
 
-	{".bs", "BS-X EEPROM Image"},
-	{".st", "Sufami Turbo Cartridge ROM Image"},
+	{".bs",		"BS-X EEPROM Image"					},
+	{".st",		"Sufami Turbo Cartridge ROM Image"	},
 
 	{NULL, NULL}
 };
 
 //Implement MDFNGI:
-int				lsnesLoad				(const char *name, MDFNFILE *fp)
+static int			lsnesLoad				(const char *name, MDFNFILE *fp)
 {
 	mdfnLsnes = new MDFNlsnes();
 
@@ -157,8 +174,37 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 	snes_set_audio_sample(AudioSampleCallback);
 	snes_set_input_state(InputStateCallback);
 
+	int type = DetermineGameType(fp);
+
+	if(type < 0 || type > 1)
+	{
+		MDFN_printf("libsnes: Unrecognized game type\n");
+		return 0;
+	}
+
 	//Load game
-	snes_load_cartridge_normal(0, fp->data, fp->size);
+	if(type == 0 && !snes_load_cartridge_normal(0, fp->data, fp->size))
+	{
+		MDFN_printf("libsnes: Failed to load game\n");
+		return 0;
+	}
+	else if(type == 1)
+	{
+		MDFNFILE sgbrom;
+		if(sgbrom.Open(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("lsnes.sgbbios").c_str()).c_str(), 0))
+		{
+			if(!snes_load_cartridge_super_game_boy(0, sgbrom.data, sgbrom.size, 0, fp->data, fp->size))
+			{
+				MDFN_printf("libsnes: Could not load Super Game Boy Game\n");
+				return 0;
+			}
+		}
+		else
+		{
+			MDFN_printf("libsnes: Could not load Super Game Boy BIOS\n");
+			return 0;
+		}
+	}
 
 	//Setup region
 	bool PAL = snes_get_region() != SNES_REGION_NTSC;
@@ -200,13 +246,12 @@ int				lsnesLoad				(const char *name, MDFNFILE *fp)
 	return 1;
 }
 
-bool			lsnesTestMagic			(const char *name, MDFNFILE *fp)
+static bool			lsnesTestMagic			(const char *name, MDFNFILE *fp)
 {
-	//Straight from mednafen
-	return !(strcasecmp(fp->ext, "smc") && strcasecmp(fp->ext, "swc") && strcasecmp(fp->ext, "sfc") && strcasecmp(fp->ext, "fig") && strcasecmp(fp->ext, "bs") && strcasecmp(fp->ext, "st"));
+	DetermineGameType(fp) >= 0;
 }
 
-void			lsnesCloseGame			(void)
+static void			lsnesCloseGame			(void)
 {
 	//Write save
 	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
@@ -235,7 +280,7 @@ void			lsnesCloseGame			(void)
 	mdfnLsnes = 0;
 }
 
-int				lsnesStateAction		(StateMem *sm, int load, int data_only)
+static int			lsnesStateAction		(StateMem *sm, int load, int data_only)
 {
 	uint32_t size = snes_serialize_size();
 	uint8_t* buffer = (uint8_t*)malloc(size);
@@ -260,7 +305,7 @@ int				lsnesStateAction		(StateMem *sm, int load, int data_only)
 	return result;
 }
 
-void			lsnesEmulate			(EmulateSpecStruct *espec)
+static void			lsnesEmulate			(EmulateSpecStruct *espec)
 {
 	assert(mdfnLsnes);
 	mdfnLsnes->ESpec = espec;
@@ -294,7 +339,7 @@ void			lsnesEmulate			(EmulateSpecStruct *espec)
 	espec->MasterCycles = 1LL * 100;
 }
 
-void			lsnesSetInput			(int port, const char *type, void *ptr)
+static void			lsnesSetInput			(int port, const char *type, void *ptr)
 {
 	assert(mdfnLsnes);
 
@@ -316,7 +361,7 @@ void			lsnesSetInput			(int port, const char *type, void *ptr)
 	}
 }
 
-void			lsnesDoSimpleCommand	(int cmd)
+static void			lsnesDoSimpleCommand	(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET)
 	{
@@ -329,12 +374,12 @@ void			lsnesDoSimpleCommand	(int cmd)
 }
 
 //GAME INFO
-static MDFNGI	lsnesInfo =
+static MDFNGI				lsnesInfo =
 {
 /*	shortname:			*/	"lsnes",
 /*	fullname:			*/	"libsnes Wrapper",
 /*	FileExtensions:		*/	extensions,
-/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
+/*	ModulePriority:		*/	(ModPrio)(MODPRIO_EXTERNAL_HIGH + 3),
 /*	Debugger:			*/	0,
 /*	InputInfo:			*/	&lsnesInput,
 
