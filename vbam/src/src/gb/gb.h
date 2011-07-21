@@ -21,7 +21,11 @@ extern gbRegister AF, BC, DE, HL, SP, PC;
 extern u16 IFF;
 int gbDis(char *, u16);
 
+#ifndef MDFNPS3 //ROBO: Load Game from memory
 bool gbLoadRom(const char *);
+#else
+bool gbLoadRom(const unsigned char *, uint32_t);
+#endif
 bool gbUpdateSizes();
 void gbEmulate(int);
 void gbWriteMemory(register u16, register u8);

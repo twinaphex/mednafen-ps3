@@ -4072,7 +4072,11 @@ void gbCleanUp()
   systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 }
 
+#ifndef MDFNPS3 //ROBO: Load game from memory
 bool gbLoadRom(const char *szFile)
+#else
+bool gbLoadRom(const unsigned char *szFile, uint32_t length)
+#endif
 {
   int size = 0;
 
@@ -4082,10 +4086,17 @@ bool gbLoadRom(const char *szFile)
 
   systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 
+#ifndef MDFNPS3 //ROBO: Load game from memory
   gbRom = utilLoad(szFile,
                    utilIsGBImage,
                    NULL,
                    size);
+#else
+  size = length;
+  gbRom = (u8*)malloc(length);
+  memcpy(gbRom, szFile, length);
+#endif
+
   if(!gbRom)
     return false;
 
@@ -4915,6 +4926,13 @@ void gbEmulate(int ticksToStop)
                 gbFrameCount++;
                 systemFrame();
 
+#ifdef MDFNPS3 //ROBO: Always leave on frames
+                if(systemPauseOnFrame())
+                {
+                    ticksToStop = 0;
+                }
+#endif
+
                 if((gbFrameCount % 10) == 0)
                   system10Frames(60);
 
@@ -4967,8 +4985,11 @@ void gbEmulate(int ticksToStop)
                 }
                 gbCapturePrevious = gbCapture;
 
+#ifndef MDFNPS3 //ROBO: Change frame skipping
           if(gbFrameSkipCount >= framesToSkip) {
-
+#else
+          if(!systemFrameSkip) {
+#endif
             if(!gbSgbMask)
             {
               if (gbBorderOn)
@@ -5021,7 +5042,11 @@ void gbEmulate(int ticksToStop)
               // next mode is H-Blank
               if((register_LY < 144) && (register_LCDC & 0x80) && gbScreenOn) {
                 if(!gbSgbMask) {
+#ifndef MDFNPS3 //ROBO: Change frame skipping
                   if(gbFrameSkipCount >= framesToSkip) {
+#else
+                  if(!systemFrameSkip) {
+#endif
                     if (!gbBlackScreen)
                     {
                       gbRenderLine();
@@ -5152,7 +5177,11 @@ void gbEmulate(int ticksToStop)
             int framesToSkip = systemFrameSkip;
             if(speedup)
               framesToSkip = 9; // try 6 FPS during speedup
+#ifndef MDFNPS3 //ROBO: Different frameskip
             if((gbFrameSkipCount >= framesToSkip) || (gbWhiteScreen == 1)) {
+#else
+            if((gbWhiteScreen == 1)) {
+#endif
               gbWhiteScreen = 2;
 
             if(!gbSgbMask)
