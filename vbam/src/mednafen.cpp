@@ -2,6 +2,7 @@
 #include <src/git.h>
 #include <src/driver.h>
 #include <src/general.h>
+#include <src/md5.h>
 #include <src/mempatcher.h>
 
 #include "Util.h"
@@ -40,6 +41,15 @@ extern struct EmulatedSystem			emulator;
 //Implement MDFNGI:
 static int		VbamLoad				(const char *name, MDFNFILE *fp, bool aGBA)
 {
+	//Get Game MD5
+	md5_context md5;
+	md5.starts();
+	md5.update(fp->data, fp->size);
+	md5.finish(MDFNGameInfo->MD5);
+
+	//Setup sound
+	soundInit();
+
 	//This refreshes timer and generates colormaps
 	InitSystem();
 
@@ -49,9 +59,11 @@ static int		VbamLoad				(const char *name, MDFNFILE *fp, bool aGBA)
 	//Reset system
 	if(aGBA)
 	{
+		//Load GBA game
 		CPULoadRom(fp->data, fp->size);
 		emulator = GBASystem;
 
+		//Setup
 		cpuSaveType = 0;
 		flashSetSize(0x10000);
 		rtcEnable(false);
@@ -60,36 +72,46 @@ static int		VbamLoad				(const char *name, MDFNFILE *fp, bool aGBA)
 
 		sdlApplyPerImagePreferences();
 		doMirroring(mirroringEnable);
-		CPUInit(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbam.bios").c_str()).c_str(), MDFN_GetSettingB("vbam.usebios"));
+
+		//Go
+		CPUInit(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbamgba.bios").c_str()).c_str(), MDFN_GetSettingB("vbamgba.usebios"));
+
+		//Map the memory for cheats
+		MDFNMP_Init(0x8000, (1 << 28) / 0x8000);
+		MDFNMP_AddRAM(0x40000, 0x2 << 24, workRAM);
+		MDFNMP_AddRAM(0x08000, 0x3 << 24, internalRAM);
+
 	}
 	else
 	{
+		//Load dmg game
 		gbLoadRom(fp->data, fp->size);
 		emulator = GBSystem;
 
+		//Grab settings
 		gbEmulatorType = MDFN_GetSettingI("vbamdmg.emulatortype");
+		gbColorOption = MDFN_GetSettingB("vbamdmg.washedcolors");
+		gbSoundSetDeclicking(MDFN_GetSettingB("vbamdmg.declicking"));
+
+		//Setup border mode
+		int bordertype = MDFN_GetSettingI("vbamdmg.sgbborder");
+		gbBorderOn = bordertype == 2;
+		gbBorderAutomatic = bordertype == 0;
 
         gbBorderLineSkip = 256;
         gbBorderColumnSkip = 48;
         gbBorderRowSkip = 40;
 
-		gbCPUInit(0, false);
+		//Go
+		gbCPUInit(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("vbamdmg.bios").c_str()).c_str(), MDFN_GetSettingB("vbamdmg.usebios"));
 	}
 
 	emulator.emuReset();
 	emulating = 1;
 
-	//Setup sound
-	soundInit();
-
 	//Load save game
 	std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
 	emulator.emuReadBattery(filename.c_str());
-
-	//Map the memory for cheats
-//	MDFNMP_Init(0x8000, (1 << 28) / 0x8000);
-//	MDFNMP_AddRAM(0x40000, 0x2 << 24, workRAM);
-//	MDFNMP_AddRAM(0x08000, 0x3 << 24, internalRAM);
 
 	return 1;
 }
@@ -151,11 +173,22 @@ static void		VbamEmulate				(EmulateSpecStruct *espec)
 	systemFrameSkip = ESpec->skip;
 
 	//Set the display size
-	bool useBorder = ((!GBAMode) && MDFN_GetSettingB("vbamdmg.showborder"));
-	espec->DisplayRect.x = useBorder ? 0 : 48;
-	espec->DisplayRect.y = useBorder ? 0 : 40;
-	espec->DisplayRect.w = GBAMode ? 240 : (useBorder ? 256 : 160);
-	espec->DisplayRect.h = GBAMode ? 160 : (useBorder ? 224 : 144);
+	static const MDFN_Rect gba = {0, 0, 240, 160};
+	static const MDFN_Rect dmgBorder = {0, 0, 256, 224};
+	static const MDFN_Rect dmgNoBorder = {48, 40, 160, 144};
+
+	if(GBAMode)
+	{
+		espec->DisplayRect = gba;
+	}
+	else if(gbBorderOn)
+	{
+		espec->DisplayRect = dmgBorder;
+	}
+	else
+	{
+		espec->DisplayRect = dmgNoBorder;
+	}
 
 	//Run the emulator, this will return at the end of a frame
 	emulator.emuMain(1000000);
@@ -250,9 +283,9 @@ static const FileExtensionSpecStruct	gbaExtensions[] =
 
 static MDFNSetting						gbaSettings[] =
 {
-	{"vbam.usebios",	MDFNSF_NOFLAGS,		"Enable GBA Bios Use",					NULL, MDFNST_BOOL,	"0"},
-	{"vbam.bios",		MDFNSF_EMU_STATE,	"Path to optional GBA BIOS ROM image.",	NULL, MDFNST_STRING, "gbabios.bin"},
-	{"vbam.vbaover",	MDFNSF_NOFLAGS,		"Path to vba-over.ini",					NULL, MDFNST_STRING, "vba-over.ini"},
+	{"vbamgba.usebios",	MDFNSF_NOFLAGS,		"Enable GBA Bios Use",					NULL, MDFNST_BOOL,	"0"},
+	{"vbamgba.bios",		MDFNSF_EMU_STATE,	"Path to optional GBA BIOS ROM image.",	NULL, MDFNST_STRING, "gbabios.bin"},
+	{"vbamgba.vbaover",	MDFNSF_NOFLAGS,		"Path to vba-over.ini",					NULL, MDFNST_STRING, "vba-over.ini"},
 	{0}
 };
 
@@ -341,10 +374,22 @@ const MDFNSetting_EnumList				dmgEmulatorTypeList[] =
 	{0,				0,		0,					0}
 };
 
+const MDFNSetting_EnumList				dmgBorderModeList[] =
+{
+	{"auto",		0,		"Automatic",				""},
+	{"never",		1,		"Never display the border",	""},
+	{"always",		2,		"Always show the border",	""},
+	{0,				0,		0,							0}
+};
+
 static MDFNSetting						dmgSettings[] =
 {
-	{"vbamdmg.emulatortype",	MDFNSF_NOFLAGS,	"Type of gameboy machine to emulate",	NULL,	MDFNST_ENUM,	"auto",	NULL,	NULL,	NULL,	NULL,	dmgEmulatorTypeList},
-	{"vbamdmg.showborder",		MDFNSF_NOFLAGS,	"Show any available border image.",		NULL,	MDFNST_BOOL,	"0"},
+	{"vbamdmg.usebios",			MDFNSF_NOFLAGS,		"Enable DMG Bios Use",					NULL,	MDFNST_BOOL,	"0"},
+	{"vbamdmg.bios",			MDFNSF_EMU_STATE,	"Path to optional DMG BIOS ROM image.",	NULL,	MDFNST_STRING,	"gbbios.bin"},
+	{"vbamdmg.emulatortype",	MDFNSF_NOFLAGS,		"Type of gameboy machine to emulate",	NULL,	MDFNST_ENUM,	"auto",	0, 0, 0, 0,	dmgEmulatorTypeList},
+	{"vbamdmg.sgbborder",		MDFNSF_NOFLAGS,		"Show border image.",					NULL,	MDFNST_ENUM,	"auto",	0, 0, 0, 0, dmgBorderModeList},
+	{"vbamdmg.washedcolors",	MDFNSF_NOFLAGS,		"Enable washed colors.",				NULL,	MDFNST_BOOL,	"1"},
+	{"vbamdmg.declicking",		MDFNSF_NOFLAGS,		"Enable Sound Declicking.", 			NULL,	MDFNST_BOOL,	"1"},
 	{0}
 };
 

@@ -557,11 +557,47 @@ u8 *utilLoad(const char *file,
 	return image;
 }
 #else //ROBO: No FEX
+static int utilGetSize(int size)
+{
+  int res = 1;
+  while(res < size)
+    res <<= 1;
+  return res;
+}
+
 u8 *utilLoad(const char *file,
              bool (*accept)(const char *),
              u8 *data,
              int &size)
 {
+	FILE* theFile = fopen(file, "rb");
+	if(theFile)
+	{
+		fseek(theFile, 0, SEEK_END);
+		int fileSize = ftell(theFile);
+		fseek(theFile, 0, SEEK_SET);
+
+		u8 *image = data;
+
+		if(image == NULL) {
+			// allocate buffer memory if none was passed to the function
+			image = (u8 *)malloc(utilGetSize(size));
+			if(image == NULL) {
+				fclose(theFile);
+				systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"), "data");
+				return NULL;
+			}
+			size = fileSize;
+		}
+
+		// Read image
+		int read = fileSize <= size ? fileSize : size; // do not read beyond file
+		fread(image, read, 1, theFile);
+		fclose(theFile);
+		size = fileSize;
+		return image;
+	}	
+
 	return 0;
 }
 #endif
