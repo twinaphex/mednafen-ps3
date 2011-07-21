@@ -109,7 +109,10 @@ void				ReloadEmulator			(const std::string& aFileName)
 
 			//Load the game into mednafen
 			MednafenEmu::CloseGame();
-			MednafenEmu::LoadGame(filename, data, size);
+			if(!MednafenEmu::LoadGame(filename, data, size))
+			{
+				ReloadEmulator("");
+			}
 		}
 		else
 		{

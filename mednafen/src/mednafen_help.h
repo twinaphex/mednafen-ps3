@@ -21,11 +21,11 @@ class	MednafenEmu
 		static void						Quit				();
 
 		///Load a new game into mednafen. If aData is non zero MednafenEmu will call free on it after it is done with it.
-		///Does nothing if a game is already loaded, CloseGame should be called before this if intending to load a new game.
+		///Does nothing if a game is already loaded, Will call CloseGame if needed.
 		///@param aFileName Name of the file to load. If aData and aSize are non-zero this is only informational.
 		///@param aData Preloaded data for the ROM. If set to 0 the file from aFileName is loaded from disk.
 		///@param aSize Size of preloaded ROM data.
-		static void						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
+		static bool						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
 
 		///Close any running game. Does nothing if no game is loaded.
 		static void						CloseGame			();
