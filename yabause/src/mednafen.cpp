@@ -38,7 +38,7 @@ extern "C"
 
 	void								YuiErrorMsg					(const char * string)
 	{
-	//	MDFN_printf("%s\n", string);
+		MDFN_printf("yabause: %s\n", string);
 	}
 
 	M68K_struct * M68KCoreList[] =
@@ -130,6 +130,7 @@ static InputInfoStruct 						yabauseInput =
 
 static MDFNSetting							yabauseSettings[] =
 {
+	{"yabause.bios",	MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",	NULL,	MDFNST_STRING,	"satbios.bin"},
 	{NULL}
 };
 
@@ -149,6 +150,11 @@ static FileExtensionSpecStruct				yabauseExtensions[] =
 //Implement MDFNGI:
 static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 {
+	//Get Settings
+	static char biospath[1024];
+	strncpy(biospath, MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("yabause.bios").c_str()).c_str(), 1024);
+
+	//Init yabause
 	yabauseinit_struct yinit;
 	memset(&yinit, 0, sizeof(yabauseinit_struct));
 	yinit.percoretype = PERCORE_MDFNJOY;
@@ -159,7 +165,7 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 	yinit.m68kcoretype = 1;
 	yinit.carttype = CART_NONE;
 	yinit.regionid = REGION_AUTODETECT;
-	yinit.biospath = "test.bios";
+	yinit.biospath = biospath;
 	yinit.cdpath = "";
 	yinit.buppath = "br.test";
 	yinit.mpegpath = 0;
@@ -169,7 +175,7 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 
 	if(YabauseInit(&yinit) < 0)
 	{
-		MDFN_printf("yabause: Failed to init?\n");
+		MDFN_printf("yabause: Failed to init");
 		return 0;
 	}
 
