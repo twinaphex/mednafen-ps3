@@ -314,6 +314,7 @@ static void			lsnesEmulate			(EmulateSpecStruct *espec)
 	if(espec->SoundFormatChanged)
 	{
 		delete mdfnLsnes->Resampler;
+		mdfnLsnes->Resampler = 0;
 
 		if(espec->SoundRate > 1.0)
 		{
