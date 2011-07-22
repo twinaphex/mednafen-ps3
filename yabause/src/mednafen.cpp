@@ -174,6 +174,7 @@ static void			yabauseCloseGame			(void)
 	YabauseDeInit();
 
 	delete mdfnyab_resampler;
+	mdfnyab_resampler = 0;
 }
 
 static int			yabauseStateAction			(StateMem *sm, int load, int data_only)
@@ -225,7 +226,7 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 	//AUDIO
 	if(mdfnyab_resampler && espec->SoundBuf && espec->SoundBufMaxSize)
 	{
-		uint32_t readsize = std::max(mdfnyab_resampler->avail() / 2, espec->SoundBufMaxSize);
+		uint32_t readsize = std::min(mdfnyab_resampler->avail() / 2, espec->SoundBufMaxSize);
 		espec->SoundBufSize = mdfnyab_resampler->read(espec->SoundBuf, readsize) >> 1;
 	}
 }

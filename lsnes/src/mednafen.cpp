@@ -325,7 +325,7 @@ static void			lsnesEmulate			(EmulateSpecStruct *espec)
 	//AUDIO
 	if(mdfnLsnes->Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
 	{
-		uint32_t readsize = std::max(mdfnLsnes->Resampler->avail() / 2, espec->SoundBufMaxSize);
+		uint32_t readsize = std::min(mdfnLsnes->Resampler->avail() / 2, espec->SoundBufMaxSize);
 		espec->SoundBufSize = mdfnLsnes->Resampler->read(espec->SoundBuf, readsize) >> 1;
 	}
 
