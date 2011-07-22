@@ -15,15 +15,13 @@ namespace lsnes
 {
 	struct						MDFNlsnes
 	{
-								MDFNlsnes() : ESpec(0), SampleBufferCount(0), Resampler(0) {}
+								MDFNlsnes() : ESpec(0), Resampler(0) {}
 								~MDFNlsnes() {delete Resampler;}
 
 		EmulateSpecStruct*		ESpec;
 		uint8_t*				Ports[4];
 
 		//Audio values
-		static const uint32_t	SampleBufferSize = 3200;
-		uint32_t				SampleBufferCount;
 		Fir_Resampler<8>*		Resampler;
 	};
 
@@ -77,16 +75,13 @@ namespace lsnes
 	{
 		assert(mdfnLsnes);
 
-		if(mdfnLsnes->SampleBufferCount ++ < mdfnLsnes->SampleBufferSize)
+		if(mdfnLsnes->Resampler && mdfnLsnes->Resampler->max_write() >= 2)
 		{
-			if(mdfnLsnes->Resampler && mdfnLsnes->Resampler->max_write() >= 2)
-			{
-				mdfnLsnes->Resampler->buffer()[0] = left;
-				mdfnLsnes->Resampler->buffer()[1] = right;
-				mdfnLsnes->Resampler->write(2);
-			}
+			mdfnLsnes->Resampler->buffer()[0] = left;
+			mdfnLsnes->Resampler->buffer()[1] = right;
+			mdfnLsnes->Resampler->write(2);
 		}
-		else
+		else if(mdfnLsnes->Resampler)
 		{
 			MDFN_PrintError("libsnes: SampleBuffer overflow!\n");
 		}
@@ -248,7 +243,7 @@ static int			lsnesLoad				(const char *name, MDFNFILE *fp)
 
 static bool			lsnesTestMagic			(const char *name, MDFNFILE *fp)
 {
-	DetermineGameType(fp) >= 0;
+	return DetermineGameType(fp) >= 0;
 }
 
 static void			lsnesCloseGame			(void)
@@ -319,7 +314,7 @@ static void			lsnesEmulate			(EmulateSpecStruct *espec)
 		if(espec->SoundRate > 1.0)
 		{
 			mdfnLsnes->Resampler = new Fir_Resampler<8>();
-			mdfnLsnes->Resampler->buffer_size(MDFNlsnes::SampleBufferSize * 2);
+			mdfnLsnes->Resampler->buffer_size(3200 * 2);
 			mdfnLsnes->Resampler->time_ratio(32000.0 / espec->SoundRate, 0.9965);	//TODO: Is 32000 the right number?
 		}
 	}
@@ -330,10 +325,8 @@ static void			lsnesEmulate			(EmulateSpecStruct *espec)
 	//AUDIO
 	if(mdfnLsnes->Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
 	{
-		espec->SoundBufSize = mdfnLsnes->Resampler->read(espec->SoundBuf, mdfnLsnes->Resampler->avail()) >> 1;
-
-		//Reset the sample buffer for the next frame
-		mdfnLsnes->SampleBufferCount = 0;
+		uint32_t readsize = std::max(mdfnLsnes->Resampler->avail() / 2, espec->SoundBufMaxSize);
+		espec->SoundBufSize = mdfnLsnes->Resampler->read(espec->SoundBuf, readsize) >> 1;
 	}
 
 	//TODO: Real timing
