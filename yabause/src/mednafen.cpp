@@ -145,7 +145,7 @@ static int			yabauseLoad				()
 	yinit.mpegpath = 0;
 	yinit.cartpath = 0;
 	yinit.netlinksetting = 0;
-	yinit.flags = VIDEOFORMATTYPE_NTSC;
+//	yinit.flags = VIDEOFORMATTYPE_NTSC;
 
 	if(YabauseInit(&yinit) < 0)
 	{
