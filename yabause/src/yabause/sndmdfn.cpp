@@ -19,6 +19,12 @@
 
 #ifdef MDFNPS3 //ROBO: Only for medanfen
 
+#include <src/mednafen.h>
+#include <include/Fir_Resampler.h>
+
+extern "C"
+{
+
 #include "error.h"
 #include "scsp.h"
 #include "sndsdl.h"
@@ -54,21 +60,12 @@ SNDMDFNSetVolume
 
 #define NUMSOUNDBLOCKS  4
 
-s16 *mdfnyab_stereodata16;
-u32 mdfnyab_soundcount = 0;
-static u32 soundbufsize;
+extern Fir_Resampler<8>* mdfnyab_resampler;
 
 //////////////////////////////////////////////////////////////////////////////
 
 int SNDMDFNInit()
 {
-   soundbufsize = 2000 * NUMSOUNDBLOCKS * 2 * 2 * 10;
-   
-   if ((mdfnyab_stereodata16 = (u16 *)malloc(soundbufsize)) == NULL)
-      return -1;
-
-   memset(mdfnyab_stereodata16, 0, soundbufsize);
-
    return 0;
 }
 
@@ -76,8 +73,6 @@ int SNDMDFNInit()
 
 void SNDMDFNDeInit()
 {
-   if (mdfnyab_stereodata16)
-      free(mdfnyab_stereodata16);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -117,10 +112,10 @@ static void sdlConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len) {
 
 void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples)
 {
-	if(mdfnyab_soundcount < 1000)
+	if(mdfnyab_resampler && mdfnyab_resampler->max_write() > (num_samples * 2))
 	{
-		sdlConvert32uto16s((s32*)leftchanbuffer, (s32*)rightchanbuffer, &mdfnyab_stereodata16[mdfnyab_soundcount*2], num_samples);
-		mdfnyab_soundcount += num_samples;
+		sdlConvert32uto16s((s32*)leftchanbuffer, (s32*)rightchanbuffer, mdfnyab_resampler->buffer(), num_samples);
+		mdfnyab_resampler->write(num_samples * 2);
 	}
 }
 
@@ -150,5 +145,7 @@ void SNDMDFNSetVolume(int volume)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+
+}
 
 #endif
