@@ -54,6 +54,9 @@ static u16	lastportstate[4];
 //////////////////////////////////////////////////////////////////////////////
 
 int PERMDFNJoyInit(void) {
+	//Reset
+	PerPortReset();
+
 	//Add the pads
 	pad[0] = PerPadAdd(&PORTDATA1);
 	pad[1] = PerPadAdd(&PORTDATA2);
