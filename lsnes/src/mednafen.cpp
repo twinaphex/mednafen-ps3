@@ -337,7 +337,7 @@ static void			lsnesSetInput			(int port, const char *type, void *ptr)
 {
 	assert(mdfnLsnes);
 
-	if(port >= 0 && port <= 4)
+	if(port >= 0 && port < 4)
 	{
 		//Search for the device
 		unsigned pluggeddevice = 0;
