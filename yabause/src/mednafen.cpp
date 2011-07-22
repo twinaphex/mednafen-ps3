@@ -25,9 +25,11 @@ extern "C"
 	#include "scsp.h"
 	#include "m68kcore.h"
 	#include "sndmdfn.h"
+	#include "permdfnjoy.h"
 
-	extern int16_t *mdfnyab_stereodata16;
-	extern uint32_t mdfnyab_soundcount;
+	extern int16_t*						mdfnyab_stereodata16;
+	extern uint32_t						mdfnyab_soundcount;
+	uint8_t*							mdfnyab_inputports[4];
 
 
 	void								YuiSwapBuffers				()
@@ -53,7 +55,7 @@ extern "C"
 
 	PerInterface_struct *PERCoreList[] =
 	{
-		&PERDummy,
+		&PERMDFNJoy,
 		0
 	};
 
@@ -77,37 +79,53 @@ extern "C"
 	};
 }
 //SYSTEM DESCRIPTIONS
+#define PERPAD_UP	0
+#define PERPAD_RIGHT	1
+#define PERPAD_DOWN	2
+#define PERPAD_LEFT	3
+#define PERPAD_RIGHT_TRIGGER 4
+#define PERPAD_LEFT_TRIGGER 5
+#define PERPAD_START	6
+#define PERPAD_A	7
+#define PERPAD_B	8
+#define PERPAD_C	9
+#define PERPAD_X	10
+#define PERPAD_Y	11
+#define PERPAD_Z	12
+
+
 static const InputDeviceInputInfoStruct		GamepadIDII[] =
 {
-	{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
-	{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
-	{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
-	{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
-	{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
-	{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
-	{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
-	{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
+	{ "up",		"UP ↑",				0,	IDIT_BUTTON,			"down"	},
+	{ "right",	"RIGHT →",			3,	IDIT_BUTTON,			"left"	},
+	{ "down",	"DOWN ↓",			1,	IDIT_BUTTON,			"up"	},
+	{ "left",	"LEFT ←",			2,	IDIT_BUTTON,			"right"	},
+	{ "rt",		"RIGHT TRIGGER",	10,	IDIT_BUTTON,			NULL	},
+	{ "lt",		"LEFT TRIGGER",		11,	IDIT_BUTTON,			NULL	},
+	{ "start",	"START",			12,	IDIT_BUTTON,			NULL	},
+	{ "a",		"A",				4,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "b",		"B",				5,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "c",		"C",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "x",		"X",				7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "y",		"Y",				8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+	{ "z",		"Z",				9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
 };
 
 static InputDeviceInfoStruct 				InputDeviceInfo[] =
 {
-	{"none",	"none",		NULL,	0,															NULL			},
-	{"gamepad", "Gamepad",	NULL,	sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),	GamepadIDII,	},
+	{"none",	"none",		NULL,	0,		NULL			},
+	{"gamepad", "Gamepad",	NULL,	13,		GamepadIDII,	},
 };
 
-static const InputPortInfoStruct PortInfo[] =
+static const InputPortInfoStruct			PortInfo[] =
 {
-	{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
-	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+	{0,	"port1",	"Port 1",	2,	InputDeviceInfo, "gamepad" },
+	{0,	"port2",	"Port 2",	2,	InputDeviceInfo, "gamepad" },
 };
 
 static InputInfoStruct 						yabauseInput =
 {
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
+	2,	PortInfo
 };
 
 static MDFNSetting							yabauseSettings[] =
@@ -133,7 +151,7 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 {
 	yabauseinit_struct yinit;
 	memset(&yinit, 0, sizeof(yabauseinit_struct));
-	yinit.percoretype = PERCORE_DEFAULT;
+	yinit.percoretype = PERCORE_MDFNJOY;
 	yinit.sh2coretype = SH2CORE_DEFAULT;
 	yinit.vidcoretype = VIDCORE_SOFT;
 	yinit.sndcoretype = SNDCORE_MDFN;
@@ -205,6 +223,10 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 
 static void			yabauseSetInput				(int port, const char *type, void *ptr)
 {
+	if(port >= 0 && port <= 4)
+	{
+		mdfnyab_inputports[port] = (uint8_t*)ptr;
+	}
 }
 
 static void			yabauseDoSimpleCommand		(int cmd)
