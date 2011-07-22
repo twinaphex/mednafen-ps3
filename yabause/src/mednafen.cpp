@@ -58,8 +58,7 @@ extern "C"
 
 	CDInterface *CDCoreList[] =
 	{
-		&DummyCD,
-		&ISOCD,
+		&ArchCD,
 		0
 	};
 
@@ -123,7 +122,7 @@ static FileExtensionSpecStruct				yabauseExtensions[] =
 };
 
 //Implement MDFNGI:
-static int			yabauseLoad				(const char *name, MDFNFILE *fp)
+static int			yabauseLoad				()
 {
 	//Get Settings
 	static char biospath[1024];
@@ -136,7 +135,7 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 	yinit.sh2coretype = SH2CORE_DEFAULT;
 	yinit.vidcoretype = VIDCORE_SOFT;
 	yinit.sndcoretype = SNDCORE_MDFN;
-	yinit.cdcoretype = CDCORE_ISO;
+	yinit.cdcoretype = CDCORE_ARCH;
 	yinit.m68kcoretype = 1;
 	yinit.carttype = CART_NONE;
 	yinit.regionid = REGION_AUTODETECT;
@@ -160,7 +159,7 @@ static int			yabauseLoad				(const char *name, MDFNFILE *fp)
 	return 1;
 }
 
-static bool			yabauseTestMagic			(const char *name, MDFNFILE *fp)
+static bool			yabauseTestMagic			()
 {
 	return true;
 }
@@ -195,7 +194,11 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 	{
 		for(int j = 0; j != width; j ++)
 		{
-			dest[i * espec->surface->pitchinpix + j] = dispbuffer[i * width + j];
+			uint8_t r = (dispbuffer[i * width + j] >> 0) & 0xFF;
+			uint8_t g = (dispbuffer[i * width + j] >> 8) & 0xFF;
+			uint8_t b = (dispbuffer[i * width + j] >> 16) & 0xFF;
+
+			dest[i * espec->surface->pitchinpix + j] = (r << 16) | (g << 8) | b;
 		}
 	}
 
@@ -235,10 +238,10 @@ static MDFNGI				yabauseInfo =
 /*	Debugger:			*/	0,
 /*	InputInfo:			*/	&yabauseInput,
 
-/*	Load:				*/	yabauseLoad,
-/*	TestMagic:			*/	yabauseTestMagic,
-/*	LoadCD:				*/	0,
-/*	TestMagicCD:		*/	0,
+/*	Load:				*/	0,
+/*	TestMagic:			*/	0,
+/*	LoadCD:				*/	yabauseLoad,
+/*	TestMagicCD:		*/	yabauseTestMagic,
 /*	CloseGame:			*/	yabauseCloseGame,
 /*	ToggleLayer:		*/	0,
 /*	LayerNames:			*/	0,
