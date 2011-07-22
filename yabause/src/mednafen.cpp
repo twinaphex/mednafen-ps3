@@ -237,6 +237,14 @@ static void			yabauseSetInput				(int port, const char *type, void *ptr)
 
 static void			yabauseDoSimpleCommand		(int cmd)
 {
+	if(cmd == MDFN_MSC_RESET)
+	{
+		YabauseResetButton();
+	}
+	else if(cmd == MDFN_MSC_POWER)
+	{
+		YabauseReset();
+	}
 }
 
 //GAME INFO
