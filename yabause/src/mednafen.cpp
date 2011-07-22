@@ -8,8 +8,6 @@
 
 #include <stdio.h>
 
-//extern u32* dispbuffer;
-
 //SYSTEM
 extern "C"
 {
@@ -30,7 +28,6 @@ extern "C"
 	extern int16_t*						mdfnyab_stereodata16;
 	extern uint32_t						mdfnyab_soundcount;
 	uint8_t*							mdfnyab_inputports[4];
-
 
 	void								YuiSwapBuffers				()
 	{
@@ -79,21 +76,6 @@ extern "C"
 	};
 }
 //SYSTEM DESCRIPTIONS
-#define PERPAD_UP	0
-#define PERPAD_RIGHT	1
-#define PERPAD_DOWN	2
-#define PERPAD_LEFT	3
-#define PERPAD_RIGHT_TRIGGER 4
-#define PERPAD_LEFT_TRIGGER 5
-#define PERPAD_START	6
-#define PERPAD_A	7
-#define PERPAD_B	8
-#define PERPAD_C	9
-#define PERPAD_X	10
-#define PERPAD_Y	11
-#define PERPAD_Z	12
-
-
 static const InputDeviceInputInfoStruct		GamepadIDII[] =
 {
 	{ "up",		"UP ↑",				0,	IDIT_BUTTON,			"down"	},
@@ -136,14 +118,7 @@ static MDFNSetting							yabauseSettings[] =
 
 static FileExtensionSpecStruct				yabauseExtensions[] =
 {
-	{".smc",	"Super Magicom ROM Image"			},
-	{".swc",	"Super Wildcard ROM Image"			},
-	{".sfc",	"Cartridge ROM Image"				},
-	{".fig",	"Cartridge ROM Image"				},
-
-	{".bs",		"BS-X EEPROM Image"					},
-	{".st",		"Sufami Turbo Cartridge ROM Image"	},
-
+	{".cue", "Sega Saturn Disc Image"},
 	{NULL, NULL}
 };
 
@@ -192,10 +167,13 @@ static bool			yabauseTestMagic			(const char *name, MDFNFILE *fp)
 
 static void			yabauseCloseGame			(void)
 {
+	//TODO: Anything else?
+	YabauseDeInit();
 }
 
 static int			yabauseStateAction			(StateMem *sm, int load, int data_only)
 {
+	return 0;
 }
 
 static void			yabauseEmulate				(EmulateSpecStruct *espec)
@@ -251,7 +229,7 @@ static void			yabauseDoSimpleCommand		(int cmd)
 static MDFNGI				yabauseInfo =
 {
 /*	shortname:			*/	"yabause",
-/*	fullname:			*/	"yabause",
+/*	fullname:			*/	"Sega Saturn (yabause)",
 /*	FileExtensions:		*/	yabauseExtensions,
 /*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,
