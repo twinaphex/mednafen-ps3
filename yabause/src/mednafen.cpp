@@ -232,7 +232,7 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 
 static void			yabauseSetInput				(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port <= 4)
+	if(port >= 0 && port < 4)
 	{
 		mdfnyab_inputports[port] = (uint8_t*)ptr;
 	}
