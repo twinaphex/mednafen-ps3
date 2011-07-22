@@ -1,2 +1,0 @@
-/home/jason/Projects/mednafen-ps3back/yabause/src/yabause/c68k/CMakeFiles/c68kinc.dir
-/home/jason/Projects/mednafen-ps3back/yabause/src/yabause/c68k/CMakeFiles/gen68k.dir
