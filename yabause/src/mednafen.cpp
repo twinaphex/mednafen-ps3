@@ -4,6 +4,7 @@
 #include <src/general.h>
 #include <src/mempatcher.h>
 #include <src/md5.h>
+#include <src/cdrom/cdromif.h>
 #include <include/Fir_Resampler.h>
 
 #include <stdio.h>
@@ -161,7 +162,11 @@ static int			yabauseLoad				()
 
 static bool			yabauseTestMagic			()
 {
-	return true;
+	uint8_t Buffer[4000];
+	CDIF_ReadRawSector(Buffer, 0);
+
+	//Works for shining force 3 anyway (only game I have on hand to test)
+	return strncmp("SEGA SEGASATURN", (const char*)&Buffer[16], 15) == 0;
 }
 
 static void			yabauseCloseGame			(void)
