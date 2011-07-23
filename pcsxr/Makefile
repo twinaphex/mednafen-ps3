@@ -13,5 +13,7 @@ else
 	SOURCE	+= 	src/libpcsxcore/ix86_64 src/libpcsxcore/ix86
 endif
 
+CPPFLAGS	+= -DMDFNPS3
+
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
