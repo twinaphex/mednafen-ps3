@@ -23,6 +23,7 @@
 #define MODULENAMESPACE Yabause
 #define SECONDARYINCLUDE
 #include <module_helper.h>
+using namespace Yabause;
 
 extern "C"
 {

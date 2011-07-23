@@ -4,6 +4,7 @@
 
 #define MODULENAMESPACE	Stella
 #include <module_helper.h>
+using namespace Stella;
 
 #include "Settings.hxx"
 #include "TIA.hxx"
@@ -191,24 +192,14 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 
 	//VIDEO: TODO: Support other color formats
 	//Get the frame info from stella
-	uInt8* currentFrame = mdfnStella->GameConsole->tia().currentFrameBuffer();
 	Int32 frameWidth = mdfnStella->GameConsole->tia().width();
 	Int32 frameHeight = mdfnStella->GameConsole->tia().height();
 
 	//Setup the output area for mednafen, never allow stella's size to excede mednafen's
-	espec->DisplayRect.x = 0;
-	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = std::min(frameWidth, espec->surface->w);
-	espec->DisplayRect.h = std::min(frameHeight, espec->surface->h);
+	Video::SetDisplayRect(espec, 0, 0, frameWidth, frameHeight);
 
 	//Copy the frame from stella to mednafen
-	for(int i = 0; i != espec->DisplayRect.h; i ++)
-	{
-		for(int j = 0; j != espec->DisplayRect.w; j ++)
-		{
-			espec->surface->pixels[i * espec->surface->pitchinpix + j] = mdfnStella->Palette ? mdfnStella->Palette[currentFrame[i * frameWidth + j]] : 0;
-		}
-	}
+	Video::BlitPalette<0xFF>(espec, mdfnStella->Palette, mdfnStella->GameConsole->tia().currentFrameBuffer(), frameWidth, frameHeight, frameWidth);
 
 	//AUDIO
 	//Get the number of samples in a frame

@@ -9,6 +9,7 @@
 
 #define MODULENAMESPACE pcsxr
 #include <module_helper.h>
+using namespace pcsxr;
 
 #include "src/mempatcher.h"
 
@@ -269,22 +270,19 @@ static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 	#define GREEN(x) ((x>>8) & 0xff)
 	#define COLOR(x) (x & 0xffffff)
 
-	bool haveFrame = (g_gpu.dsp.mode.x && g_gpu.dsp.mode.y) && !espec->skip;
+	Video::SetDisplayRect(espec, 0, 0, 320, 240);
 
-	espec->DisplayRect.x = 0;
-	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = haveFrame ? (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x : 240;
-	espec->DisplayRect.h = haveFrame ? (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y : 320;
-
-	if(haveFrame)
+	if((g_gpu.dsp.mode.x && g_gpu.dsp.mode.y) && !espec->skip)
 	{
+		Video::SetDisplayRect(espec, 0, 0, (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x, (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y);
+
 		uint32_t* pixels = espec->surface->pixels;
 
 		if(g_gpu.status_reg & STATUS_RGB24)
 		{
 			for(int i = 0; i != espec->DisplayRect.h; i++)
 			{
-				int startxy = ((1024) * (i + espec->DisplayRect.y)) + espec->DisplayRect.x;
+				int startxy = ((1024) * (i + g_gpu.dsp.position.y)) + g_gpu.dsp.position.x;
 				unsigned char* pD = (unsigned char *)&g_gpu.psx_vram.u16[startxy];
 				uint32_t* destpix = (uint32_t *)(pixels + (i * espec->surface->pitchinpix));
 				for(int j = 0; j != espec->DisplayRect.w; j++)
@@ -297,16 +295,7 @@ static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 		}
 		else
 		{
-			for(int i = 0; i != espec->DisplayRect.h; i++)
-			{
-				int startxy = (1024 * (i + espec->DisplayRect.y)) + espec->DisplayRect.x;
-				uint32_t* destpix = &pixels[espec->surface->pitchinpix * i];
-				for(int j = 0; j != espec->DisplayRect.w; j++, startxy ++)
-				{
-					int s = SWAP16(g_gpu.psx_vram.u16[startxy]);
-					destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
-				}
-			}
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, &g_gpu.psx_vram.u16[1024 * g_gpu.dsp.position.y + g_gpu.dsp.position.x], espec->DisplayRect.w, espec->DisplayRect.h, 1024);
 		}
 	}
 

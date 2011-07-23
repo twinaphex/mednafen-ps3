@@ -4,6 +4,9 @@
 #include <src/general.h>
 #include <src/driver.h>
 
+#define MODULENAMESPACE nest
+#include <module_helper.h>
+
 #include <fstream>
 #include <sstream>
 #include "core/api/NstApiEmulator.hpp"
@@ -349,10 +352,7 @@ void			NestEmulate				(EmulateSpecStruct *espec)
 
 	//FINISH VIDEO: Set the display area rectangle
 	uint32_t widthhelp = UseNTSC ? 0 : 8;
-	espec->DisplayRect.x = NestopiaSettings.ClipSides ? widthhelp : 0;
-	espec->DisplayRect.y = NestopiaSettings.ScanLineStart;
-	espec->DisplayRect.w = (UseNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH) - (NestopiaSettings.ClipSides ? widthhelp : 0);
-	espec->DisplayRect.h = NestopiaSettings.ScanLineEnd - NestopiaSettings.ScanLineStart;
+	nest::Video::SetDisplayRect(espec, NestopiaSettings.ClipSides ? widthhelp : 0, NestopiaSettings.ScanLineStart, (UseNTSC ? Video::Output::NTSC_WIDTH : Video::Output::WIDTH) - (NestopiaSettings.ClipSides ? widthhelp : 0), NestopiaSettings.ScanLineEnd - NestopiaSettings.ScanLineStart);
 
 	//FINISH AUDIO: Copy the samples into mednafen's sound buffer
 	espec->SoundBufSize = 0;

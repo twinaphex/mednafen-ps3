@@ -3,6 +3,7 @@
 #define MODULENAMESPACE pcsxr
 #define SECONDARYINCLUDE
 #include <module_helper.h>
+using namespace pcsxr;
 
 extern "C"
 {
