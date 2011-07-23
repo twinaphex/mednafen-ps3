@@ -34,15 +34,15 @@ extern "C"
 
 #include <stdlib.h>
 
-int SNDMDFNInit();
-void SNDMDFNDeInit();
-int SNDMDFNReset();
-int SNDMDFNChangeVideoFormat(int vertfreq);
-void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples);
-u32 SNDMDFNGetAudioSpace();
-void SNDMDFNMuteAudio();
-void SNDMDFNUnMuteAudio();
-void SNDMDFNSetVolume(int volume);
+static int SNDMDFNInit();
+static void SNDMDFNDeInit();
+static int SNDMDFNReset();
+static int SNDMDFNChangeVideoFormat(int vertfreq);
+static void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples);
+static u32 SNDMDFNGetAudioSpace();
+static void SNDMDFNMuteAudio();
+static void SNDMDFNUnMuteAudio();
+static void SNDMDFNSetVolume(int volume);
 
 SoundInterface_struct SNDMDFN = {
 SNDCORE_MDFN,
@@ -60,32 +60,37 @@ SNDMDFNSetVolume
 
 #define NUMSOUNDBLOCKS  4
 
+static uint32_t video_freq;
+static uint32_t audio_size;
 extern Fir_Resampler<8>* mdfnyab_resampler;
 
 //////////////////////////////////////////////////////////////////////////////
 
-int SNDMDFNInit()
+static int SNDMDFNInit()
+{
+	SNDMDFNChangeVideoFormat(60);
+   return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+static void SNDMDFNDeInit()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+static int SNDMDFNReset()
 {
    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-void SNDMDFNDeInit()
+static int SNDMDFNChangeVideoFormat(int vertfreq)
 {
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-int SNDMDFNReset()
-{
-   return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-int SNDMDFNChangeVideoFormat(int vertfreq)
-{
+   video_freq = vertfreq;
+   audio_size = 44100 / vertfreq;
    return 0;
 }
 
@@ -110,7 +115,7 @@ static void sdlConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len) {
    } 
 }
 
-void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples)
+static void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples)
 {
 	if(mdfnyab_resampler && mdfnyab_resampler->max_write() > (num_samples * 2))
 	{
@@ -121,26 +126,26 @@ void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_sampl
 
 //////////////////////////////////////////////////////////////////////////////
 
-u32 SNDMDFNGetAudioSpace()
+static u32 SNDMDFNGetAudioSpace()
 {
-   return mdfnyab_resampler ? ((mdfnyab_resampler->written() > 1000) ? 0 : 735 * 2) : 0;
+   return mdfnyab_resampler ? ((mdfnyab_resampler->written() > 1000) ? 0 : audio_size * 2) : 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-void SNDMDFNMuteAudio()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void SNDMDFNUnMuteAudio()
+static void SNDMDFNMuteAudio()
 {
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-void SNDMDFNSetVolume(int volume)
+static void SNDMDFNUnMuteAudio()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+static void SNDMDFNSetVolume(int volume)
 {
 }
 

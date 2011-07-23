@@ -16,8 +16,8 @@ CXXFILES	:=	src/mednafen.cpp src/yabause/cd-mdfn.cpp src/yabause/sndmdfn.cpp
 
 INCLUDE		:=	../mednafen/src src/yabause 
 
-CFLAGS		+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\"
-CXXFLAGS	+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\"  
+CFLAGS		+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H
+CXXFLAGS	+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
