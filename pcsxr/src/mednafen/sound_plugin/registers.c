@@ -42,12 +42,43 @@
 #define SUSTAIN_MS     441L
 #define RELEASE_MS     437L
 
+
+
+
+
+
+int Check_IRQ( int addr, int force ) {
+	if(spuCtrl & CTRL_IRQ)         // some callback and irq active?
+	{
+		if( ( bIrqHit == 0 ) &&
+				( force == 1 || pSpuIrq == spuMemC+addr ) )
+		{
+			if(irqCallback)
+				irqCallback();                        // -> call main emu
+
+			// one-time
+			bIrqHit = 1;
+			spuStat |= STAT_IRQ;
+
+#if 0
+			MessageBox( NULL, "IRQ", "SPU", MB_OK );
+#endif
+
+			return 1;
+		}
+	}
+
+
+	return 0;
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////
 // WRITE REGISTERS: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: pk prefix
-void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
+void CALLBACK SPUwriteRegister(unsigned long reg, unsigned short val)
 {
  const unsigned long r=reg&0xfff;
  regArea[(r-0xc00)>>1] = val;
@@ -84,6 +115,33 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
         s_chan[ch].ADSRX.DecayRate=(lval>>4) & 0x000f;
         s_chan[ch].ADSRX.SustainLevel=lval & 0x000f;
         //---------------------------------------------//
+        if(!iDebugMode) break;
+        //---------------------------------------------// stuff below is only for debug mode
+
+        s_chan[ch].ADSR.AttackModeExp=(lval&0x8000)?1:0;        //0x007f
+
+        lx=(((lval>>8) & 0x007f)>>2);                  // attack time to run from 0 to 100% volume
+        lx=min(31,lx);                                 // no overflow on shift!
+        if(lx) 
+         { 
+          lx = (1<<lx);
+          if(lx<2147483) lx=(lx*ATTACK_MS)/10000L;     // another overflow check
+          else           lx=(lx/10000L)*ATTACK_MS;
+          if(!lx) lx=1;
+         }
+        s_chan[ch].ADSR.AttackTime=lx;                
+
+        s_chan[ch].ADSR.SustainLevel=                 // our adsr vol runs from 0 to 1024, so scale the sustain level
+         (1024*((lval) & 0x000f))/15;
+
+        lx=(lval>>4) & 0x000f;                         // decay:
+        if(lx)                                         // our const decay value is time it takes from 100% to 0% of volume
+         {
+          lx = ((1<<(lx))*DECAY_MS)/10000L;
+          if(!lx) lx=1;
+         }
+        s_chan[ch].ADSR.DecayTime =                   // so calc how long does it take to run from 100% to the wanted sus level
+         (lx*(1024-s_chan[ch].ADSR.SustainLevel))/1024;
        }
       break;
      //------------------------------------------------// adsr times with pre-calcs
@@ -98,6 +156,37 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
        s_chan[ch].ADSRX.ReleaseModeExp = (lval&0x0020)?1:0;
        s_chan[ch].ADSRX.ReleaseRate = lval & 0x001f;
        //----------------------------------------------//
+       if(!iDebugMode) break;
+       //----------------------------------------------// stuff below is only for debug mode
+
+       s_chan[ch].ADSR.SustainModeExp = (lval&0x8000)?1:0;
+       s_chan[ch].ADSR.ReleaseModeExp = (lval&0x0020)?1:0;
+                   
+       lx=((((lval>>6) & 0x007f)>>2));                 // sustain time... often very high
+       lx=min(31,lx);                                  // values are used to hold the volume
+       if(lx)                                          // until a sound stop occurs
+        {                                              // the highest value we reach (due to 
+         lx = (1<<lx);                                 // overflow checking) is: 
+         if(lx<2147483) lx=(lx*SUSTAIN_MS)/10000L;     // 94704 seconds = 1578 minutes = 26 hours... 
+         else           lx=(lx/10000L)*SUSTAIN_MS;     // should be enuff... if the stop doesn't 
+         if(!lx) lx=1;                                 // come in this time span, I don't care :)
+        }
+       s_chan[ch].ADSR.SustainTime = lx;
+
+       lx=(lval & 0x001f);
+       s_chan[ch].ADSR.ReleaseVal     =lx;
+       if(lx)                                          // release time from 100% to 0%
+        {                                              // note: the release time will be
+         lx = (1<<lx);                                 // adjusted when a stop is coming,
+         if(lx<2147483) lx=(lx*RELEASE_MS)/10000L;     // so at this time the adsr vol will 
+         else           lx=(lx/10000L)*RELEASE_MS;     // run from (current volume) to 0%
+         if(!lx) lx=1;
+        }
+       s_chan[ch].ADSR.ReleaseTime=lx;
+
+       if(lval & 0x4000)                               // add/dec flag
+            s_chan[ch].ADSR.SustainModeDec=-1;
+       else s_chan[ch].ADSR.SustainModeDec=1;
       }
      break;
      //------------------------------------------------// adsr volume... mmm have to investigate this
@@ -106,8 +195,10 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
      //------------------------------------------------//
      case 14:                                          // loop?
        //WaitForSingleObject(s_chan[ch].hMutex,2000);        // -> no multithread fuckups
-       s_chan[ch].pLoop=spuMemC+((unsigned long)((val<<3)&~0xf));
-       s_chan[ch].bIgnoreLoop=1;
+       
+			 s_chan[ch].pLoop=spuMemC+((unsigned long)((val<<3)&~0xf));
+       
+			 //s_chan[ch].bIgnoreLoop=1;
        //ReleaseMutex(s_chan[ch].hMutex);                    // -> oki, on with the thread
        break;
      //------------------------------------------------//
@@ -124,6 +215,9 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
       break;
     //-------------------------------------------------//
     case H_SPUdata:
+			// BIOS - allow dma 00
+			Check_IRQ( spuAddr, 0 );
+
       spuMem[spuAddr>>1] = val;
       spuAddr+=2;
       if(spuAddr>0x7ffff) spuAddr=0;
@@ -131,12 +225,54 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
     //-------------------------------------------------//
     case H_SPUctrl:
       spuCtrl=val;
+
+
+			// flags
+			if( spuCtrl & CTRL_CD_PLAY )
+				spuStat |= CTRL_CD_PLAY;
+			else
+				spuStat &= ~CTRL_CD_PLAY;
+
+			if( spuCtrl & CTRL_CD_REVERB )
+				spuStat |= STAT_CD_REVERB;
+			else
+				spuStat &= ~STAT_CD_REVERB;
+
+
+			if( spuCtrl & CTRL_EXT_PLAY )
+				spuStat |= STAT_EXT_PLAY;
+			else
+				spuStat &= ~STAT_EXT_PLAY;
+
+			if( spuCtrl & CTRL_EXT_REVERB )
+				spuStat |= STAT_EXT_REVERB;
+			else
+				spuStat &= ~STAT_EXT_REVERB;
+
+
+			
+			spuStat &= ~(STAT_DMA_NON | STAT_DMA_R | STAT_DMA_W);
+
+			if( spuCtrl & CTRL_DMA_F )
+				spuStat |= STAT_DMA_F;
+
+			if( (spuCtrl & CTRL_DMA_F) == CTRL_DMA_R )
+				spuStat |= STAT_DMA_R;
+
+
+
+			// reset IRQ flag
+			if( (spuCtrl & CTRL_IRQ) == 0 ) {
+				bIrqHit = 0;
+				spuStat &= ~STAT_IRQ;
+			}
+
+
+			dwNoiseClock = (spuCtrl & CTRL_NOISE)>>8;
       break;
     //-------------------------------------------------//
     case H_SPUstat:
       spuStat=val & 0xf800;
-
-			dwNoiseClock = (spuCtrl&0x3f00)>>8;
       break;
     //-------------------------------------------------//
     case H_SPUReverbAddr:
@@ -210,12 +346,10 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
       break;
     //-------------------------------------------------//
     case H_CDLeft:
-			// Attenuation: [$00-ff left][$00-ff right]
 			iLeftXAVol = val;
 			if(cddavCallback) cddavCallback(0,val);
 			break;
     case H_CDRight:
-			// Attenuation: [$00-ff right][$00-ff left]
 			iRightXAVol = val;
 			if(cddavCallback) cddavCallback(1,val);
 			break;
@@ -296,8 +430,7 @@ void CALLBACK pkSPUwriteRegister(unsigned long reg, unsigned short val)
 // READ REGISTER: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: pk prefix
-unsigned short CALLBACK pkSPUreadRegister(unsigned long reg)
+unsigned short CALLBACK SPUreadRegister(unsigned long reg)
 {
  const unsigned long r=reg&0xfff;
         
@@ -314,14 +447,7 @@ unsigned short CALLBACK pkSPUreadRegister(unsigned long reg)
        if(s_chan[ch].ADSRX.lVolume &&                  // same here... we haven't decoded one sample yet, so no envelope yet. return 1 as well
           !s_chan[ch].ADSRX.EnvelopeVol)                   
         return 1;
-       return (unsigned short)(s_chan[ch].ADSRX.EnvelopeVol>>16);
-      }
-
-     case 14:                                          // get loop address
-      {
-       const int ch=(r>>4)-0xc0;
-       if(s_chan[ch].pLoop==NULL) return 0;
-       return (unsigned short)((s_chan[ch].pLoop-spuMemC)>>3);
+       return (unsigned short)(s_chan[ch].ADSRX.EnvelopeVol);
       }
     }
   }
@@ -333,9 +459,6 @@ unsigned short CALLBACK pkSPUreadRegister(unsigned long reg)
 
     case H_SPUstat:
      return spuStat;
-        
-    case H_SPUaddr:
-     return (unsigned short)(spuAddr>>3);
 
     case H_SPUdata:
      {
@@ -344,9 +467,6 @@ unsigned short CALLBACK pkSPUreadRegister(unsigned long reg)
       if(spuAddr>0x7ffff) spuAddr=0;
       return s;
      }
-
-    case H_SPUirqAddr:
-     return spuIrq;
 
     //case H_SPUIsOn1:
     // return IsSoundOn(0,16);
@@ -371,7 +491,7 @@ void SoundOn(int start,int end,unsigned short val)     // SOUND ON PSX COMAND
   {
    if((val&1) && s_chan[ch].pStart)                    // mmm... start has to be set before key on !?!
     {
-     s_chan[ch].bIgnoreLoop=0;
+		 s_chan[ch].bLoopJump = 0;
      s_chan[ch].bNew=1;
 
 		 // do this here, not in StartSound
@@ -380,6 +500,11 @@ void SoundOn(int start,int end,unsigned short val)     // SOUND ON PSX COMAND
 		 s_chan[ch].bStop=0;
 		 s_chan[ch].bOn=1;
 		 s_chan[ch].pCurr=s_chan[ch].pStart;
+
+#if 0
+		 // ADSR init time (guess to # apu cycles)
+		 s_chan[ch].ADSRX.StartDelay = 0;
+#endif
 
 		 // Final Fantasy 7 - don't do any of these
 		 // - sets loop address before VoiceOn

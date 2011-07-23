@@ -20,13 +20,13 @@
 #define _IN_DMA
 
 #include "externals.h"
+#include "registers.h"
 
 ////////////////////////////////////////////////////////////////////////
 // READ DMA (one value)
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: pk prefix
-unsigned short CALLBACK pkSPUreadDMA(void)
+unsigned short CALLBACK SPUreadDMA(void)
 {
  unsigned short s=spuMem[spuAddr>>1];
  spuAddr+=2;
@@ -41,19 +41,30 @@ unsigned short CALLBACK pkSPUreadDMA(void)
 // READ DMA (many values)
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: pk prefix
-void CALLBACK pkSPUreadDMAMem(unsigned short * pusPSXMem,int iSize)
+void CALLBACK SPUreadDMAMem(unsigned short * pusPSXMem,int iSize)
 {
  int i;
 
+ spuStat |= STAT_DATA_BUSY;
+
  for(i=0;i<iSize;i++)
   {
-   *pusPSXMem++=spuMem[spuAddr>>1];                    // spu addr got by writeregister
+	 Check_IRQ( spuAddr, 0 );
+
+		
+	 *pusPSXMem++=spuMem[spuAddr>>1];                    // spu addr got by writeregister
    spuAddr+=2;                                         // inc spu addr
-   if(spuAddr>0x7ffff) spuAddr=0;                      // wrap
+
+	 // guess based on Vib Ribbon (below)
+   if(spuAddr>0x7ffff) break;
   }
 
  iSpuAsyncWait=0;
+
+ spuStat &= ~STAT_DATA_BUSY;
+ spuStat &= ~STAT_DMA_NON;
+ spuStat &= ~STAT_DMA_W;
+ spuStat |= STAT_DMA_R;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -67,8 +78,8 @@ void CALLBACK pkSPUreadDMAMem(unsigned short * pusPSXMem,int iSize)
 ////////////////////////////////////////////////////////////////////////
 // WRITE DMA (one value)
 ////////////////////////////////////////////////////////////////////////
-//ROBO: pk prefix
-void CALLBACK pkSPUwriteDMA(unsigned short val)
+  
+void CALLBACK SPUwriteDMA(unsigned short val)
 {
  spuMem[spuAddr>>1] = val;                             // spu addr got by writeregister
 
@@ -81,19 +92,31 @@ void CALLBACK pkSPUwriteDMA(unsigned short val)
 ////////////////////////////////////////////////////////////////////////
 // WRITE DMA (many values)
 ////////////////////////////////////////////////////////////////////////
-//ROBO: pk prefix
-void CALLBACK pkSPUwriteDMAMem(unsigned short * pusPSXMem,int iSize)
+
+void CALLBACK SPUwriteDMAMem(unsigned short * pusPSXMem,int iSize)
 {
  int i;
 
+ spuStat |= STAT_DATA_BUSY;
+
  for(i=0;i<iSize;i++)
   {
-   spuMem[spuAddr>>1] = *pusPSXMem++;                  // spu addr got by writeregister
+	 Check_IRQ( spuAddr, 0 );
+
+	 spuMem[spuAddr>>1] = *pusPSXMem++;                  // spu addr got by writeregister
    spuAddr+=2;                                         // inc spu addr
-   if(spuAddr>0x7ffff) spuAddr=0;                      // wrap
+
+	 // Vib Ribbon - stop transfer (reverb playback)
+   if(spuAddr>0x7ffff) break;
   }
  
  iSpuAsyncWait=0;
+
+
+ spuStat &= ~STAT_DATA_BUSY;
+ spuStat &= ~STAT_DMA_NON;
+ spuStat &= ~STAT_DMA_R;
+ spuStat |= STAT_DMA_W;
 }
 
 ////////////////////////////////////////////////////////////////////////

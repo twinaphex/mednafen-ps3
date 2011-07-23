@@ -43,8 +43,8 @@ typedef struct
  unsigned short  spuIrq;
  uint32_t   pSpuIrq;
  uint32_t   spuAddr;
- uint32_t   dummy1;
- uint32_t   dummy2;
+ uint32_t   bIrqHit;
+ uint32_t   decoded_ptr;
  uint32_t   dummy3;
 
  SPUCHAN  s_chan[MAXCHAN];   
@@ -62,8 +62,7 @@ extern int lastch;
 // SPUFREEZE: called by main emu on savestate load/save
 ////////////////////////////////////////////////////////////////////////
 
-//ROBO: pk prefix
-long CALLBACK pkSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
+long CALLBACK SPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 {
  int i;SPUOSSFreeze_t * pFO;
 
@@ -121,20 +120,13 @@ long CALLBACK pkSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
                                                        
  if(ulFreezeMode!=0) return 0;                         // bad mode? bye
 
-#ifdef _WINDOWS
- if(iDebugMode && IsWindow(hWDebug))                   // clean debug mute infos
-  SendMessage(hWDebug,WM_MUTE,0,0);
- if(IsBadReadPtr(pF,sizeof(SPUFreeze_t)))              // check bad emu stuff
-  return 0;
-#endif
-
  RemoveTimer();                                        // we stop processing while doing the save!
 
  memcpy(spuMem,pF->cSPURam,0x80000);                   // get ram
  memcpy(regArea,pF->cSPUPort,0x200);
 
  if(pF->xaS.nsamples<=4032)                            // start xa again
-  pkSPUplayADPCMchannel(&pF->xaS);
+  SPUplayADPCMchannel(&pF->xaS);
 
  xapGlobal=0;
 
@@ -146,15 +138,15 @@ long CALLBACK pkSPUfreeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 
  // repair some globals
  for(i=0;i<=62;i+=2)
-  pkSPUwriteRegister(H_Reverb+i,regArea[(H_Reverb+i-0xc00)>>1]);
- pkSPUwriteRegister(H_SPUReverbAddr,regArea[(H_SPUReverbAddr-0xc00)>>1]);
- pkSPUwriteRegister(H_SPUrvolL,regArea[(H_SPUrvolL-0xc00)>>1]);
- pkSPUwriteRegister(H_SPUrvolR,regArea[(H_SPUrvolR-0xc00)>>1]);
+  SPUwriteRegister(H_Reverb+i,regArea[(H_Reverb+i-0xc00)>>1]);
+ SPUwriteRegister(H_SPUReverbAddr,regArea[(H_SPUReverbAddr-0xc00)>>1]);
+ SPUwriteRegister(H_SPUrvolL,regArea[(H_SPUrvolL-0xc00)>>1]);
+ SPUwriteRegister(H_SPUrvolR,regArea[(H_SPUrvolR-0xc00)>>1]);
 
- pkSPUwriteRegister(H_SPUctrl,(unsigned short)(regArea[(H_SPUctrl-0xc00)>>1]|0x4000));
- pkSPUwriteRegister(H_SPUstat,regArea[(H_SPUstat-0xc00)>>1]);
- pkSPUwriteRegister(H_CDLeft,regArea[(H_CDLeft-0xc00)>>1]);
- pkSPUwriteRegister(H_CDRight,regArea[(H_CDRight-0xc00)>>1]);
+ SPUwriteRegister(H_SPUctrl,(unsigned short)(regArea[(H_SPUctrl-0xc00)>>1]|0x4000));
+ SPUwriteRegister(H_SPUstat,regArea[(H_SPUstat-0xc00)>>1]);
+ SPUwriteRegister(H_CDLeft,regArea[(H_CDLeft-0xc00)>>1]);
+ SPUwriteRegister(H_CDRight,regArea[(H_CDRight-0xc00)>>1]);
 
  // fix to prevent new interpolations from crashing
  for(i=0;i<MAXCHAN;i++) s_chan[i].SB[28]=0;
@@ -218,9 +210,8 @@ void LoadStateUnknown(SPUFreeze_t * pF)
    s_chan[i].bNew=0;
    s_chan[i].bStop=0;
    s_chan[i].ADSR.lVolume=0;
-   s_chan[i].pLoop=spuMemC;
-   s_chan[i].pStart=spuMemC;
-   s_chan[i].pLoop=spuMemC;
+   s_chan[i].pLoop=(unsigned char *)((int)spuMemC+4096);
+   s_chan[i].pStart=(unsigned char *)((int)spuMemC+4096);
    s_chan[i].iMute=0;
    s_chan[i].iIrqDone=0;
   }
@@ -230,7 +221,7 @@ void LoadStateUnknown(SPUFreeze_t * pF)
 
  for(i=0;i<0xc0;i++)
   {
-   pkSPUwriteRegister(0x1f801c00+i*2,regArea[i]);
+   SPUwriteRegister(0x1f801c00+i*2,regArea[i]);
   }
 }
 

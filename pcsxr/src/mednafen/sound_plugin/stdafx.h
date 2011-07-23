@@ -15,10 +15,30 @@
  *                                                                         *
  ***************************************************************************/
 
+//ROBO: Rename functions with plugin kludge tag
+#define SPUinit pkSPUinit
+#define SPUshutdown pkSPUshutdown
+#define SPUclose pkSPUclose
+#define SPUplaySample pkSPUplaySample 
+#define SPUwriteRegister pkSPUwriteRegister
+#define SPUreadRegister pkSPUreadRegister
+#define SPUwriteDMA pkSPUwriteDMA
+#define SPUreadDMA pkSPUreadDMA
+#define SPUwriteDMAMem pkSPUwriteDMAMem
+#define SPUreadDMAMem pkSPUreadDMAMem
+#define SPUplayADPCMchannel pkSPUplayADPCMchannel
+#define SPUregisterCallback pkSPUregisterCallback
+#define SPUconfigure pkSPUconfigure
+#define SPUtest pkSPUtest
+#define SPUabout pkSPUabout
+#define SPUfreeze pkSPUfreeze
+#define SPUasync pkSPUasync
+#define SPUplayCDDAchannel pkSPUplayCDDAchannel
+#define SPUopen pkSPUopen
+
 #include <stdio.h>
 #include <stdlib.h>
-//ROBO: Don't have
-//#include <sys/ioctl.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -34,8 +54,9 @@
 #define HIWORD(l)           ((unsigned short)(((unsigned long)(l) >> 16) & 0xFFFF)) 
 
 #ifndef INLINE
-#define INLINE inline
+#define INLINE static inline
 #endif
 
-#include "psemuxa.h"
+//#endif
 
+#include "psemuxa.h"
