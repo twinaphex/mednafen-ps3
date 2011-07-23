@@ -3,10 +3,12 @@
 #include <src/cdrom/cdromif.h>
 #include <src/mednafen-driver.h>
 #include <src/git.h>
-#include <include/Fir_Resampler.h>
 #include <src/general.h>
 #include <stdarg.h>
 #include "config.h"
+
+#define MODULENAMESPACE pcsxr
+#include <module_helper.h>
 
 #include "src/mempatcher.h"
 
@@ -14,7 +16,6 @@
 namespace						pcsxr
 {
 	uint8_t*					Ports[8];
-	Fir_Resampler<8>*			Resampler;				///<The sound plugin only gives 44100hz sound
 }
 using namespace pcsxr;
 
@@ -219,8 +220,7 @@ static void		PcsxrCloseGame			(void)
 	ClosePlugins();
 
 	//Kill resampler
-	delete Resampler;
-	Resampler = 0;
+	Resampler::Kill();
 
 	//Close the cheat engine
 	MDFNMP_Kill();
@@ -249,18 +249,7 @@ static int		PcsxrStateAction		(StateMem *sm, int load, int data_only)
 static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 {
 	//AUDIO PREP
-	if(espec->SoundFormatChanged)
-	{
-		delete Resampler;
-		Resampler = 0;
-
-		if(espec->SoundRate > 1.0)
-		{
-			Resampler = new Fir_Resampler<8>();
-			Resampler->buffer_size(3200 * 2);
-			Resampler->time_ratio(32000.0 / espec->SoundRate, 0.9965);	//TODO: Is 32000 the right number?
-		}
-	}
+	Resampler::Init(espec, 44100.0);
 
 	//INPUT
 	g.PadState[0].JoyKeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
@@ -322,11 +311,7 @@ static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 	}
 
 	//AUDIO
-	if(Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
-	{
-		uint32_t readsize = std::min(Resampler->avail() / 2, espec->SoundBufMaxSize);
-		espec->SoundBufSize = Resampler->read(espec->SoundBuf, readsize) >> 1;
-	}
+	Resampler::Fetch(espec);
 
 	//Update timing
 	espec->MasterCycles = 1LL * 100;

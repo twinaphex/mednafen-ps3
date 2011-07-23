@@ -4,28 +4,18 @@
 #include <src/general.h>
 #include <src/mempatcher.h>
 #include <src/md5.h>
-#include <include/Fir_Resampler.h>
-
 #include <stdio.h>
+
+#define MODULENAMESPACE		lsnes
+#include <module_helper.h>
 
 #include "libsnes.hpp"
 
 //SYSTEM
 namespace lsnes
 {
-	struct						MDFNlsnes
-	{
-								MDFNlsnes() : ESpec(0), Resampler(0) {}
-								~MDFNlsnes() {delete Resampler;}
-
-		EmulateSpecStruct*		ESpec;
-		uint8_t*				Ports[4];
-
-		//Audio values
-		Fir_Resampler<8>*		Resampler;
-	};
-
-	MDFNlsnes*				mdfnLsnes;
+	EmulateSpecStruct*		ESpec;
+	uint8_t*				Ports[4];
 
 	int						DetermineGameType		(MDFNFILE* fp)
 	{
@@ -45,53 +35,41 @@ namespace lsnes
 	void					VideoRefreshCallback	(const uint16_t *data, unsigned width, unsigned height)
 	{
 		assert(data && width && height);
-		assert(mdfnLsnes && mdfnLsnes->ESpec && mdfnLsnes->ESpec->surface && mdfnLsnes->ESpec->surface->pixels);
+		assert(ESpec && ESpec->surface && ESpec->surface->pixels);
 
 		//Get a pointer to the target buffer
-		uint32_t* destimage = (uint32_t*)mdfnLsnes->ESpec->surface->pixels;
+		uint32_t* destimage = (uint32_t*)ESpec->surface->pixels;
 
 		//Copy entire image
-		for(int i = 0; i != height && i != mdfnLsnes->ESpec->surface->h; i ++)
+		for(int i = 0; i != height && i != ESpec->surface->h; i ++)
 		{
-			for(int j = 0; j != width && j != mdfnLsnes->ESpec->surface->w; j ++)
+			for(int j = 0; j != width && j != ESpec->surface->w; j ++)
 			{
 				//Convert 16-bit->32-bit color
 				uint16_t source = data[i * 1024 + j];	//TODO: Is it always 1024?
 				uint8_t a = (source & 0x3F) << 3;
 				uint8_t b = ((source >> 5) & 0x3F) << 3;
 				uint8_t c = ((source >> 10) & 0x3F) << 3;
-				destimage[i * mdfnLsnes->ESpec->surface->pitchinpix + j] = a | b << 8 | c << 16;
+				destimage[i * ESpec->surface->pitchinpix + j] = a | b << 8 | c << 16;
 			}
 		}
 
 		//Set the output rectangle
-		mdfnLsnes->ESpec->DisplayRect.x = 0;
-		mdfnLsnes->ESpec->DisplayRect.y = 0;
-		mdfnLsnes->ESpec->DisplayRect.w = width;
-		mdfnLsnes->ESpec->DisplayRect.h = height;
+		ESpec->DisplayRect.x = 0;
+		ESpec->DisplayRect.y = 0;
+		ESpec->DisplayRect.w = width;
+		ESpec->DisplayRect.h = height;
 	}
 
 	void					AudioSampleCallback		(uint16_t left, uint16_t right)
 	{
-		assert(mdfnLsnes);
-
-		if(mdfnLsnes->Resampler && mdfnLsnes->Resampler->max_write() >= 2)
-		{
-			mdfnLsnes->Resampler->buffer()[0] = left;
-			mdfnLsnes->Resampler->buffer()[1] = right;
-			mdfnLsnes->Resampler->write(2);
-		}
-		else if(mdfnLsnes->Resampler)
-		{
-			MDFN_PrintError("libsnes: SampleBuffer overflow!\n");
-		}
+		uint16_t frame[2] = {left, right};
+		Resampler::Fill(frame, 2);
 	}
 
 	int16_t					InputStateCallback		(bool port, unsigned device, unsigned index, unsigned id)
 	{
-		assert(mdfnLsnes);
-
-		uint8_t* thisPort = mdfnLsnes->Ports[port ? 1 : 0];
+		uint8_t* thisPort = Ports[port ? 1 : 0];
 		uint16_t portData = thisPort ? (thisPort[0] | (thisPort[1] << 8)) : 0;
 		return (portData & (1 << id)) ? 1 : 0;
 	}
@@ -155,8 +133,6 @@ static FileExtensionSpecStruct				lsnesExtensions[] =
 //Implement MDFNGI:
 static int			lsnesLoad				(const char *name, MDFNFILE *fp)
 {
-	mdfnLsnes = new MDFNlsnes();
-
 	//Get Game MD5
 	md5_context md5;
 	md5.starts();
@@ -271,8 +247,7 @@ static void			lsnesCloseGame			(void)
 	snes_term();
 
 	//Clean up
-	delete mdfnLsnes;
-	mdfnLsnes = 0;
+	Resampler::Kill();
 }
 
 static int			lsnesStateAction		(StateMem *sm, int load, int data_only)
@@ -302,32 +277,16 @@ static int			lsnesStateAction		(StateMem *sm, int load, int data_only)
 
 static void			lsnesEmulate			(EmulateSpecStruct *espec)
 {
-	assert(mdfnLsnes);
-	mdfnLsnes->ESpec = espec;
+	ESpec = espec;
 
 	//AUDIO PREP
-	if(espec->SoundFormatChanged)
-	{
-		delete mdfnLsnes->Resampler;
-		mdfnLsnes->Resampler = 0;
-
-		if(espec->SoundRate > 1.0)
-		{
-			mdfnLsnes->Resampler = new Fir_Resampler<8>();
-			mdfnLsnes->Resampler->buffer_size(3200 * 2);
-			mdfnLsnes->Resampler->time_ratio(32000.0 / espec->SoundRate, 0.9965);	//TODO: Is 32000 the right number?
-		}
-	}
+	Resampler::Init(espec, 32000.0);	//TODO: Is 32000 the right number?
 
 	//EMULATE
 	snes_run();
 
 	//AUDIO
-	if(mdfnLsnes->Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
-	{
-		uint32_t readsize = std::min(mdfnLsnes->Resampler->avail() / 2, espec->SoundBufMaxSize);
-		espec->SoundBufSize = mdfnLsnes->Resampler->read(espec->SoundBuf, readsize) >> 1;
-	}
+	Resampler::Fetch(espec);
 
 	//TODO: Real timing
 	espec->MasterCycles = 1LL * 100;
@@ -335,8 +294,6 @@ static void			lsnesEmulate			(EmulateSpecStruct *espec)
 
 static void			lsnesSetInput			(int port, const char *type, void *ptr)
 {
-	assert(mdfnLsnes);
-
 	if(port >= 0 && port < 4)
 	{
 		//Search for the device
@@ -351,7 +308,7 @@ static void			lsnesSetInput			(int port, const char *type, void *ptr)
 
 		//Plug it in
 		snes_set_controller_port_device(0, pluggeddevice);
-		mdfnLsnes->Ports[port] = (uint8_t*)ptr;
+		Ports[port] = (uint8_t*)ptr;
 	}
 }
 

@@ -20,7 +20,9 @@
 #ifdef MDFNPS3 //ROBO: Only for medanfen
 
 #include <src/mednafen.h>
-#include <include/Fir_Resampler.h>
+#define MODULENAMESPACE Yabause
+#define SECONDARYINCLUDE
+#include <module_helper.h>
 
 extern "C"
 {
@@ -62,13 +64,12 @@ SNDMDFNSetVolume
 
 static uint32_t video_freq;
 static uint32_t audio_size;
-extern Fir_Resampler<8>* mdfnyab_resampler;
 
 //////////////////////////////////////////////////////////////////////////////
 
 static int SNDMDFNInit()
 {
-	SNDMDFNChangeVideoFormat(60);
+   SNDMDFNChangeVideoFormat(60);
    return 0;
 }
 
@@ -117,10 +118,11 @@ static void sdlConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len) {
 
 static void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples)
 {
-	if(mdfnyab_resampler && mdfnyab_resampler->max_write() > (num_samples * 2))
+	int16_t* buffer = Resampler::Buffer(num_samples * 2);
+
+	if(buffer)
 	{
-		sdlConvert32uto16s((s32*)leftchanbuffer, (s32*)rightchanbuffer, mdfnyab_resampler->buffer(), num_samples);
-		mdfnyab_resampler->write(num_samples * 2);
+		sdlConvert32uto16s((s32*)leftchanbuffer, (s32*)rightchanbuffer, (s16*)buffer, num_samples);
 	}
 }
 
@@ -128,7 +130,7 @@ static void SNDMDFNUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 nu
 
 static u32 SNDMDFNGetAudioSpace()
 {
-   return mdfnyab_resampler ? ((mdfnyab_resampler->written() > 1000) ? 0 : audio_size * 2) : 0;
+   return (Resampler::Written() > 1000) ? 0 : audio_size * 2;
 }
 
 //////////////////////////////////////////////////////////////////////////////

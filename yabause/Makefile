@@ -14,7 +14,7 @@ CFILES		:=	src/yabause/bios.c src/yabause/cdbase.c src/yabause/cheat.c src/yabau
 
 CXXFILES	:=	src/mednafen.cpp src/yabause/cd-mdfn.cpp src/yabause/sndmdfn.cpp
 
-INCLUDE		:=	../mednafen/src src/yabause 
+INCLUDE		:=	.. ../mednafen/src src/yabause 
 
 CFLAGS		+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H
 CXXFLAGS	+=	-DHAVE_C68K=1 -DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H

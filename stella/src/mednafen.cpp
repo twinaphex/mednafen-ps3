@@ -1,7 +1,9 @@
 #include <src/mednafen.h>
 #include <src/mempatcher.h>
 #include <src/git.h>
-#include <include/Fir_Resampler.h>
+
+#define MODULENAMESPACE	Stella
+#include <module_helper.h>
 
 #include "Settings.hxx"
 #include "TIA.hxx"
@@ -26,13 +28,12 @@ struct					MDFNStella
 	const uInt32*		Palette;
 
 	SoundSDL			Sound;
-	Fir_Resampler<8>*	Resampler;		//The TIA gives shitty sound if the output rate doesn't equal the input rate, so resample here!
 
 	uint8_t*			Port[2];
 	uint32_t			PortType[2];
 
-	MDFNStella() 	{GameConsole = 0; Palette = 0; Resampler = 0; Port[0] = 0; Port[1] = 0; PortType[0] = 0; PortType[1] = 0; }
-	~MDFNStella()	{delete Resampler; delete GameConsole;}
+	MDFNStella() 	{GameConsole = 0; Palette = 0; Port[0] = 0; Port[1] = 0; PortType[0] = 0; PortType[1] = 0; }
+	~MDFNStella()	{delete GameConsole;}
 };
 MDFNStella*				mdfnStella;
 
@@ -116,6 +117,8 @@ bool			StellaTestMagic			(const char *name, MDFNFILE *fp)
 
 void			StellaCloseGame			(void)
 {
+	Resampler::Kill();
+
 	//TODO: Is anything else needed here?
 	delete mdfnStella;
 	mdfnStella = 0;
@@ -149,109 +152,85 @@ int				StellaStateAction		(StateMem *sm, int load, int data_only)
 
 void			StellaEmulate			(EmulateSpecStruct *espec)
 {
-	//Only if we are open.
-	if(mdfnStella)
+	//AUDIO PREP
+	Resampler::Init(espec, 34100.0);
+
+	//INPUT
+	//Update stella's event structure
+	for(int i = 0; i != 2; i ++)
 	{
-		//CHEATS
-		MDFNMP_ApplyPeriodicCheats();
+		//Get the base event id for this port
+		Event::Type baseEvent = (i == 0) ? Event::JoystickZeroUp : Event::JoystickOneUp;
 
-		//INPUT
-		//Update stella's event structure
-		for(int i = 0; i != 2; i ++)
+		//Get the input data for this port and stuff it in the event structure
+		uint32_t inputState = mdfnStella->Port[i] ? (mdfnStella->Port[i][0] | (mdfnStella->Port[i][1] << 8) | (mdfnStella->Port[i][2] << 16)) : 0;
+		for(int j = 0; j != 19; j ++, inputState >>= 1)
 		{
-			//Get the base event id for this port
-			Event::Type baseEvent = (i == 0) ? Event::JoystickZeroUp : Event::JoystickOneUp;
-
-			//Get the input data for this port and stuff it in the event structure
-			uint32_t inputState = mdfnStella->Port[i] ? (mdfnStella->Port[i][0] | (mdfnStella->Port[i][1] << 8) | (mdfnStella->Port[i][2] << 16)) : 0;
-			for(int j = 0; j != 19; j ++, inputState >>= 1)
-			{
-				mdfnStella->GameConsole->event().set((Event::Type)(baseEvent + j), inputState & 1);
-			}
+			mdfnStella->GameConsole->event().set((Event::Type)(baseEvent + j), inputState & 1);
 		}
+	}
 
-		//Update the reset and select events
-		uint32_t inputState = mdfnStella->Port[0] ? (mdfnStella->Port[0][2] << 16) >> 19 : 0;
-		mdfnStella->GameConsole->event().set(Event::ConsoleSelect, inputState & 1);
-		mdfnStella->GameConsole->event().set(Event::ConsoleReset, inputState & 2);
+	//Update the reset and select events
+	uint32_t inputState = mdfnStella->Port[0] ? (mdfnStella->Port[0][2] << 16) >> 19 : 0;
+	mdfnStella->GameConsole->event().set(Event::ConsoleSelect, inputState & 1);
+	mdfnStella->GameConsole->event().set(Event::ConsoleReset, inputState & 2);
 
-		//Tell all input devices to read their state from the event structure
-		mdfnStella->GameConsole->switches().update();
-		mdfnStella->GameConsole->controller(Controller::Left).update();
-		mdfnStella->GameConsole->controller(Controller::Right).update();
+	//Tell all input devices to read their state from the event structure
+	mdfnStella->GameConsole->switches().update();
+	mdfnStella->GameConsole->controller(Controller::Left).update();
+	mdfnStella->GameConsole->controller(Controller::Right).update();
 
-		//EXECUTE
-		mdfnStella->GameConsole->tia().update();
+	//CHEATS
+	MDFNMP_ApplyPeriodicCheats();
+
+	//EMULATE
+	mdfnStella->GameConsole->tia().update();
 
 	//	if(myOSystem->eventHandler().frying())
 	//		myOSystem->GameConsole().fry();
 
-		//VIDEO: TODO: Support other color formats
-		//Get the frame info from stella
-		uInt8* currentFrame = mdfnStella->GameConsole->tia().currentFrameBuffer();
-		Int32 frameWidth = mdfnStella->GameConsole->tia().width();
-		Int32 frameHeight = mdfnStella->GameConsole->tia().height();
+	//VIDEO: TODO: Support other color formats
+	//Get the frame info from stella
+	uInt8* currentFrame = mdfnStella->GameConsole->tia().currentFrameBuffer();
+	Int32 frameWidth = mdfnStella->GameConsole->tia().width();
+	Int32 frameHeight = mdfnStella->GameConsole->tia().height();
 
-		//Setup the output area for mednafen, never allow stella's size to excede mednafen's
-		espec->DisplayRect.x = 0;
-		espec->DisplayRect.y = 0;
-		espec->DisplayRect.w = std::min(frameWidth, espec->surface->w);
-		espec->DisplayRect.h = std::min(frameHeight, espec->surface->h);
+	//Setup the output area for mednafen, never allow stella's size to excede mednafen's
+	espec->DisplayRect.x = 0;
+	espec->DisplayRect.y = 0;
+	espec->DisplayRect.w = std::min(frameWidth, espec->surface->w);
+	espec->DisplayRect.h = std::min(frameHeight, espec->surface->h);
 
-		//Copy the frame from stella to mednafen
-		for(int i = 0; i != espec->DisplayRect.h; i ++)
+	//Copy the frame from stella to mednafen
+	for(int i = 0; i != espec->DisplayRect.h; i ++)
+	{
+		for(int j = 0; j != espec->DisplayRect.w; j ++)
 		{
-			for(int j = 0; j != espec->DisplayRect.w; j ++)
-			{
-				espec->surface->pixels[i * espec->surface->pitchinpix + j] = mdfnStella->Palette ? mdfnStella->Palette[currentFrame[i * frameWidth + j]] : 0;
-			}
+			espec->surface->pixels[i * espec->surface->pitchinpix + j] = mdfnStella->Palette ? mdfnStella->Palette[currentFrame[i * frameWidth + j]] : 0;
 		}
-
-		//AUDIO
-		//Update audio format and create the resampler
-		if(espec->SoundFormatChanged)
-		{
-			delete mdfnStella->Resampler;
-			mdfnStella->Resampler = 0;
-
-			//Only make a resampler if the sound rate is valid
-			if(espec->SoundRate > 1.0)
-			{
-				mdfnStella->Resampler = new Fir_Resampler<8>();
-				mdfnStella->Resampler->buffer_size(1600*2);
-				mdfnStella->Resampler->time_ratio(34100.0 / espec->SoundRate, 0.9965);
-			}
-		}
-
-		//Copy audio data
-		if(mdfnStella->Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
-		{
-			//Get the number of samples in a frame
-			uint32_t soundFrameSize = 34100.0f / mdfnStella->GameConsole->getFramerate();
-
-			//Process one frame of audio from stella
-			uint8_t samplebuffer[2048];
-			mdfnStella->Sound.processFragment(samplebuffer, soundFrameSize);
-
-			//Convert and stash it in the resampler...
-			for(int i = 0; i != soundFrameSize; i ++)
-			{
-				int16_t sample = (samplebuffer[i] << 8);
-				sample -= 32768;
-				mdfnStella->Resampler->buffer()[i * 2 + 0] = sample;
-				mdfnStella->Resampler->buffer()[i * 2 + 1] = sample;
-			}
-
-			mdfnStella->Resampler->write(soundFrameSize * 2);
-
-			//Get the output
-			//TODO: Never overrun the output buffer...
-			espec->SoundBufSize = mdfnStella->Resampler->read(espec->SoundBuf, mdfnStella->Resampler->avail()) >> 1;
-		}
-
-		//TIMING
-		espec->MasterCycles = 1LL * 100;
 	}
+
+	//AUDIO
+	//Get the number of samples in a frame
+	uint32_t soundFrameSize = 34100.0f / mdfnStella->GameConsole->getFramerate();
+
+	//Process one frame of audio from stella
+	uint8_t samplebuffer[2048];
+	mdfnStella->Sound.processFragment(samplebuffer, soundFrameSize);
+
+	//Convert and stash it in the resampler...
+	for(int i = 0; i != soundFrameSize; i ++)
+	{
+		int16_t sample = (samplebuffer[i] << 8) - 32768;
+		int16_t frame[2] = {sample, sample};
+		Resampler::Fill(frame, 2);
+	}
+
+	//Get the output
+	Resampler::Fetch(espec);
+
+	//TIMING
+	espec->MasterCycles = 1LL * 100;
 }
 
 void			StellaSetInput			(int port, const char *type, void *ptr)
