@@ -11,17 +11,18 @@
 #include "src/mempatcher.h"
 
 
-namespace
+namespace						pcsxr
 {
 	uint8_t*					Ports[8];
-	Fir_Resampler<8>			Resampler;				///<The sound plugin only gives 44100hz sound
-	int16_t						SampleBuffer[48000];	///<TODO: Support sound freqs > 48000
+	Fir_Resampler<8>*			Resampler;				///<The sound plugin only gives 44100hz sound
 }
+using namespace pcsxr;
 
 //Pair of functions to export timing to C files.
 //TODO: These shouldn't be needed as the emulator module shouldn't be doing timing.
-extern "C" void MDFNDC_Sleep(uint32_t aMS){MDFND_Sleep(aMS);}
 extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
+extern "C" void MDFNDC_Sleep(uint32_t aMS){MDFND_Sleep(aMS);}
+
 
 //Definitions for PCSX
 extern "C"
@@ -31,9 +32,6 @@ extern "C"
 	#include "plugins.h"
 	#include "mednafen/video_plugin/globals.h"
 	#include "mednafen/input_plugin/pad.h"
-
-	extern uint8_t		SoundBuf[48000];						//Sample buffer from the sound plugin
-	extern uint32_t		SoundBufLen;							//Sample buffer length
 
 	extern int8_t*		psxM;									//Pointer to the PSX's memory, for cheats
 	extern int			wanna_leave;							//Flag indicating that the emulator should return
@@ -146,12 +144,8 @@ extern "C"
 }
 
 //Implement MDFNGI:
-int				PcsxrLoad				()
+static int		PcsxrLoad				()
 {
-	//Initialize the resampler
-	Resampler.buffer_size(588 * 2 * 2 + 100);
-	Resampler.time_ratio((double)44100 / 48000.0, 0.9965);
-
 	//Load the BIOS
 	MDFNFILE biosFile;
 	if(biosFile.Open(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str()).c_str(), 0))
@@ -175,6 +169,7 @@ int				PcsxrLoad				()
     memset(&Config, 0, sizeof(Config));
     Config.PsxAuto = 1;
     Config.Cpu = MDFN_GetSettingB("pcsxr.recompiler") ? CPU_DYNAREC : CPU_INTERPRETER;
+	Config.SlowBoot = MDFN_GetSettingB("pcsxr.slowboot");
     strcpy(Config.PluginsDir, "builtin");
     strcpy(Config.Gpu, "builtin");
     strcpy(Config.Spu, "builtin");
@@ -220,17 +215,21 @@ bool			PcsxrTestMagic			()
 	return Buffer[56] == 'S' && Buffer[57] == 'o' && Buffer[58] == 'n' && Buffer[59] == 'y';
 }
 
-void			PcsxrCloseGame			(void)
+static void		PcsxrCloseGame			(void)
 {
 	EmuShutdown();
 	ClosePlugins();
+
+	//Kill resampler
+	delete Resampler;
+	Resampler = 0;
 
 	//Close the cheat engine
 	MDFNMP_Kill();
 }
 
 
-int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
+static int		PcsxrStateAction		(StateMem *sm, int load, int data_only)
 {
 	//TODO:
 	if(!load)
@@ -249,13 +248,21 @@ int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
 	}
 }
 
-void			PcsxrEmulate			(EmulateSpecStruct *espec)
+static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 {
 	//AUDIO PREP
-    if(espec->SoundFormatChanged)
-    {
-		//TODO
-    }
+	if(espec->SoundFormatChanged)
+	{
+		delete Resampler;
+		Resampler = 0;
+
+		if(espec->SoundRate > 1.0)
+		{
+			Resampler = new Fir_Resampler<8>();
+			Resampler->buffer_size(3200 * 2);
+			Resampler->time_ratio(32000.0 / espec->SoundRate, 0.9965);	//TODO: Is 32000 the right number?
+		}
+	}
 
 	//INPUT
 	g.PadState[0].JoyKeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
@@ -317,29 +324,25 @@ void			PcsxrEmulate			(EmulateSpecStruct *espec)
 	}
 
 	//AUDIO
-	//TODO: Why only on sndsize < 1500, that seems wrong somehow...
-	if((SoundBufLen / 4) < 1500 && espec->SoundBuf)
+	if(Resampler && espec->SoundBuf && espec->SoundBufMaxSize)
 	{
-		memcpy(Resampler.buffer(), SampleBuffer, SoundBufLen);
-		Resampler.write(SoundBufLen / 2);
-		espec->SoundBufSize = Resampler.read(espec->SoundBuf, Resampler.avail()) >> 1;
+		uint32_t readsize = std::min(Resampler->avail() / 2, espec->SoundBufMaxSize);
+		espec->SoundBufSize = Resampler->read(espec->SoundBuf, readsize) >> 1;
 	}
-
-	SoundBufLen = 0;
 
 	//Update timing
 	espec->MasterCycles = 1LL * 100;
 }
 
-void			PcsxrSetInput			(int port, const char *type, void *ptr)
+static void		PcsxrSetInput			(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port <= 4)
+	if(port >= 0 && port < 4)
 	{
 		Ports[port] = (uint8_t*)ptr;
 	}
 }
 
-void			PcsxrDoSimpleCommand	(int cmd)
+static void		PcsxrDoSimpleCommand	(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET)
 	{
@@ -351,7 +354,8 @@ void			PcsxrDoSimpleCommand	(int cmd)
 	}
 }
 
-static const InputDeviceInputInfoStruct GamepadIDII[] =
+//SYSTEM DESCRIPTIONS
+static const InputDeviceInputInfoStruct	GamepadIDII[] =
 {
 	{"select",	"SELECT",	15,	IDIT_BUTTON, NULL},
 	{"l3",		"L3",		13,	IDIT_BUTTON, NULL},
@@ -371,37 +375,38 @@ static const InputDeviceInputInfoStruct GamepadIDII[] =
 	{"square",	"SQUARE",	7,	IDIT_BUTTON, 0},
 };
 
-static InputDeviceInfoStruct InputDeviceInfoPSXPort[] =
+static InputDeviceInfoStruct 			InputDeviceInfoPSXPort[] =
 {
 	{"none",	"none",		NULL,	0,	NULL},
 	{"gamepad", "Gamepad",	NULL,	16,	GamepadIDII},
 };
 
 
-static const InputPortInfoStruct PortInfo[] =
+static const InputPortInfoStruct 		PortInfo[] =
 {
 	{0, "port1", "Port 1", 2, InputDeviceInfoPSXPort, "gamepad"},
 	{0, "port2", "Port 2", 2, InputDeviceInfoPSXPort, "gamepad"},
 };
 
-InputInfoStruct		PcsxrInput =
+static InputInfoStruct					PcsxrInput =
 {
 	1,
 	PortInfo
 };
 
 
-static FileExtensionSpecStruct	extensions[] = 
+static FileExtensionSpecStruct			extensions[] = 
 {
 	{".cue", "PSX Cue File"},
 	{0, 0}
 };
 
 
-static MDFNSetting PcsxrSettings[] =
+static MDFNSetting						PcsxrSettings[] =
 {
-	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to required PSX BIOS ROM image.",									NULL, MDFNST_STRING,	"scph1001.bin"},
-	{"pcsxr.recompiler",MDFNSF_NOFLAGS,		"Enable the dynamic recompiler. (Need to restart mednafen to change).",	NULL, MDFNST_BOOL,		"0"},
+	{"pcsxr.bios",			MDFNSF_EMU_STATE,	"Path to required PSX BIOS ROM image.",									NULL, MDFNST_STRING,	"scph1001.bin"},
+	{"pcsxr.recompiler",	MDFNSF_NOFLAGS,		"Enable the dynamic recompiler. (Need to restart mednafen to change).",	NULL, MDFNST_BOOL,		"0"},
+	{"pcsxr.slowboot",		MDFNSF_NOFLAGS,		"Show the BIOS booting screen.",										NULL, MDFNST_BOOL,		"1"},
 	{NULL}
 };
 
@@ -409,7 +414,7 @@ static MDFNSetting PcsxrSettings[] =
 MDFNGI	PcsxrInfo = 
 {
 /*	shortname:			*/	"pcsxr",
-/*	fullname:			*/	"PCSX-Reloaded",
+/*	fullname:			*/	"Sony Playstation (PCSX-Reloaded)",
 /*	FileExtensions:		*/	extensions,
 /*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
 /*	Debugger:			*/	0,
