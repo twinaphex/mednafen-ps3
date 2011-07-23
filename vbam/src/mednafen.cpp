@@ -5,6 +5,10 @@
 #include <src/md5.h>
 #include <src/mempatcher.h>
 
+#define MODULENAMESPACE vbam
+#include <module_helper.h>
+using namespace vbam;
+
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
@@ -22,7 +26,7 @@
 #include "common/SoundDriver.h"
 
 //MEDNAFEN
-namespace mdfn
+namespace vbam
 {
 	EmulateSpecStruct*					ESpec;
 	bool								GBAMode;
@@ -31,7 +35,7 @@ namespace mdfn
 	uint32_t							SoundFrame;
 	char	 							StateData[1024*512];
 }
-using namespace mdfn;
+using namespace vbam;
 
 //SYSTEM
 void									InitSystem								();
@@ -179,15 +183,15 @@ static void		VbamEmulate				(EmulateSpecStruct *espec)
 
 	if(GBAMode)
 	{
-		espec->DisplayRect = gba;
+		Video::SetDisplayRect(espec, 0, 0, 240, 160);
 	}
 	else if(gbBorderOn)
 	{
-		espec->DisplayRect = dmgBorder;
+		Video::SetDisplayRect(espec, 0, 0, 256, 224);
 	}
 	else
 	{
-		espec->DisplayRect = dmgNoBorder;
+		Video::SetDisplayRect(espec, 48, 40, 160, 144);
 	}
 
 	//Run the emulator, this will return at the end of a frame

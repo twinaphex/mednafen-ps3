@@ -8,6 +8,7 @@
 
 #define MODULENAMESPACE		lsnes
 #include <module_helper.h>
+using namespace lsnes;
 
 #include "libsnes.hpp"
 
@@ -37,28 +38,11 @@ namespace lsnes
 		assert(data && width && height);
 		assert(ESpec && ESpec->surface && ESpec->surface->pixels);
 
-		//Get a pointer to the target buffer
-		uint32_t* destimage = (uint32_t*)ESpec->surface->pixels;
-
-		//Copy entire image
-		for(int i = 0; i != height && i != ESpec->surface->h; i ++)
-		{
-			for(int j = 0; j != width && j != ESpec->surface->w; j ++)
-			{
-				//Convert 16-bit->32-bit color
-				uint16_t source = data[i * 1024 + j];	//TODO: Is it always 1024?
-				uint8_t a = (source & 0x3F) << 3;
-				uint8_t b = ((source >> 5) & 0x3F) << 3;
-				uint8_t c = ((source >> 10) & 0x3F) << 3;
-				destimage[i * ESpec->surface->pitchinpix + j] = a | b << 8 | c << 16;
-			}
-		}
+		//Blit screen
+		Video::BlitRGB15<0, 1, 2, 0, 1, 2>(ESpec, data, width, height, 1024); //TODO: Is it always 1024?
 
 		//Set the output rectangle
-		ESpec->DisplayRect.x = 0;
-		ESpec->DisplayRect.y = 0;
-		ESpec->DisplayRect.w = width;
-		ESpec->DisplayRect.h = height;
+		Video::SetDisplayRect(ESpec, 0, 0, width, height);
 	}
 
 	void					AudioSampleCallback		(uint16_t left, uint16_t right)

@@ -17,6 +17,70 @@
 
 namespace	MODULENAMESPACE
 {
+	namespace	Video
+	{
+		inline void __attribute((always_inline))		SetDisplayRect				(EmulateSpecStruct* aSpec, uint32_t aX, uint32_t aY, uint32_t aWidth, uint32_t aHeight)
+		{
+			assert(aX + aWidth <= aSpec->surface->w && aY + aHeight <= aSpec->surface->h);
+
+			aSpec->DisplayRect.x = aX;
+			aSpec->DisplayRect.y = aY;
+			aSpec->DisplayRect.w = aWidth;
+			aSpec->DisplayRect.h = aHeight;
+		}
+
+		template<int rS, int gS, int bS, int rD, int gD, int bD, int sMul, int sMask, int dMul, int dAdd, typename sType>
+		inline void __attribute((always_inline))		BlitSwiz					(EmulateSpecStruct* aSpec, const sType* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
+		{
+			for(int i = 0; i != aHeight; i ++)
+			{
+				for(int j = 0; j != aWidth; j ++)
+				{
+					sType source = aSource[i * aPixelPitch + j];
+
+					uint32_t r = ((source >> (rS * sMul)) & sMask) << (rD * dMul + dAdd);
+					uint32_t g = ((source >> (gS * sMul)) & sMask) << (gD * dMul + dAdd);
+					uint32_t b = ((source >> (bS * sMul)) & sMask) << (bD * dMul + dAdd);
+					aSpec->surface->pixels[i * aSpec->surface->pitchinpix + j] = r | g | b;
+				}
+			}
+		}
+
+
+		template<int rS, int gS, int bS, int rD, int gD, int bD>
+		inline void __attribute((always_inline))		BlitRGB15					(EmulateSpecStruct* aSpec, const uint16_t* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
+		{
+			BlitSwiz<rS, gS, bS, rD, gD, bD, 5, 0x1F, 8, 3, uint16_t>(aSpec, aSource, aWidth, aHeight, aPixelPitch);
+		}
+
+		template<int rS, int gS, int bS, int rD, int gD, int bD>
+		inline void __attribute((always_inline))		BlitRGB32					(EmulateSpecStruct* aSpec, const uint32_t* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
+		{
+			BlitSwiz<rS, gS, bS, rD, gD, bD, 8, 0xFF, 8, 0, uint32_t>(aSpec, aSource, aWidth, aHeight, aPixelPitch);
+		}
+
+		template<typename pixelType>
+		inline void __attribute((always_inline))		BlitRGB						(EmulateSpecStruct* aSpec, const pixelType* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
+		{
+			for(int i = 0; i != aHeight; i ++)
+			{
+				memcpy(&aSpec->surface->pixels[i * aSpec->surface->pitchinpix], &aSource[i * aPixelPitch], aWidth * sizeof(pixelType));
+			}
+		}
+
+		template<uint32_t pMask, typename pType, typename sType>
+		inline void __attribute((always_inline))		BlitPalette					(EmulateSpecStruct* aSpec, const pType* aPalette, const sType* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
+		{
+			for(int i = 0; i != aHeight; i ++)
+			{
+				for(int j = 0; j != aWidth; j ++)
+				{
+					aSpec->surface->pixels[i * aSpec->surface->pitchinpix + j] = aPalette[aSource[i * aPixelPitch + j] & pMask];
+				}
+			}
+		}
+	}
+
 	namespace	Resampler
 	{
 		TYPEDEC Fir_Resampler<8>*						Resampler;
@@ -87,8 +151,6 @@ namespace	MODULENAMESPACE
 		}
 	}
 }
-
-using namespace MODULENAMESPACE;
 
 #endif
 

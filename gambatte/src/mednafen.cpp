@@ -3,15 +3,18 @@
 
 #include <sstream>
 
+#define MODULENAMESPACE gmbt
+#include <module_helper.h>
+
 #include "gambatte.h"
 #include "resample/resamplerinfo.h"
 
 using namespace Gambatte;
 
-namespace mdfngmbt
+namespace gmbt
 {
 	GB*						GambatteEmu;
-	Resampler*				Resample;
+	::Resampler*			Resample;
 	
 	uint32_t				Samples[48000];
 	uint32_t				Resamples[48000];
@@ -40,15 +43,7 @@ namespace mdfngmbt
 
 			void				blit					()
 			{
-				uint32_t* sourceptr = (uint32_t*)buffer.pixels;
-
-				for(int i = 0; i != height; i ++)
-				{
-					for(int j = 0; j != width ; j ++)
-					{
-						ESpec->surface->pixels[i * ESpec->surface->pitch32 + j] = sourceptr[i * width + j];
-					}
-				}
+				gmbt::Video::BlitRGB(ESpec, (uint32_t*)buffer.pixels, width, height, width);
 			}
 
 		protected:
@@ -67,7 +62,7 @@ namespace mdfngmbt
 	};
 	gbinput						Input;
 }
-using namespace	mdfngmbt;
+using namespace	gmbt;
 
 //Implement MDFNGI:
 int				GmbtLoad				(const char *name, MDFNFILE *fp)
@@ -188,10 +183,7 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//VIDEO SIZE
-	espec->DisplayRect.x = 0;
-	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = 160;
-	espec->DisplayRect.h = 144;
+	gmbt::Video::SetDisplayRect(espec, 0, 0, 160, 144);
 
 	//TODO: Real timing
 	espec->MasterCycles = 1LL * 100;

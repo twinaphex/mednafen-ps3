@@ -8,6 +8,7 @@
 
 #define MODULENAMESPACE Yabause
 #include <module_helper.h>
+using namespace Yabause;
 
 #include <stdio.h>
 
@@ -194,23 +195,8 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 	int width, height;
 	VIDSoftGetScreenSize(&width, &height);
 
-	espec->DisplayRect.x = 0;
-	espec->DisplayRect.y = 0;
-	espec->DisplayRect.w = width;
-	espec->DisplayRect.h = height;
-
-	uint32_t* dest = espec->surface->pixels;
-	for(int i = 0; i != height; i ++)
-	{
-		for(int j = 0; j != width; j ++)
-		{
-			uint8_t r = (dispbuffer[i * width + j] >> 0) & 0xFF;
-			uint8_t g = (dispbuffer[i * width + j] >> 8) & 0xFF;
-			uint8_t b = (dispbuffer[i * width + j] >> 16) & 0xFF;
-
-			dest[i * espec->surface->pitchinpix + j] = (r << 16) | (g << 8) | b;
-		}
-	}
+	Video::SetDisplayRect(espec, 0, 0, width, height);
+	Video::BlitRGB32<0, 1, 2, 2, 1, 0>(espec, dispbuffer, width, height, width);
 
 	//AUDIO
 	Resampler::Fetch(espec);

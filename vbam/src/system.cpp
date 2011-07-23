@@ -3,6 +3,11 @@
 #include <src/driver.h>
 #include <src/general.h>
 
+#define MODULENAMESPACE vbam
+#define SECONDARYINCLUDE
+#include <module_helper.h>
+using namespace vbam;
+
 #include "Util.h"
 #include "common/Port.h"
 #include "common/Patch.h"
@@ -36,7 +41,7 @@ void				InitSystem								()
 	}
 }
 
-namespace mdfn
+namespace vbam
 {
 	extern bool						GBAMode;
 	extern EmulateSpecStruct*		ESpec;
@@ -45,7 +50,7 @@ namespace mdfn
 	extern uint32_t					FrameCount;
 	extern uint32_t					SkipHack;
 }
-using namespace mdfn;
+using namespace vbam;
 
 class soundy : public SoundDriver
 {
@@ -235,16 +240,7 @@ u8					systemGetSensorDarkness					()										{return 0;}
 //Visual
 void				systemDrawScreen						()
 {
-	uint32_t* screenimage = (uint32_t*)pix;
-	uint32_t* destimage = (uint32_t*)ESpec->surface->pixels;
-
-	for(int i = 0; i != (GBAMode ? 160 : 224); i ++)
-	{
-		for(int j = 0; j != (GBAMode ? 240 : 256); j ++)
-		{
-			destimage[i * ESpec->surface->pitchinpix + j] = screenimage[i * (GBAMode ? 241 : 257) + j];
-		}
-	}
+	Video::BlitRGB(ESpec, (uint32_t*)pix, GBAMode ? 240 : 256, GBAMode ? 160 : 224, GBAMode ? 241 : 257);
 }
 
 //Sound
