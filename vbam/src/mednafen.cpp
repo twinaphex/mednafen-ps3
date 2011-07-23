@@ -396,7 +396,7 @@ static MDFNSetting						dmgSettings[] =
 static MDFNGI							dmgInfo =
 {
 /*	shortname:			*/	"vbamdmg",
-/*	fullname:			*/	"Game Boy (Color) (VBA-M)",
+/*	fullname:			*/	"Game Boy Color (VBA-M)",
 /*	FileExtensions:		*/	dmgExtensions,
 /*	ModulePriority:		*/	(ModPrio)(MODPRIO_EXTERNAL_HIGH + 1),
 /*	Debugger:			*/	0,
