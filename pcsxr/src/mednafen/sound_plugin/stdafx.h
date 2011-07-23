@@ -38,13 +38,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <unistd.h>
 #define RRand(range) (random()%range)  
 #include <string.h> 
-#include <sys/time.h>  
 #include <math.h>  
 
 #undef CALLBACK
