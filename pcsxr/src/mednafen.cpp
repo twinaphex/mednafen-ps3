@@ -26,44 +26,49 @@ extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
 //Definitions for PCSX
 extern "C"
 {
-	//Pointer to the PSX's memory, for cheats
-	extern int8_t*		psxM;
+	//PCSX Includes
+	#include "psxcommon.h"
+	#include "plugins.h"
+	#include "mednafen/video_plugin/globals.h"
+	#include "mednafen/input_plugin/pad.h"
 
+	extern uint8_t		SoundBuf[48000];						//Sample buffer from the sound plugin
+	extern uint32_t		SoundBufLen;							//Sample buffer length
 
-	//Return the filname of a memory card
-	const char*			GetMemoryCardName		(int aSlot)
+	extern int8_t*		psxM;									//Pointer to the PSX's memory, for cheats
+	extern int			wanna_leave;							//Flag indicating that the emulator should return
+
+	//PCSX FUNCTIONS:
+	int					OpenPlugins				();				//PCSX Suggested function (called by netError) (in src/mednafen/plugins.c)
+	void				ClosePlugins			();				//PCSX Required function (called by netError) (in src/mednafen/plugins.c)
+
+	//PCSX Required function (called on recompiler error)
+	void				SysClose				()
 	{
-		static char slots[2][MAXPATHLEN];
-
-		snprintf(slots[0], MAXPATHLEN, "%s", MDFN_MakeFName(MDFNMKF_SAV, 0, "sav").c_str());
-		snprintf(slots[1], MAXPATHLEN, "%s", MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2").c_str());
-
-		return slots[(aSlot == 0) ? 0 : 1];
+		//TODO
+		assert(false);
 	}
 
-	//Return the filename of the BIOS
-	const char*			GetBiosName				()
+	//PCSX Required function (called on recompiler error)
+	void				SysReset				()
 	{
-		static char name[MAXPATHLEN];
-
-		snprintf(name, MAXPATHLEN, "%s", MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str()).c_str());
-
-		return name;
+		//TODO
+		assert(false);
 	}
 
-	//Return the value of the recompiler setting
-	int32_t				GetRecompiler			()
+	//PCSX Required function (called every frame)
+	void				SysUpdate				()
 	{
-		return MDFN_GetSettingB("pcsxr.recompiler");
+		wanna_leave = 1;
 	}
 
-	//From main.c
-	void				SysLoad					();
-	void				SysClose				();
-	void				SysReset				();
-	void				SysFrame				(uint32_t aSkip, uint32_t* aPixels, uint32_t aPitch, uint32_t aInputPort1, uint32_t aInputPort2, uint32_t* aWidth, uint32_t* aHeight, uint32_t* aSound, uint32_t* aSoundLen);
+	//PCSX Required function (called by netError)
+	void				SysRunGui				()
+	{
+		/* Nothing */
+	}
 
-	//Printing functions needed by libpcsxcore
+	//PCSX Required function
 	void				SysPrintf				(const char *fmt, ...)
 	{
 		char buffer[2048];
@@ -75,6 +80,7 @@ extern "C"
 		MDFND_Message(buffer);
 	}
 
+	//PCSX Required function
 	void				SysMessage				(const char *fmt, ...)
 	{
 		char buffer[2048];
@@ -85,54 +91,19 @@ extern "C"
 
 		MDFND_Message(buffer);
 	}
-}
 
-//Implement MDFNGI:
-int				PcsxrLoad				()
-{
-	//Initialize the resampler
-	Resampler.buffer_size(588 * 2 * 2 + 100);
-	Resampler.time_ratio((double)44100 / 48000.0, 0.9965);
+	//A Buffer holding the BIOS
+	static uint8_t		BiosBuffer[1024 * 512];
 
-	//Call the C function to finish loading
-	//TODO: Return error if SysLoad fails.
-	SysLoad();
+	//Get the bios buffer
+	void				MDFNPCSXGetBios			(uint8_t* aBuffer)
+	{
+		memcpy(aBuffer, BiosBuffer, 1024 * 512);
+	}
 
-	//TODO: Set the clock if the machine is PAL
-
-	//Just say two 1M pages, for fun not profit
-	MDFNMP_Init(1024 * 1024, 2);
-	MDFNMP_AddRAM(1024 * 1024 * 2, 0, (uint8_t*)psxM);
-
-	return 1;
-}
-
-bool			PcsxrTestMagic			()
-{
-	//TODO: Does this work in all cases?
-	uint8_t Buffer[4000];
-	CDIF_ReadRawSector(Buffer, 4);
-	return Buffer[56] == 'S' && Buffer[57] == 'o' && Buffer[58] == 'n' && Buffer[59] == 'y';
-}
-
-void			PcsxrCloseGame			(void)
-{
-	//Call the C function in main.c
-	SysClose();
-
-	//Close the cheat engine
-	MDFNMP_Kill();
-}
-
-//FAKE ZLIB HACK
-static StateMem* stateMemory;
-
-extern "C"
-{
-	int SaveState(const char *file);
-	int LoadState(const char *file);
-
+	//Zlib style implement used for saving states to memory
 	typedef void* smFile;
+	static StateMem* stateMemory;
 	smFile smopen (const char *path , const char *mode )
 	{
 		if(!stateMemory)
@@ -159,10 +130,10 @@ extern "C"
 		return smem_seek(mem, offset, whence);
 	}
 
-	int smwrite (smFile file, void* buf, unsigned int len)
+	int smwrite (smFile file, const void* buf, unsigned int len)
 	{
 		StateMem* mem = (StateMem*)file;
-		smem_write(mem, buf, len);
+		smem_write(mem, (void*)buf, len);
 		return len;
 	}
 
@@ -172,7 +143,91 @@ extern "C"
 		smem_read(mem, buf, len);
 		return len;
 	}
-};
+}
+
+//Implement MDFNGI:
+int				PcsxrLoad				()
+{
+	//Initialize the resampler
+	Resampler.buffer_size(588 * 2 * 2 + 100);
+	Resampler.time_ratio((double)44100 / 48000.0, 0.9965);
+
+	//Load the BIOS
+	MDFNFILE biosFile;
+	if(biosFile.Open(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pcsxr.bios").c_str()).c_str(), 0))
+	{
+		if(biosFile.size == 512 * 1024)
+		{
+			memcpy(BiosBuffer, biosFile.data, 512 * 1024);
+		}
+		else
+		{
+			MDFN_printf("pcsxr: BIOS file size incorrect\n");
+		}
+	}
+	else
+	{
+		MDFN_printf("pcsxr: Failed to load bios\n");
+		return 0;
+	}
+	
+	//Setup the config structure
+    memset(&Config, 0, sizeof(Config));
+    Config.PsxAuto = 1;
+    Config.Cpu = MDFN_GetSettingB("pcsxr.recompiler") ? CPU_DYNAREC : CPU_INTERPRETER;
+    strcpy(Config.PluginsDir, "builtin");
+    strcpy(Config.Gpu, "builtin");
+    strcpy(Config.Spu, "builtin");
+    strcpy(Config.Pad1, "builtin");
+    strcpy(Config.Pad2, "builtin");
+    strcpy(Config.Cdr, "builtin");
+    strcpy(Config.Net, "Disabled");
+	strncpy(Config.Mcd1, MDFN_MakeFName(MDFNMKF_SAV, 0, "sav").c_str(), MAXPATHLEN);
+	strncpy(Config.Mcd2, MDFN_MakeFName(MDFNMKF_SAV, 0, "sav2").c_str(), MAXPATHLEN);
+
+	//Init psx cpu emulator and memory mapping
+	EmuInit();
+
+	//Open and initialize all of the plugins
+	OpenPlugins();
+
+	//Load memory cards
+	LoadMcds(Config.Mcd1, Config.Mcd2);
+
+	//Get cdrom ID and init PPF support...
+	CheckCdrom();
+
+	//Reset the emulated CPU and Memory
+	EmuReset();
+
+	//Prepares the game to run, either runs the CPU thru the bios or finds and loads the game EXE if using the emulated bios
+	LoadCdrom();
+
+	//TODO: Set the clock if the machine is PAL
+
+	//Just say two 1M pages, for fun not profit
+	MDFNMP_Init(1024 * 1024, 2);
+	MDFNMP_AddRAM(1024 * 1024 * 2, 0, (uint8_t*)psxM);
+
+	return 1;
+}
+
+bool			PcsxrTestMagic			()
+{
+	//TODO: Does this work in all cases?
+	uint8_t Buffer[4000];
+	CDIF_ReadRawSector(Buffer, 4);
+	return Buffer[56] == 'S' && Buffer[57] == 'o' && Buffer[58] == 'n' && Buffer[59] == 'y';
+}
+
+void			PcsxrCloseGame			(void)
+{
+	EmuShutdown();
+	ClosePlugins();
+
+	//Close the cheat engine
+	MDFNMP_Kill();
+}
 
 
 int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
@@ -196,39 +251,81 @@ int				PcsxrStateAction		(StateMem *sm, int load, int data_only)
 
 void			PcsxrEmulate			(EmulateSpecStruct *espec)
 {
+	//AUDIO PREP
     if(espec->SoundFormatChanged)
     {
 		//TODO
     }
 
-	//Apply cheats
+	//INPUT
+	g.PadState[0].JoyKeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
+	g.PadState[0].KeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
+	g.PadState[1].JoyKeyStatus = ~(Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0);
+	g.PadState[1].KeyStatus = ~(Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0);
+
+	//CHEATS
 	MDFNMP_ApplyPeriodicCheats();
 
-	//Fetch the list of pressed buttons
-	uint32_t input1 = Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0;
-	uint32_t input2 = Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0;
+	//EMULATE
+	psxCpu->Execute();
 
-	//Call the C function to emulate the frame
-	//TODO: Support multiplayer
-    //TODO: Support color shift
-	uint32_t width, height;
-	uint32_t sndsize;
-	SysFrame(espec->skip, espec->surface->pixels, espec->surface->pitch32, input1, input2, &width, &height, (uint32_t*)SampleBuffer, &sndsize);
+	//VIDEO
+	#define RED(x) (x & 0xff)
+	#define BLUE(x) ((x>>16) & 0xff)
+	#define GREEN(x) ((x>>8) & 0xff)
+	#define COLOR(x) (x & 0xffffff)
 
-	//Resample the audio if needed
-	//TODO: Why only on sndsize < 1500, that seems wrong somehow...
-	if(sndsize < 1500 && espec->SoundBuf)
+	bool haveFrame = (g_gpu.dsp.mode.x && g_gpu.dsp.mode.y) && !espec->skip;
+
+	espec->DisplayRect.x = 0;
+	espec->DisplayRect.y = 0;
+	espec->DisplayRect.w = haveFrame ? (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x : 240;
+	espec->DisplayRect.h = haveFrame ? (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y : 320;
+
+	if(haveFrame)
 	{
-		memcpy(Resampler.buffer(), SampleBuffer, sndsize * 4);
-		Resampler.write(sndsize * 2);
+		uint32_t* pixels = espec->surface->pixels;
+
+		if(g_gpu.status_reg & STATUS_RGB24)
+		{
+			for(int i = 0; i != espec->DisplayRect.h; i++)
+			{
+				int startxy = ((1024) * (i + espec->DisplayRect.y)) + espec->DisplayRect.x;
+				unsigned char* pD = (unsigned char *)&g_gpu.psx_vram.u16[startxy];
+				uint32_t* destpix = (uint32_t *)(pixels + (i * espec->surface->pitchinpix));
+				for(int j = 0; j != espec->DisplayRect.w; j++)
+				{
+					uint32_t lu = SWAP32(*((uint32_t *)pD));
+					destpix[j] = 0xff000000 | (RED(lu) << 16) | (GREEN(lu) << 8) | (BLUE(lu));
+					pD += 3;
+				}
+			}
+		}
+		else
+		{
+			for(int i = 0; i != espec->DisplayRect.h; i++)
+			{
+				int startxy = (1024 * (i + espec->DisplayRect.y)) + espec->DisplayRect.x;
+				uint32_t* destpix = &pixels[espec->surface->pitchinpix * i];
+				for(int j = 0; j != espec->DisplayRect.w; j++, startxy ++)
+				{
+					int s = SWAP16(g_gpu.psx_vram.u16[startxy]);
+					destpix[j] = (((s << 19) & 0xf80000) | ((s << 6) & 0xf800) | ((s >> 7) & 0xf8)) | 0xff000000;
+				}
+			}
+		}
+	}
+
+	//AUDIO
+	//TODO: Why only on sndsize < 1500, that seems wrong somehow...
+	if((SoundBufLen / 4) < 1500 && espec->SoundBuf)
+	{
+		memcpy(Resampler.buffer(), SampleBuffer, SoundBufLen);
+		Resampler.write(SoundBufLen / 2);
 		espec->SoundBufSize = Resampler.read(espec->SoundBuf, Resampler.avail()) >> 1;
 	}
 
-	//Set the output size
-    espec->DisplayRect.x = 0;
-    espec->DisplayRect.y = 0;
-    espec->DisplayRect.w = width;
-    espec->DisplayRect.h = height;
+	SoundBufLen = 0;
 
 	//Update timing
 	espec->MasterCycles = 1LL * 100;
@@ -246,11 +343,11 @@ void			PcsxrDoSimpleCommand	(int cmd)
 {
 	if(cmd == MDFN_MSC_RESET)
 	{
-		SysReset();
+		EmuReset();
 	}
 	else if(cmd == MDFN_MSC_POWER)
 	{
-		SysReset();
+		EmuReset();
 	}
 }
 
@@ -303,7 +400,7 @@ static FileExtensionSpecStruct	extensions[] =
 
 static MDFNSetting PcsxrSettings[] =
 {
-	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to optional (but recommended) PSX BIOS ROM image.",				NULL, MDFNST_STRING,	"scph1001.bin"},
+	{"pcsxr.bios",		MDFNSF_EMU_STATE,	"Path to required PSX BIOS ROM image.",									NULL, MDFNST_STRING,	"scph1001.bin"},
 	{"pcsxr.recompiler",MDFNSF_NOFLAGS,		"Enable the dynamic recompiler. (Need to restart mednafen to change).",	NULL, MDFNST_BOOL,		"0"},
 	{NULL}
 };

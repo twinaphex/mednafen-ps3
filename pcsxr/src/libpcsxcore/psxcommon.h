@@ -106,9 +106,11 @@ typedef uint8_t boolean;
 
 #else
 
+//ROBO: Mednafen already defines this
+#ifndef _
 #define _(msgid) msgid
 #define N_(msgid) msgid
-
+#endif
 #endif
 
 extern FILE *emuLog;
