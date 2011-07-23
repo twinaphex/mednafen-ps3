@@ -31,6 +31,12 @@
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+
+
+// 15-bit value + 1-sign
+extern int CLAMP16(int x);
+
+
 ////////////////////////////////////////////////////////////////////////
 // spu defines
 ////////////////////////////////////////////////////////////////////////
@@ -160,7 +166,7 @@ typedef struct
  int               iUsedFreq;                          // current pc pitch
  int               iLeftVolume;                        // left volume
  int               iLeftVolRaw;                        // left psx volume value
- int               bIgnoreLoop;                        // ignore loop bit, if an external loop address is used
+ int               bLoopJump;													 // ignore loop bit, if an external loop address is used
  int               iMute;                              // mute mode (debug)
  int               iSilent;                            // voice on - sound on/off
  int               iRightVolume;                       // right volume
@@ -215,6 +221,7 @@ typedef struct
  int IIR_DEST_B0;    // (offset)
  int IIR_DEST_B1;    // (offset)
  int ACC_SRC_C0;     // (offset)
+
  int ACC_SRC_C1;     // (offset)
  int ACC_SRC_D0;     // (offset)
  int ACC_SRC_D1;     // (offset)
@@ -227,11 +234,6 @@ typedef struct
  int IN_COEF_L;      // (coef.)
  int IN_COEF_R;      // (coef.)
 } REVERBInfo;
-
-#ifdef _WINDOWS
-extern HINSTANCE hInst;
-#define WM_MUTE (WM_USER+543)
-#endif
 
 ///////////////////////////////////////////////////////////
 // SPU.C globals
@@ -249,13 +251,16 @@ extern unsigned char * pSpuBuffer;
 
 // user settings
 
+extern int        iVolume;
 extern int        iXAPitch;
 extern int        iUseTimer;
 extern int        iSPUIRQWait;
+extern int        iDebugMode;
+extern int        iRecordMode;
 extern int        iUseReverb;
 extern int        iUseInterpolation;
 extern int        iDisStereo;
-extern int        iFreqResponse;
+extern int				iFreqResponse;
 // MISC
 
 extern int iSpuAsyncWait;
@@ -270,8 +275,11 @@ extern unsigned short spuCtrl;
 extern unsigned short spuStat;
 extern unsigned short spuIrq;
 extern unsigned long  spuAddr;
+extern int      bEndThread;
+extern int      bThreadEnded;
 extern int      bSpuInit;
-extern unsigned long dwNewChannel;
+extern uint32_t dwNewChannel;
+extern int bIrqHit;
 
 extern int      SSumR[];
 extern int      SSumL[];
@@ -279,8 +287,10 @@ extern int      iCycle;
 extern short *  pS;
 
 extern void (CALLBACK *cddavCallback)(unsigned short,unsigned short);
+extern void (CALLBACK *irqCallback)(void);                  // func of main emu, called on spu irq
 
 #endif
+
 
 ///////////////////////////////////////////////////////////
 // XA.C globals

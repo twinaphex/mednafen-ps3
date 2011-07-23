@@ -21,8 +21,6 @@ using namespace pcsxr;
 //Pair of functions to export timing to C files.
 //TODO: These shouldn't be needed as the emulator module shouldn't be doing timing.
 extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
-extern "C" void MDFNDC_Sleep(uint32_t aMS){MDFND_Sleep(aMS);}
-
 
 //Definitions for PCSX
 extern "C"

@@ -24,8 +24,8 @@
 //
 //*************************************************************************//
 
-//ROBO: pk prefix
-unsigned short CALLBACK pkSPUreadDMA(void);
-void CALLBACK pkSPUreadDMAMem(unsigned short * pusPSXMem,int iSize);
-void CALLBACK pkSPUwriteDMA(unsigned short val);
-void CALLBACK pkSPUwriteDMAMem(unsigned short * pusPSXMem,int iSize);
+
+unsigned short CALLBACK SPUreadDMA(void);
+void CALLBACK SPUreadDMAMem(unsigned short * pusPSXMem,int iSize);
+void CALLBACK SPUwriteDMA(unsigned short val);
+void CALLBACK SPUwriteDMAMem(unsigned short * pusPSXMem,int iSize);
