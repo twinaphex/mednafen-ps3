@@ -5,7 +5,9 @@
 #include <src/mempatcher.h>
 #include <src/md5.h>
 #include <src/cdrom/cdromif.h>
-#include <include/Fir_Resampler.h>
+
+#define MODULENAMESPACE Yabause
+#include <module_helper.h>
 
 #include <stdio.h>
 
@@ -27,7 +29,6 @@ extern "C"
 	#include "permdfnjoy.h"
 
 	uint8_t*							mdfnyab_inputports[4];
-	Fir_Resampler<8>*					mdfnyab_resampler;
 
 	void								YuiSwapBuffers				()
 	{
@@ -173,8 +174,7 @@ static void			yabauseCloseGame			(void)
 	//TODO: Anything else?
 	YabauseDeInit();
 
-	delete mdfnyab_resampler;
-	mdfnyab_resampler = 0;
+	Resampler::Kill();
 }
 
 static int			yabauseStateAction			(StateMem *sm, int load, int data_only)
@@ -185,18 +185,7 @@ static int			yabauseStateAction			(StateMem *sm, int load, int data_only)
 static void			yabauseEmulate				(EmulateSpecStruct *espec)
 {
 	//AUDIO PREP
-	if(espec->SoundFormatChanged)
-	{
-		delete mdfnyab_resampler;
-		mdfnyab_resampler = 0;
-
-		if(espec->SoundRate > 1.0)
-		{
-			mdfnyab_resampler = new Fir_Resampler<8>();
-			mdfnyab_resampler->buffer_size(2048 * 2);
-			mdfnyab_resampler->time_ratio(44100.0 / espec->SoundRate, 0.9965);
-		}
-	}		
+	Resampler::Init(espec, 44100.0);
 
 	//EMULATE
 	PERCore->HandleEvents();
@@ -224,11 +213,7 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//AUDIO
-	if(mdfnyab_resampler && espec->SoundBuf && espec->SoundBufMaxSize)
-	{
-		uint32_t readsize = std::min(mdfnyab_resampler->avail() / 2, espec->SoundBufMaxSize);
-		espec->SoundBufSize = mdfnyab_resampler->read(espec->SoundBuf, readsize) >> 1;
-	}
+	Resampler::Fetch(espec);
 }
 
 static void			yabauseSetInput				(int port, const char *type, void *ptr)

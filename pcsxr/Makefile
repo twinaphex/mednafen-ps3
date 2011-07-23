@@ -5,7 +5,7 @@ endif
 TARGET		:=	libpcsxr
 TYPE		:=	lib
 SOURCE		:=	src/libpcsxcore src src/mednafen src/mednafen/video_plugin src/mednafen/sound_plugin src/mednafen/input_plugin src/mednafen/cdrplugin
-INCLUDE		:=	src src/libpcsxcore ../mednafen/src ../system
+INCLUDE		:=	.. src src/libpcsxcore ../mednafen/src ../system
 
 ifeq ($(strip $(PLATFORM)),cell)
 	CFLAGS	:=	-DNOPSXREC
