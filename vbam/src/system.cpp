@@ -45,7 +45,6 @@ namespace vbam
 {
 	extern bool						GBAMode;
 	extern EmulateSpecStruct*		ESpec;
-	extern uint8_t*					Ports[4];
 	extern uint32_t					SoundFrame;
 	extern uint32_t					FrameCount;
 	extern uint32_t					SkipHack;
@@ -224,7 +223,7 @@ u32					systemGetClock							()										{return MDFND_GetTime() - start_time;}
 
 //Input
 bool				systemReadJoypads						()										{return true;}
-u32					systemReadJoypad						(int)									{return Ports[0][0] | (Ports[0][1] << 8);}
+u32					systemReadJoypad						(int)									{return Input::GetPort<0, 2>();}
 bool rtcWarioRumbleEnabled;
 #ifndef MLDLL
 void				systemCartridgeRumble					(bool aRumble)							{MDFND_Rumble(aRumble ? 1 : 0, aRumble ? 128 : 0);}

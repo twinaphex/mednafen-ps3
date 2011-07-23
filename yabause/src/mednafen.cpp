@@ -29,8 +29,6 @@ extern "C"
 	#include "sndmdfn.h"
 	#include "permdfnjoy.h"
 
-	uint8_t*							mdfnyab_inputports[4];
-
 	void								YuiSwapBuffers				()
 	{
 	}
@@ -204,10 +202,7 @@ static void			yabauseEmulate				(EmulateSpecStruct *espec)
 
 static void			yabauseSetInput				(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port < 4)
-	{
-		mdfnyab_inputports[port] = (uint8_t*)ptr;
-	}
+	Input::SetPort(port, (uint8_t*)ptr);
 }
 
 static void			yabauseDoSimpleCommand		(int cmd)
