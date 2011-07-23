@@ -31,7 +31,6 @@ namespace vbam
 	EmulateSpecStruct*					ESpec;
 	bool								GBAMode;
 
-	uint8_t*							Ports[4];
 	uint32_t							SoundFrame;
 	char	 							StateData[1024*512];
 }
@@ -232,10 +231,7 @@ static int		VbamStateAction			(StateMem *sm, int load, int data_only)
 
 static void		VbamSetInput			(int port, const char *type, void *ptr)
 {
-	if(port == 0)
-	{
-		Ports[port] = (uint8_t*)ptr;
-	}
+	Input::SetPort(port, (uint8_t*)ptr);
 }
 
 static void		VbamDoSimpleCommand		(int cmd)

@@ -15,6 +15,89 @@
 # define TYPEDEC
 #endif
 
+#define EMITGAMEINFO(sname, fname, mres, lcmw, lcmh, nw, nh, fbw, fbh, c)	\
+namespace MODULENAMESPACE													\
+{																			\
+	MDFNGI	ModuleInfo =													\
+	{																		\
+	/*	shortname:			*/	sname,										\
+	/*	fullname:			*/	fname,										\
+	/*	FileExtensions:		*/	ModuleExtensions,							\
+	/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,						\
+	/*	Debugger:			*/	0,											\
+	/*	InputInfo:			*/	&ModuleInput,								\
+	/*	Load:				*/	ModuleLoad,									\
+	/*	TestMagic:			*/	ModuleTestMagic,							\
+	/*	LoadCD:				*/	0,											\
+	/*	TestMagicCD:		*/	0,											\
+	/*	CloseGame:			*/	ModuleCloseGame,							\
+	/*	ToggleLayer:		*/	0,											\
+	/*	LayerNames:			*/	0,											\
+	/*	InstallReadPatch:	*/	0,											\
+	/*	RemoveReadPatches:	*/	0,											\
+	/*	MemRead:			*/	0,											\
+	/*	StateAction:		*/	ModuleStateAction,							\
+	/*	Emulate:			*/	ModuleEmulate,								\
+	/*	SetInput:			*/	ModuleSetInput,								\
+	/*	DoSimpleCommand:	*/	ModuleDoSimpleCommand,						\
+	/*	Settings:			*/	ModuleSettings,								\
+	/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),				\
+	/*	fps:				*/	0,											\
+	/*	multires:			*/	mres,										\
+	/*	lcm_width:			*/	lcmw,										\
+	/*	lcm_height:			*/	lcmh,										\
+	/*	dummy_separator:	*/	0,											\
+	/*	nominal_width:		*/	nw,											\
+	/*	nominal_height:		*/	nh,											\
+	/*	fb_width:			*/	fbw,										\
+	/*	fb_height:			*/	fbh,										\
+	/*	soundchan:			*/	c											\
+	};																		\
+}
+
+#define EMITGAMEINFOCD(sname, fname, mres, lcmw, lcmh, nw, nh, fbw, fbh, c)	\
+namespace MODULENAMESPACE													\
+{																			\
+	MDFNGI	ModuleInfo =													\
+	{																		\
+	/*	shortname:			*/	sname,										\
+	/*	fullname:			*/	fname,										\
+	/*	FileExtensions:		*/	ModuleExtensions,							\
+	/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,						\
+	/*	Debugger:			*/	0,											\
+	/*	InputInfo:			*/	&ModuleInput,								\
+	/*	Load:				*/	0,											\
+	/*	TestMagic:			*/	0,											\
+	/*	LoadCD:				*/	ModuleLoad,									\
+	/*	TestMagicCD:		*/	ModuleTestMagic,							\
+	/*	CloseGame:			*/	ModuleCloseGame,							\
+	/*	ToggleLayer:		*/	0,											\
+	/*	LayerNames:			*/	0,											\
+	/*	InstallReadPatch:	*/	0,											\
+	/*	RemoveReadPatches:	*/	0,											\
+	/*	MemRead:			*/	0,											\
+	/*	StateAction:		*/	ModuleStateAction,							\
+	/*	Emulate:			*/	ModuleEmulate,								\
+	/*	SetInput:			*/	ModuleSetInput,								\
+	/*	DoSimpleCommand:	*/	ModuleDoSimpleCommand,						\
+	/*	Settings:			*/	ModuleSettings,								\
+	/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),				\
+	/*	fps:				*/	0,											\
+	/*	multires:			*/	mres,										\
+	/*	lcm_width:			*/	lcmw,										\
+	/*	lcm_height:			*/	lcmh,										\
+	/*	dummy_separator:	*/	0,											\
+	/*	nominal_width:		*/	nw,											\
+	/*	nominal_height:		*/	nh,											\
+	/*	fb_width:			*/	fbw,										\
+	/*	fb_height:			*/	fbh,										\
+	/*	soundchan:			*/	c											\
+	};																		\
+}
+
+
+
+
 namespace	MODULENAMESPACE
 {
 	namespace	Video
@@ -78,6 +161,41 @@ namespace	MODULENAMESPACE
 					aSpec->surface->pixels[i * aSpec->surface->pitchinpix + j] = aPalette[aSource[i * aPixelPitch + j] & pMask];
 				}
 			}
+		}
+	}
+
+	namespace	Input
+	{
+		TYPEDEC uint8_t*								Ports[32];
+
+		inline void __attribute((always_inline))		SetPort						(uint32_t aPort, uint8_t* aData)
+		{
+			assert(aPort >= 0 && aPort < 32);
+			Ports[aPort] = aData;
+		}
+
+		template <int tBytes>
+		inline uint32_t __attribute((always_inline))	GetPort						(uint32_t aPort)
+		{
+			assert(aPort >= 0 && aPort < 32);
+			assert(tBytes < 4);
+
+			uint32_t result = 0;
+			if(Ports[aPort])
+			{
+				for(int i = 0; i != tBytes; i ++)
+				{
+					result |= Ports[aPort][i] << (i * 8);
+				}
+			}
+
+			return result;
+		}
+
+		template <int tPort, int tBytes>
+		inline uint32_t __attribute((always_inline))	GetPort						()
+		{
+			return GetPort<tBytes>(tPort);
 		}
 	}
 

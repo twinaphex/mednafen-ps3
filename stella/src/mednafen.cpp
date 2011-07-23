@@ -30,10 +30,7 @@ struct					MDFNStella
 
 	SoundSDL			Sound;
 
-	uint8_t*			Port[2];
-	uint32_t			PortType[2];
-
-	MDFNStella() 	{GameConsole = 0; Palette = 0; Port[0] = 0; Port[1] = 0; PortType[0] = 0; PortType[1] = 0; }
+	MDFNStella() 	{GameConsole = 0; Palette = 0;}
 	~MDFNStella()	{delete GameConsole;}
 };
 MDFNStella*				mdfnStella;
@@ -164,7 +161,7 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 		Event::Type baseEvent = (i == 0) ? Event::JoystickZeroUp : Event::JoystickOneUp;
 
 		//Get the input data for this port and stuff it in the event structure
-		uint32_t inputState = mdfnStella->Port[i] ? (mdfnStella->Port[i][0] | (mdfnStella->Port[i][1] << 8) | (mdfnStella->Port[i][2] << 16)) : 0;
+		uint32_t inputState = Input::GetPort<3>(i);
 		for(int j = 0; j != 19; j ++, inputState >>= 1)
 		{
 			mdfnStella->GameConsole->event().set((Event::Type)(baseEvent + j), inputState & 1);
@@ -172,7 +169,7 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 	}
 
 	//Update the reset and select events
-	uint32_t inputState = mdfnStella->Port[0] ? (mdfnStella->Port[0][2] << 16) >> 19 : 0;
+	uint32_t inputState = Input::GetPort<0, 3>() >> 19;
 	mdfnStella->GameConsole->event().set(Event::ConsoleSelect, inputState & 1);
 	mdfnStella->GameConsole->event().set(Event::ConsoleReset, inputState & 2);
 
@@ -226,12 +223,7 @@ void			StellaEmulate			(EmulateSpecStruct *espec)
 
 void			StellaSetInput			(int port, const char *type, void *ptr)
 {
-	//Don't do anything if state isn't valid
-	if(mdfnStella && port >= 0 && port < 2)
-	{
-		mdfnStella->Port[port] = (uint8_t*)ptr;
-		mdfnStella->PortType[port] = strcmp(type, "none") != 0;
-	}
+	Input::SetPort(port, (uint8_t*)ptr);
 }
 
 void			StellaDoSimpleCommand	(int cmd)

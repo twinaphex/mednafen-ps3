@@ -14,12 +14,6 @@ using namespace pcsxr;
 #include "src/mempatcher.h"
 
 
-namespace						pcsxr
-{
-	uint8_t*					Ports[8];
-}
-using namespace pcsxr;
-
 //Pair of functions to export timing to C files.
 //TODO: These shouldn't be needed as the emulator module shouldn't be doing timing.
 extern "C" uint32_t MDFNDC_GetTime(){return MDFND_GetTime();}
@@ -253,10 +247,10 @@ static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 	Resampler::Init(espec, 44100.0);
 
 	//INPUT
-	g.PadState[0].JoyKeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
-	g.PadState[0].KeyStatus = ~(Ports[0] ? (Ports[0][0] | (Ports[0][1] << 8)) : 0);
-	g.PadState[1].JoyKeyStatus = ~(Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0);
-	g.PadState[1].KeyStatus = ~(Ports[1] ? (Ports[1][0] | (Ports[1][1] << 8)) : 0);
+	g.PadState[0].JoyKeyStatus = ~Input::GetPort<0, 2>();
+	g.PadState[0].KeyStatus = ~Input::GetPort<0, 2>();
+	g.PadState[1].JoyKeyStatus = ~Input::GetPort<1, 2>();
+	g.PadState[1].KeyStatus = ~Input::GetPort<1, 2>();
 
 	//CHEATS
 	MDFNMP_ApplyPeriodicCheats();
@@ -308,10 +302,7 @@ static void		PcsxrEmulate			(EmulateSpecStruct *espec)
 
 static void		PcsxrSetInput			(int port, const char *type, void *ptr)
 {
-	if(port >= 0 && port < 4)
-	{
-		Ports[port] = (uint8_t*)ptr;
-	}
+	Input::SetPort(port, (uint8_t*)ptr);
 }
 
 static void		PcsxrDoSimpleCommand	(int cmd)

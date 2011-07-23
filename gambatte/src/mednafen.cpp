@@ -21,7 +21,6 @@ namespace gmbt
 	int32_t					SampleOverflow;
 
 	EmulateSpecStruct*		ESpec;
-	uint8_t*				InputPort;
 
 	//Class for processing video data
 	class gbblitter : public VideoBlitter
@@ -60,7 +59,7 @@ namespace gmbt
 			const InputState& 	operator()			()	{return inputs;};
 			InputState			inputs;
 	};
-	gbinput						Input;
+	gbinput						ButtonState;
 }
 using namespace	gmbt;
 
@@ -89,7 +88,7 @@ int				GmbtLoad				(const char *name, MDFNFILE *fp)
 
 	//Give gambatte it's objects
 	GambatteEmu->setVideoBlitter(&Blitter);
-	GambatteEmu->setInputStateGetter(&Input);
+	GambatteEmu->setInputStateGetter(&ButtonState);
 
 	//Done
 	return 1;
@@ -156,17 +155,15 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 	}
 
 	//INPUT
-	if(InputPort)
-	{
-		Input.inputs.startButton	= (*InputPort & 8) ? 1 : 0;
-		Input.inputs.selectButton	= (*InputPort & 4) ? 1 : 0;
-		Input.inputs.bButton		= (*InputPort & 2) ? 1 : 0;
-		Input.inputs.aButton		= (*InputPort & 1) ? 1 : 0;
-		Input.inputs.dpadUp			= (*InputPort & 0x40) ? 1 : 0;
-		Input.inputs.dpadDown		= (*InputPort & 0x80) ? 1 : 0;
-		Input.inputs.dpadLeft		= (*InputPort & 0x20) ? 1 : 0;
-		Input.inputs.dpadRight		= (*InputPort & 0x10) ? 1 : 0;
-	}
+	uint32_t portdata = gmbt::Input::GetPort<0, 2>();
+	ButtonState.inputs.startButton	= (portdata & 8) ? 1 : 0;
+	ButtonState.inputs.selectButton	= (portdata & 4) ? 1 : 0;
+	ButtonState.inputs.bButton		= (portdata & 2) ? 1 : 0;
+	ButtonState.inputs.aButton		= (portdata & 1) ? 1 : 0;
+	ButtonState.inputs.dpadUp		= (portdata & 0x40) ? 1 : 0;
+	ButtonState.inputs.dpadDown		= (portdata & 0x80) ? 1 : 0;
+	ButtonState.inputs.dpadLeft		= (portdata & 0x20) ? 1 : 0;
+	ButtonState.inputs.dpadRight	= (portdata & 0x10) ? 1 : 0;
 
 	//EXECUTE
 	uint32_t samps = GambatteEmu->runFor((Gambatte::uint_least32_t*)Samples, 35112 - SampleOverflow);
@@ -191,10 +188,7 @@ void			GmbtEmulate				(EmulateSpecStruct *espec)
 
 void			GmbtSetInput			(int port, const char *type, void *ptr)
 {
-	if(port == 0)
-	{
-		InputPort = (uint8_t*)ptr;
-	}
+	Input::SetPort(port, (uint8_t*)ptr);
 }
 
 void			GmbtDoSimpleCommand		(int cmd)
