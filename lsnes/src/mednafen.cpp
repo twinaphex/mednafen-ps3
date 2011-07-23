@@ -60,292 +60,291 @@ namespace lsnes
 }
 using namespace lsnes;
 
-//SYSTEM DESCRIPTIONS
-static const InputDeviceInputInfoStruct		GamepadIDII[] =
+namespace MODULENAMESPACE
 {
-	{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
-	{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
-	{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
-	{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
-	{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
-	{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
-	{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-	{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
-	{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
-};
-
-static InputDeviceInfoStruct 				InputDeviceInfo[] =
-{
-	{"none",	"none",		NULL,	0,															NULL			},
-	{"gamepad", "Gamepad",	NULL,	sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),	GamepadIDII,	},
-};
-
-static const InputPortInfoStruct PortInfo[] =
-{
-	{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
-	{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
-};
-
-static InputInfoStruct 						lsnesInput =
-{
-	sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
-};
-
-static MDFNSetting							lsnesSettings[] =
-{
-	{"lsnes.sgbbios",		MDFNSF_EMU_STATE,	"Path to Super Game Boy ROM image.",	NULL,	MDFNST_STRING,	"supergb.bin"},
-	{"lsnes.usesupergb",	MDFNSF_EMU_STATE,	"Enable use of Super Game Boy.",		NULL,	MDFNST_BOOL,	"0"},
-	{NULL}
-};
-
-static FileExtensionSpecStruct				lsnesExtensions[] =
-{
-	{".smc",	"Super Magicom ROM Image"			},
-	{".swc",	"Super Wildcard ROM Image"			},
-	{".sfc",	"Cartridge ROM Image"				},
-	{".fig",	"Cartridge ROM Image"				},
-
-	{".bs",		"BS-X EEPROM Image"					},
-	{".st",		"Sufami Turbo Cartridge ROM Image"	},
-
-	{NULL, NULL}
-};
-
-//Implement MDFNGI:
-static int			lsnesLoad				(const char *name, MDFNFILE *fp)
-{
-	//Get Game MD5
-	md5_context md5;
-	md5.starts();
-	md5.update(fp->data, fp->size);
-	md5.finish(MDFNGameInfo->MD5);
-
-	//Setup libsnes
-	snes_init();
-	snes_set_video_refresh(VideoRefreshCallback);
-	snes_set_audio_sample(AudioSampleCallback);
-	snes_set_input_state(InputStateCallback);
-
-	int type = DetermineGameType(fp);
-
-	if(type < 0 || type > 1)
+	static const InputDeviceInputInfoStruct	GamepadIDII[] =
 	{
-		MDFN_printf("libsnes: Unrecognized game type\n");
-		return 0;
-	}
+		{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
+		{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
+		{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
+		{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
+		{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
+		{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
+		{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
+		{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
+	};
 
-	//Load game
-	if(type == 0 && !snes_load_cartridge_normal(0, fp->data, fp->size))
+	static InputDeviceInfoStruct 			InputDeviceInfo[] =
 	{
-		MDFN_printf("libsnes: Failed to load game\n");
-		return 0;
-	}
-	else if(type == 1)
+		{"none",	"none",		NULL,	0,															NULL			},
+		{"gamepad", "Gamepad",	NULL,	sizeof(GamepadIDII) / sizeof(InputDeviceInputInfoStruct),	GamepadIDII,	},
+	};
+
+	static const InputPortInfoStruct		PortInfo[] =
 	{
-		MDFNFILE sgbrom;
-		if(sgbrom.Open(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("lsnes.sgbbios").c_str()).c_str(), 0))
+		{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+		{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+	};
+
+	static InputInfoStruct 					ModuleInput =
+	{
+		sizeof(PortInfo) / sizeof(InputPortInfoStruct), PortInfo
+	};
+
+	static FileExtensionSpecStruct			ModuleExtensions[] =
+	{
+		{".smc",	"Super Magicom ROM Image"			},
+		{".swc",	"Super Wildcard ROM Image"			},
+		{".sfc",	"Cartridge ROM Image"				},
+		{".fig",	"Cartridge ROM Image"				},
+
+		{".bs",		"BS-X EEPROM Image"					},
+		{".st",		"Sufami Turbo Cartridge ROM Image"	},
+
+		{NULL, NULL}
+	};
+
+	static MDFNSetting						ModuleSettings[] =
+	{
+		{"lsnes.sgbbios",		MDFNSF_EMU_STATE,	"Path to Super Game Boy ROM image.",	NULL,	MDFNST_STRING,	"supergb.bin"},
+		{"lsnes.usesupergb",	MDFNSF_EMU_STATE,	"Enable use of Super Game Boy.",		NULL,	MDFNST_BOOL,	"0"},
+		{NULL}
+	};
+
+	static int								ModuleLoad				(const char *name, MDFNFILE *fp)
+	{
+		//Get Game MD5
+		md5_context md5;
+		md5.starts();
+		md5.update(fp->data, fp->size);
+		md5.finish(MDFNGameInfo->MD5);
+
+		//Setup libsnes
+		snes_init();
+		snes_set_video_refresh(VideoRefreshCallback);
+		snes_set_audio_sample(AudioSampleCallback);
+		snes_set_input_state(InputStateCallback);
+
+		int type = DetermineGameType(fp);
+
+		if(type < 0 || type > 1)
 		{
-			if(!snes_load_cartridge_super_game_boy(0, sgbrom.data, sgbrom.size, 0, fp->data, fp->size))
-			{
-				MDFN_printf("libsnes: Could not load Super Game Boy Game\n");
-				return 0;
-			}
-		}
-		else
-		{
-			MDFN_printf("libsnes: Could not load Super Game Boy BIOS\n");
+			MDFN_printf("libsnes: Unrecognized game type\n");
 			return 0;
 		}
-	}
 
-	//Setup region
-	bool PAL = snes_get_region() != SNES_REGION_NTSC;
-	MDFNGameInfo->fps = PAL ? 838977920 : 1008307711;				//These lines taken from mednafen, plus that comment down there too
-	MDFNGameInfo->MasterClock = MDFN_MASTERCLOCK_FIXED(32040.40);	//MDFN_MASTERCLOCK_FIXED(21477272);	//PAL ? PAL_CPU : NTSC_CPU);
-	MDFNGameInfo->nominal_height = PAL ? 239 : 224;
-	MDFNGameInfo->lcm_height = MDFNGameInfo->nominal_height * 2;
-	
-	//Load save
-	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
-	uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
-	if(save_size && save_data)
-	{
-		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-		FILE* save_file = fopen(filename.c_str(), "rb");
-		if(save_file)
+		//Load game
+		if(type == 0 && !snes_load_cartridge_normal(0, fp->data, fp->size))
 		{
-			fseek(save_file, 0, SEEK_END);
-			if(ftell(save_file) == save_size)
+			MDFN_printf("libsnes: Failed to load game\n");
+			return 0;
+		}
+		else if(type == 1)
+		{
+			MDFNFILE sgbrom;
+			if(sgbrom.Open(MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("lsnes.sgbbios").c_str()).c_str(), 0))
 			{
-				fseek(save_file, 0, SEEK_SET);
-				if(save_size != fread(save_data, 1, save_size, save_file))
+				if(!snes_load_cartridge_super_game_boy(0, sgbrom.data, sgbrom.size, 0, fp->data, fp->size))
 				{
-					MDFN_PrintError("libsnes: Failed to read entire save game?\n");
+					MDFN_printf("libsnes: Could not load Super Game Boy Game\n");
+					return 0;
 				}
 			}
 			else
 			{
-				MDFN_PrintError("libsnes: Save file incorrect size, expected %u got %ld\n", save_size, ftell(save_file));
+				MDFN_printf("libsnes: Could not load Super Game Boy BIOS\n");
+				return 0;
 			}
-
-			fclose(save_file);
 		}
+
+		//Setup region
+		bool PAL = snes_get_region() != SNES_REGION_NTSC;
+		MDFNGameInfo->fps = PAL ? 838977920 : 1008307711;				//These lines taken from mednafen, plus that comment down there too
+		MDFNGameInfo->MasterClock = MDFN_MASTERCLOCK_FIXED(32040.40);	//MDFN_MASTERCLOCK_FIXED(21477272);	//PAL ? PAL_CPU : NTSC_CPU);
+		MDFNGameInfo->nominal_height = PAL ? 239 : 224;
+		MDFNGameInfo->lcm_height = MDFNGameInfo->nominal_height * 2;
+	
+		//Load save
+		unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
+		uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
+		if(save_size && save_data)
+		{
+			std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+			FILE* save_file = fopen(filename.c_str(), "rb");
+			if(save_file)
+			{
+				fseek(save_file, 0, SEEK_END);
+				if(ftell(save_file) == save_size)
+				{
+					fseek(save_file, 0, SEEK_SET);
+					if(save_size != fread(save_data, 1, save_size, save_file))
+					{
+						MDFN_PrintError("libsnes: Failed to read entire save game?\n");
+					}
+				}
+				else
+				{
+					MDFN_PrintError("libsnes: Save file incorrect size, expected %u got %ld\n", save_size, ftell(save_file));
+				}
+
+				fclose(save_file);
+			}
+		}
+
+		//Start emulator
+		snes_power();
+
+		return 1;
 	}
 
-	//Start emulator
-	snes_power();
-
-	return 1;
-}
-
-static bool			lsnesTestMagic			(const char *name, MDFNFILE *fp)
-{
-	return DetermineGameType(fp) >= 0;
-}
-
-static void			lsnesCloseGame			(void)
-{
-	//Write save
-	unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
-	uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
-	if(save_size && save_data)
+	static bool								ModuleTestMagic			(const char *name, MDFNFILE *fp)
 	{
-		std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
-		FILE* save_file = fopen(filename.c_str(), "wb");
-		if(save_file)
+		return DetermineGameType(fp) >= 0;
+	}
+
+	static void								ModuleCloseGame			()
+	{
+		//Write save
+		unsigned save_size = snes_get_memory_size(SNES_MEMORY_CARTRIDGE_RAM);
+		uint8_t* save_data = snes_get_memory_data(SNES_MEMORY_CARTRIDGE_RAM);
+		if(save_size && save_data)
 		{
-			fwrite(save_data, 1, save_size, save_file);
-			fclose(save_file);
+			std::string filename = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+			FILE* save_file = fopen(filename.c_str(), "wb");
+			if(save_file)
+			{
+				fwrite(save_data, 1, save_size, save_file);
+				fclose(save_file);
+			}
+			else
+			{
+				MDFN_PrintError("libsnes: Failed to open save file for writing. Game will not be saved.\n");
+			}
+		}
+
+		//Close libsnes
+		snes_unload_cartridge();
+		snes_term();
+
+		//Clean up
+		Resampler::Kill();
+	}
+
+	static int								ModuleStateAction			(StateMem *sm, int load, int data_only)
+	{
+		uint32_t size = snes_serialize_size();
+		uint8_t* buffer = (uint8_t*)malloc(size);
+		bool result;
+	
+		if(load)
+		{
+			smem_read(sm, buffer, size);
+			result = snes_unserialize(buffer, size);
 		}
 		else
 		{
-			MDFN_PrintError("libsnes: Failed to open save file for writing. Game will not be saved.\n");
-		}
-	}
+			result = snes_serialize(buffer, size);
 
-	//Close libsnes
-	snes_unload_cartridge();
-	snes_term();
-
-	//Clean up
-	Resampler::Kill();
-}
-
-static int			lsnesStateAction		(StateMem *sm, int load, int data_only)
-{
-	uint32_t size = snes_serialize_size();
-	uint8_t* buffer = (uint8_t*)malloc(size);
-	bool result;
-	
-	if(load)
-	{
-		smem_read(sm, buffer, size);
-		result = snes_unserialize(buffer, size);
-	}
-	else
-	{
-		result = snes_serialize(buffer, size);
-
-		if(result)
-		{
-			smem_write(sm, buffer, size);
-		}
-	}
-
-	free(buffer);
-	return result;
-}
-
-static void			lsnesEmulate			(EmulateSpecStruct *espec)
-{
-	ESpec = espec;
-
-	//AUDIO PREP
-	Resampler::Init(espec, 32000.0);	//TODO: Is 32000 the right number?
-
-	//EMULATE
-	snes_run();
-
-	//AUDIO
-	Resampler::Fetch(espec);
-
-	//TODO: Real timing
-	espec->MasterCycles = 1LL * 100;
-}
-
-static void			lsnesSetInput			(int port, const char *type, void *ptr)
-{
-	if(port >= 0 && port < 4)
-	{
-		//Search for the device
-		unsigned pluggeddevice = 0;
-		for(int i = 0; i != sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct); i ++)
-		{
-			if(strcmp(type, InputDeviceInfo[i].ShortName) == 0)
+			if(result)
 			{
-				pluggeddevice = i;
+				smem_write(sm, buffer, size);
 			}
 		}
 
-		//Plug it in
-		snes_set_controller_port_device(0, pluggeddevice);
-		Ports[port] = (uint8_t*)ptr;
+		free(buffer);
+		return result;
 	}
-}
 
-static void			lsnesDoSimpleCommand	(int cmd)
-{
-	if(cmd == MDFN_MSC_RESET)
+	static void								ModuleEmulate			(EmulateSpecStruct *espec)
 	{
-		snes_reset();
+		ESpec = espec;
+
+		//AUDIO PREP
+		Resampler::Init(espec, 32000.0);	//TODO: Is 32000 the right number?
+
+		//EMULATE
+		snes_run();
+
+		//AUDIO
+		Resampler::Fetch(espec);
+
+		//TODO: Real timing
+		espec->MasterCycles = 1LL * 100;
 	}
-	else if(cmd == MDFN_MSC_POWER)
+
+	static void								ModuleSetInput			(int port, const char *type, void *ptr)
 	{
-		snes_power();
+		if(port >= 0 && port < 4)
+		{
+			//Search for the device
+			unsigned pluggeddevice = 0;
+			for(int i = 0; i != sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct); i ++)
+			{
+				if(strcmp(type, InputDeviceInfo[i].ShortName) == 0)
+				{
+					pluggeddevice = i;
+				}
+			}
+
+			//Plug it in
+			snes_set_controller_port_device(0, pluggeddevice);
+			Ports[port] = (uint8_t*)ptr;
+		}
 	}
+
+	static void								ModuleDoSimpleCommand	(int cmd)
+	{
+		if(cmd == MDFN_MSC_RESET)
+		{
+			snes_reset();
+		}
+		else if(cmd == MDFN_MSC_POWER)
+		{
+			snes_power();
+		}
+	}
+
+	MDFNGI									ModuleInfo =
+	{
+	/*	shortname:			*/	"lsnes",
+	/*	fullname:			*/	"Super Nintendo Entertainment System (libsnes Wrapper)",
+	/*	FileExtensions:		*/	ModuleExtensions,
+	/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
+	/*	Debugger:			*/	0,
+	/*	InputInfo:			*/	&ModuleInput,
+
+	/*	Load:				*/	ModuleLoad,
+	/*	TestMagic:			*/	ModuleTestMagic,
+	/*	LoadCD:				*/	0,
+	/*	TestMagicCD:		*/	0,
+	/*	CloseGame:			*/	ModuleCloseGame,
+	/*	ToggleLayer:		*/	0,
+	/*	LayerNames:			*/	0,
+	/*	InstallReadPatch:	*/	0,
+	/*	RemoveReadPatches:	*/	0,
+	/*	MemRead:			*/	0,
+	/*	StateAction:		*/	ModuleStateAction,
+	/*	Emulate:			*/	ModuleEmulate,
+	/*	SetInput:			*/	ModuleSetInput,
+	/*	DoSimpleCommand:	*/	ModuleDoSimpleCommand,
+	/*	Settings:			*/	ModuleSettings,
+	/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
+	/*	fps:				*/	0,
+	/*	multires:			*/	false,
+	/*	lcm_width:			*/	512,
+	/*	lcm_height:			*/	480,
+	/*  dummy_separator:	*/	0,
+	/*	nominal_width:		*/	256,
+	/*	nominal_height:		*/	240,
+	/*	fb_width:			*/	512,
+	/*	fb_height:			*/	512,
+	/*	soundchan:			*/	2
+	};
 }
-
-//GAME INFO
-static MDFNGI				lsnesInfo =
-{
-/*	shortname:			*/	"lsnes",
-/*	fullname:			*/	"libsnes Wrapper",
-/*	FileExtensions:		*/	lsnesExtensions,
-/*	ModulePriority:		*/	MODPRIO_EXTERNAL_HIGH,
-/*	Debugger:			*/	0,
-/*	InputInfo:			*/	&lsnesInput,
-
-/*	Load:				*/	lsnesLoad,
-/*	TestMagic:			*/	lsnesTestMagic,
-/*	LoadCD:				*/	0,
-/*	TestMagicCD:		*/	0,
-/*	CloseGame:			*/	lsnesCloseGame,
-/*	ToggleLayer:		*/	0,
-/*	LayerNames:			*/	0,
-/*	InstallReadPatch:	*/	0,
-/*	RemoveReadPatches:	*/	0,
-/*	MemRead:			*/	0,
-/*	StateAction:		*/	lsnesStateAction,
-/*	Emulate:			*/	lsnesEmulate,
-/*	SetInput:			*/	lsnesSetInput,
-/*	DoSimpleCommand:	*/	lsnesDoSimpleCommand,
-/*	Settings:			*/	lsnesSettings,
-/*	MasterClock:		*/	MDFN_MASTERCLOCK_FIXED(6000),
-/*	fps:				*/	0,
-/*	multires:			*/	false,
-/*	lcm_width:			*/	512,
-/*	lcm_height:			*/	480,
-/*  dummy_separator:	*/	0,
-/*	nominal_width:		*/	256,
-/*	nominal_height:		*/	240,
-/*	fb_width:			*/	512,
-/*	fb_height:			*/	512,
-/*	soundchan:			*/	2
-};
-
 
 #ifdef MLDLL
 #define VERSION_FUNC GetVersion
@@ -369,6 +368,6 @@ extern "C" DLL_PUBLIC	uint32_t		VERSION_FUNC()
 	
 extern "C" DLL_PUBLIC	MDFNGI*			GETEMU_FUNC(uint32_t aIndex)
 {
-	return (aIndex == 0) ? &lsnesInfo : 0;
+	return (aIndex == 0) ? &MODULENAMESPACE::ModuleInfo : 0;
 }
 
