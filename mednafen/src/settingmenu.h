@@ -5,7 +5,7 @@ struct								SettingItem
 {
 	///Create a new SettingItem.
 	///@param aSetting Pointer to setting data. May not be NULL.
-									SettingItem							(const MDFNCS* aSetting) : Setting(aSetting){assert(aSetting);}
+									SettingItem							(const MDFNCS* aSetting, const std::string& aGroup) : Setting(aSetting), Group(aGroup) {assert(aSetting);}
 
 	///Return a string containing the settings name and value.
 	///@return The settings name and value, separated by a tab character.
@@ -14,6 +14,10 @@ struct								SettingItem
 	///Returns an empty string.
 	///@return An empty string.
 	std::string						GetImage							() {return "";}
+
+	///Return the group for GroupListView
+	///@return The group name.
+	std::string						GetGroup							() {return Group;}
 
 	///Retruns Colors::Normal.
 	///@return Colors::Normal.
@@ -24,6 +28,7 @@ struct								SettingItem
 	uint32_t						GetHighLightColor					() {return Colors::HighLight;}
 
 	const MDFNCS*					Setting;							///<A pointer to the managed setting.
+	std::string						Group;								///<The group name for GroupListView.
 };
 
 
@@ -37,7 +42,7 @@ class								SettingMenu
 	typedef AnchoredListView<CategoryListItem>					CategoryListType;
 	typedef smartptr::shared_ptr<CategoryListType>				CategoryListType_Ptr;
 
-	typedef AnchoredListView<SettingItem>						SettingListType;
+	typedef GroupListView<SettingItem>							SettingListType;
 	typedef smartptr::shared_ptr<SettingListType>				SettingListType_Ptr;
 
 	typedef AnchoredListView<SummerfaceItem>					EnumListType;
@@ -80,6 +85,11 @@ class								SettingMenu
 	private:
 		///Load and cache all of the settings from the mednafen core.
 		void						LoadSettings						();
+
+		///Translate a setting into a group name.
+		///@param aSyatem System name of the setting, or an empty string for a general setting.
+		///@return A group name.
+		std::string					TranslateGroup						(const MDFNCS& aSetting, const std::string& aSystem);
 
 		///Translate a sparse category name to a friendly one.
 		std::string					TranslateCategory					(const char* aCategory);
