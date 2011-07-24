@@ -4,7 +4,7 @@
 
 namespace
 {
-	int				FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+	int						FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
 	{
 		if(aButton == ES_BUTTON_AUXRIGHT3)
 		{
@@ -21,12 +21,10 @@ namespace
 		return 0;
 	}
 
-	FileSelect*					FileChooser = 0;
-	std::vector<std::string>	bookmarks;
-};
+	FileSelect*				FileChooser = 0;
+}
 
-
-void				Exit					()
+void						Exit					()
 {
 	MednafenEmu::Quit();
 
@@ -36,9 +34,9 @@ void				Exit					()
 	exit(0);
 }
 
-std::string			GetFile					()
+static std::string			GetFile					()
 {
-	bookmarks = Utility::StringToVector(MDFN_GetSettingS("es.bookmarks"), ';');
+	std::vector<std::string> bookmarks = Utility::StringToVector(MDFN_GetSettingS("es.bookmarks"), ';');
 
 	if(FileChooser == 0)
 	{
@@ -51,74 +49,94 @@ std::string			GetFile					()
 	return result;
 }
 
-void				ReloadEmulator			(const std::string& aFileName)
+void						ReloadEmulator			(const std::string& aFileName)
 {
 	std::string filename = aFileName.empty() ? GetFile() : aFileName;
 
-	if(filename.empty() && !MednafenEmu::IsGameLoaded())
-	{
-		Exit();
-	}
-	else if(filename.empty() && MednafenEmu::IsGameLoaded())
-	{
-		return;
-	}
-	else
+	if(!filename.empty())
 	{
 		//Load file as an archive
 		smartptr::shared_ptr<ArchiveList> archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
 		Summerface_Ptr sface = Summerface::Create("Archive", archive);
 
 		//If there are no items we are lost
-		ErrorCheck(archive->GetItemCount() != 0, "Loader: Could not read file [File: %s]", filename.c_str());
-
-		//If there is more than one file, run a list to get the specific file
-		if(archive->GetItemCount() > 1)
+		if(archive->IsValid())
 		{
-			sface->Do();
-
-			if(archive->WasCanceled())
+			//If there is more than one file, run a list to get the specific file
+			if(archive->GetItemCount() > 1)
 			{
-				//HACK: If we do this too much we will get a stack overflow, but oh well. Beats a goto anyway
+				sface->Do();
+
+				if(archive->WasCanceled())
+				{
+					//HACK: If we do this too much we will get a stack overflow, but oh well. Beats a goto anyway
+					ReloadEmulator("");
+					return;
+				}
+			}
+
+			//Get the size of the selected file
+			uint32_t size = archive->GetSelectedSize();
+
+			//We can only load files up to 64 megabytes, for CD's you should load cue files not BIN files
+			if(size && size <= 64 * 1024 * 1024)
+			{
+				void* data = malloc(size);
+				assert(data);
+
+				if(archive->GetSelectedData(size, data))
+				{
+					//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
+					if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
+					{
+						filename = filename.substr(0, filename.rfind('/') + 1);
+						filename += archive->GetSelectedFileName();
+					}
+					else
+					{
+						filename = archive->GetSelectedFileName();
+					}
+
+					//Load the game into mednafen
+					MednafenEmu::CloseGame();
+					if(!MednafenEmu::LoadGame(filename, data, size))
+					{
+						ReloadEmulator("");
+						return;
+					}
+				}
+				else
+				{
+					free(data);
+
+					ESSUB_Error("Could not read file. [Failed to extract]");
+					ReloadEmulator("");
+					return;
+				}
+			}
+			else if(size > 64 * 1024 * 1024)
+			{
+				ESSUB_Error("File is larger than 64MB, this is not supported. If this is a CD game you must load it through a cue file.");
+				ReloadEmulator("");
+				return;
+			}
+			else
+			{
+				ESSUB_Error("Could not read file. [File empty]");
 				ReloadEmulator("");
 				return;
 			}
 		}
-
-		//Get the size of the selected file
-		uint32_t size = archive->GetSelectedSize();
-
-		//We can only load files up to 64 megabytes, for CD's you should load cue files not BIN files
-		if(size < 64 * 1024 * 1024)
-		{
-			void* data = malloc(size);
-			ErrorCheck(data, "Loader: Failed to allocate memory for file [File: %s, Size: %d]", filename.c_str(), size);
-
-			archive->GetSelectedData(size, data);
-
-			//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
-			if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
-			{
-				filename = filename.substr(0, filename.rfind('/') + 1);
-				filename += archive->GetSelectedFileName();
-			}
-			else
-			{
-				filename = archive->GetSelectedFileName();
-			}
-
-			//Load the game into mednafen
-			MednafenEmu::CloseGame();
-			if(!MednafenEmu::LoadGame(filename, data, size))
-			{
-				ReloadEmulator("");
-			}
-		}
 		else
 		{
-			ESSUB_Error("File is larger than 64MB. Not supported, if this is a CD game you must load it through a cue file.");
+			ESSUB_Error("Could not read file. [File not accessible]");
 			ReloadEmulator("");
+			return;
 		}
+	}
+	else if(!MednafenEmu::IsGameLoaded())
+	{
+		Exit();
 	}
 }
 

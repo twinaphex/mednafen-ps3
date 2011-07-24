@@ -3,60 +3,70 @@
 
 											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : 
 	AnchoredListView(aRegion),
-	FileName(aFileName),
 	Archive(0)
 {
-	ErrorCheck(0 == fex_open(&Archive, FileName.c_str()), "ArchiveList::ArchiveList: Fex could not open archive [File: %s]", aFileName.c_str());
-
-	while(!fex_done(Archive))
+	//Open the archive
+	if(0 == fex_open(&Archive, aFileName.c_str()))
 	{
-		if(fex_name(Archive) != 0)
+		//Populate the list
+		while(!fex_done(Archive))
 		{
-			AddItem(smartptr::make_shared<SummerfaceItem>(fex_name(Archive), ""));
-		}
+			if(fex_name(Archive) != 0)
+			{
+				AddItem(smartptr::make_shared<SummerfaceItem>(fex_name(Archive), ""));
+			}
 		
-		fex_next(Archive);
-	}
+			fex_next(Archive);
+		}
 
-	Sort();
+		//Finish
+		Sort();
+	}
+	//Add a default item
+	else
+	{
+		Archive = 0;
+		AddItem(smartptr::make_shared<SummerfaceItem>("FAILED TO OPEN ARCHIVE", "ErrorIMAGE"));
+	}
 }
 
 											ArchiveList::~ArchiveList					()
 {
-	fex_close(Archive);
+	//Close any archives
+	if(Archive)
+	{
+		fex_close(Archive);
+	}
 }
 
 uint32_t									ArchiveList::GetSelectedSize				() const
 {
-	FindFexFile(GetSelected()->GetText());
-
-	fex_stat(Archive);
-	return fex_size(Archive);
-}
-
-void										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData) const
-{
-	FindFexFile(GetSelected()->GetText());
-
-	//TODO: Throw on error
-	fex_read(Archive, aData, aSize);
-}
-
-void										ArchiveList::FindFexFile					(const std::string& aFileName) const
-{
-	fex_rewind(Archive);
-
-	while(!fex_done(Archive))
+	if(Archive)
 	{
-		if(aFileName == fex_name(Archive))
+		FindFexFile(GetSelected()->GetText());
+
+		fex_stat(Archive);
+		return fex_size(Archive);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+bool										ArchiveList::GetSelectedData				(uint32_t aSize, void* aData) const
+{
+	if(Archive)
+	{
+		FindFexFile(GetSelected()->GetText());
+
+		if(0 == fex_read(Archive, aData, aSize))
 		{
-			return;
+			return true;
 		}
-		
-		fex_next(Archive);
 	}
 
-	ErrorCheck(0, "ArchiveList: Fex could not find file in archive [File: %s]", aFileName.c_str());
+	return false;
 }
 
 bool										ArchiveList::IsArchive						(const std::string& aFileName)
@@ -65,12 +75,31 @@ bool										ArchiveList::IsArchive						(const std::string& aFileName)
 	fex_identify_file(&out, aFileName.c_str());
 
 	const char* tname = fex_type_name(out);
-	
-	if(tname && strcmp(tname, "file") == 0)
+
+	if(!tname || (tname && strcmp(tname, "file")) == 0)
 	{
 		return false;
 	}
 
 	return true;
+}
+
+bool										ArchiveList::FindFexFile					(const std::string& aFileName) const
+{
+	assert(Archive);
+
+	fex_rewind(Archive);
+
+	while(!fex_done(Archive))
+	{
+		if(aFileName == fex_name(Archive))
+		{
+			return true;
+		}
+		
+		fex_next(Archive);
+	}
+
+	return false;
 }
 
