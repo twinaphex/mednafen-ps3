@@ -36,7 +36,6 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 	if(b->GetText().find("forcemono") != std::string::npos)												return true;
 
 	//Keep es system settings above others
-	if(a->GetText().find(".es.") != std::string::npos && b->GetText().find(".es.") != std::string::npos)	return a->GetText() < b->GetText();
 	if(a->GetText().find(".es.") != std::string::npos)													return false;
 	if(b->GetText().find(".es.") != std::string::npos)													return true;
 

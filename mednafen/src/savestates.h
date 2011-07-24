@@ -14,7 +14,7 @@ class					StateLabel : public SummerfaceLabel
 		///@param aSlot Index of the slot. If is an error if it is not between 1 and 9 inclusive.
 		void			SetSlot					(uint32_t aSlot);
 
-		///Overrid of SummerfaceWindow::Input.
+		///Override of SummerfaceWindow::Input.
 		///@param aButton System button that was pressed.
 		///@return True to stop processing of the interface.
 		bool			Input					(uint32_t aButton);
