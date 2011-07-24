@@ -20,8 +20,6 @@ void						Colors::LoadColors					()
 	SpecialNormal = GetInty(ini.GetValue("uicolors", "SpecialNormal", "206020FF"));
 	SpecialHighLight = GetInty(ini.GetValue("uicolors", "SpecialHighLight", "20A020FF"));
 
-	printf("%X\n", BackGround);
-
 /*
 	BackGround				= 0xD0D0D0C0;
 	Border					= 0x604040FF;
