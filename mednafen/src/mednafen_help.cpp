@@ -168,6 +168,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		if(!GameInfo)
 		{
 			Summerface::Create("Log", es_log)->Do();
+			free(aData);
 			return false;
 		}
 
