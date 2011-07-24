@@ -4,6 +4,21 @@
 
 static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smartptr::shared_ptr<SettingItem> b)
 {
+	//
+	if(a->GetGroup() != b->GetGroup())
+	{
+		if(a->GetGroup() == "MODULE")												return true;
+		if(b->GetGroup() == "MODULE")												return false;
+
+		if(a->GetGroup() == "SYSTEM")												return true;
+		if(b->GetGroup() == "SYSTEM")												return false;
+
+		if(a->GetGroup() == "DISPLAY")												return true;
+		if(b->GetGroup() == "DISPLAY")												return false;
+
+		return a->GetGroup() < b->GetGroup();
+	}
+
 	//Keep enable at the top
 	if(a->GetText().find(".enable") != std::string::npos)												return true;
 	if(b->GetText().find(".enable") != std::string::npos)												return false;
@@ -68,7 +83,7 @@ void							SettingMenu::Do									()
 			const std::vector<const MDFNCS*>& items = Settings[CategoryList->GetSelected()->UserData];
 			for(int i = 0; i != items.size(); i ++)
 			{
-				List->AddItem(smartptr::make_shared<SettingItem>(items[i]));
+				List->AddItem(smartptr::make_shared<SettingItem>(items[i], TranslateGroup(*items[i], CategoryList->GetSelected()->UserData)));
 			}
 
 			//Sort the setting list
@@ -315,6 +330,30 @@ void							SettingMenu::LoadSettings						()
 
 		//Add the setting into the local cache
 		Settings[header].push_back(&iter->second);
+	}
+}
+
+std::string						SettingMenu::TranslateGroup						(const MDFNCS& aSetting, const std::string& aSystem)
+{
+	std::string settingName = aSetting.name;
+
+	if(!aSystem.empty())
+	{
+		if(settingName.find(".tblur") != std::string::npos)				return "TBLUR";
+		if(settingName.find(".undertune") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".underscanadjust") != std::string::npos)	return "DISPLAY";
+		if(settingName.find(".display") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".aspect") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".shader") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".enable") != std::string::npos)			return "MODULE";
+		if(settingName.find(".rewind") != std::string::npos)			return "MODULE";
+		if(settingName.find(".forcemono") != std::string::npos)			return "MODULE";
+		if(settingName.find(".autosave") != std::string::npos)			return "MODULE";
+		return "SYSTEM";
+	}
+	else
+	{
+		return "";
 	}
 }
 
