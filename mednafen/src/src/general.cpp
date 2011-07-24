@@ -363,7 +363,7 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 			eff_dir = std::string(BaseDirectory) + std::string(PSS) + overpath;
 
 
-                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s.mov", eff_dir.c_str(), FileBase.c_str());
+                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s-%lld.mov", eff_dir.c_str(), FileBase.c_str(), (long long int)time(0));
 
 			break;
 			}
@@ -376,7 +376,7 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 			eff_dir = std::string(BaseDirectory) + std::string(PSS) + overpath;
 
 
-                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s.wav", eff_dir.c_str(), FileBase.c_str());
+                       trio_snprintf(tmp_path, 4096, "%s"PSS"%s-%lld.wav", eff_dir.c_str(), FileBase.c_str(), (long long int)time(0));
 			break;
 			 }
  }
