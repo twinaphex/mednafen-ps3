@@ -389,16 +389,16 @@ void			NestDoSimpleCommand		(int cmd)
 		{
 			if(!NES_FAILED(Fds(Nestopia).ChangeSide()))
 			{
-				MDFND_DispMessage((UTF8*)"Disk Side Changed");
+				MDFND_DispMessage((UTF8*)strdup("Disk Side Changed"));
 			}
 			else
 			{
-				MDFND_DispMessage((UTF8*)"Error changing disk side");
+				MDFND_DispMessage((UTF8*)strdup("Error changing disk side"));
 			}
 		}
 		else
 		{
-			MDFND_DispMessage((UTF8*)"Cannot change disk sides");
+			MDFND_DispMessage((UTF8*)strdup("Cannot change disk sides"));
 		}
 	}
 }
