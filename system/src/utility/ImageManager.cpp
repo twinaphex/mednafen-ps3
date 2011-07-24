@@ -3,79 +3,153 @@
 #ifndef ES_HAVE_LOADPNG
 #include <png.h>
 
+class										PingPNG
+{
+	public:
+											PingPNG												(const std::string& aPath) :
+			File(0),
+			PngPtr(0),
+			InfoPtr(0),
+			RowPointers(0),
+			Width(0),
+			Height(0),
+			Valid(false)
+		{
+			File = fopen(aPath.c_str(), "rb");
+
+			if(File)
+			{
+				fread(Header, 1, 8, File);
+				if(!png_sig_cmp(Header, 0, 8))
+				{
+					PngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+					if(PngPtr)
+					{
+						InfoPtr = png_create_info_struct(PngPtr);
+						if(InfoPtr)
+						{
+							if(setjmp(png_jmpbuf(PngPtr)))
+							{
+								es_log->Log("PNG Reader: Error during init_io. [File: %s]", aPath.c_str());
+								return;
+							}
+
+							png_init_io(PngPtr, File);
+							png_set_sig_bytes(PngPtr, 8);
+
+	
+							if(setjmp(png_jmpbuf(PngPtr)))
+							{
+								es_log->Log("PNG Reader: Error during read_png. [File: %s]", aPath.c_str());
+								return;
+							}
+							png_read_png(PngPtr, InfoPtr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
+
+							RowPointers = png_get_rows(PngPtr, InfoPtr);
+							if(!RowPointers)
+							{
+								es_log->Log("PNG Reader: Failed to get pixels. [File: %s]", aPath.c_str());
+								return;
+							}
+
+							Width = png_get_image_width(PngPtr, InfoPtr);
+							Height = png_get_image_height(PngPtr, InfoPtr);
+							Valid = true;
+							return;
+						}
+						else
+						{
+							es_log->Log("PNG Reader: png_create_info_struct failed. [File: %s]", aPath.c_str());
+							return;
+						}
+					}
+					else
+					{
+						es_log->Log("PNG Reader: png_create_read_struct failed. [File: %s]", aPath.c_str());
+						return;
+					}
+				}
+				else
+				{
+					es_log->Log("PNG Reader: File not recognized as a PNG file. [File: %s]", aPath.c_str());
+					return;
+				}
+			}
+			else
+			{
+				es_log->Log("PNG Reader: File could not be opened for reading. [File: %s]", aPath.c_str());
+				return;
+			}
+		}
+
+											~PingPNG											()
+		{
+			if(File)
+			{
+				fclose(File);
+			}
+
+			if(InfoPtr)
+			{
+				png_destroy_info_struct(PngPtr, &InfoPtr);
+			}
+
+			if(PngPtr)
+			{
+				png_destroy_read_struct(&PngPtr, 0, 0);
+			}
+		}
+
+		Texture*							GetTexture											()
+		{
+			Texture* output = 0;
+			if(Valid)
+			{
+				output = ESVideo::CreateTexture(Width, Height, true);
+				output->Clear(0);
+
+				uint32_t copyWidth = std::min(Width, output->GetWidth());
+				uint32_t copyHeight = std::min(Height, output->GetHeight());
+				uint32_t* texPixels = output->Map();
+
+				for(int i = 0; i != copyHeight; i ++)
+				{
+					uint32_t* dest = texPixels + (output->GetPitch() * i);
+					uint8_t* source = RowPointers[i];
+
+					for(int j = 0; j != copyWidth; j ++)
+					{
+						uint32_t a = (InfoPtr->color_type == PNG_COLOR_TYPE_RGB_ALPHA) ? *source++ : 0xFF;
+						uint32_t r = *source ++;
+						uint32_t g = *source ++;
+						uint32_t b = *source ++;
+						*dest++ = output->ConvertPixel(r, g, b, a);
+					}
+				}
+
+				output->Unmap();
+			}
+
+			return output;
+		}
+
+	private:
+		FILE*								File;
+		uint8_t								Header[8];
+		png_structp							PngPtr;
+		png_infop							InfoPtr;
+		png_bytep*							RowPointers;
+		uint32_t							Width;
+		uint32_t							Height;
+		bool								Valid;
+};
+
 void										ESSUB_LoadPNG										(const std::string& aPath, Texture** aTexture)
 {
-	png_structp png_ptr;
-	png_infop info_ptr;
-	png_bytep* row_pointers;
-	uint32_t Width;
-	uint32_t Height;
+	assert(aTexture);
 
-	//Load
-	uint8_t header[8];
-		
-	FILE *fp = fopen(aPath.c_str(), "rb");
-	ErrorCheck(fp, "PNG Reader: File could not be opened for reading. [File: %s]", aPath.c_str());
-
-	fread(header, 1, 8, fp);
-	ErrorCheck(!png_sig_cmp(header, 0, 8), "PNG Reader: File not recognized as a PNG file. [File: %s]", aPath.c_str());
-
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	ErrorCheck(png_ptr, "PNG Reader: png_create_read_struct failed. [File: %s]", aPath.c_str());
-	
-	info_ptr = png_create_info_struct(png_ptr);
-	ErrorCheck(info_ptr, "PNG Reader: png_create_info_struct failed. [File: %s]", aPath.c_str());
-	
-	if(setjmp(png_jmpbuf(png_ptr)))
-	{
-		ErrorCheck(0, "PNG Reader: Error during init_io. [File: %s]", aPath.c_str());
-	}
-	
-	png_init_io(png_ptr, fp);
-	png_set_sig_bytes(png_ptr, 8);
-
-	if(setjmp(png_jmpbuf(png_ptr)))
-	{
-		ErrorCheck(0, "PNG Reader: Error during read_png. [File: %s]", aPath.c_str());
-	}
-	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
-	
-	fclose(fp);
-
-	row_pointers = png_get_rows(png_ptr, info_ptr);
-	Width = png_get_image_width(png_ptr, info_ptr);
-	Height = png_get_image_height(png_ptr, info_ptr);
-
-	//Copy to texture
-	Texture* output = ESVideo::CreateTexture(Width, Height, true);
-	output->Clear(0);
-
-	uint32_t copyWidth = std::min(Width, output->GetWidth());
-	uint32_t copyHeight = std::min(Height, output->GetHeight());
-
-	uint32_t* texPixels = output->Map();
-
-	for(int i = 0; i != copyHeight; i ++)
-	{
-		uint32_t* dest = texPixels + (output->GetPitch() * i);
-		uint8_t* source = row_pointers[i];
-
-		for(int j = 0; j != copyWidth; j ++)
-		{
-			uint32_t a = (info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA) ? *source++ : 0xFF;
-			uint32_t r = *source ++;
-			uint32_t g = *source ++;
-			uint32_t b = *source ++;
-			*dest++ = output->ConvertPixel(r, g, b, a);
-		}
-	}
-
-	output->Unmap();
-	*aTexture = output;
-
-	//Close
-	png_destroy_info_struct(png_ptr, &info_ptr);
-	png_destroy_read_struct(&png_ptr, 0, 0);
+	PingPNG p(aPath);
+	*aTexture = p.GetTexture();
 }
 #endif
 
@@ -107,9 +181,12 @@ Texture*									ImageManager::LoadImage								(const std::string& aName, const
 		Texture* output;
 
 		ESSUB_LoadPNG(aPath, &output);
-		output->SetFilter(true);
-		
-		Images[aName] = output;
+
+		if(output)
+		{
+			output->SetFilter(true);
+			Images[aName] = output;
+		}
 	}
 	
 	return Images[aName];

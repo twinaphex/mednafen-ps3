@@ -225,7 +225,7 @@ template <typename T>
 	RefreshHeader(true),
 	DrawLabels(aLabels)
 {
-	ErrorCheck(Width != 0 && Height != 0 && Width <= 16 && Height <= 16, "GridListView::GridListView: Grid dimensions out of range. [X: %d, Y: %d]", Width, Height);
+	assert(Width != 0 && Height != 0 && Width <= 16 && Height <= 16);
 }
 
 template <typename T>

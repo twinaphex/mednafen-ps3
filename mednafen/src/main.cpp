@@ -178,14 +178,12 @@ int					main					(int argc, char* argv[])
 		Exit();
 		abort();
 	}
-#ifdef USE_ERRORCHECK
 	catch(ESException& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
 		Exit();
 		abort();
 	}
-#endif
 	catch(std::exception& s)
 	{
 		printf("EXCEPTION: %s\n\n", s.what());
