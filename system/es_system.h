@@ -5,7 +5,6 @@
 #include "src/ESException.h"
 inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 {
-#ifdef USE_ERRORCHECK
 	if(!aCondition)
 	{
 		char buffer[2048];
@@ -17,10 +16,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 
 		throw ESException(buffer);
 	}
-#endif
 }
-
-#define ESShared(a) smartptr::shared_ptr<a >
 
 #include "src/ESThreads.h"
 #include "src/ESTexture.h"

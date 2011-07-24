@@ -11,15 +11,12 @@ void							MDFND_NetStart				()
 {
 	MDFND_NetworkClose();
 
-#ifdef USE_ERRORCHECK
 	try
-#endif
 	{
 		slocket = ESNetwork::OpenSocket(MDFN_GetSettingS("net.es.host").c_str(), MDFN_GetSettingUI("net.es.port"));
 		MDFNI_NetplayStart(1, 1, MDFN_GetSettingS("net.es.username"), MDFN_GetSettingS("net.es.gameid"), MDFN_GetSettingS("net.es.password"));
 		NetplayOn = true;
 	}
-#ifdef USE_ERRORCHECK
 	catch(ESException& except)
 	{
 		char buffer[2048];
@@ -27,7 +24,6 @@ void							MDFND_NetStart				()
 		ESSUB_Error(buffer);
 		return;
 	}
-#endif
 }
 
 

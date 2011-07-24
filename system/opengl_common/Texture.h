@@ -62,7 +62,7 @@ class								Texture
 	Filter(false),
 	Valid(false)
 {
-	ErrorCheck(Width != 0 && Height != 0 && Width <= 2048 && Height <= 2048, "Texture::Texture: Texture size is invalid, only sizes up to 2048x2048 are supported, and dimensions may not be zero. [Width: %d, Height: %d]", Width, Height);
+	//TODO: Add a sanity check
 
 	glGenTextures(1, &ID);
 	glGenBuffers(1, &BufferID);
