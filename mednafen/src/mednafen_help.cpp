@@ -6,6 +6,8 @@
 #include "inputhandler.h"
 #include "mednafen_help.h"
 #include "settingmenu.h"
+#include "textviewer.h"
+
 
 namespace
 {
@@ -242,6 +244,7 @@ void						MednafenEmu::CloseGame			()
 		Inputs.reset();
 		Buffer.reset();
 		Surface.reset();
+		TextFile.reset();
 
 		IsLoaded = false;
 	}
@@ -452,16 +455,12 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 
 	if(0 == strcmp(command.c_str(), "DoTextFile"))
 	{
-		std::vector<std::string> nbm;
-		FileSelect FileChooser("Select Text File", nbm, "");
-		std::string filename = FileChooser.GetFile();
-
-		if(!filename.empty())
+		if(!TextFile)
 		{
-			smartptr::shared_ptr<TextViewer> tv = smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), filename);
-			tv->SetHeader(filename);
-			Summerface::Create("TextView", tv)->Do();
+			TextFile = smartptr::make_shared<TextFileViewer>();
 		}
+
+		TextFile->Display();
 	}
 
 	if(0 == strcmp(command.c_str(), "DoToggleRecordVideo"))
@@ -606,6 +605,8 @@ int16_t						MednafenEmu::Samples[48000];
 int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
+
+TextFileViewer_Ptr			MednafenEmu::TextFile;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;

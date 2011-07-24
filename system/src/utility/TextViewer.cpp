@@ -2,6 +2,19 @@
 
 						TextViewer::TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile) : SummerfaceWindow(aRegion)
 {
+	Reload(aFileName, aFile);
+}
+						
+								
+						TextViewer::~TextViewer					()
+{
+						
+}
+		
+void					TextViewer::Reload						(const std::string& aFileName, bool aFile)
+{
+	Lines.clear();
+
 	std::istream* stream;
 
 	if(aFile)
@@ -27,13 +40,7 @@
 
 	delete stream;
 }
-						
-								
-						TextViewer::~TextViewer					()
-{
-						
-}
-		
+
 bool					TextViewer::Draw						()
 {
 	uint32_t lineheight = FontManager::GetFixedFont()->GetHeight();

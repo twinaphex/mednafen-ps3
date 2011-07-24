@@ -5,6 +5,7 @@ DEFINE_PTR_TYPE(MDFN_Surface);
 DEFINE_PTR_TYPE(Texture);
 DEFINE_PTR_TYPE(InputHandler);
 DEFINE_PTR_TYPE(Filter);
+DEFINE_PTR_TYPE(TextFileViewer);
 
 class	MednafenEmu
 {
@@ -100,6 +101,9 @@ class	MednafenEmu
 		static int16_t					SamplesUp[48000];	///<A buffer used to convert mono audio data to stereo.
 		static bool						SkipNext;			///<Set to true to skip the next frame. Set if the amount of buffered audio gets too low.
 		static uint32_t					SkipCount;			///<Number of consecutively skipped frames. Used to prevent too many skipped frames from occurring at once.
+
+		//Text viewer
+		static TextFileViewer_Ptr		TextFile;			///<The opened text file.
 
 		//Setting cache
 		static bool						RewindSetting;		///<Determine if the State rewinder should be actively recording frames.

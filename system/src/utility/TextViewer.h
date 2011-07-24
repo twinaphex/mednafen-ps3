@@ -7,6 +7,8 @@ class							TextViewer : public SummerfaceWindow
 								TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile = true);
 		virtual					~TextViewer					();
 		
+		void					Reload						(const std::string& aFileName, bool aFile = true);
+
 		virtual bool			Draw						();
 		virtual bool			Input						(uint32_t aButton);
 		
