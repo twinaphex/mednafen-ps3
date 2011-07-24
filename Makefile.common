@@ -3,11 +3,19 @@
 	@echo "[LD]  $(notdir $@)"
 	@$(LD) -shared -Wl,-soname,$(TARGET).so.1 -o $@ $^
 
+%.dll:
+	@echo "[LD]  $(notdir $@)"
+	@$(LD) -shared -o $@ $^
+
 %.a:
 	@echo "[AR]  $(notdir $@)"
 	@$(AR) -rcs $(TARGET).a $^
 
 %.elf:
+	@echo "[LD]  $(notdir $@)"
+	@$(LD) $^ $(LDFLAGS) $(LIBS) -o $@
+
+%.exe:
 	@echo "[LD]  $(notdir $@)"
 	@$(LD) $^ $(LDFLAGS) $(LIBS) -o $@
 
@@ -40,10 +48,20 @@ else
 endif
 
 #Determine output file type
-OUTTYPE				:=	elf
+ifeq ($(strip $(TARGETPLATFORM)),windows)
+ OUTTYPE				:=	exe
+else
+ #Probably shouldn't use the elf extension, but oh well
+ OUTTYPE				:=	elf
+endif
+
 ifeq ($(strip $(TYPE)),lib)
  ifeq ($(strip $(PLATFORM)),dll)
-  OUTTYPE				:=	so
+  ifeq ($(strip $(TARGETPLATFORM)),windows)
+   OUTTYPE				:=	dll
+  else
+   OUTTYPE				:=	so
+  endif
  else
   OUTTYPE				:=	a
  endif
@@ -56,7 +74,7 @@ $(TARGET).$(OUTTYPE): $(OFILES)
 
 clean:
 	@echo Clean...
-	@rm -rf $(TARGET).$(OUTTYPE) $(OFILES)
+	@rm -rf $(TARGET).$(OUTTYPE) $(OFILES) $(OFILES:.o=.d)
 
 pch:
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pch.h -o pch.h.gch
