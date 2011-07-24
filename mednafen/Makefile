@@ -17,6 +17,9 @@ INCLUDE				:=	. src ../system src/src/hw_misc src/src/hw_video src/include src/s
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella
 LIBS				:=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella
 
+#LIBDIRS			+=	../lsnes ../yabause
+#LIBS				+=	-llsnes -lsnes -lyabause
+
 ##Build info
 TARGET				:=	mednafen
 TYPE				:=	bin

@@ -110,6 +110,11 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(vbamGetEmulator(1));
 		externalSystems.push_back(pcsxGetEmulator(0));
 		externalSystems.push_back(stellaGetEmulator(0));
+
+#ifdef TEST_MODULES
+		externalSystems.push_back(lsnesGetEmulator(0));
+		externalSystems.push_back(yabauseGetEmulator(0));
+#endif
 		MDFNI_InitializeModules(externalSystems);
 
 		//Put settings for the user interface
@@ -145,8 +150,6 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		{
 			CloseGame();
 		}
-
-		MDFNDES_BlockExit(false);
 
 		//Load the game
 		//TODO: Support other casing of '.cue'
@@ -198,7 +201,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		}
 
 		//Display emulator name	
-		MDFND_DispMessage((UTF8*)GameInfo->fullname);
+		DisplayMessage(GameInfo->fullname);
 
 		//Free the ROM
 		free(aData);
@@ -222,9 +225,6 @@ void						MednafenEmu::CloseGame			()
 		{
 			MDFNI_StopWAVRecord();
 		}
-
-		//You know, I don't even remember what this is supposed to do...
-		MDFNDES_BlockExit(true);
 
 		//Save any anto states
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
@@ -468,13 +468,13 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(RecordingWave)
 		{
-			MDFND_DispMessage((UTF8*)"Can't record video and audio simultaneously.");		
+			DisplayMessage("Can't record video and audio simultaneously.");		
 		}
 		else
 		{
 			if(RecordingVideo)
 			{
-				MDFND_DispMessage((UTF8*)"Finished recording video.");
+				DisplayMessage("Finished recording video.");
 				MDFNI_StopAVRecord();
 				RecordingVideo = false;
 			}
@@ -482,12 +482,12 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 			{
 				if(MDFNI_StartAVRecord(MDFN_MakeFName(MDFNMKF_VIDEO, 0, 0).c_str(), 48000))
 				{
-					MDFND_DispMessage((UTF8*)"Begin recording video.");
+					DisplayMessage("Begin recording video.");
 					RecordingVideo = true;
 				}
 				else
 				{
-					MDFND_DispMessage((UTF8*)"Failed to begin recording video.");
+					DisplayMessage("Failed to begin recording video.");
 				}
 			}
 		}
@@ -497,13 +497,13 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(RecordingVideo)
 		{
-			MDFND_DispMessage((UTF8*)"Can't record video and audio simultaneously.");
+			DisplayMessage("Can't record video and audio simultaneously.");
 		}
 		else
 		{
 			if(RecordingWave)
 			{
-				MDFND_DispMessage((UTF8*)"Finished recording audio.");
+				DisplayMessage("Finished recording audio.");
 				MDFNI_StopWAVRecord();
 				RecordingWave = false;
 			}
@@ -511,12 +511,12 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 			{
 				if(MDFNI_StartWAVRecord(MDFN_MakeFName(MDFNMKF_AUDIO, 0, 0).c_str(), 48000))
 				{
-					MDFND_DispMessage((UTF8*)"Begin recording audio.");
+					DisplayMessage("Begin recording audio.");
 					RecordingWave = true;
 				}
 				else
 				{
-					MDFND_DispMessage((UTF8*)"Failed to begin recording audio.");
+					DisplayMessage("Failed to begin recording audio.");
 				}
 			}
 		}
