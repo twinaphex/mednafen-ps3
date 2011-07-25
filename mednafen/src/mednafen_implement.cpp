@@ -2,7 +2,10 @@
 #include "mednafen_help.h"
 
 //How to implement these?
-void							MDFND_MidSync				(const EmulateSpecStruct *espec)	{}
+void							MDFND_MidSync				(const EmulateSpecStruct *espec)
+{
+	MednafenEmu::Sync(espec, true);
+}
 
 //Netplay, some other time
 bool							NetplayOn = false;
