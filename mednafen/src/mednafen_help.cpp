@@ -322,24 +322,40 @@ bool						MednafenEmu::Frame				()
 		}
 
 		//AUDIO
-		uint32_t* realsamps = (uint32_t*)Samples;
-
-		if(GameInfo->soundchan == 1)
-		{
-			for(int i = 0; i != EmulatorSpec.SoundBufSize; i ++)
-			{
-				SamplesUp[i * 2] = Samples[i];
-				SamplesUp[i * 2 + 1] = Samples[i];
-			}
-
-			realsamps = (uint32_t*)SamplesUp;
-		}
-
+		//TODO: I'm trying to remember where I got this from... I figured from mednafen proper but can't find it in the source.......................
 		SkipNext = ESAudio::GetBufferAmount() < EmulatorSpec.SoundBufSize * (2 * Counter.GetSpeed());
-		ESAudio::AddSamples(realsamps, EmulatorSpec.SoundBufSize);
+		Sync(&EmulatorSpec, false);
 	}
 
 	return !EmulatorSpec.skip;
+}
+
+void						MednafenEmu::Sync				(const EmulateSpecStruct* aSpec, bool aInputs)
+{
+	//Timer
+	Syncher.AddEmuTime((aSpec->MasterCycles - aSpec->MasterCyclesALMS) / (NetplayOn ? 1 : Counter.GetSpeed()));
+
+	//Audio
+	uint32_t* realsamps = (uint32_t*)(aSpec->SoundBuf + (aSpec->SoundBufSizeALMS * GameInfo->soundchan));
+
+	if(GameInfo->soundchan == 1)
+	{
+		for(int i = 0; i != aSpec->SoundBufSize - aSpec->SoundBufSizeALMS; i ++)
+		{
+			SamplesUp[i * 2] = Samples[i];
+			SamplesUp[i * 2 + 1] = Samples[i];
+		}
+
+		realsamps = (uint32_t*)SamplesUp;
+	}
+
+	ESAudio::AddSamples(realsamps, aSpec->SoundBufSize - aSpec->SoundBufSizeALMS);
+
+	//Input if needed
+	if(aInputs)
+	{
+		Inputs->Process();
+	}
 }
 
 void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHeight, uint32_t aPitch)

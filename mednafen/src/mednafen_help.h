@@ -35,6 +35,8 @@ class	MednafenEmu
 		///@return True if the screen needs to be updated. False if the emulator skipped drawing the frame.
 		static bool						Frame				();
 
+		static void						Sync				(const EmulateSpecStruct* aSpec, bool aInputs);
+
 		///Present an image to the screen. By default this will use the internal structures from the emulator,
 		///but specific data can be provided (used by the SaveState menu to show previews). It is an error to
 		///call this function before a game is loaded.
