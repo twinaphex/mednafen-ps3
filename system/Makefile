@@ -9,7 +9,7 @@ SOURCE		+=	src/thirdparty/fex/fex src/thirdparty/fex/7z_C src/thirdparty/utf8_de
 
 CXXFILES	:=	src/thirdparty/soundtouch/source/SoundTouch/AAFilter.cpp src/thirdparty/soundtouch/source/SoundTouch/BPMDetect.cpp src/thirdparty/soundtouch/source/SoundTouch/PeakFinder.cpp \
 				src/thirdparty/soundtouch/source/SoundTouch/RateTransposer.cpp src/thirdparty/soundtouch/source/SoundTouch/SoundTouch.cpp src/thirdparty/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
-				src/thirdparty/soundtouch/source/SoundTouch/FIRFilter.cpp src/thirdparty/soundtouch/source/SoundTouch/TDStretch.cpp
+				src/thirdparty/soundtouch/source/SoundTouch/FIRFilter.cpp src/thirdparty/soundtouch/source/SoundTouch/TDStretch.cpp src/thirdparty/soundtouch/source/SoundTouch/cpu_detect_x86_gcc.cpp
 
 
 INCLUDE		:=	. src src/thirdparty/fex src/thirdparty/soundtouch/include
