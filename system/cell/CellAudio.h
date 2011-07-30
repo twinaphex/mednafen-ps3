@@ -13,6 +13,7 @@ class								ESAudio
 
 		static volatile int32_t		GetBufferFree			() {return RingBuffer.GetBufferFree();};
 		static volatile int32_t		GetBufferAmount			() {return RingBuffer.GetBufferAmount();};
+		static void					SetSpeed				(uint32_t aSpeed) {RingBuffer.SetSpeed(aSpeed);}
 
 	protected:
 		static int					ProcessAudioThread		(void* aAudio);

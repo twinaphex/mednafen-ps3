@@ -6,7 +6,7 @@ template<int Length=8192>
 class						AudioBuffer
 {
 	public:
-							AudioBuffer						() : RingBuffer(0), ReadCount(0), WriteCount(0)
+							AudioBuffer						() : RingBuffer(0), ReadCount(0), WriteCount(0), InputSpeed(1)
 		{
 			RingBuffer = (uint32_t*)malloc(Length * 4);
 		}
@@ -16,6 +16,12 @@ class						AudioBuffer
 			free(RingBuffer);
 		}
 
+		void				SetSpeed						(uint32_t aSpeed)
+		{
+			assert(aSpeed && aSpeed <= 16);
+			InputSpeed = aSpeed;
+		}
+
 		uint32_t			WriteData						(const uint32_t* aData, uint32_t aLength)
 		{
 			int i;
@@ -23,7 +29,7 @@ class						AudioBuffer
 			uint32_t free = GetBufferFree();
 			aLength = (aLength > free) ? free : aLength;
 
-			for(i = 0; i != aLength; i ++, WriteCount ++)
+			for(i = 0; i < aLength; i += InputSpeed, WriteCount ++)
 			{
 				RingBuffer[WriteCount % Length] = aData[i];
 			}
@@ -71,5 +77,7 @@ class						AudioBuffer
 
 		uint32_t			ReadCount;
 		uint32_t			WriteCount;
+
+		uint32_t			InputSpeed;
 };
 
