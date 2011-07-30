@@ -145,7 +145,7 @@ int					main					(int argc, char* argv[])
 	try
 	{
 		//Init the system and the emulator
-		InitES(Exit);
+		InitES(Exit, argc, argv);
 
 		MednafenEmu::Init();
 
@@ -153,7 +153,7 @@ int					main					(int argc, char* argv[])
 		Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
 
 		//Run the menu
-		ReloadEmulator((argc > 1) ? argv[1] : "");
+		ReloadEmulator((argc > 1 && argv[1][0] != '-') ? argv[1] : "");
 
 		//Loop
 		while(!WantToDie())

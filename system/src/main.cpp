@@ -7,6 +7,8 @@ PathBuild*			es_paths = 0;
 namespace
 {
 	volatile bool	want_to_die = false;
+	int				es_argc;
+	char**			es_argv;
 	void			(*ExitFunction)() = 0;
 };
 
@@ -85,9 +87,11 @@ void				Abort					(const char* aMessage)
 	abort();
 }
 
-void				InitES					(void (*aExitFunction)())
+void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 {
 	ExitFunction = aExitFunction;
+	es_argc = argc;
+	es_argv = argv;
 
 	ESSUB_Init();
 
@@ -122,6 +126,22 @@ void				QuitES					()
 	delete es_paths;
 
 	ESSUB_Quit();
+}
+
+bool				ESHasArgument			(const std::string& aName)
+{
+	if(es_argc && es_argv)
+	{
+		for(int i = 0; i != es_argc; i ++)
+		{
+			if(aName == es_argv[i])
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 volatile bool		WantToDie				()
