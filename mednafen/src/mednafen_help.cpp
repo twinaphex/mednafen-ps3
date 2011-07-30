@@ -282,7 +282,7 @@ bool						MednafenEmu::Frame				()
 	EmulatorSpec.SoundBufMaxSize = 24000;
 	EmulatorSpec.SoundVolume = 1;
 	EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
-	EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < 4));
+	EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < (FastSpeed + 1)));
 	MDFNI_Emulate(&EmulatorSpec);
 
 	Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
