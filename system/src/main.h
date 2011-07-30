@@ -13,8 +13,9 @@ typedef smartptr::shared_ptr<Logger> Logger_Ptr;
 extern Logger_Ptr es_log;
 
 //Happy functions
-void					InitES					(void (*aExitFunction)() = 0);
+void					InitES					(void (*aExitFunction)() = 0, int argc = 0, char** argv = 0);
 void					QuitES					();
+bool					ESHasArgument			(const std::string& aName);
 volatile bool			WantToDie				();
 volatile bool			WantToSleep				();
 void					Abort					(const char* aMessage);
