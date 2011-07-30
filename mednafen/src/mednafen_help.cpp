@@ -80,7 +80,8 @@ namespace
 		{"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" },
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
-		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"}
+		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
+		{"fastspeed", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "2", "16" }
 	};
 
 	MDFNSetting ESSettings[] =
@@ -269,11 +270,13 @@ bool						MednafenEmu::Frame				()
 	}
 
 	//Emulate frame
+	ESAudio::SetSpeed(NetplayOn ? 1 : (Counter.GetSpeed() == 1 ? 1 : FastSpeed));
+
 	memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 	memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
 	EmulatorSpec.surface = Surface.get(); //It's a shared pointer now
 	EmulatorSpec.LineWidths = VideoWidths;
-	EmulatorSpec.soundmultiplier = NetplayOn ? 1 : Counter.GetSpeed();
+	EmulatorSpec.soundmultiplier = 1;
 	EmulatorSpec.SoundRate = 48000;
 	EmulatorSpec.SoundBuf = Samples;
 	EmulatorSpec.SoundBufMaxSize = 24000;
@@ -550,6 +553,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
 		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("underscanadjust"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
+		FastSpeed = MDFN_GetSettingUI(SETTINGNAME("fastspeed"));
 
 		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{
@@ -633,4 +637,4 @@ std::string					MednafenEmu::ShaderSetting = "";
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 bool						MednafenEmu::VsyncSetting = true;
 std::string					MednafenEmu::BorderSetting = "";
-
+uint32_t					MednafenEmu::FastSpeed = 4;
