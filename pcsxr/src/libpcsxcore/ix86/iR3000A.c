@@ -413,7 +413,7 @@ static int recInit() {
 //ROBO: Allocate executable pages in platform specific manner
 //	recMem = mmap(0, RECMEM_SIZE + 0x1000,
 //		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	exec_alloc(RECMEM_SIZE + 0x1000);
+	recMem = exec_alloc(RECMEM_SIZE + 0x1000);
 
 	recRAM = (char *)malloc(0x200000);
 	recROM = (char *)malloc(0x080000);
@@ -1730,6 +1730,7 @@ extern u32 LWR_SHIFT[4];
 void iLWRk(u32 shift) {
 	if (IsConst(_Rt_)) {
 		MOV32ItoR(ECX, iRegs[_Rt_].k);
+
 	} else {
 		MOV32MtoR(ECX, (u32)&psxRegs.GPR.r[_Rt_]);
 	}
