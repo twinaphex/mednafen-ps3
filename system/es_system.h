@@ -47,7 +47,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #endif
 
 #include "src/Helpers.h"
-#include "src/utility/FastCounter.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
 #include "src/utility/GUI/Menu.h"
