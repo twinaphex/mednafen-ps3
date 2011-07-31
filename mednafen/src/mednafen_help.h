@@ -7,6 +7,8 @@ DEFINE_PTR_TYPE(InputHandler);
 DEFINE_PTR_TYPE(Filter);
 DEFINE_PTR_TYPE(TextFileViewer);
 
+class												FastCounter;
+
 class	MednafenEmu
 {
 	typedef SummerfaceItemUser<std::string>			CommandItem;
@@ -116,7 +118,6 @@ class	MednafenEmu
 		static Area						UndertuneSetting;	///<Amount, in percent, that the screen should be scaled to account for display differences.
 		static bool						VsyncSetting;		///<Determine if screen flips should be synchronized to the displays refresh rate.
 		static std::string				BorderSetting;		///<Path to a png file made available for use by the CG shader.
-		static uint32_t					FastSpeed;			///<Speed multiplier for fast forward mode.
 };
 
 
