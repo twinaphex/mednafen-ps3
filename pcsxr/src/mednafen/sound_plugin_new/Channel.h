@@ -83,8 +83,6 @@ namespace	PSX
 				int					SamplePosition;			//16:16 Fixed point
 				int					SampleIncrement;		//16:16 Fixed point
 
-				int32_t				Volume[2];						//Left:Right
-
 				int					bReverb;                            // can we do reverb on this channel? must have ctrl register bit, to get active
 				int					bRVBActive;                         // reverb active flag
 				int					bNoise;                             // noise active flag
@@ -96,6 +94,9 @@ namespace	PSX
 				Envelope			ADSR;
 				SampleStream		Sample;
 				Interpolate			Filter;
+
+			private:
+				int32_t				Volume[2];
 		};
 	}
 }

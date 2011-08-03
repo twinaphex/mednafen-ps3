@@ -133,7 +133,20 @@ void				PSX::SPU::Channel::WriteRegister			(int aRegister, uint16_t aValue)
 	//Volume
 	if(aRegister == 0 || aRegister == 2)
 	{
-		Volume[(aRegister == 2) ? 1 : 0] = aValue & 0x3FFF;
+		if(aValue & 0x8000)
+		{
+			//TODO: Sweeps not supported, just mute
+			Volume[(aRegister == 2) ? 1 : 0] = 0;
+		}
+		else
+		{
+			//Mask the volume bits from the value
+			uint16_t volume = aValue & 0x3FFF;
+
+			//Handle phase invert
+			//TODO: This may be wrong? A test case is Final Fantasy VII, many of the battle sound effects use it to process noise values.
+			Volume[(aRegister == 2) ? 1 : 0] = (aValue & 0x4000) ? 0x3FFF - volume : volume;
+		}
 	}
 	//Pitch
 	else if(aRegister == 4)

@@ -57,10 +57,6 @@ void						PSX::SPU::SPU::Process			(uint32_t aCycles)
 
 void						PSX::SPU::SPU::ProduceSample	()
 {
-	//HACK: Store values for CD stream IRQ
-	StoreDecoded(0, 0);
-	StoreDecoded(1, 0);
-
 	//Tick the noise function
 	Noise.Tick();
 
