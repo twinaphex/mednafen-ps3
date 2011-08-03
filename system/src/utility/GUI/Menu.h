@@ -29,6 +29,7 @@ class								Menu
 		void						Do							()
 		{
 			//Draw the inital screen
+			Input(0xFFFFFFFF);
 			Draw();
 			ESVideo::Flip();
 
