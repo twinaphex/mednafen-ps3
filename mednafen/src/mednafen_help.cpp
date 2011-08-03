@@ -418,7 +418,7 @@ void						MednafenEmu::DoCommands			()
 		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
 		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch",
 		"Cheat Menu",			"DoCheatMenu",		"DoCheatMenu",
-		"Exit Game",			"ErrorIMAGE",		"DoExit",
+		"Exit Mednafen",		"ErrorIMAGE",		"DoExit",
 	};
 
 	//Setup the menu
