@@ -33,14 +33,25 @@ void					PSX::SPU::DiscStreamer::SetVolume						(bool aRight, int32_t aValue)
 
 void					PSX::SPU::DiscStreamer::Mix								(int32_t* aLeft, int32_t* aRight)
 {
+	//TODO: At 37800hz the buffer seems to consistently underrun by around 20 frames with occasional jumps to 40 or even 60;
+	//TODO: Either there is something wrong with this code or timing in libpcsxcore needs to be tightened (probably a lot of both)
+
 	int16_t leftChannel = 0, rightChannel = 0;
 
+	//Update frequency adjust position
+	Position += Speed;
+
 	//Fetch a frame from the buffer
-	if(Play != Feed)
+	while(Position >= 1.0f)
 	{
-		leftChannel = Data[Play * 2];
-		rightChannel = Data[Play * 2 + 1];
-		Play = (Play + 1) & 0xFFFF;
+		if(Play != Feed)
+		{
+			leftChannel = Data[Play * 2];
+			rightChannel = Data[Play * 2 + 1];
+			Play = (Play + 1) & 0xFFFF;
+		}
+
+		Position -= 1.0f;
 	}
 
 	//Store samples into SPU memory
@@ -68,42 +79,25 @@ void					PSX::SPU::DiscStreamer::Mix								(int32_t* aLeft, int32_t* aRight)
 
 void					PSX::SPU::DiscStreamer::FeedXA							(xa_decode_t* aData)
 {
-	if(aData && aData->freq)
+	assert(aData && aData->freq);
+
+	//Copy frequency
+	Frequency = aData->freq;
+	Speed = ((float)Frequency) / 44100.0f;
+
+	//Copy samples
+	//TODO: Is nsamples in individual samples or frames?
+	for(int i = 0; i != aData->nsamples; i ++)
 	{
-		//Get data size
-		//HACK: Magic number
-		int32_t dataSize = ((44100 * aData->nsamples) / aData->freq);
+		Data[Feed * 2 + 0] = aData->pcm[aData->stereo ? (i * 2 + 0) : i];
+		Data[Feed * 2 + 1] = aData->pcm[aData->stereo ? (i * 2 + 1) : i];
+		Feed = (Feed + 1) & 0xFFFF;
 
-		if(dataSize)
+		//Handle overrun...
+		if(Feed == Play)
 		{
-			//Calculate frequency values
-			int32_t spos = 0x10000L;
-			int32_t sinc = (aData->nsamples << 16) / dataSize;
-
-			//Fill stream
-			for(int i = 0; i != dataSize; i ++)
-			{
-				int16_t leftSample, rightSample;
-
-				while(spos >= 0x10000L)
-				{
-					leftSample = aData->pcm[aData->stereo ? (i * 2 + 0) : i];
-					rightSample = aData->pcm[aData->stereo ? (i * 2 + 1) : i];
-					spos -= 0x10000L;
-				}
-
-				Data[Feed * 2 + 0] = leftSample;
-				Data[Feed * 2 + 1] = rightSample;
-				Feed = (Feed + 1) & 0xFFFF;
-
-				if(Feed == Play)
-				{
-					Feed = Play ? Play - 1 : Feed;
-					break;
-				}
-
-				spos += sinc;
-			}
+			Feed = Play ? Play - 1 : Feed;
+			break;
 		}
 	}
 }

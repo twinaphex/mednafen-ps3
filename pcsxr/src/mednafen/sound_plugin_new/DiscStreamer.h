@@ -11,7 +11,7 @@ namespace	PSX
 		{
 			public:
 										DiscStreamer					(SPU& aParent) :
-					Parent(aParent), Feed(0), Play(0)
+					Parent(aParent), Feed(0), Play(0), Frequency(44100), Speed(0.0f), Position(0.0f)
 				{
 					Volume[0] = 0x8000;
 					Volume[1] = 0x8000;
@@ -26,11 +26,14 @@ namespace	PSX
 			private:
 				SPU&					Parent;
 
-
 				int16_t					Data[65536 * 2];
 
 				uint32_t				Feed;
 				uint32_t				Play;
+
+				uint32_t				Frequency;
+				double					Speed;
+				double					Position;
 
 				int32_t					Volume[2];
 		};
