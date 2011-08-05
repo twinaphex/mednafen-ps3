@@ -151,6 +151,15 @@ namespace	MODULENAMESPACE
 			}
 		}
 
+		template<typename pixelType>
+		inline void __attribute((always_inline))		Clear						(EmulateSpecStruct* aSpec, uint32_t aWidth, uint32_t aHeight)
+		{
+			for(int i = 0; i != aHeight; i ++)
+			{
+				memset(&aSpec->surface->pixels[i * aSpec->surface->pitchinpix], 0, aWidth * sizeof(pixelType));
+			}
+		}
+
 		template<uint32_t pMask, typename pType, typename sType>
 		inline void __attribute((always_inline))		BlitPalette					(EmulateSpecStruct* aSpec, const pType* aPalette, const sType* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch)
 		{

@@ -326,7 +326,7 @@ namespace MODULENAMESPACE
 
 		Video::SetDisplayRect(espec, 0, 0, 320, 240);
 
-		if((g_gpu.dsp.mode.x && g_gpu.dsp.mode.y) && !espec->skip)
+		if((g_gpu.dsp.mode.x && g_gpu.dsp.mode.y) && (!(g_gpu.status_reg & STATUS_DISPLAYDISABLED)) && !espec->skip)
 		{
 			Video::SetDisplayRect(espec, 0, 0, (g_gpu.dsp.range.x1 - g_gpu.dsp.range.x0) / g_gpu.dsp.mode.x, (g_gpu.dsp.range.y1 - g_gpu.dsp.range.y0) * g_gpu.dsp.mode.y);
 
@@ -351,6 +351,10 @@ namespace MODULENAMESPACE
 			{
 				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, &g_gpu.psx_vram.u16[1024 * g_gpu.dsp.position.y + g_gpu.dsp.position.x], espec->DisplayRect.w, espec->DisplayRect.h, 1024);
 			}
+		}
+		else if(g_gpu.status_reg & STATUS_DISPLAYDISABLED)
+		{
+			Video::Clear<uint32_t>(espec, 320, 240);
 		}
 
 		//AUDIO

@@ -286,7 +286,7 @@ void						PSX::SPU::SPU::DMARead			(uint16_t* aTarget, int32_t aSize)
 		aTarget[i] = Fetch<uint16_t, false>(Address);
 		Address += 2;
 
-		if(Address >= 0x80000) // guess based on Vib Ribbon (below)
+		if(Address >= 0x80000) // guess based on Vib Ribbon (above)
 		{
 			break;
 		}
