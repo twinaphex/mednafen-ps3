@@ -1,11 +1,23 @@
 #pragma once
 
+#include <algorithm>
+
 class						FastCounter
 {
 	public:
 							FastCounter					(uint32_t aSpeed = 4, uint32_t aButton = ES_BUTTON_AUXRIGHT2) :
-			Button(aButton), Speed(aSpeed), LastFPS(0), LastSkip(0), LastFPSTime(0), FrameCount(0), SkipCount(0)
+			Button(aButton), NormalSpeed(1), FastSpeed(aSpeed), IsToggle(false), ToggleOn(false), WasButtonDown(true), LastFPS(0), LastSkip(0), LastFPSTime(0), FrameCount(0), SkipCount(0)
 		{
+		}
+
+		uint32_t			GetSpeed					()
+		{
+			return Fast() ? FastSpeed : NormalSpeed;
+		}
+
+		uint32_t			GetMaxSpeed					()
+		{
+			return std::max(FastSpeed, NormalSpeed);
 		}
 
 		void				SetButton					(uint32_t aButton)
@@ -13,20 +25,22 @@ class						FastCounter
 			Button = aButton;
 		}
 
-		uint32_t			GetSpeed					()
+		void				SetNormalSpeed				(uint32_t aSpeed)
 		{
-			return Fast() ? Speed : 1;
+			assert(aSpeed && aSpeed <= 16);
+			NormalSpeed = aSpeed;
 		}
 
-		uint32_t			GetMaxSpeed					()
+		void				SetFastSpeed				(uint32_t aSpeed)
 		{
-			return Speed;
+			assert(aSpeed && aSpeed <= 16);
+			FastSpeed = aSpeed;
 		}
 
-		void				SetSpeed					(uint32_t aSpeed)
+		void				SetToggle					(bool aOn)
 		{
-			assert(Speed && Speed <= 16);
-			Speed = aSpeed;
+			IsToggle = aOn;
+			ToggleOn = false;
 		}
 
 		void				Tick						(bool aSkip = false)
@@ -40,7 +54,13 @@ class						FastCounter
 								
 	private:
 		uint32_t			Button;
-		uint32_t			Speed;
+
+		uint32_t			NormalSpeed;
+		uint32_t			FastSpeed;
+
+		bool				IsToggle;
+		bool				ToggleOn;
+		bool				WasButtonDown;
 		
 		uint32_t			LastFPS;
 		uint32_t			LastSkip;
