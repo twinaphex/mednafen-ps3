@@ -1,10 +1,6 @@
 #include <es_system.h>
 #include <SoundTouch.h>
 
-//HACK: Put them IN esaudio later
-static soundtouch::SoundTouch st;
-static uint32_t auxStBuffer[48000];
-
 void					ESAudio::Initialize				()
 {
 	SDL_AudioSpec spec;
@@ -20,8 +16,8 @@ void					ESAudio::Initialize				()
 	Semaphore = es_threads->MakeSemaphore(1);
 
 	//Soundtouch setup
-	st.setSampleRate(48000);
-	st.setChannels(2);
+	PitchShifter.setSampleRate(48000);
+	PitchShifter.setChannels(2);
 }
 
 void					ESAudio::Shutdown				()
@@ -42,36 +38,52 @@ void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
 
 void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 {
-	//Add samples to sound touch
-	st.putSamples((int16_t*)aSamples, aCount);
-
-	//Process any available samples 
-	int32_t sampleCount = st.numSamples();
-
-	if(sampleCount)
+	//Pitch shifting
+	if(Speed != 1)
 	{
-		//Don't process too large of a block
-		sampleCount = st.receiveSamples((int16_t*)auxStBuffer, std::min(2048, sampleCount));
+		//Add samples to sound touch
+		PitchShifter.putSamples((int16_t*)aSamples, aCount);
 
+		//Process any available samples 
+		int32_t sampleCount = PitchShifter.numSamples();
+
+		if(sampleCount)
+		{
+			//Don't process too large of a block
+			sampleCount = PitchShifter.receiveSamples((int16_t*)AuxBuffer, std::min(2048, sampleCount));
+
+			//Put them in the ringbuffer as normal
+			while(Buffer.GetBufferFree() < sampleCount)
+				Semaphore->Wait();
+
+			SDL_LockAudio();
+			Buffer.WriteData((uint32_t*)AuxBuffer, sampleCount);
+			SDL_UnlockAudio();
+		}
+	}
+	else
+	{
 		//Put them in the ringbuffer as normal
-		while(Buffer.GetBufferFree() < sampleCount)
+		while(Buffer.GetBufferFree() < aCount)
 			Semaphore->Wait();
 
 		SDL_LockAudio();
-		Buffer.WriteData((uint32_t*)auxStBuffer, sampleCount);
+		Buffer.WriteData((uint32_t*)aSamples, aCount);
 		SDL_UnlockAudio();
 	}
 }
 
-volatile int32_t		ESAudio::GetBufferAmount		() {return Buffer.GetBufferAmount();}
-volatile int32_t		ESAudio::GetBufferFree			() {return Buffer.GetBufferFree();}
-
 void					ESAudio::SetSpeed				(uint32_t aSpeed)
 {
-	//Tell sound touch about the new tempo
-	st.setTempo(aSpeed);
+	Speed = aSpeed;
+	PitchShifter.setTempo(aSpeed);
 }
 
 SDL_AudioSpec			ESAudio::Format;
 AudioBuffer<>			ESAudio::Buffer;
 ESSemaphore*			ESAudio::Semaphore;
+
+soundtouch::SoundTouch	ESAudio::PitchShifter;
+uint32_t				ESAudio::AuxBuffer[48000];
+uint32_t				ESAudio::Speed = 1;
+
