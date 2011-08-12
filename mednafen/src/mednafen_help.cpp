@@ -81,7 +81,9 @@ namespace
 		{"aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
-		{"fastspeed", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" }
+		{"speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
+		{"speed.fastrate", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
+		{"speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" }
 	};
 
 	MDFNSetting ESSettings[] =
@@ -553,7 +555,9 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("aspect"));
 		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("underscanadjust"));
 		UndertuneSetting = Area(MDFN_GetSettingI(SETTINGNAME("undertuneleft")), MDFN_GetSettingI(SETTINGNAME("undertunetop")), MDFN_GetSettingI(SETTINGNAME("undertuneright")), MDFN_GetSettingI(SETTINGNAME("undertunebottom")));
-		Counter.SetSpeed(MDFN_GetSettingUI(SETTINGNAME("fastspeed")));
+		Counter.SetNormalSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.normalrate")));
+		Counter.SetFastSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.fastrate")));
+		Counter.SetToggle(MDFN_GetSettingUI(SETTINGNAME("speed.toggle")));
 
 		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{

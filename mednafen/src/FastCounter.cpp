@@ -3,7 +3,26 @@
 
 bool						FastCounter::Fast					()
 {
-	return ESInput::ButtonPressed(0, Button);
+	if(!IsToggle)
+	{
+		return ESInput::ButtonPressed(0, Button);
+	}
+	else
+	{
+		bool buttonDown = ESInput::ButtonPressed(0, Button);
+
+		if(WasButtonDown)
+		{
+			WasButtonDown = buttonDown;
+		}
+		else if(buttonDown)
+		{
+			WasButtonDown = true;
+			ToggleOn = !ToggleOn;
+		}
+
+		return ToggleOn;
+	}
 }
 
 uint32_t					FastCounter::GetFPS					(uint32_t* aSkip)
