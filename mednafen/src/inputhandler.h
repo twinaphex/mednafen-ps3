@@ -34,8 +34,11 @@ class												InputHandler
 
 	protected:
 		static void									GetGamepad						(const InputInfoStruct* aInfo, const char* aName, std::vector<InputInfo>& aInputs);
+
+	public:
 		static int									GetButton						(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton);	//For SummerfaceStaticInputConduit
-	
+
+	protected:
 		MDFNGI*										GameInfo;
 
 		std::string									PadType;

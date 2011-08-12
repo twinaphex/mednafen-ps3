@@ -9,7 +9,7 @@ struct								SettingItem
 
 	///Return a string containing the settings name and value.
 	///@return The settings name and value, separated by a tab character.
-	std::string						GetText								() {return std::string(Setting->name) + "\t" + ((Setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(Setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(Setting->name));}
+	std::string						GetText								(); //External
 
 	///Returns an empty string.
 	///@return An empty string.
@@ -63,6 +63,8 @@ class								SettingMenu
 
 		///Refresh the parent list's header if needed.
 		void						DoHeaderRefresh						();
+
+		bool						HandleButton						(uint32_t aButton, const MDFNCS& aSetting);
 
 		///Handle changing a boolean setting.
 		///@param aButton System button that was pressed.

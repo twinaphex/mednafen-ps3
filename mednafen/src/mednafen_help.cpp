@@ -79,7 +79,9 @@ namespace
 		{"speed.rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
 		{"speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "1", "1", "16" },
 		{"speed.fastrate", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
-		{"speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" }
+		{"speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" },
+		//HACK: 4294967051 = ES_BUTTON_AUXRIGHT2
+		{"speed.button", MDFNSF_CAT_INPUT, "Button used for fast forward.", NULL, MDFNST_UINT, "4294967051" }
 	};
 
 	MDFNSetting ESSettings[] =
@@ -546,13 +548,17 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
 	if(IsGameLoaded())
 	{
+		Inputs->ReadSettings();
+
 		RewindSetting = MDFN_GetSettingB(SETTINGNAME("speed.rewind"));;
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
 		AspectSetting = MDFN_GetSettingI(SETTINGNAME("display.aspect"));
 		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("display.underscanadjust"));
+
 		Counter.SetNormalSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.normalrate")));
 		Counter.SetFastSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.fastrate")));
 		Counter.SetToggle(MDFN_GetSettingUI(SETTINGNAME("speed.toggle")));
+		Counter.SetButton(MDFN_GetSettingUI(SETTINGNAME("speed.button")));
 
 		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
 		{

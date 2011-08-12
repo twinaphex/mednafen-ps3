@@ -32,7 +32,8 @@ class				ESInput
 				///@param aUser1 User data that will be passed to the callback.
 				///@param aUser2 User data that will be passed to the callback.
 				///@param aUser3 User data that will be passed to the callback.
-											Button					(RefreshFunction aCallback, uint32_t aUser1, uint32_t aUser2, uint32_t aUser3) :
+											Button					(RefreshFunction aCallback, uint32_t aUser1, uint32_t aUser2, uint32_t aUser3, const std::string& aName) :
+					Name(aName),
 					Pressed(false),	
 					Inspected(true),
 					Jammed(true),
@@ -47,6 +48,13 @@ class				ESInput
 				///Set the pressed state of the button.
 				///@param aPressed True if the Button is pressed.
 				void						SetState				(bool aPressed); //External
+
+				///Get the name of the button.
+				///@return The name of the button.
+				const std::string&			GetName					()
+				{
+					return Name;
+				}
 
 				///Force the button to report not being pressed until the next time it is released.
 				void						Reset					()
@@ -75,6 +83,8 @@ class				ESInput
 				bool						GetStateRepeat			();
 
 			private:
+				std::string					Name;					///<Friendly name of the Button.
+
 				bool						Pressed;				///<Set to true when the Button is pressed, false when the button is released.
 				bool						Inspected;				///<Set to true after a call to GetStateInspected, false when the button is released.
 				bool						Jammed;					///<Set to true after a call to Reset, false when the button is released.
@@ -134,7 +144,22 @@ class				ESInput
 		{
 			Button* button = GetButton(aPad, aButton);
 			return button && button->GetStateInspected();
-		}	
+		}
+
+		static std::string					ButtonName				(uint32_t aPad, uint32_t aButton)
+		{
+			const char* const esNames[] = {"UP", "DOWN", "LEFT", "RIGHT", "ACCEPT", "CANCEL", "SHIFT", "TAB", "L1", "R1", "L2", "R2", "L3", "R3"};
+
+			if(aButton >= ES_BUTTON_UP && aButton <= ES_BUTTON_AUXRIGHT3)
+			{
+				return esNames[aButton - ES_BUTTON_UP];
+			}
+			else
+			{
+				Button* button = GetButton(aPad, aButton);
+				return button ? button->GetName() : "INVALID BUTTON";
+			}
+		}
 
 		///Scan a device and determine if any button, system or otherwise, is pressed.
 		///@param aPad Input device to scan.

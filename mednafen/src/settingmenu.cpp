@@ -1,6 +1,7 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
 #include "settingmenu.h"
+#include "inputhandler.h"
 
 static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smartptr::shared_ptr<SettingItem> b)
 {
@@ -38,6 +39,19 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 	//Standard items at the bottom
 	return a->GetText() < b->GetText();
 }
+
+std::string						SettingItem::GetText							()
+{
+	if(Setting->desc->flags & MDFNSF_CAT_INPUT)
+	{
+		return std::string(Setting->name) +  "\t" + ESInput::ButtonName(0, MDFN_GetSettingUI(Setting->name));
+	}
+	else
+	{
+		return std::string(Setting->name) + "\t" + ((Setting->desc->type == MDFNST_BOOL) ? (MDFN_GetSettingB(Setting->name) ? "ON" : "OFF") : MDFN_GetSettingS(Setting->name));
+	}
+}
+
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
 	List(smartptr::make_shared<SettingListType>(Area(10, 10, 80, 80))),
@@ -115,7 +129,11 @@ int								SettingMenu::HandleInput						(Summerface_Ptr aInterface, const std::
 	DoHeaderRefresh();
 
 	//Check for and handle setting types
-	if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
+	if(Setting.desc->flags & MDFNSF_CAT_INPUT && HandleButton(aButton, Setting))
+	{
+		return 1;
+	}
+	else if(Setting.desc->type == MDFNST_BOOL && HandleBool(aButton, Setting))
 	{
 		return 1;
 	}
@@ -172,6 +190,26 @@ void							SettingMenu::DoHeaderRefresh					()
 		//Set the header
 		List->SetHeader(List->GetSelected()->Setting->desc->description);
 	}
+}
+
+bool							SettingMenu::HandleButton						(uint32_t aButton, const MDFNCS& aSetting)
+{
+	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
+	{
+		uint32_t buttonID;
+		Summerface_Ptr sface = Summerface::Create("InputWindow", smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "Press New Button"));
+		sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(InputHandler::GetButton, &buttonID));
+		sface->SetInputWait(false);
+		sface->Do();
+		MDFNI_SetSettingUI(aSetting.name, buttonID);
+
+		MednafenEmu::ReadSettings();
+
+		return true;
+	}
+
+	//Block using the file browser and keyboard to set an input value
+	return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
 }
 
 bool							SettingMenu::HandleBool							(uint32_t aButton, const MDFNCS& aSetting)

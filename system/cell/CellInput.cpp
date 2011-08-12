@@ -12,14 +12,14 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 		//Axis
 		for(int j = 0; j != 4; j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0));
-			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0));
+			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0, ""));
+			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0, ""));
 		}
 
 		//Buttons
 		for(int i = 0; i != 16; i ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0));
+			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0, ""));
 		}
 	}
 }
