@@ -215,14 +215,14 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 				{
 					std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName + "." + std::string(inputs[j].Data->SettingName);
 					//TODO: These strdups will never be freed, poor captive strdups
-					MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
+					MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_CAT_INPUT, "Input.", NULL, MDFNST_UINT, "0"};
 					aSettings.push_back(thisinput);
 
 					if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
 					{
 						settingname += "_rapid";
 						//TODO: These strdups will never be freed, poor captive strdups
-						MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_UINT, "0"};
+						MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_CAT_INPUT, "Input.", NULL, MDFNST_UINT, "0"};
 						aSettings.push_back(thisinput);
 					}
 				}
