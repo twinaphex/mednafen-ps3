@@ -23,10 +23,6 @@ static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smar
 	if(a->GetText().find(".enable") != std::string::npos)												return true;
 	if(b->GetText().find(".enable") != std::string::npos)												return false;
 
-	//Undertune items at the bottom
-	if(a->GetText().find("undertune") != std::string::npos)												return false;
-	if(b->GetText().find("undertune") != std::string::npos)												return true;
-
 	//Tblus items at the bottom
 	if(a->GetText().find("tblur") != std::string::npos)													return false;
 	if(b->GetText().find("tblur") != std::string::npos)													return true;
@@ -338,14 +334,11 @@ std::string						SettingMenu::TranslateGroup						(const MDFNCS& aSetting, const
 
 	if(!aSystem.empty())
 	{
+		if(settingName.find(".display.") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".speed.") != std::string::npos)			return "SPEED";
 		if(settingName.find(".tblur") != std::string::npos)				return "TBLUR";
-		if(settingName.find(".undertune") != std::string::npos)			return "DISPLAY";
-		if(settingName.find(".underscanadjust") != std::string::npos)	return "DISPLAY";
-		if(settingName.find(".display") != std::string::npos)			return "DISPLAY";
-		if(settingName.find(".aspect") != std::string::npos)			return "DISPLAY";
-		if(settingName.find(".shader") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".shader") != std::string::npos)			return "SHADER";
 		if(settingName.find(".enable") != std::string::npos)			return "MODULE";
-		if(settingName.find(".rewind") != std::string::npos)			return "MODULE";
 		if(settingName.find(".forcemono") != std::string::npos)			return "MODULE";
 		if(settingName.find(".autosave") != std::string::npos)			return "MODULE";
 		return "SYSTEM";
