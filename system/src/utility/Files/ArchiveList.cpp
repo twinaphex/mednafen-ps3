@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "ArchiveList.h"
 #include "src/thirdparty/fex/fex/fex.h"
 
 											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : 

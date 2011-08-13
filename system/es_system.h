@@ -51,10 +51,5 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/utility/ImageManager.h"
 #include "src/utility/GUI/Menu.h"
 #include "src/utility/GUI/Summerface.h"
-#include "src/utility/Files/FileSelect.h"
-#include "src/utility/Files/ArchiveList.h"
-#include "src/utility/Keyboard.h"
-#include "src/utility/TextViewer.h"
-#include "src/utility/Logger.h"
 
 #endif

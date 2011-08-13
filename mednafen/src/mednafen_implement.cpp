@@ -1,5 +1,7 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
+#include "src/utility/Logger.h"
+
 
 //How to implement these?
 void							MDFND_MidSync				(const EmulateSpecStruct *espec)

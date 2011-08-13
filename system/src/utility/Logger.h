@@ -1,5 +1,6 @@
-#ifndef	SYSTEM__LOGGER_H
-#define	SYSTEM__LOGGER_H
+#pragma once
+
+#include "TextViewer.h"
 
 class				Logger : public TextViewer
 {
@@ -10,5 +11,4 @@ class				Logger : public TextViewer
 		void						Log							(const char* aString, ...);
 };
 
-#endif
 

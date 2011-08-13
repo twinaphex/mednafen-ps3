@@ -2,6 +2,10 @@
 #include "mednafen_help.h"
 #include "settingmenu.h"
 
+#include "src/utility/TextViewer.h"
+#include "src/utility/Files/FileSelect.h"
+#include "src/utility/Files/ArchiveList.h"
+
 namespace
 {
 	int						FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)

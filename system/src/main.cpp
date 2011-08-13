@@ -1,4 +1,6 @@
 #include <es_system.h>
+#include "src/utility/Logger.h"
+#include "src/utility/Keyboard.h"
 
 Logger_Ptr			es_log;
 ESThreads*			es_threads = 0;

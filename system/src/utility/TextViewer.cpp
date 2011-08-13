@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "TextViewer.h"
 
 						TextViewer::TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile) : SummerfaceWindow(aRegion)
 {
