@@ -1,11 +1,12 @@
 #pragma once
 
-#include "src/utility/AudioBuffer.h"
-
 namespace	soundtouch
 {
 	class								SoundTouch;
 }
+
+template<int Length>
+class									AudioBuffer;
 
 class									ESAudio
 {
@@ -14,8 +15,8 @@ class									ESAudio
 		static void						Shutdown				();
 
 		static void						AddSamples				(const uint32_t* aSamples, uint32_t aCount);
-		static volatile int32_t			GetBufferAmount			() {return Buffer.GetBufferAmount();}
-		static volatile int32_t			GetBufferFree			() {return Buffer.GetBufferFree();}
+		static volatile int32_t			GetBufferAmount			();
+		static volatile int32_t			GetBufferFree			();
 		static void						SetSpeed				(uint32_t aSpeed);
 
 	protected:
@@ -23,7 +24,7 @@ class									ESAudio
 
 		static SDL_AudioSpec			Format;
 
-		static AudioBuffer<>			Buffer;
+		static AudioBuffer<8192>		Buffer;
 		static ESSemaphore*				Semaphore;
 
 		static soundtouch::SoundTouch	PitchShifter;
