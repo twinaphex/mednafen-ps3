@@ -9,6 +9,8 @@
 #include "textviewer.h"
 #include "FastCounter.h"
 
+#include "src/utility/Logger.h"	//TODO: Cleaner path for es includes
+
 namespace
 {
 	const MDFNSetting_EnumList	AspectEnumList[] =

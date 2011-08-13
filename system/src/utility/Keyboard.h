@@ -1,5 +1,4 @@
-#ifndef SYSTEM__KEYBOARD_H
-#define SYSTEM__KEYBOARD_H
+#pragma once
 
 class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 {
@@ -21,5 +20,4 @@ class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 		uint32_t							Shift;
 };
 
-#endif
 

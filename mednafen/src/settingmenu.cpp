@@ -3,6 +3,8 @@
 #include "settingmenu.h"
 #include "inputhandler.h"
 
+#include "src/utility/Files/FileSelect.h"
+
 static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smartptr::shared_ptr<SettingItem> b)
 {
 	//

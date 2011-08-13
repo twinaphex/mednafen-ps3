@@ -1,6 +1,10 @@
 #include <es_system.h>
 #include "textviewer.h"
 
+#include "src/utility/TextViewer.h"
+#include "src/utility/Files/FileSelect.h"
+
+
 					TextFileViewer::TextFileViewer				() :
 	Viewer(smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), "NO FILE", false)),
 	Interface(Summerface::Create("TextViewer", Viewer)),

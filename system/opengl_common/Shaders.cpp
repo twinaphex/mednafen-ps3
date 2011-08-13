@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "src/utility/Logger.h"
 
 #ifndef __CELLOS_LV2__
 # define	FRAG_PROFILE				cgGLGetLatestProfile(CG_GL_FRAGMENT)

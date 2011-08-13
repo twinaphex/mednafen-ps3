@@ -2,6 +2,7 @@
 
 DEFINE_PTR_TYPE(FileSelect);
 DEFINE_PTR_TYPE(TextViewer);
+typedef std::vector<std::string> BookmarkList;
 
 class						TextFileViewer
 {

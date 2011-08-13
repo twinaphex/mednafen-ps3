@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "FileSelect.h"
 
 namespace
 {

@@ -2,6 +2,7 @@
 
 #ifndef ES_HAVE_LOADPNG
 #include <png.h>
+#include "Logger.h"
 
 class										PingPNG
 {

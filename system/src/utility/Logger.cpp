@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "Logger.h"
 
 							Logger::Logger						(const Area& aRegion) : TextViewer(aRegion, "", false)
 {
