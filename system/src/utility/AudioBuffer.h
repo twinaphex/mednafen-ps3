@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdlib.h>
+#include <algorithm>
 
+//If Length is not a power of two you are in for a world of hurt (MODULOS GALORE)
 template<int Length=8192>
 class						AudioBuffer
 {
@@ -24,49 +26,72 @@ class						AudioBuffer
 
 		uint32_t			WriteData						(const uint32_t* aData, uint32_t aLength)
 		{
-			int i;
-
+			//Clip to available space (if you wan't to block, do it in the caller.)
 			uint32_t free = GetBufferFree();
 			aLength = (aLength > free) ? free : aLength;
 
-			for(i = 0; i < aLength; i += InputSpeed, WriteCount ++)
+			//Get the size of the copies
+			uint32_t untilEnd = Length - (WriteCount % Length);
+			uint32_t firstBlock = std::min(untilEnd, aLength);
+			uint32_t secondBlock = (firstBlock == aLength) ? 0 : aLength - firstBlock;
+
+			//Copy 1
+			if(firstBlock)
 			{
-				RingBuffer[WriteCount % Length] = aData[i];
+				memcpy(&RingBuffer[WriteCount % Length], aData, firstBlock * 4);
 			}
 
-			return i;
+			//Copy 2
+			if(secondBlock)
+			{
+				memcpy(&RingBuffer[0], &aData[firstBlock], secondBlock * 4);
+			}
+
+			//Done
+			WriteCount += aLength;
+
+			return aLength;
 		}
 
 		uint32_t			ReadData						(uint32_t* aData, uint32_t aLength)
 		{
-			int i;
-
+			//Clip to available space (if you wan't to block, do it in the caller.)
 			uint32_t available = GetBufferAmount();
 			aLength = (aLength > available) ? available : aLength;
 
-			for(i = 0; i != aLength; i ++, ReadCount ++)
+			//Get the size of the copies
+			uint32_t untilEnd = Length - (ReadCount % Length);
+			uint32_t firstBlock = std::min(untilEnd, aLength);
+			uint32_t secondBlock = (firstBlock == aLength) ? 0 : aLength - firstBlock;
+
+			//Copy 1
+			if(firstBlock)
 			{
-				aData[i] = RingBuffer[ReadCount % Length];
+				memcpy(aData, &RingBuffer[ReadCount % Length], firstBlock * 4);
 			}
 
-			return i;
+			//Copy 2
+			if(secondBlock)
+			{
+				memcpy(&aData[firstBlock], &RingBuffer[0], secondBlock * 4);
+			}
+
+			//Done
+			ReadCount += aLength;
+
+			return aLength;
 		}
 
 		uint32_t			ReadDataSilentUnderrun			(uint32_t* aData, uint32_t aLength)
 		{
-			int i;
+			uint32_t count = ReadData(aData, aLength);
 
-			for(i = 0; i != aLength && GetBufferAmount() != 0; i ++, ReadCount ++)
+			if(count < aLength)
 			{
-				aData[i] = RingBuffer[ReadCount % Length];
+				memset(&aData[count], 0, (aLength - count) * 4);
 			}
 
-			if(i != aLength)
-			{
-				memset(&aData[i], 0, (aLength - i) * 4);
-			}
-
-			return i;
+			return count;
 		}
 
 		volatile int32_t 	GetBufferAmount					() const {return (WriteCount - ReadCount);}

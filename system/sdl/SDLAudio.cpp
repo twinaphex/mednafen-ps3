@@ -1,5 +1,7 @@
 #include <es_system.h>
 #include <SoundTouch.h>
+#include "src/utility/AudioBuffer.h"
+
 
 void					ESAudio::Initialize				()
 {
@@ -71,6 +73,16 @@ void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 		Buffer.WriteData((uint32_t*)aSamples, aCount);
 		SDL_UnlockAudio();
 	}
+}
+
+volatile int32_t		ESAudio::GetBufferAmount		()
+{
+	return Buffer.GetBufferAmount();
+}
+
+volatile int32_t		ESAudio::GetBufferFree			()
+{
+	return Buffer.GetBufferFree();
 }
 
 void					ESAudio::SetSpeed				(uint32_t aSpeed)
