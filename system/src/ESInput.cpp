@@ -2,6 +2,8 @@
 
 #if defined(MDCELL)
 # include "cell/CellInput.h"
+#elif defined(MDWINDOWS)
+# include "windows/WindowsInput.h"
 #else
 # include "sdl/SDLInput.h"
 #endif
