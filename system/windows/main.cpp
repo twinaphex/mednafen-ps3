@@ -1,8 +1,12 @@
 #include <es_system.h>
+#include <gdiplus.h>
+
+using namespace		Gdiplus;
 
 namespace
 {
 	bool			want_to_die = false;
+	ULONG_PTR		GdiPlusToken;
 };
 
 void				SetExit					()
@@ -13,10 +17,15 @@ void				SetExit					()
 void				ESSUB_Init				()
 {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+
+	GdiplusStartupInput gdipsi;
+	GdiplusStartup(&GdiPlusToken, &gdipsi, NULL);
 }
 
 void				ESSUB_Quit				()
 {
+	GdiplusShutdown(GdiPlusToken);
+
 	SDL_Quit();
 }
 
@@ -47,5 +56,38 @@ std::string			ESSUB_GetBaseDirectory	()
 	char path[MAX_PATH];
 	SHGetFolderPathA(0, CSIDL_APPDATA, 0, 0, path);
 	return std::string(path) + "/" ES_DIR "/";
+}
+
+void				ESSUB_LoadPNG			(const std::string& aPath, Texture** aTexture)
+{
+	assert(aTexture);
+
+	wchar_t buffer[1024];
+	MultiByteToWideChar(CP_UTF8, 0, aPath.c_str(), -1, buffer, 512);
+
+	Texture* output = 0;
+
+	Bitmap img(buffer, false);
+	if(img.GetWidth())
+	{
+		output = ESVideo::CreateTexture(img.GetWidth(), img.GetHeight(), true);
+		output->Clear(0);
+
+		BitmapData BMData;
+		BMData.Width = std::min(output->GetWidth(), img.GetWidth());
+		BMData.Height = std::min(output->GetHeight(), img.GetHeight());
+		BMData.Stride = output->GetWidth() * 4;
+		BMData.PixelFormat = PixelFormat32bppARGB;
+		BMData.Scan0 = output->Map();
+		BMData.Reserved = 0;
+
+		Rect area(0, 0, img.GetWidth(), img.GetHeight());
+		img.LockBits(&area, ImageLockModeRead | ImageLockModeUserInputBuf, PixelFormat32bppARGB, &BMData);
+		img.UnlockBits(&BMData);
+
+		output->Unmap();
+	}
+
+	*aTexture = output;
 }
 

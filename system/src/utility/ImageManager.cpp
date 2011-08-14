@@ -152,6 +152,8 @@ void										ESSUB_LoadPNG										(const std::string& aPath, Texture** aTextu
 	PingPNG p(aPath);
 	*aTexture = p.GetTexture();
 }
+#else
+void										ESSUB_LoadPNG										(const std::string& aPath, Texture** aTexture);
 #endif
 
 void										ImageManager::Purge									()

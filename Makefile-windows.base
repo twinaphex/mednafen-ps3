@@ -1,0 +1,27 @@
+export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
+
+AR			:= $(PREFIX)ar
+AS			:= $(PREFIX)gcc
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+LD			:= $(CXX)
+
+ifeq ($(strip $(SDLCONFIG)),)
+	SDLCONFIG=sdl-config
+endif
+
+ifeq ($(strip $(FREETYPECONFIG)),)
+	FREETYPECONFIG=freetype-config
+endif
+
+CPPFLAGS	+= -DMDWINDOWS -DES_HAVE_LOADPNG -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DGL_GLEXT_PROTOTYPES
+CFLAGS		+= -O2 -g -I$(DXSDK)/Include -std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` 
+CXXFLAGS	+= -O2 -g -I$(DXSDK)/Include $(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags`
+LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lz -lm -lCg -lCgGL
+LIBS		+= -lopengl32 -lglew32 -lws2_32 $(DXSDK)/Lib/x86/XInput.lib -lgdiplus
+DEPSOPTIONS	=  -MMD -MP 
+
+###
+include $(TOP)/Makefile.common
+###
+
