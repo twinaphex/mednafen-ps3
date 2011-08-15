@@ -12,7 +12,6 @@
 #include <SDL/SDL_net.h>
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
-#include "SDLInputConfig.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
