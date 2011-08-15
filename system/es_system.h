@@ -37,7 +37,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "cell/CellNetwork.h"
 #elif defined(MDWINDOWS)
 # include "windows/WindowsPlatform.h"
-# include "windows/SDLThreads.h"
+# include "windows/WindowsThreads.h"
 # include "opengl_common/Texture.h"
 # include "src/ESVideo.h"
 # include "windows/SDLVideo.h"

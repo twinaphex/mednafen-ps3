@@ -31,7 +31,7 @@ void				ESSUB_Quit				()
 
 ESThreads*			ESSUB_MakeThreads		()
 {
-	return new SDLThreads();
+	return new WindowsThreads();
 }
 
 bool				ESSUB_WantToDie			()
