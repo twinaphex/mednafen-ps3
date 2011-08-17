@@ -41,7 +41,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 # include "opengl_common/Texture.h"
 # include "src/ESVideo.h"
 # include "windows/SDLVideo.h"
-# include "windows/SDLAudio.h"
+# include "windows/WindowsAudio.h"
 # include "windows/WindowsInput.h"
 # include "windows/WindowsNetwork.h"
 #else

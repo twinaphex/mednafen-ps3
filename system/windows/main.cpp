@@ -16,6 +16,8 @@ void				SetExit					()
 
 void				ESSUB_Init				()
 {
+	timeBeginPeriod(1);
+
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 
@@ -28,6 +30,8 @@ void				ESSUB_Quit				()
 	GdiplusShutdown(GdiPlusToken);
 
 	SDL_Quit();
+
+	timeEndPeriod(1);
 }
 
 ESThreads*			ESSUB_MakeThreads		()
