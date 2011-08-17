@@ -80,7 +80,6 @@ void								ESAudio::Shutdown				()
 	MasterVoice = 0;
 
 	delete Semaphore;
-	delete Mutex;
 }
 
 

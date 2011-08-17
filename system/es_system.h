@@ -58,7 +58,13 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/Helpers.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
-#include "src/utility/GUI/Menu.h"
-#include "src/utility/GUI/Summerface.h"
+#include "src/GUI/Menu.h"
+#include "src/GUI/SummerfaceTypes.h"
+#include "src/GUI/Summerface.h"
+#include "src/GUI/SummerfaceWindow.h"
+#include "src/GUI/SummerfaceList.h"
+#include "src/GUI/SummerfaceItem.h"
+#include "src/GUI/SummerfaceInputConduit.h"
+#include "src/GUI/SimpleWidgets.h"
 
 #endif

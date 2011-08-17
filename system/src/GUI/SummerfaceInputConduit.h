@@ -1,5 +1,4 @@
-#ifndef SYSTEM__SUMMERFACE_INPUTCONDUIT_H
-#define SYSTEM__SUMMERFACE_INPUTCONDUIT_H
+#pragma once
 
 class													SummerfaceInputConduit
 {
@@ -43,5 +42,4 @@ class													SummerfaceTemplateConduit : public SummerfaceInputConduit
 		T*												Data;
 };
 
-#endif
 

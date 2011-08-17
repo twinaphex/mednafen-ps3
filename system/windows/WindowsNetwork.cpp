@@ -60,7 +60,7 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 {
 	char* buff = (char*)aBuffer;
 
-	int count = recv(Socket, aBuffer, aLength, 0);
+	int count = recv(Socket, buff, aLength, 0);
 
 	ErrorCheck(count >= 0, "WindowsNetwork: failed to read socket");
 

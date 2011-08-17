@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SummerfaceWindow.h"
-
 ///Class defining a GUI view.
 class													Summerface : public Menu, public smartptr::enable_shared_from_this<Summerface>
 {

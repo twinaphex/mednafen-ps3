@@ -1,5 +1,4 @@
-#ifndef SYSTEM__SUMMERFACE_WINDOW_H
-#define SYSTEM__SUMMERFACE_WINDOW_H
+#pragma once
 
 class	Summerface;
 
@@ -94,7 +93,4 @@ class													SummerfaceWindow
 
 		bool											UseBorder;						///<True if the border should be drawn by prepare draw.
 };
-
-
-#endif
 

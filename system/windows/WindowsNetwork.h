@@ -11,7 +11,7 @@ class								ESSocket
 		void						Write				(const void* aBuffer, uint32_t aLength);
 
 	protected:
-		SOCKET						Socket;
+		unsigned int				Socket;
 };
 
 class								ESNetwork
