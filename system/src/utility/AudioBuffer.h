@@ -10,12 +10,10 @@ class						AudioBuffer
 	public:
 							AudioBuffer						() : RingBuffer(0), ReadCount(0), WriteCount(0), InputSpeed(1)
 		{
-			RingBuffer = (uint32_t*)malloc(Length * 4);
 		}
 
-							~AudioBuffer					()
+		virtual				~AudioBuffer					()
 		{
-			free(RingBuffer);
 		}
 
 		void				SetSpeed						(uint32_t aSpeed)
@@ -98,7 +96,7 @@ class						AudioBuffer
 		volatile int32_t 	GetBufferFree					() const {return Length - (WriteCount - ReadCount);}
 
 	private:
-		uint32_t*			RingBuffer;
+		uint32_t			RingBuffer[Length];
 
 		uint32_t			ReadCount;
 		uint32_t			WriteCount;
