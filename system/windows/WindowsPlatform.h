@@ -9,13 +9,13 @@
 #include <GL/gl.h>
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_net.h>
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
+#include <mmsystem.h>
 #define NO_READDIR
 #define COMPLEX_VOLUMES
 
@@ -24,12 +24,12 @@ class				PlatformHelpers
 	public:
 		static uint32_t					GetTicks					()
 		{
-			return SDL_GetTicks();
+			return timeGetTime();
 		}
 
 		static void						Sleep						(uint32_t aMilliseconds)
 		{
-			SDL_Delay(aMilliseconds);
+			Sleep(aMilliseconds);
 		}
 
 		template<typename T>
