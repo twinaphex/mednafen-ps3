@@ -18,7 +18,7 @@ CPPFLAGS	+= -DMDWINDOWS -DES_HAVE_LOADPNG -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_M
 CFLAGS		+= -O2 -g -I$(DXSDK)/Include -std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` 
 CXXFLAGS	+= -O2 -g -I$(DXSDK)/Include $(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags`
 LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lz -lm -lCg -lCgGL
-LIBS		+= -lopengl32 -lglew32 -lws2_32 $(DXSDK)/Lib/x86/XInput.lib -lgdiplus
+LIBS		+= -lopengl32 -lglew32 -lws2_32 $(DXSDK)/Lib/x86/XInput.lib -lgdiplus -lole32
 DEPSOPTIONS	=  -MMD -MP 
 
 ###
