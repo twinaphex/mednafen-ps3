@@ -8,7 +8,7 @@ template<int Length=8192>
 class						AudioBuffer
 {
 	public:
-							AudioBuffer						() : RingBuffer(0), ReadCount(0), WriteCount(0), InputSpeed(1)
+							AudioBuffer						() : ReadCount(0), WriteCount(0), InputSpeed(1)
 		{
 		}
 

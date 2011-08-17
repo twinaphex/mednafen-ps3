@@ -10,7 +10,8 @@ SOURCE		:=	$(PLATFORM) src src/GUI src/GUI/Summerface opengl_common src/utility 
 SNDTOUCHFILES	:=	src/thirdparty/soundtouch/source/SoundTouch/AAFilter.cpp            src/thirdparty/soundtouch/source/SoundTouch/BPMDetect.cpp					\
 					src/thirdparty/soundtouch/source/SoundTouch/PeakFinder.cpp			src/thirdparty/soundtouch/source/SoundTouch/RateTransposer.cpp				\
 					src/thirdparty/soundtouch/source/SoundTouch/SoundTouch.cpp			src/thirdparty/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp			\
-					src/thirdparty/soundtouch/source/SoundTouch/FIRFilter.cpp           src/thirdparty/soundtouch/source/SoundTouch/TDStretch.cpp
+					src/thirdparty/soundtouch/source/SoundTouch/FIRFilter.cpp           src/thirdparty/soundtouch/source/SoundTouch/TDStretch.cpp					\
+					src/thirdparty/soundtouch/source/SoundTouch/cpu_detect_x86_gcc.cpp
 
 SIMPLEINIFILES	:=	src/thirdparty/simpleini/ConvertUTF.c
 
@@ -26,7 +27,7 @@ FEXCPPFILES		:=	src/thirdparty/fex/fex/Binary_Extractor.cpp  src/thirdparty/fex/
 
 
 CFILES			+=	$(FEXCFILES) $(SIMPLEINIFILES) $(UTF8DECODEFILES)
-CXXFILES		+=	$(FEXCPPFILES) $(SOUNDTOUCHFILES)
+CXXFILES		+=	$(FEXCPPFILES) $(SNDTOUCHFILES)
 
 
 INCLUDE		:=	. src src/thirdparty/fex src/thirdparty/soundtouch/include
