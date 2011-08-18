@@ -35,18 +35,6 @@ ASFLAGS		+= $(DEPSOPTIONS)
 CPPFLAGS	+= $(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir))
 LDFLAGS		+= $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
-#Determine smart pointer mode
-ifeq ($(strip $(BOOST_PATH)),)
- ifeq ($(strip $(PLATFORM)),cell)
-  $(error Set BOOST_PATH in environment)
- else
-  $(warning Building as C++0x)
-  CPPFLAGS += -DUSE_CPP0X_SMARTPTR -std=c++0x
- endif
-else
- CPPFLAGS += -I$(BOOST_PATH)
-endif
-
 #Determine output file type
 ifeq ($(strip $(TARGETPLATFORM)),windows)
  OUTTYPE				:=	exe

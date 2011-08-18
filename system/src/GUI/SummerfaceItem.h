@@ -43,4 +43,4 @@ class													SummerfaceItemUser
 };
 
 typedef SummerfaceItemUser<int>							SummerfaceItem;
-typedef smartptr::shared_ptr<SummerfaceItem>			SummerfaceItem_Ptr;
+

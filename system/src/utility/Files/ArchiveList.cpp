@@ -14,7 +14,7 @@
 		{
 			if(fex_name(Archive) != 0)
 			{
-				AddItem(smartptr::make_shared<SummerfaceItem>(fex_name(Archive), ""));
+				AddItem(new SummerfaceItem(fex_name(Archive), ""));
 			}
 		
 			fex_next(Archive);
@@ -27,7 +27,7 @@
 	else
 	{
 		Archive = 0;
-		AddItem(smartptr::make_shared<SummerfaceItem>("FAILED TO OPEN ARCHIVE", "ErrorIMAGE"));
+		AddItem(new SummerfaceItem("FAILED TO OPEN ARCHIVE", "ErrorIMAGE"));
 	}
 }
 

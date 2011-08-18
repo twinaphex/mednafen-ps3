@@ -9,8 +9,7 @@ DEC_AND_DEF(PathBuild, es_paths);
 #undef DEC_AND_DEF
 
 class	Logger;
-typedef smartptr::shared_ptr<Logger> Logger_Ptr;
-extern Logger_Ptr es_log;
+extern Logger* es_log;
 
 //Happy functions
 void					InitES					(void (*aExitFunction)() = 0, int argc = 0, char** argv = 0);

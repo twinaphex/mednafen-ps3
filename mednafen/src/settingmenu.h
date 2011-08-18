@@ -38,15 +38,11 @@ class								SettingMenu
 	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;	///<Collection type for the Settings cache
 
 	typedef SummerfaceItemUser<std::string>						CategoryListItem;
-	typedef smartptr::shared_ptr<CategoryListItem>				CategoryListItem_Ptr;
 	typedef AnchoredListView<CategoryListItem>					CategoryListType;
-	typedef smartptr::shared_ptr<CategoryListType>				CategoryListType_Ptr;
 
 	typedef GroupListView<SettingItem>							SettingListType;
-	typedef smartptr::shared_ptr<SettingListType>				SettingListType_Ptr;
 
 	typedef AnchoredListView<SummerfaceItem>					EnumListType;
-	typedef smartptr::shared_ptr<EnumListType>					EnumListType_Ptr;
 
 	public:
 		///Create a new SettingMenu.
@@ -59,7 +55,7 @@ class								SettingMenu
 		///Run the setting editor.
 		void						Do									();
 
-		int							HandleInput							(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton);
+		int							HandleInput							(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
 		///Refresh the parent list's header if needed.
 		void						DoHeaderRefresh						();
@@ -97,9 +93,9 @@ class								SettingMenu
 		std::string					TranslateCategory					(const char* aCategory);
 
 	private:
-		SettingListType_Ptr			List;								///<SummerfaceList used for displaying a category of settings.
-		CategoryListType_Ptr		CategoryList;						///<SummerfaceList used for displaying all categories.
-		Summerface_Ptr				CategoryInterface;					///<Summerface object used for the CategoryList.
+		SettingListType*			List;								///<SummerfaceList used for displaying a category of settings.
+		CategoryListType*			CategoryList;						///<SummerfaceList used for displaying all categories.
+		Summerface*					CategoryInterface;					///<Summerface object used for the CategoryList.
 
 		SettingCollection			Settings;							///<The cache of settings from mednafen.
 

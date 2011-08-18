@@ -5,7 +5,6 @@ class							CheatMenu
 {
 	class											Cheat;
 	typedef AnchoredListView<Cheat>					CheatListType;
-	typedef smartptr::shared_ptr<CheatListType>		CheatListType_Ptr;
 
 	private:
 		///Class describing a Cheat as a SummerfaceItem.
@@ -93,7 +92,7 @@ class							CheatMenu
 	public:
 		///Create a new CheatMenu.
 								CheatMenu				() :
-			CheatList(smartptr::make_shared<CheatListType>(Area(10, 10, 80, 80))),
+			CheatList(new CheatListType(Area(10, 10, 80, 80))),
 			Blank(false)
 		{
 			//Make the menu
@@ -107,26 +106,26 @@ class							CheatMenu
 			if(CheatList->GetItemCount() == 0)
 			{
 				Blank = true;
-				CheatList->AddItem(smartptr::make_shared<Cheat>());
+				CheatList->AddItem(new Cheat());
 			}
 		}
 
 		///Run the CheatMenu.
 		void					Do						()
 		{
-			Summerface_Ptr sface = Summerface::Create("CHEATS", CheatList);
-			sface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<CheatMenu> >(this));
-			sface->Do();
+			Summerface sface("CHEATS", CheatList);
+			sface.AttachConduit(new SummerfaceTemplateConduit<CheatMenu>(this));
+			sface.Do();
 		}
 
 		///Implement SummerfaceInputConduit to handle the CheatMenu.
 		///@param aInterface Pointer to Summerface making the call.
 		///@param aWindow Name of the active SummerfaceWindow.
 		///@return 0: Ignore, 1: Eat, -1: Close Interface
-		int						HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+		int						HandleInput				(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 		{
 			//Get a pointer to the selected cheat
-			smartptr::shared_ptr<Cheat> cheat = CheatList->GetSelected();
+			Cheat* cheat = CheatList->GetSelected();
 
 			//Toggle a cheat's status
 			if(!Blank && aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
@@ -220,14 +219,14 @@ class							CheatMenu
 			if(aData)
 			{
 				CheatMenu* menu = (CheatMenu*)aData;
-				menu->CheatList->AddItem(smartptr::make_shared<Cheat>(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
+				menu->CheatList->AddItem(new Cheat(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
 			}
 
 			return 1;
 		}
 
 	private:
-		CheatListType_Ptr		CheatList;				///<List of Cheats.
+		CheatListType*			CheatList;				///<List of Cheats.
 		bool					Blank;					///<True if no Cheats were found.
 };
 

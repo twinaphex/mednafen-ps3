@@ -1,24 +1,28 @@
 #include <es_system.h>
 #include "Summerface.h"
 
-Summerface_Ptr								Summerface::Create									()
+											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow)
 {
-	Summerface_Ptr sface = smartptr::make_shared<Summerface>();
-	assert(sface);
-	return sface;
+	if(aWindow)
+	{
+		AddWindow(aName, aWindow);
+	}
 }
 
-
-Summerface_Ptr								Summerface::Create									(const std::string& aName, SummerfaceWindow_Ptr aWindow)
+											Summerface::~Summerface								()
 {
-	Summerface_Ptr sface = smartptr::make_shared<Summerface>();
-	sface->AddWindow(aName, aWindow);
+	//Kill InputConduits
+	for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
+	{
+		delete *i;
+	}
 
-	assert(sface);
-
-	return sface;
+	//Kill Windows
+	for(WindowSet::iterator i = Windows.begin(); i != Windows.end(); i ++)
+	{
+		delete i->second;
+	}
 }
-
 
 bool										Summerface::Draw									()
 {
@@ -45,7 +49,7 @@ bool										Summerface::Draw									()
 	}
 
 	//Draw the windows
-	for(std::map<std::string, SummerfaceWindow_Ptr>::iterator i = Windows.begin(); i != Windows.end(); i ++)
+	for(WindowSet::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
 		if(i->second->PrepareDraw())
 		{
@@ -67,7 +71,7 @@ bool										Summerface::Input									(uint32_t aButton)
 	{
 		if(*i)
 		{
-			int result = (*i)->HandleInput(shared_from_this(), ActiveWindow, aButton);
+			int result = (*i)->HandleInput(this, ActiveWindow, aButton);
 
 			if(result)
 			{

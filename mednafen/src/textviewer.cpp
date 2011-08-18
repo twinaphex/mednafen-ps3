@@ -6,12 +6,12 @@
 
 
 					TextFileViewer::TextFileViewer				() :
-	Viewer(smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), "NO FILE", false)),
-	Interface(Summerface::Create("TextViewer", Viewer)),
-	Browser(smartptr::shared_ptr<FileSelect>(new FileSelect("Select Text File", Bookmarks, ""))),
+	Viewer(new TextViewer(Area(10, 10, 80, 80), "NO FILE", false)),
+	Interface(new Summerface("TextViewer", Viewer)),
+	Browser(new FileSelect("Select Text File", Bookmarks, "")),
 	Loaded(false)
 {
-	Interface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<TextFileViewer> >(this));
+	Interface->AttachConduit(new SummerfaceTemplateConduit<TextFileViewer>(this));
 }
 
 void				TextFileViewer::Display						()
@@ -34,7 +34,7 @@ void				TextFileViewer::Display						()
 	Interface->Do();
 }
 
-int					TextFileViewer::HandleInput					(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+int					TextFileViewer::HandleInput					(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	if(aButton == ES_BUTTON_TAB)
 	{

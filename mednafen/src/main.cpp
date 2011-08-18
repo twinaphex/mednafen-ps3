@@ -8,7 +8,7 @@
 
 namespace
 {
-	int						FileBrowserHook				(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+	int						FileBrowserHook				(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 	{
 		if(aButton == ES_BUTTON_AUXRIGHT3)
 		{
@@ -18,7 +18,7 @@ namespace
 
 		if(aButton == ES_BUTTON_AUXLEFT3)
 		{
-			Summerface::Create("Text", smartptr::make_shared<TextViewer>(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt")))->Do();
+			Summerface("Text", new TextViewer(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt"))).Do();
 			return 1;
 		}
 
@@ -44,7 +44,7 @@ static std::string			GetFile					()
 
 	if(FileChooser == 0)
 	{
-		FileChooser = new FileSelect("Select ROM", bookmarks, "", smartptr::make_shared<SummerfaceStaticConduit>(FileBrowserHook, (void*)0));
+		FileChooser = new FileSelect("Select ROM", bookmarks, "", new SummerfaceStaticConduit(FileBrowserHook, (void*)0));
 	}
 
 	std::string result = FileChooser->GetFile();
@@ -60,8 +60,8 @@ void						ReloadEmulator			(const std::string& aFileName)
 	if(!filename.empty())
 	{
 		//Load file as an archive
-		smartptr::shared_ptr<ArchiveList> archive = smartptr::make_shared<ArchiveList>(Area(10, 10, 80, 80), filename);
-		Summerface_Ptr sface = Summerface::Create("Archive", archive);
+		ArchiveList* archive = new ArchiveList(Area(10, 10, 80, 80), filename);
+		Summerface sface("Archive", archive);
 
 		//If there are no items we are lost
 		if(archive->IsValid())
@@ -69,7 +69,7 @@ void						ReloadEmulator			(const std::string& aFileName)
 			//If there is more than one file, run a list to get the specific file
 			if(archive->GetItemCount() > 1)
 			{
-				sface->Do();
+				sface.Do();
 
 				if(archive->WasCanceled())
 				{

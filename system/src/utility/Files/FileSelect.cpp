@@ -3,7 +3,7 @@
 
 namespace
 {
-	bool								AlphaSortDirectory					(FileSelect::DirectoryItem_Ptr a, FileSelect::DirectoryItem_Ptr b)
+	bool								AlphaSortDirectory					(FileSelect::DirectoryItem* a, FileSelect::DirectoryItem* b)
 	{
 		if(a->IsDirectory && !b->IsDirectory)		return true;
 		if(!a->IsDirectory && b->IsDirectory)		return false;
@@ -24,9 +24,9 @@ namespace
 }
 
 
-										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook) :
-	List(smartptr::make_shared<DirectoryList>(Area(10, 10, 80, 80))),
-	Interface(Summerface::Create("List", List)),
+										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook) :
+	List(new DirectoryList(Area(10, 10, 80, 80))),
+	Interface(new Summerface("List", List)),
 	Header(aHeader),
 	BookMarks(aBookMarks)
 {
@@ -35,13 +35,18 @@ namespace
 		Interface->AttachConduit(aInputHook);
 	}
 
-	Interface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<FileSelect> >(this));
+	Interface->AttachConduit(new SummerfaceTemplateConduit<FileSelect>(this));
 
 	Paths.push(aPath);
 	LoadList(aPath);
 }
 
-int										FileSelect::HandleInput				(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+										FileSelect::~FileSelect				()
+{
+	delete Interface;
+}
+
+int										FileSelect::HandleInput				(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	//Use the input conduit to toggle bookmarks
 	if(aButton == ES_BUTTON_AUXRIGHT2)
@@ -125,14 +130,14 @@ void								FileSelect::LoadList						(const std::string& aPath)
 		{
 			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 			{
-				List->AddItem(smartptr::make_shared<DirectoryItem>((*i), (*i), true, false, false));
+				List->AddItem(new DirectoryItem((*i), (*i), true, false, false));
 			}
 
 			List->Sort(AlphaSortDirectory);
 		}
 		else
 		{
-			List->AddItem(smartptr::make_shared<DirectoryItem>("No Volumes Found", "", false, false, false));
+			List->AddItem(new DirectoryItem("No Volumes Found", "", false, false, false));
 		}
 
 		//Load bookmarks
@@ -155,7 +160,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 						directory = true;
 				}
 				
-				List->AddItem(smartptr::make_shared<DirectoryItem>(nicename, *i, directory, !directory, true));
+				List->AddItem(new DirectoryItem(nicename, *i, directory, !directory, true));
 			}
 		}
 	}
@@ -168,14 +173,14 @@ void								FileSelect::LoadList						(const std::string& aPath)
 		{
 			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 			{
-				List->AddItem(smartptr::make_shared<DirectoryItem>((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
+				List->AddItem(new DirectoryItem((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
 			}
 
 			List->Sort(AlphaSortDirectory);
 		}
 		else
 		{
-			List->AddItem(smartptr::make_shared<DirectoryItem>("Directory is empty", "", false, false, false));
+			List->AddItem(new DirectoryItem("Directory is empty", "", false, false, false));
 		}
 	}
 }

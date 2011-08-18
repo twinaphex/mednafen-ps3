@@ -76,21 +76,21 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
-	Summerface_Ptr sface = Summerface::Create();
+	Summerface sface;
 
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
 	{
 		//More than one type, run a list to choose
-		smartptr::shared_ptr<InputList> linelist = smartptr::make_shared<InputList>(Area(10, 10, 80, 20));
+		InputList* linelist = new InputList(Area(10, 10, 80, 20));
 
 		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
 		{
-			linelist->AddItem(smartptr::make_shared<InputItem>(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "", GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName));
+			linelist->AddItem(new InputItem(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "", GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName));
 		}
 
-		sface->AddWindow("Categories", linelist);
-		sface->Do();
+		sface.AddWindow("Categories", linelist);
+		sface.Do();
 
 		PadType = linelist->GetSelected()->UserData;
 	}
@@ -110,19 +110,19 @@ void							InputHandler::Configure				()
 	uint32_t buttonID;
 
 	//Create the window to receive input
-	SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
+	SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
 
 	//Add the window to the interface and attach the input hook
-	sface->AddWindow("InputWindow", button);
-	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
-	sface->SetInputWait(false);
+	sface.AddWindow("InputWindow", button);
+	sface.AttachConduit(new SummerfaceStaticConduit(GetButton, &buttonID));
+	sface.SetInputWait(false);
 
 	//Attach any available layout images
 	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
 	if(ImageManager::GetImage(imagename))
 	{
-		sface->AddWindow("InputImage", smartptr::make_shared<SummerfaceImage>(Area(10, 50, 80, 40), imagename));
-		sface->SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
+		sface.AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
+		sface.SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
 	}
 
 	//Grab all of the buttons
@@ -133,7 +133,7 @@ void							InputHandler::Configure				()
 		{
 			//Prep and run the interface
 			button->SetMessage("Press button for [%s]", inputs[j].Data->Name);
-			sface->Do();
+			sface.Do();
 
 			//Put the result in the settings file
 			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
@@ -143,7 +143,7 @@ void							InputHandler::Configure				()
 			if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
 			{
 				button->SetMessage("Press button for [Rapid %s]", inputs[j].Data->Name);
-				sface->Do();
+				sface.Do();
 
 				settingname += "_rapid";
 				MDFNI_SetSettingUI(settingname.c_str(), buttonID);
@@ -264,6 +264,7 @@ void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char
 			memset(&ii, 0, sizeof(ii));
 
 			//Only support buttons and rapid buttons
+
 			//TODO: Support other types of inputs
 			if(inputinfo[j].Type == IDIT_BUTTON || inputinfo[j].Type == IDIT_BUTTON_CAN_RAPID)
 			{
@@ -285,7 +286,7 @@ void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char
 	}
 }
 
-int								InputHandler::GetButton					(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+int								InputHandler::GetButton					(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	//Conduit for config interface
 	static bool gotbutton = true;

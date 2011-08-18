@@ -2,7 +2,7 @@
 #include "src/utility/Logger.h"
 #include "src/utility/Keyboard.h"
 
-Logger_Ptr			es_log;
+Logger*				es_log;
 ESThreads*			es_threads = 0;
 PathBuild*			es_paths = 0;
 
@@ -25,17 +25,17 @@ std::string			ESSUB_GetBaseDirectory	();
 #ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage)
 {
-	SummerfaceLabel_Ptr text = smartptr::make_shared<SummerfaceLabel>(Area(10, 10, 80, 20), aMessage);
+	SummerfaceLabel* text = new SummerfaceLabel(Area(10, 10, 80, 20), aMessage);
 	text->SetWordWrap(true);
-	Summerface::Create("Error", text)->Do();
+	Summerface("Error", text).Do();
 }
 #endif
 
 #ifndef HAVE_ESSUB_GETSTRING
 std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
 {
-	Keyboard_Ptr kb = smartptr::make_shared<Keyboard>(Area(10, 10, 80, 80), aHeader, aMessage);
-	Summerface::Create("Keyboard", kb)->Do();
+	Keyboard* kb = new Keyboard(Area(10, 10, 80, 80), aHeader, aMessage);
+	Summerface sface("Keyboard", kb); sface.Do();
 	return kb->GetText();
 }
 #endif
@@ -44,15 +44,15 @@ std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& 
 bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 {
 	//Create the list
-	smartptr::shared_ptr<AnchoredListView<SummerfaceItem> > list = smartptr::make_shared<AnchoredListView<SummerfaceItem> >(Area(10, 10, 80, 20));
+	AnchoredListView<SummerfaceItem>* list = new AnchoredListView<SummerfaceItem>(Area(10, 10, 80, 20));
 	list->SetHeader(aMessage);
 
 	//Add the items
-	list->AddItem(smartptr::make_shared<SummerfaceItem>("Yes", "CheckIMAGE"));
-	list->AddItem(smartptr::make_shared<SummerfaceItem>("No", "ErrorIMAGE"));
+	list->AddItem(new SummerfaceItem("Yes", "CheckIMAGE"));
+	list->AddItem(new SummerfaceItem("No", "ErrorIMAGE"));
 
 	//Run the interface
-	Summerface::Create("Confirm", list)->Do();
+	Summerface sface("Confirm", list); sface.Do();
 
 	//Return the result
 	if(aCancel) *aCancel = list->WasCanceled();
@@ -63,9 +63,9 @@ bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 #ifndef HAVE_ESSUB_GETNUMBER
 bool				ESSUB_GetNumber			(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
 {
-	SummerfaceNumber_Ptr number = smartptr::make_shared<SummerfaceNumber>(Area(10, 45, 80, 10), aValue, aDigits, aHex);
+	SummerfaceNumber* number = new SummerfaceNumber(Area(10, 45, 80, 10), aValue, aDigits, aHex);
 	number->SetHeader(aHeader);
-	Summerface::Create("NUMB", number)->Do();
+	Summerface sface("NUMB", number); sface.Do();
 
 	if(!number->WasCanceled())
 	{
@@ -110,7 +110,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 
 	ESInput::Initialize();
 
-	es_log = smartptr::make_shared<Logger>(Area(10, 10, 80, 80));
+	es_log = new Logger(Area(10, 10, 80, 80));
 }
 
 void				QuitES					()
@@ -128,6 +128,8 @@ void				QuitES					()
 	delete es_paths;
 
 	ESSUB_Quit();
+
+	delete es_log;
 }
 
 bool				ESHasArgument			(const std::string& aName)

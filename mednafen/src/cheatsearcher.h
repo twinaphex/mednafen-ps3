@@ -11,12 +11,10 @@ class													CheatSearcher
 		};
 
 		typedef AnchoredListView<SummerfaceItem>		ModeListType;
-		typedef smartptr::shared_ptr<ModeListType>		ModeListType_Ptr;	
 		typedef SummerfaceItemUser<Result>				ResultListItem;
 		typedef AnchoredListView<ResultListItem>		ResultListType;
-		typedef smartptr::shared_ptr<ResultListType>	ResultListType_Ptr;	
 
-		static ResultListType_Ptr						ResultList;
+		static ResultListType*							ResultList;
 		static int										GetResults				(uint32_t aAddress, uint64_t aOriginal, uint64_t aValue, void* aData)
 		{
 			//The name
@@ -27,7 +25,7 @@ class													CheatSearcher
 			Result r = {aAddress, aOriginal, aValue};
 
 			//Add to list
-			ResultList->AddItem(smartptr::make_shared<ResultListItem>(name.str(), "", r));
+			ResultList->AddItem(new ResultListItem(name.str(), "", r));
 
 			return 1;
 		}
@@ -45,7 +43,7 @@ class													CheatSearcher
 		static int32_t				Mode;
 		static int32_t				State;
 
-		static ModeListType_Ptr		SearchFilterList;
+		static ModeListType*		SearchFilterList;
 
 		static int64_t				Original;
 		static int64_t				Changed;

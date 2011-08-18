@@ -5,7 +5,7 @@
 template <typename T>
 class													SummerfaceList : public SummerfaceWindow, public SummerfaceCancelable
 {
-	typedef smartptr::shared_ptr<T>						Item_Ptr;						///<The type of item in the list.
+	typedef T*											Item_Ptr;						///<The type of item in the list.
 
 	public:
 		///Create a new SummerfaceList.
@@ -17,12 +17,13 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 		{
 		}
 
-		///Empty virtual destructor.
+		///Destructor.
 		virtual											~SummerfaceList					()
 		{
+			ClearItems();
 		}
 
-		///Return the index of the currently selected item, it is safe to assume the returned item is always a valid item.
+		///Return the index of the currently selected item.
 		//It is an error if the index is not currently valid, it is the responsibility of the caller to ensure the list is not empty before calling.
 		///@return The index of the currently selected item. 
 		uint32_t										GetSelection					() const
@@ -31,7 +32,7 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 			return SelectedIndex;
 		}
 
-		///Return a pointer to the currently selected item, it is safe to assume the returned item is always a valid item.
+		///Return a pointer to the currently selected item.
 		///It is an error if the list selection is not currently valid, it is the responsibility of the caller to ensure the list is not empty before calling.
 		Item_Ptr										GetSelected						() const
 		{
@@ -39,7 +40,7 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 			return Items[SelectedIndex];
 		}
 
-		///Return a pointer to the item at a given index, it is safe to assume the returned item is always a valid item.
+		///Return a pointer to the item at a given index.
 		//It is an error if aIndex is not currently valid.
 		Item_Ptr										GetItem							(uint32_t aIndex)
 		{
@@ -83,6 +84,11 @@ class													SummerfaceList : public SummerfaceWindow, public SummerfaceCan
 		///Remove all items from the list.
 		virtual void									ClearItems						()
 		{
+			for(int i = 0; i != Items.size(); i ++)
+			{
+				delete Items[i];
+			}
+
 			Items.clear();
 			SelectedIndex = 0;
 		}
@@ -154,7 +160,7 @@ class													ListView : public SummerfaceList<T>
 template <typename T>
 class													AnchoredListView : public ListView<T>
 {
-	typedef smartptr::shared_ptr<T>						Item_Ptr;
+	typedef T*											Item_Ptr;
 
 	public:
 														AnchoredListView				(const Area& aRegion, bool aAnchored = true, bool aWrap = false); //External
@@ -176,7 +182,7 @@ class													AnchoredListView : public ListView<T>
 template <typename T>
 class													GridListView : public ListView<T>
 {
-	typedef smartptr::shared_ptr<T>						Item_Ptr;
+	typedef T*											Item_Ptr;
 
 	public:
 														GridListView					(const Area& aRegion, uint32_t aWidth, uint32_t aHeight, bool aHeader = true, bool aLabels = false); //External
@@ -199,7 +205,7 @@ class													GridListView : public ListView<T>
 template <typename T>
 class													GroupListView : public AnchoredListView<T>
 {
-	typedef smartptr::shared_ptr<T>						Item_Ptr;
+	typedef T*											Item_Ptr;
 
 	public:
 														GroupListView					(const Area& aRegion); //External

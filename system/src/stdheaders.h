@@ -20,20 +20,3 @@
 #include <fstream>
 #include <algorithm>
 
-//Smart ptr
-#ifndef USE_CPP0X_SMARTPTR
-#include <boost/smart_ptr.hpp>
-#include <boost/make_shared.hpp>
-namespace smartptr = boost;
-#else
-#include <memory>
-namespace smartptr = std;
-#endif
-
-
-//Shared ptr helper macro
-#define DEFINE_PTR_TYPE(a)						\
-	class	a;									\
-	typedef smartptr::shared_ptr<a>	a##_Ptr;	\
-	typedef smartptr::weak_ptr<a>	a##_WeakPtr;
-
