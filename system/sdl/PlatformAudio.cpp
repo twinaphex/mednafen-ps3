@@ -2,8 +2,28 @@
 #include <SoundTouch.h>
 #include "src/utility/AudioBuffer.h"
 
+namespace
+{
+	SDL_AudioSpec			Format;
+	AudioBuffer<>			Buffer;
+	ESSemaphore*			Semaphore;
 
-void					ESAudio::Initialize				()
+	soundtouch::SoundTouch	PitchShifter;
+	uint32_t				AuxBuffer[48000];
+	uint32_t				Speed = 1;
+
+	void					ProcessAudioCallback			(void *userdata, Uint8 *stream, int len)
+	{
+		Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);
+
+		if(!Semaphore->GetValue())
+		{
+			Semaphore->Post();
+		}
+	}
+}
+
+void						ESAudio::Initialize				()
 {
 	SDL_AudioSpec spec;
 	spec.freq = 48000;
@@ -22,23 +42,13 @@ void					ESAudio::Initialize				()
 	PitchShifter.setChannels(2);
 }
 
-void					ESAudio::Shutdown				()
+void						ESAudio::Shutdown				()
 {
 	SDL_CloseAudio();
 	delete Semaphore;
 }
 
-void					ESAudio::ProcessAudioCallback	(void *userdata, Uint8 *stream, int len)
-{
-	Buffer.ReadDataSilentUnderrun((uint32_t*)stream, len / 4);
-
-	if(!Semaphore->GetValue())
-	{
-		Semaphore->Post();
-	}
-}
-
-void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
+void						ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 {
 	//Pitch shifting
 	if(Speed != 1)
@@ -75,27 +85,19 @@ void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 	}
 }
 
-volatile int32_t		ESAudio::GetBufferAmount		()
+volatile int32_t			ESAudio::GetBufferAmount		()
 {
 	return Buffer.GetBufferAmount();
 }
 
-volatile int32_t		ESAudio::GetBufferFree			()
+volatile int32_t			ESAudio::GetBufferFree			()
 {
 	return Buffer.GetBufferFree();
 }
 
-void					ESAudio::SetSpeed				(uint32_t aSpeed)
+void						ESAudio::SetSpeed				(uint32_t aSpeed)
 {
 	Speed = aSpeed;
 	PitchShifter.setTempo(aSpeed);
 }
-
-SDL_AudioSpec			ESAudio::Format;
-AudioBuffer<>			ESAudio::Buffer;
-ESSemaphore*			ESAudio::Semaphore;
-
-soundtouch::SoundTouch	ESAudio::PitchShifter;
-uint32_t				ESAudio::AuxBuffer[48000];
-uint32_t				ESAudio::Speed = 1;
 
