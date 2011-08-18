@@ -7,7 +7,7 @@ int									CheatSearcher::DoSearchFilterMenu		()
 	//Create the list if needed
 	if(!SearchFilterList)
 	{
-		SearchFilterList = smartptr::make_shared<ModeListType>(Area(10, 10, 80, 80));
+		SearchFilterList = new ModeListType(Area(10, 10, 80, 80));
 		SearchFilterList->SetHeader("Step 1: Choose Cheat Search Type");
 
 		const char *const types[6] =
@@ -22,12 +22,12 @@ int									CheatSearcher::DoSearchFilterMenu		()
 
 		for(int i = 0; i != 6; i ++)
 		{
-			SearchFilterList->AddItem(smartptr::make_shared<SummerfaceItem>(types[i], "", i));
+			SearchFilterList->AddItem(new SummerfaceItem(types[i], "", i));
 		}
 	}
 
 	//Run it and return the result
-	Summerface::Create("TYPES", SearchFilterList)->Do();
+	Summerface sface("TYPES", SearchFilterList); sface.Do();
 	return SearchFilterList->WasCanceled() ? -1 : SearchFilterList->GetSelected()->UserData;
 }
 
@@ -36,7 +36,7 @@ bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 	//Create a list if needed
 	if(!ResultList)
 	{
-		ResultList = smartptr::make_shared<ResultListType>(Area(10, 10, 80, 80));
+		ResultList = new ResultListType(Area(10, 10, 80, 80));
 		ResultList->SetHeader("Next Step: Choose a cheat, if any, that you want to install.");
 	}
 
@@ -48,7 +48,7 @@ bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 		MDFNI_CheatSearchGet(GetResults, 0);
 
 		//Run the list
-		Summerface::Create("TYPES", ResultList)->Do();
+		Summerface sface("TYPES", ResultList); sface.Do();
 
 		//If the list was not canceled
 		if(!ResultList->WasCanceled())
@@ -162,10 +162,10 @@ void								CheatSearcher::Reset					()
 	State = 0;
 }
 
-CheatSearcher::ResultListType_Ptr	CheatSearcher::ResultList;
+CheatSearcher::ResultListType*		CheatSearcher::ResultList;
 int32_t								CheatSearcher::Mode = -1;
 int32_t								CheatSearcher::State = 0;
-CheatSearcher::ModeListType_Ptr		CheatSearcher::SearchFilterList;
+CheatSearcher::ModeListType*		CheatSearcher::SearchFilterList;
 int64_t								CheatSearcher::Original;
 int64_t								CheatSearcher::Changed;
 

@@ -1,18 +1,17 @@
 #pragma once
 #include "ers.h"
 
-DEFINE_PTR_TYPE(MDFN_Surface);
-DEFINE_PTR_TYPE(Texture);
-DEFINE_PTR_TYPE(InputHandler);
-DEFINE_PTR_TYPE(Filter);
-DEFINE_PTR_TYPE(TextFileViewer);
+class MDFN_Surface;
+class Texture;
+class InputHandler;
+class Filter;
+class TextFileViewer;
 
 class												FastCounter;
 
 class	MednafenEmu
 {
 	typedef SummerfaceItemUser<std::string>			CommandItem;
-	typedef smartptr::shared_ptr<CommandItem>		CommandItem_Ptr;
 	typedef GridListView<CommandItem>				CommandList;
 
 	public:
@@ -51,7 +50,7 @@ class	MednafenEmu
 		static void						DoCommands			();
 
 		///Tell the emulator to perform a command. It is an error to call this function before a game is loaded.
-		static int						DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton = 0xFFFFFFFF);
+		static int						DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton = 0xFFFFFFFF);
 
 		///Reread list of settings, used by the driver, from the mednafen core.
 		///@param aOnLoad Set to force certain settings to update. Used when loading a new game to prevent stale settings from
@@ -83,12 +82,12 @@ class	MednafenEmu
 		static bool						IsInitialized;		///<Set by Init, cleared by Quit.
 		static bool						IsLoaded;			///<Set by LoadGame, cleared by CloseGame.
 
-		static Texture_Ptr				Buffer;				///<ESTexture used for presenting the frame.
-		static MDFN_Surface_Ptr			Surface;			///<Mednafen Surface object used to receive video from the emulator.
+		static Texture*					Buffer;				///<ESTexture used for presenting the frame.
+		static MDFN_Surface*			Surface;			///<Mednafen Surface object used to receive video from the emulator.
 		static bool						SuspendDraw;		///<Used to disable the DummyFrame function during the save state menu.
 
 		static MDFNGI*					GameInfo;			///<Mednafen structure describing the loaded emulator module.
-		static InputHandler_Ptr			Inputs;				///<The InputHandler object that translates button presses for the mednafen core.
+		static InputHandler*			Inputs;				///<The InputHandler object that translates button presses for the mednafen core.
 		static FastCounter				Counter;			///<A FastCounter object used to handle fast forward and FPS counting.
 		static EmuRealSyncher			Syncher;			///<A structure used to sync emulator time with real time. (Used during netplay only).
 	
@@ -107,7 +106,7 @@ class	MednafenEmu
 		static uint32_t					SkipCount;			///<Number of consecutively skipped frames. Used to prevent too many skipped frames from occurring at once.
 
 		//Text viewer
-		static TextFileViewer_Ptr		TextFile;			///<The opened text file.
+		static TextFileViewer*			TextFile;			///<The opened text file.
 
 		//Setting cache
 		static bool						RewindSetting;		///<Determine if the State rewinder should be actively recording frames.

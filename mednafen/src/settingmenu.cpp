@@ -5,7 +5,7 @@
 
 #include "src/utility/Files/FileSelect.h"
 
-static bool						CompareItems									(smartptr::shared_ptr<SettingItem> a, smartptr::shared_ptr<SettingItem> b)
+static bool						CompareItems									(SettingItem* a, SettingItem* b)
 {
 	//
 	if(a->GetGroup() != b->GetGroup())
@@ -56,9 +56,9 @@ std::string						SettingItem::GetText							()
 
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(smartptr::make_shared<SettingListType>(Area(10, 10, 80, 80))),
-	CategoryList(smartptr::make_shared<CategoryListType>(Area(10, 10, 80, 80))),
-	CategoryInterface(Summerface::Create("Categories", CategoryList))
+	List(new SettingListType(Area(10, 10, 80, 80))),
+	CategoryList(new CategoryListType(Area(10, 10, 80, 80))),
+	CategoryInterface(new Summerface("Categories", CategoryList))
 {
 	//Cache the setting values from mednafen
 	LoadSettings();
@@ -69,7 +69,7 @@ std::string						SettingItem::GetText							()
 	//Stuff the category list
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
 	{
-		CategoryList->AddItem(smartptr::make_shared<CategoryListItem>(TranslateCategory(i->first.c_str()), "", i->first));
+		CategoryList->AddItem(new CategoryListItem(TranslateCategory(i->first.c_str()), "", i->first));
 	}
 
 	//Sort the list and choose the default selection
@@ -94,17 +94,17 @@ void							SettingMenu::Do									()
 			const std::vector<const MDFNCS*>& items = Settings[CategoryList->GetSelected()->UserData];
 			for(int i = 0; i != items.size(); i ++)
 			{
-				List->AddItem(smartptr::make_shared<SettingItem>(items[i], TranslateGroup(*items[i], CategoryList->GetSelected()->UserData)));
+				List->AddItem(new SettingItem(items[i], TranslateGroup(*items[i], CategoryList->GetSelected()->UserData)));
 			}
 
 			//Sort the setting list
 			List->Sort(CompareItems);
 
 			//HACK: Create the interface without input wait until the header is updated
-			Summerface_Ptr sface = Summerface::Create("SettingList", List);
-			sface->SetInputWait(false);
-			sface->AttachConduit(smartptr::make_shared<SummerfaceTemplateConduit<SettingMenu> >(this));
-			sface->Do();
+			Summerface sface("SettingList", List);
+			sface.SetInputWait(false);
+			sface.AttachConduit(new SummerfaceTemplateConduit<SettingMenu>(this));
+			sface.Do();
 		}
 		else
 		{
@@ -114,7 +114,7 @@ void							SettingMenu::Do									()
 	}
 }
 
-int								SettingMenu::HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+int								SettingMenu::HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	assert(List && List->GetItemCount() != 0);
 
@@ -199,10 +199,10 @@ bool							SettingMenu::HandleButton						(uint32_t aButton, const MDFNCS& aSett
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
 	{
 		uint32_t buttonID;
-		Summerface_Ptr sface = Summerface::Create("InputWindow", smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "Press New Button"));
-		sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(InputHandler::GetButton, &buttonID));
-		sface->SetInputWait(false);
-		sface->Do();
+		Summerface sface("InputWindow", new SummerfaceLabel(Area(10, 30, 80, 10), "Press New Button"));
+		sface.AttachConduit(new SummerfaceStaticConduit(InputHandler::GetButton, &buttonID));
+		sface.SetInputWait(false);
+		sface.Do();
 		MDFNI_SetSettingUI(aSetting.name, buttonID);
 
 		MednafenEmu::ReadSettings();
@@ -301,20 +301,20 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 	else if(aButton == ES_BUTTON_ACCEPT)
 	{
 		//Create the list
-		EnumListType_Ptr list = smartptr::make_shared<EnumListType>(Area(10, 10, 80, 80));
+		EnumListType* list = new EnumListType(Area(10, 10, 80, 80));
 		list->SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
 
 		//Place all settings into the list
 		while(values && values->string)
 		{
-			list->AddItem(smartptr::make_shared<SummerfaceItem>(values->string, ""));
+			list->AddItem(new SummerfaceItem(values->string, ""));
 			values ++;
 		}
 
 		assert(list->GetItemCount() != 0);
 
 		//Run the list
-		Summerface::Create("List", list)->Do();
+		Summerface sface("List", list); sface.Do();
 
 		//Get the new setting and feed it to mednafen
 		if(!list->WasCanceled())

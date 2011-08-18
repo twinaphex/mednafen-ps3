@@ -9,7 +9,7 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 
 
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion, bool aBorder) :
-	Interface(Summerface_WeakPtr()),
+	Interface(0),
 	Region(Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0))),
 	Client(Area(Region.X + BorderWidth, Region.Y + BorderWidth, Region.Width - BorderWidth * 2, Region.Height - BorderWidth * 2)),
 	UseBorder(aBorder)

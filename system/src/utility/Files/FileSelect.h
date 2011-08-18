@@ -25,14 +25,13 @@ class												FileSelect
 			bool									IsBookMark;
 		};
 
-		typedef smartptr::shared_ptr<DirectoryItem>	DirectoryItem_Ptr;
 		typedef AnchoredListView<DirectoryItem>		DirectoryList;
 
 	public:
-													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit_Ptr aInputHook = SummerfaceInputConduit_Ptr());
-		virtual										~FileSelect						() {};
+													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook = 0);
+		virtual										~FileSelect						();
 													
-		int											HandleInput						(Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton);
+		int											HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
 		std::string									GetFile							();
 
@@ -40,8 +39,8 @@ class												FileSelect
 		void										LoadList						(const std::string& aPath);
 
 	private:
-		smartptr::shared_ptr<DirectoryList>			List;
-		Summerface_Ptr								Interface;
+		DirectoryList*								List;
+		Summerface*									Interface;
 		std::stack<std::string>						Paths;
 
 		std::string									Header;

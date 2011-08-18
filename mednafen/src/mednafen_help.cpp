@@ -170,7 +170,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//Display log on error!
 		if(!GameInfo)
 		{
-			Summerface::Create("Log", es_log)->Do();
+			Summerface("Log", es_log).Do();
 			free(aData);
 			return false;
 		}
@@ -179,7 +179,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
 
 		//HACK: Put this before IsLoaded = true to prevent crash on PS3
-		Inputs = smartptr::make_shared<InputHandler>(GameInfo);
+		Inputs = new InputHandler(GameInfo);
 
 		//Reset states
 		MDFND_NetworkClose();
@@ -195,8 +195,8 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		ReadSettings(true);
 
 		//Create the helpers for this game
-		Buffer = Texture_Ptr(ESVideo::CreateTexture(GameInfo->fb_width, GameInfo->fb_height));
-		Surface = smartptr::make_shared<MDFN_Surface>((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
+		Buffer = ESVideo::CreateTexture(GameInfo->fb_width, GameInfo->fb_height);
+		Surface = new MDFN_Surface((void*)0, GameInfo->fb_width, GameInfo->fb_height, GameInfo->fb_width, MDFN_PixelFormat(MDFN_COLORSPACE_RGB, Buffer->GetRedShift(), Buffer->GetGreenShift(), Buffer->GetBlueShift(), Buffer->GetAlphaShift()));
 
 		Buffer->Clear(0);
 
@@ -245,10 +245,10 @@ void						MednafenEmu::CloseGame			()
 		//Clean up
 		MDFND_Rumble(0, 0);
 	
-		Inputs.reset();
-		Buffer.reset();
-		Surface.reset();
-		TextFile.reset();
+		delete Inputs;
+		delete Buffer;
+		delete Surface;
+		delete TextFile;
 
 		IsLoaded = false;
 	}
@@ -276,7 +276,7 @@ bool						MednafenEmu::Frame				()
 
 	memset(VideoWidths, 0xFF, sizeof(MDFN_Rect) * 512);
 	memset(&EmulatorSpec, 0, sizeof(EmulateSpecStruct));
-	EmulatorSpec.surface = Surface.get(); //It's a shared pointer now
+	EmulatorSpec.surface = Surface;
 	EmulatorSpec.LineWidths = VideoWidths;
 	EmulatorSpec.soundmultiplier = 1;
 	EmulatorSpec.SoundRate = 48000;
@@ -392,7 +392,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 	//Unmap and present the texture
 	Buffer->Unmap();
-	ESVideo::PresentFrame(Buffer.get(), output, AspectSetting, UnderscanSetting, Area(0, 0, 0, 0));
+	ESVideo::PresentFrame(Buffer, output, AspectSetting, UnderscanSetting, Area(0, 0, 0, 0));
 }
 
 void						MednafenEmu::DoCommands			()
@@ -424,20 +424,20 @@ void						MednafenEmu::DoCommands			()
 	};
 
 	//Setup the menu
-	smartptr::shared_ptr<CommandList> grid = smartptr::make_shared<CommandList>(Area(25, 25, 50, 50), 5, 3, true, false);
+	CommandList* grid = new CommandList(Area(25, 25, 50, 50), 5, 3, true, false);
 	grid->SetHeader("Choose Action");
 	for(int i = 0; i != 15; i ++)
 	{
-		grid->AddItem(smartptr::make_shared<CommandItem>(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
+		grid->AddItem(new CommandItem(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
 	}
 
 	//Setupt and run the interface
-	Summerface_Ptr sface = Summerface::Create("Grid", grid);
-	sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(DoCommand, (void*)0));
-	sface->Do();
+	Summerface sface("Grid", grid);
+	sface.AttachConduit(new SummerfaceStaticConduit(DoCommand, (void*)0));
+	sface.Do();
 }
 
-int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	assert(IsGameLoaded());
 
@@ -446,7 +446,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	//If the function is called as part of a UI instance, and the accept button is pressed.
 	if(aInterface && aInterface->GetWindow(aWindow) && aButton == ES_BUTTON_ACCEPT)
 	{
-		smartptr::shared_ptr<CommandList> list = smartptr::static_pointer_cast<CommandList>(aInterface->GetWindow(aWindow));
+		CommandList* list = (CommandList*)aInterface->GetWindow(aWindow);
 		command = list->GetSelected()->UserData;
 	}
 	//If the function is called called manually.
@@ -467,8 +467,8 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	if(0 == strcmp(command.c_str(), "DoSettings"))			SettingMenu(GameInfo->shortname).Do();
 	if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 	if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
-	if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
-	if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface.get(), &EmulatorSpec.DisplayRect, VideoWidths);
+	if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
+	if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 	if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
 	if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu(false).Do(); SuspendDraw = false;}
 	if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu(true).Do(); SuspendDraw = false;}
@@ -479,7 +479,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface_Ptr aInterface, 
 	{
 		if(!TextFile)
 		{
-			TextFile = smartptr::make_shared<TextFileViewer>();
+			TextFile = new TextFileViewer();
 		}
 
 		TextFile->Display();
@@ -611,12 +611,12 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 	
-Texture_Ptr					MednafenEmu::Buffer;
-MDFN_Surface_Ptr			MednafenEmu::Surface ;
+Texture*					MednafenEmu::Buffer;
+MDFN_Surface*				MednafenEmu::Surface ;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
-InputHandler_Ptr			MednafenEmu::Inputs;
+InputHandler*				MednafenEmu::Inputs;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
 
@@ -634,7 +634,7 @@ int16_t						MednafenEmu::SamplesUp[48000];
 bool						MednafenEmu::SkipNext = false;
 uint32_t					MednafenEmu::SkipCount = 0;
 
-TextFileViewer_Ptr			MednafenEmu::TextFile;
+TextFileViewer*				MednafenEmu::TextFile;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;

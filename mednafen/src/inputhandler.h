@@ -3,7 +3,6 @@
 class												InputHandler
 {
 	typedef SummerfaceItemUser<std::string>			InputItem;
-	typedef smartptr::shared_ptr<InputItem>			InputItem_Ptr;
 	typedef AnchoredListView<InputItem>				InputList;
 
 	public:
@@ -36,7 +35,7 @@ class												InputHandler
 		static void									GetGamepad						(const InputInfoStruct* aInfo, const char* aName, std::vector<InputInfo>& aInputs);
 
 	public:
-		static int									GetButton						(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton);	//For SummerfaceStaticInputConduit
+		static int									GetButton						(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton);	//For SummerfaceStaticInputConduit
 
 	protected:
 		MDFNGI*										GameInfo;

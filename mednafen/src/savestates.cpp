@@ -44,7 +44,7 @@ bool						StateLabel::Input						(uint32_t aButton)
 	//Do the action
 	if(aButton == ES_BUTTON_ACCEPT)
 	{
-		MednafenEmu::DoCommand(0, Summerface_Ptr(), Load ? "DoLoadState" : "DoSaveState");
+		MednafenEmu::DoCommand(0, 0, Load ? "DoLoadState" : "DoSaveState");
 	}
 
 	//Done

@@ -54,7 +54,7 @@ class													SummerfaceWindow
 		///Summerface::AddWindow.
 		///@param aInterface Pointer to the parent Summerface object. It is an error if this is null.
 		///@param aName Name of the window on the Summerface object. It is an error if this is empty.
-		void											SetInterface					(Summerface_Ptr aInterface, const std::string& aName)
+		void											SetInterface					(Summerface* aInterface, const std::string& aName)
 		{
 			assert(aInterface);
 			assert(aName.length() != 0);
@@ -66,10 +66,10 @@ class													SummerfaceWindow
 		///Get a pointer to the parent Summerface object. It is an error to call this function when a valid
 		///parent is not present.
 		///@return A pointer to the parent Summerface object.
-		Summerface_Ptr									GetInterface					()
+		Summerface*										GetInterface					()
 		{
-			assert(!Interface.expired());
-			return Interface.lock();
+			assert(Interface);
+			return Interface;
 		}
 
 		///Set the header of the window. The header is drawn in a separate area at the top of the window.
@@ -84,7 +84,7 @@ class													SummerfaceWindow
 	private:
 		static const uint32_t							BorderWidth = 4;				///<Width of a window border.
 
-		Summerface_WeakPtr								Interface;						///<Parent interface.
+		Summerface*										Interface;						///<Parent interface.
 
 		std::string										Name;							///<Name of the window, according to the parent interface.
 		std::string										Header;							///<The window's header.

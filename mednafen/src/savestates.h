@@ -1,6 +1,6 @@
 #pragma once
 
-DEFINE_PTR_TYPE(StateLabel);
+class StateLabel;
 
 ///Summerface widget that handles most of the logic behind the SaveMenu.
 class					StateLabel : public SummerfaceLabel
@@ -41,7 +41,7 @@ class					StateMenu
 		///Create a new StateMenu.
 		///@param aLoad True if this is a load-state menu, false otherwise.
 		//TODO: boost::make_shared goes crashy here with the 4MB image array in StateLabel.
-						StateMenu				(bool aLoad) : Label(StateLabel_Ptr(new StateLabel(aLoad))), UI(Summerface::Create("StateLabel", Label)) {}
+						StateMenu				(bool aLoad) : Label(new StateLabel(aLoad)), UI(new Summerface("StateLabel", Label)) {}
 
 		///Empty virtual destructor for StateMenu.
 		virtual			~StateMenu				() {};
@@ -50,7 +50,7 @@ class					StateMenu
 		void			Do						() {UI->Do();};
 
 	private:
-		StateLabel_Ptr	Label;					///<Custom Summerface Widget that handles most of StateMenu's work.
-		Summerface_Ptr	UI;						///<Internally used Summerface object.
+		StateLabel*		Label;					///<Custom Summerface Widget that handles most of StateMenu's work.
+		Summerface*		UI;						///<Internally used Summerface object.
 };
 

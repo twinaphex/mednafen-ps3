@@ -37,7 +37,7 @@ namespace SDLInputConfig
 		fclose(configFile);
 	}
 
-	int						GetButton			(void* aUserData, Summerface_Ptr aInterface, const std::string& aWindow, uint32_t aButton)
+	int						GetButton			(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 	{
 		static bool gotbutton = true;
 
@@ -66,16 +66,16 @@ namespace SDLInputConfig
 		const char* buttons[] = {"Up", "Down", "Left", "Right", "Accept", "Cancel", "Shift", "Tab", "AuxLeft1", "AuxRight1", "AuxLeft2", "AuxRight2", "AuxLeft3", "AuxRight3"};
 
 		uint32_t buttonID;
-		SummerfaceLabel_Ptr button = smartptr::make_shared<SummerfaceLabel>(Area(10, 30, 80, 10), "");
+		SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
 
-		Summerface_Ptr sface = Summerface::Create("InputWindow", button);
-		sface->AttachConduit(smartptr::make_shared<SummerfaceStaticConduit>(GetButton, &buttonID));
-		sface->SetInputWait(false);
+		Summerface sface("InputWindow", button);
+		sface.AttachConduit(new SummerfaceStaticConduit(GetButton, &buttonID));
+		sface.SetInputWait(false);
 
 		for(int j = 0; j != 14; j ++)
 		{
 			button->SetMessage("Press button for [%s]", buttons[j]);
-			sface->Do();
+			sface.Do();
 
 			aData[j] = buttonID;
 		}
