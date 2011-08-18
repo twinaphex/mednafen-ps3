@@ -92,30 +92,30 @@ class							CheatMenu
 	public:
 		///Create a new CheatMenu.
 								CheatMenu				() :
-			CheatList(new CheatListType(Area(10, 10, 80, 80))),
+			CheatList(Area(10, 10, 80, 80)),
+			Interface("CHEATS", &CheatList, false),
 			Blank(false)
 		{
-			//Make the menu
-			CheatList->SetHeader("Available Cheats");
+			//Setup the gui
+			Interface.AttachConduit(new SummerfaceTemplateConduit<CheatMenu>(this));
+			CheatList.SetHeader("Available Cheats");
 
 			//Insert all of the cheats
 			//NOTE: These MUST NOT be sorted, their index in the list is passed to mednafen
 			MDFNI_ListCheats(AttachCheat, (void*)this);
 
 			//Note if none were found
-			if(CheatList->GetItemCount() == 0)
+			if(CheatList.GetItemCount() == 0)
 			{
 				Blank = true;
-				CheatList->AddItem(new Cheat());
+				CheatList.AddItem(new Cheat());
 			}
 		}
 
 		///Run the CheatMenu.
 		void					Do						()
 		{
-			Summerface sface("CHEATS", CheatList);
-			sface.AttachConduit(new SummerfaceTemplateConduit<CheatMenu>(this));
-			sface.Do();
+			Interface.Do();
 		}
 
 		///Implement SummerfaceInputConduit to handle the CheatMenu.
@@ -125,13 +125,13 @@ class							CheatMenu
 		int						HandleInput				(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 		{
 			//Get a pointer to the selected cheat
-			Cheat* cheat = CheatList->GetSelected();
+			Cheat* cheat = CheatList.GetSelected();
 
 			//Toggle a cheat's status
 			if(!Blank && aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT)
 			{
 				cheat->Status = !cheat->Status;
-				MDFNI_ToggleCheat(CheatList->GetSelection());
+				MDFNI_ToggleCheat(CheatList.GetSelection());
 				return 1;
 			}
 
@@ -143,7 +143,7 @@ class							CheatMenu
 				if(ESSUB_GetNumber(value, "Input new value for cheat.", 10, false))
 				{
 					cheat->Value = value;
-					cheat->Insert(CheatList->GetSelection());
+					cheat->Insert(CheatList.GetSelection());
 				}
 				return 1;
 			}
@@ -158,7 +158,7 @@ class							CheatMenu
 				//Is accepted, delete the cheat and exit
 				if(ESSUB_Confirm(str.str().c_str()))
 				{
-					MDFNI_DelCheat(CheatList->GetSelection());
+					MDFNI_DelCheat(CheatList.GetSelection());
 					return -1;	//TODO: Don't leave, reorder the list and continue
 				}
 			}
@@ -219,14 +219,15 @@ class							CheatMenu
 			if(aData)
 			{
 				CheatMenu* menu = (CheatMenu*)aData;
-				menu->CheatList->AddItem(new Cheat(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
+				menu->CheatList.AddItem(new Cheat(aName, aAddress, aValue, aCompare, aStatus, aType, aLength, aBigEndian));
 			}
 
 			return 1;
 		}
 
 	private:
-		CheatListType*			CheatList;				///<List of Cheats.
+		CheatListType			CheatList;				///<List of Cheats.
+		Summerface				Interface;				///<Interface for running the menu.
 		bool					Blank;					///<True if no Cheats were found.
 };
 

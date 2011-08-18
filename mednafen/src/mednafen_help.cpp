@@ -170,7 +170,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		//Display log on error!
 		if(!GameInfo)
 		{
-			Summerface("Log", es_log).Do();
+			Summerface("Log", es_log, false).Do();
 			free(aData);
 			return false;
 		}
@@ -245,10 +245,10 @@ void						MednafenEmu::CloseGame			()
 		//Clean up
 		MDFND_Rumble(0, 0);
 	
-		delete Inputs;
-		delete Buffer;
-		delete Surface;
-		delete TextFile;
+		delete Inputs; Inputs = 0;
+		delete Buffer; Buffer = 0;
+		delete Surface; Surface = 0;
+		delete TextFile; TextFile = 0;
 
 		IsLoaded = false;
 	}
@@ -424,15 +424,15 @@ void						MednafenEmu::DoCommands			()
 	};
 
 	//Setup the menu
-	CommandList* grid = new CommandList(Area(25, 25, 50, 50), 5, 3, true, false);
-	grid->SetHeader("Choose Action");
+	CommandList grid(Area(25, 25, 50, 50), 5, 3, true, false);
+	grid.SetHeader("Choose Action");
 	for(int i = 0; i != 15; i ++)
 	{
-		grid->AddItem(new CommandItem(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
+		grid.AddItem(new CommandItem(commands[i * 3], commands[i * 3 + 1], commands[i * 3 + 2]));
 	}
 
 	//Setupt and run the interface
-	Summerface sface("Grid", grid);
+	Summerface sface("Grid", &grid, false);
 	sface.AttachConduit(new SummerfaceStaticConduit(DoCommand, (void*)0));
 	sface.Do();
 }

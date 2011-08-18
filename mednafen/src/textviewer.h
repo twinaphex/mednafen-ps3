@@ -8,7 +8,7 @@ class						TextFileViewer
 {
 	public:
 							TextFileViewer				();
-		virtual				~TextFileViewer				() {}
+		virtual				~TextFileViewer				();
 
 		int					HandleInput					(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
