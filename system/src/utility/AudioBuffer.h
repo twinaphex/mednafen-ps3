@@ -24,29 +24,46 @@ class						AudioBuffer
 
 		uint32_t			WriteData						(const uint32_t* aData, uint32_t aLength)
 		{
-			//Clip to available space (if you wan't to block, do it in the caller.)
-			uint32_t free = GetBufferFree();
-			aLength = (aLength > free) ? free : aLength;
-
-			//Get the size of the copies
-			uint32_t untilEnd = Length - (WriteCount % Length);
-			uint32_t firstBlock = std::min(untilEnd, aLength);
-			uint32_t secondBlock = (firstBlock == aLength) ? 0 : aLength - firstBlock;
-
-			//Copy 1
-			if(firstBlock)
+			if(InputSpeed == 1)
 			{
-				memcpy(&RingBuffer[WriteCount % Length], aData, firstBlock * 4);
-			}
+				//Clip to available space (if you wan't to block, do it in the caller.)
+				uint32_t free = GetBufferFree();
+				aLength = (aLength > free) ? free : aLength;
 
-			//Copy 2
-			if(secondBlock)
+				//Get the size of the copies
+				uint32_t untilEnd = Length - (WriteCount % Length);
+				uint32_t firstBlock = std::min(untilEnd, aLength);
+				uint32_t secondBlock = (firstBlock == aLength) ? 0 : aLength - firstBlock;
+
+				//Copy 1
+				if(firstBlock)
+				{
+					memcpy(&RingBuffer[WriteCount % Length], aData, firstBlock * 4);
+				}
+
+				//Copy 2
+				if(secondBlock)
+				{
+					memcpy(&RingBuffer[0], &aData[firstBlock], secondBlock * 4);
+				}
+
+				//Done
+				WriteCount += aLength;
+			}
+			else
 			{
-				memcpy(&RingBuffer[0], &aData[firstBlock], secondBlock * 4);
-			}
+				assert(InputSpeed);
 
-			//Done
-			WriteCount += aLength;
+				//Clip to available space (if you wan't to block, do it in the caller.)
+				uint32_t free = GetBufferFree();
+				aLength = (aLength > free) ? free : aLength;
+
+				//Copy
+				for(int i = 0; i < aLength; i += InputSpeed, WriteCount ++)
+				{
+					RingBuffer[WriteCount % Length] = aData[i];
+				}
+			}
 
 			return aLength;
 		}

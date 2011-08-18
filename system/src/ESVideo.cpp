@@ -115,6 +115,7 @@ void					ESVideo::InitializeState		()
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glViewport(0, 0, GetScreenWidth(), GetScreenHeight());
 
 	//Setup Projection
 	glMatrixMode(GL_PROJECTION);

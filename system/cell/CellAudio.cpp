@@ -1,6 +1,71 @@
 #include <es_system.h>
+#include <sysutil/sysutil_bgmplayback.h>
+#include <cell/audio.h>
+#include <cell/mstream.h>
 
-void					ESAudio::Initialize				()
+#include "src/utility/AudioBuffer.h"
+
+namespace
+{
+	int						ProcessAudioThread		(void* aAudio);
+	void					MultiStreamCallback		(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize);
+
+	AudioBuffer<8192>		RingBuffer;
+
+	//Theads
+	ESThread*				Thread;
+	ESSemaphore*			Semaphore;
+	volatile bool			ThreadDie;
+
+	//Multistream
+	int32_t					MSChannel;
+	void*					MSMemory;
+	void*					MSBuffers[2];
+	volatile bool			StreamDead;
+
+	//libaudio
+	uint32_t				Port;
+	CellAudioPortConfig		Config;
+
+	int						ProcessAudioThread				(void* aAudio)
+	{
+		cellAudioPortStart(Port);
+
+		while(!ThreadDie)
+		{
+			sys_timer_usleep(1000000 / 60 / 2);
+
+			if(!StreamDead)
+			{
+				cellMSSystemSignalSPU();
+				cellMSSystemGenerateCallbacks();
+			}
+		}
+
+		cellAudioPortStop(Port);
+
+		return 0;
+	}
+
+	void					MultiStreamCallback				(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
+	{
+		if((cType == CELL_MS_CALLBACK_MOREDATA))
+		{
+			RingBuffer.ReadDataSilentUnderrun((uint32_t*)pWriteBuffer, nBufferSize / 4);
+
+			if(!Semaphore->GetValue())
+			{
+				Semaphore->Post();
+			}
+		}
+		else if(cType == CELL_MS_CALLBACK_FINISHSTREAM)
+		{
+			StreamDead = 1;
+		}
+	}
+}
+
+void						ESAudio::Initialize				()
 {
 	/* Init audio */
 	CellAudioPortParam portparam = {CELL_AUDIO_PORT_8CH, CELL_AUDIO_BLOCK_16, CELL_AUDIO_PORTATTR_BGM, 1};
@@ -54,7 +119,7 @@ void					ESAudio::Initialize				()
 }
 
 
-void					ESAudio::Shutdown				()
+void						ESAudio::Shutdown				()
 {
 	cellMSStreamSetSecondRead(MSChannel, 0, 0);
 	while(!StreamDead); //?
@@ -77,54 +142,26 @@ void					ESAudio::Shutdown				()
 	cellAudioQuit();
 }
 
-void					ESAudio::MultiStreamCallback	(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize)
+void					ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 {
-	if((cType == CELL_MS_CALLBACK_MOREDATA))
-	{
-		RingBuffer.ReadDataSilentUnderrun((uint32_t*)pWriteBuffer, nBufferSize / 4);
+	while(RingBuffer.GetBufferFree() < aCount)
+		Semaphore->Wait();
 
-		if(!Semaphore->GetValue())
-		{
-			Semaphore->Post();
-		}
-	}
-	else if(cType == CELL_MS_CALLBACK_FINISHSTREAM)
-	{
-		StreamDead = 1;
-	}
+	RingBuffer.WriteData((uint32_t*)aSamples, aCount);
 }
 
-int						ESAudio::ProcessAudioThread		(void* aAudio)
+volatile int32_t		ESAudio::GetBufferFree				()
 {
-	cellAudioPortStart(Port);
-
-	while(!ThreadDie)
-	{
-		sys_timer_usleep(1000000 / 60 / 2);
-
-		if(!StreamDead)
-		{
-			cellMSSystemSignalSPU();
-			cellMSSystemGenerateCallbacks();
-		}
-	}
-
-	cellAudioPortStop(Port);
-
-	return 0;
+	return RingBuffer.GetBufferFree();
 }
 
-ESThread*				ESAudio::Thread;
-ESSemaphore*			ESAudio::Semaphore;
-volatile bool			ESAudio::ThreadDie;
+volatile int32_t		ESAudio::GetBufferAmount			()
+{
+	return RingBuffer.GetBufferAmount();
+}
 
-int32_t					ESAudio::MSChannel = -1;
-void*					ESAudio::MSMemory;
-void*					ESAudio::MSBuffers[2];
-volatile bool			ESAudio::StreamDead;
-
-uint32_t				ESAudio::Port;
-CellAudioPortConfig		ESAudio::Config;
-
-AudioBuffer<>			ESAudio::RingBuffer;
+void					ESAudio::SetSpeed					(uint32_t aSpeed)
+{
+	RingBuffer.SetSpeed(aSpeed);
+}
 

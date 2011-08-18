@@ -1,7 +1,5 @@
 #pragma once
 
-#include "src/utility/AudioBuffer.h"
-
 class								ESAudio
 {
 	public:	
@@ -9,30 +7,10 @@ class								ESAudio
 		static void					Initialize				();
 		static void					Shutdown				();
 
-		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount) {while(RingBuffer.GetBufferFree() < aCount) Semaphore->Wait(); RingBuffer.WriteData(aSamples, aCount);};
+		static void					AddSamples				(const uint32_t* aSamples, uint32_t aCount);
 
-		static volatile int32_t		GetBufferFree			() {return RingBuffer.GetBufferFree();};
-		static volatile int32_t		GetBufferAmount			() {return RingBuffer.GetBufferAmount();};
-		static void					SetSpeed				(uint32_t aSpeed) {RingBuffer.SetSpeed(aSpeed);}
-
-	protected:
-		static int					ProcessAudioThread		(void* aAudio);
-		static void					MultiStreamCallback		(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize);
-	
-		static const int			BlockCount = 16;
-
-		static ESThread*			Thread;
-		static ESSemaphore*			Semaphore;
-		static volatile bool		ThreadDie;
-
-		static int32_t				MSChannel;
-		static void*				MSMemory;
-		static void*				MSBuffers[2];
-		static volatile bool		StreamDead;
-
-		static uint32_t				Port;
-		static CellAudioPortConfig	Config;
-
-		static AudioBuffer<>		RingBuffer;
+		static volatile int32_t		GetBufferFree			();
+		static volatile int32_t		GetBufferAmount			();
+		static void					SetSpeed				(uint32_t aSpeed);
 };
 
