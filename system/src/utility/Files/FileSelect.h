@@ -28,8 +28,9 @@ class												FileSelect
 		typedef AnchoredListView<DirectoryItem>		DirectoryList;
 
 	public:
+		//Doc Note: aInputHook must be a uniqe pointer and will be deleted by the FileSelect object.
 													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook = 0);
-		virtual										~FileSelect						();
+		virtual										~FileSelect						() {};
 													
 		int											HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
@@ -39,8 +40,8 @@ class												FileSelect
 		void										LoadList						(const std::string& aPath);
 
 	private:
-		DirectoryList*								List;
-		Summerface*									Interface;
+		DirectoryList								List;
+		Summerface									Interface;
 		std::stack<std::string>						Paths;
 
 		std::string									Header;

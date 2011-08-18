@@ -4,15 +4,17 @@
 class													Summerface : public Menu
 {
 	typedef std::set<SummerfaceInputConduit*>			ConduitSet;						///<Define a set of SummerfaceInputConduit objects.
-	typedef std::map<std::string, SummerfaceWindow*>	WindowSet;						///<Define a set of Window objects.
+	typedef std::set<SummerfaceWindow*>					WindowSet;						///<Define a set of windows which will be deleted with the Summerface object.
+	typedef std::map<std::string, SummerfaceWindow*>	WindowMap;						///<Define a list of Window objects.
 
 	public: //Do not call!
 		///Create a new Summerface with a default window.
 		///@param aName Name of the window.
-		///@param aWindow Pointer to the window.
+		///@param aWindow Pointer to the window, or null if no default window will be added.
+		///@param aAssumeOwnership If true the aWindow pointer will be deleted with the Summerface object.
 		///@return Pointer to the new interface.
 		///@exception ESException If aWindow is not a valid window.
-														Summerface						(const std::string& aName = "", SummerfaceWindow* aWindow = 0); //External
+														Summerface						(const std::string& aName = "", SummerfaceWindow* aWindow = 0, bool aAssumeOwnership = true); //External
 
 		///Destructor for Summerface.
 		virtual											~Summerface						(); //External
@@ -29,20 +31,12 @@ class													Summerface : public Menu
 		///Add a new SummerfaceWindow to the interface.
 		///@param aName Name of the window. It is an error if a window matching aName is already present.
 		///@param aWindow Pointer to the window. Must be a valid pointer to a SummerfaceWindow object.
-		void											AddWindow						(const std::string& aName, SummerfaceWindow* aWindow)
-		{
-			assert(Windows.find(aName) == Windows.end());
-			assert(aWindow);
-			Windows[aName] = aWindow; ActiveWindow = aName;
-		}
+		///@param aAssumeOwnership If true the aWindow pointer will be deleted with the Summerface object.
+		void											AddWindow						(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership = true);
 
 		///Remove a SummerfaceWindow from the interface.
 		///@param aName Name of the window. It is an error if a matching window is not found.
-		void											RemoveWindow					(const std::string& aName)
-		{
-			assert(Windows.find(aName) != Windows.end());
-			Windows.erase(aName);
-		}
+		void											RemoveWindow					(const std::string& aName);
 
 		///Get a SummerfaceWindow from the interface.
 		///@param aName Name of the window. It is an error if a matching window is not found.
@@ -83,8 +77,9 @@ class													Summerface : public Menu
 
 	private:
 		ConduitSet										Handlers;						///<Objects in the interface's input chain.
+		WindowSet										OwnedWindows;					///<Windows to delete with the Summerface object.
 
-		WindowSet										Windows;						///<List of windows in the interface.
+		WindowMap										Windows;						///<List of windows in the interface.
 		std::string										ActiveWindow;					///<Name of the interface's active window.
 
 		static bool										(*BackgroundCallback)			();///<Callback function for drawing the background.

@@ -66,15 +66,15 @@ namespace SDLInputConfig
 		const char* buttons[] = {"Up", "Down", "Left", "Right", "Accept", "Cancel", "Shift", "Tab", "AuxLeft1", "AuxRight1", "AuxLeft2", "AuxRight2", "AuxLeft3", "AuxRight3"};
 
 		uint32_t buttonID;
-		SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
+		SummerfaceLabel button(Area(10, 30, 80, 10), "");
 
-		Summerface sface("InputWindow", button);
+		Summerface sface("InputWindow", &button, false);
 		sface.AttachConduit(new SummerfaceStaticConduit(GetButton, &buttonID));
 		sface.SetInputWait(false);
 
 		for(int j = 0; j != 14; j ++)
 		{
-			button->SetMessage("Press button for [%s]", buttons[j]);
+			button.SetMessage("Press button for [%s]", buttons[j]);
 			sface.Do();
 
 			aData[j] = buttonID;

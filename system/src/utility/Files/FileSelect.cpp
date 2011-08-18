@@ -25,25 +25,20 @@ namespace
 
 
 										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook) :
-	List(new DirectoryList(Area(10, 10, 80, 80))),
-	Interface(new Summerface("List", List)),
+	List(Area(10, 10, 80, 80)),
+	Interface("List", &List, false),
 	Header(aHeader),
 	BookMarks(aBookMarks)
 {
 	if(aInputHook)
 	{
-		Interface->AttachConduit(aInputHook);
+		Interface.AttachConduit(aInputHook);
 	}
 
-	Interface->AttachConduit(new SummerfaceTemplateConduit<FileSelect>(this));
+	Interface.AttachConduit(new SummerfaceTemplateConduit<FileSelect>(this));
 
 	Paths.push(aPath);
 	LoadList(aPath);
-}
-
-										FileSelect::~FileSelect				()
-{
-	delete Interface;
 }
 
 int										FileSelect::HandleInput				(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
@@ -51,17 +46,17 @@ int										FileSelect::HandleInput				(Summerface* aInterface, const std::stri
 	//Use the input conduit to toggle bookmarks
 	if(aButton == ES_BUTTON_AUXRIGHT2)
 	{
-		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), List->GetSelected()->Path);
+		BookmarkList::iterator bookmark = std::find(BookMarks.begin(), BookMarks.end(), List.GetSelected()->Path);
 		
 		if(bookmark != BookMarks.end())
 		{
 			BookMarks.erase(bookmark);
-			List->GetSelected()->IsBookMark = false;
+			List.GetSelected()->IsBookMark = false;
 		}
 		else
 		{
-			BookMarks.push_back(List->GetSelected()->Path);
-			List->GetSelected()->IsBookMark = true;
+			BookMarks.push_back(List.GetSelected()->Path);
+			List.GetSelected()->IsBookMark = true;
 		}
 
 		//Eat the input
@@ -78,10 +73,10 @@ std::string								FileSelect::GetFile					()
 	while(!WantToDie())
 	{
 		//Run the list
-		Interface->Do();
+		Interface.Do();
 
 		//If the list was canceled; try to move up the stack
-		if(List->WasCanceled())
+		if(List.WasCanceled())
 		{
 			//Go to parent directory
 			if(Paths.size() > 1)
@@ -98,15 +93,15 @@ std::string								FileSelect::GetFile					()
 		}
 		
 		//If a directory was selected, list it
-		if(List->GetSelected()->IsDirectory)
+		if(List.GetSelected()->IsDirectory)
 		{
-			Paths.push(List->GetSelected()->Path);
+			Paths.push(List.GetSelected()->Path);
 			LoadList(Paths.top());
 		}
 		//If a file was selected, return it
-		else if(List->GetSelected()->IsFile)
+		else if(List.GetSelected()->IsFile)
 		{
-			return List->GetSelected()->Path;
+			return List.GetSelected()->Path;
 			break;
 		}
 	}
@@ -117,8 +112,8 @@ std::string								FileSelect::GetFile					()
 void								FileSelect::LoadList						(const std::string& aPath)
 {
 	//Prep the list for this directory
-	List->ClearItems();
-	List->SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
+	List.ClearItems();
+	List.SetHeader("[%s] %s", Header.c_str(), aPath.c_str());
 
 	//If the path is empty, list the drive selection and bookmarks
 	if(aPath.empty())
@@ -130,14 +125,14 @@ void								FileSelect::LoadList						(const std::string& aPath)
 		{
 			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 			{
-				List->AddItem(new DirectoryItem((*i), (*i), true, false, false));
+				List.AddItem(new DirectoryItem((*i), (*i), true, false, false));
 			}
 
-			List->Sort(AlphaSortDirectory);
+			List.Sort(AlphaSortDirectory);
 		}
 		else
 		{
-			List->AddItem(new DirectoryItem("No Volumes Found", "", false, false, false));
+			List.AddItem(new DirectoryItem("No Volumes Found", "", false, false, false));
 		}
 
 		//Load bookmarks
@@ -160,7 +155,7 @@ void								FileSelect::LoadList						(const std::string& aPath)
 						directory = true;
 				}
 				
-				List->AddItem(new DirectoryItem(nicename, *i, directory, !directory, true));
+				List.AddItem(new DirectoryItem(nicename, *i, directory, !directory, true));
 			}
 		}
 	}
@@ -173,14 +168,14 @@ void								FileSelect::LoadList						(const std::string& aPath)
 		{
 			for(std::list<std::string>::iterator i = items.begin(); i != items.end(); i ++)
 			{
-				List->AddItem(new DirectoryItem((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
+				List.AddItem(new DirectoryItem((*i), aPath + *i, (*i)[i->length() - 1] == '/', (*i)[i->length() - 1] != '/', std::find(BookMarks.begin(), BookMarks.end(), aPath + *i) != BookMarks.end()));
 			}
 
-			List->Sort(AlphaSortDirectory);
+			List.Sort(AlphaSortDirectory);
 		}
 		else
 		{
-			List->AddItem(new DirectoryItem("Directory is empty", "", false, false, false));
+			List.AddItem(new DirectoryItem("Directory is empty", "", false, false, false));
 		}
 	}
 }

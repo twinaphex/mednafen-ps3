@@ -219,6 +219,7 @@ class				Utility
 		}
 		
 };
+
 class				PathBuild
 {
 	public:

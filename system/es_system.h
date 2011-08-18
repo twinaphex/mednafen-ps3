@@ -19,12 +19,8 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 }
 
 #include "src/ESThreads.h"
-#include "src/ESTexture.h"
-#include "src/ESAudio.h"
 #include "src/ESInput.h"
-#include "src/ESNetwork.h"
 #include "src/main.h"
-#include "src/luascripter.h"
 
 #if defined(MDCELL)
 # include "cell/CellPlatform.h"

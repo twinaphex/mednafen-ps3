@@ -25,18 +25,18 @@ std::string			ESSUB_GetBaseDirectory	();
 #ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage)
 {
-	SummerfaceLabel* text = new SummerfaceLabel(Area(10, 10, 80, 20), aMessage);
-	text->SetWordWrap(true);
-	Summerface("Error", text).Do();
+	SummerfaceLabel text(Area(10, 10, 80, 20), aMessage);
+	text.SetWordWrap(true);
+	Summerface("Error", &text, false).Do();
 }
 #endif
 
 #ifndef HAVE_ESSUB_GETSTRING
 std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
 {
-	Keyboard* kb = new Keyboard(Area(10, 10, 80, 80), aHeader, aMessage);
-	Summerface sface("Keyboard", kb); sface.Do();
-	return kb->GetText();
+	Keyboard kb(Area(10, 10, 80, 80), aHeader, aMessage);
+	Summerface("Keyboard", &kb, false).Do();
+	return kb.GetText();
 }
 #endif
 
@@ -44,32 +44,32 @@ std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& 
 bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 {
 	//Create the list
-	AnchoredListView<SummerfaceItem>* list = new AnchoredListView<SummerfaceItem>(Area(10, 10, 80, 20));
-	list->SetHeader(aMessage);
+	AnchoredListView<SummerfaceItem> list(Area(10, 10, 80, 20));
+	list.SetHeader(aMessage);
 
 	//Add the items
-	list->AddItem(new SummerfaceItem("Yes", "CheckIMAGE"));
-	list->AddItem(new SummerfaceItem("No", "ErrorIMAGE"));
+	list.AddItem(new SummerfaceItem("Yes", "CheckIMAGE"));
+	list.AddItem(new SummerfaceItem("No", "ErrorIMAGE"));
 
 	//Run the interface
-	Summerface sface("Confirm", list); sface.Do();
+	Summerface("Confirm", &list, false).Do();
 
 	//Return the result
-	if(aCancel) *aCancel = list->WasCanceled();
-	return !list->WasCanceled() && list->GetSelected()->GetText() == "Yes";
+	if(aCancel) *aCancel = list.WasCanceled();
+	return !list.WasCanceled() && list.GetSelected()->GetText() == "Yes";
 }
 #endif
 
 #ifndef HAVE_ESSUB_GETNUMBER
 bool				ESSUB_GetNumber			(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
 {
-	SummerfaceNumber* number = new SummerfaceNumber(Area(10, 45, 80, 10), aValue, aDigits, aHex);
-	number->SetHeader(aHeader);
-	Summerface sface("NUMB", number); sface.Do();
+	SummerfaceNumber number(Area(10, 45, 80, 10), aValue, aDigits, aHex);
+	number.SetHeader(aHeader);
+	Summerface("NUMB", &number, false).Do();
 
-	if(!number->WasCanceled())
+	if(!number.WasCanceled())
 	{
-		aValue = number->GetValue();
+		aValue = number.GetValue();
 		return true;
 	}
 
