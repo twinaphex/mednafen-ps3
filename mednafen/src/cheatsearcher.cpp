@@ -27,7 +27,7 @@ int									CheatSearcher::DoSearchFilterMenu		()
 	}
 
 	//Run it and return the result
-	Summerface sface("TYPES", SearchFilterList); sface.Do();
+	Summerface sface("TYPES", SearchFilterList, false); sface.Do();
 	return SearchFilterList->WasCanceled() ? -1 : SearchFilterList->GetSelected()->UserData;
 }
 
@@ -48,7 +48,7 @@ bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 		MDFNI_CheatSearchGet(GetResults, 0);
 
 		//Run the list
-		Summerface sface("TYPES", ResultList); sface.Do();
+		Summerface sface("TYPES", ResultList, false); sface.Do();
 
 		//If the list was not canceled
 		if(!ResultList->WasCanceled())

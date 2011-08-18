@@ -93,9 +93,9 @@ class								SettingMenu
 		std::string					TranslateCategory					(const char* aCategory);
 
 	private:
-		SettingListType*			List;								///<SummerfaceList used for displaying a category of settings.
-		CategoryListType*			CategoryList;						///<SummerfaceList used for displaying all categories.
-		Summerface*					CategoryInterface;					///<Summerface object used for the CategoryList.
+		SettingListType				List;								///<SummerfaceList used for displaying a category of settings.
+		CategoryListType			CategoryList;						///<SummerfaceList used for displaying all categories.
+		Summerface					CategoryInterface;					///<Summerface object used for the CategoryList.
 
 		SettingCollection			Settings;							///<The cache of settings from mednafen.
 

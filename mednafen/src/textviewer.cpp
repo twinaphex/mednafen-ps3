@@ -14,18 +14,17 @@
 	Interface->AttachConduit(new SummerfaceTemplateConduit<TextFileViewer>(this));
 }
 
+					TextFileViewer::~TextFileViewer				()
+{
+	delete Interface;
+	delete Browser;
+}
+
 void				TextFileViewer::Display						()
 {
 	if(!Loaded)
 	{
-		std::string file = Browser->GetFile();
-
-		if(!file.empty())
-		{
-			Viewer->Reload(file);
-			Loaded = true;
-		}
-		else
+		if(!HandleInput(0, "", ES_BUTTON_TAB))
 		{
 			return;
 		}

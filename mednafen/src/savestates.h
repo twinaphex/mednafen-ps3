@@ -41,16 +41,16 @@ class					StateMenu
 		///Create a new StateMenu.
 		///@param aLoad True if this is a load-state menu, false otherwise.
 		//TODO: boost::make_shared goes crashy here with the 4MB image array in StateLabel.
-						StateMenu				(bool aLoad) : Label(new StateLabel(aLoad)), UI(new Summerface("StateLabel", Label)) {}
+						StateMenu				(bool aLoad) : Label(aLoad), UI("StateLabel", &Label, false) {}
 
 		///Empty virtual destructor for StateMenu.
 		virtual			~StateMenu				() {};
 
 		///Run the save state interface.
-		void			Do						() {UI->Do();};
+		void			Do						() {UI.Do();};
 
 	private:
-		StateLabel*		Label;					///<Custom Summerface Widget that handles most of StateMenu's work.
-		Summerface*		UI;						///<Internally used Summerface object.
+		StateLabel		Label;					///<Custom Summerface Widget that handles most of StateMenu's work.
+		Summerface		UI;						///<Internally used Summerface object.
 };
 

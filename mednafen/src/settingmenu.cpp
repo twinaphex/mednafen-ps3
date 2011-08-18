@@ -56,25 +56,25 @@ std::string						SettingItem::GetText							()
 
 
 								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
-	List(new SettingListType(Area(10, 10, 80, 80))),
-	CategoryList(new CategoryListType(Area(10, 10, 80, 80))),
-	CategoryInterface(new Summerface("Categories", CategoryList))
+	List(Area(10, 10, 80, 80)),
+	CategoryList(Area(10, 10, 80, 80)),
+	CategoryInterface("Categories", &CategoryList, false)
 {
 	//Cache the setting values from mednafen
 	LoadSettings();
 
 	//Setup the category list
-	CategoryList->SetHeader("Choose Setting Category");
+	CategoryList.SetHeader("Choose Setting Category");
 
 	//Stuff the category list
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
 	{
-		CategoryList->AddItem(new CategoryListItem(TranslateCategory(i->first.c_str()), "", i->first));
+		CategoryList.AddItem(new CategoryListItem(TranslateCategory(i->first.c_str()), "", i->first));
 	}
 
 	//Sort the list and choose the default selection
-	CategoryList->Sort();
-	CategoryList->SetSelection(TranslateCategory(aDefaultCategory.c_str()));
+	CategoryList.Sort();
+	CategoryList.SetSelection(TranslateCategory(aDefaultCategory.c_str()));
 }
 
 void							SettingMenu::Do									()
@@ -82,26 +82,26 @@ void							SettingMenu::Do									()
 	while(!WantToDie())
 	{
 		//Run the category list
-		CategoryInterface->Do();
+		CategoryInterface.Do();
 
 		//Leave if the category list is canceled and everything checks out
-		if(!CategoryList->WasCanceled())
+		if(!CategoryList.WasCanceled())
 		{
 			//Clear the setting list
-			List->ClearItems();
+			List.ClearItems();
 
 			//Add all settings from the catagory
-			const std::vector<const MDFNCS*>& items = Settings[CategoryList->GetSelected()->UserData];
+			const std::vector<const MDFNCS*>& items = Settings[CategoryList.GetSelected()->UserData];
 			for(int i = 0; i != items.size(); i ++)
 			{
-				List->AddItem(new SettingItem(items[i], TranslateGroup(*items[i], CategoryList->GetSelected()->UserData)));
+				List.AddItem(new SettingItem(items[i], TranslateGroup(*items[i], CategoryList.GetSelected()->UserData)));
 			}
 
 			//Sort the setting list
-			List->Sort(CompareItems);
+			List.Sort(CompareItems);
 
 			//HACK: Create the interface without input wait until the header is updated
-			Summerface sface("SettingList", List);
+			Summerface sface("SettingList", &List, false);
 			sface.SetInputWait(false);
 			sface.AttachConduit(new SummerfaceTemplateConduit<SettingMenu>(this));
 			sface.Do();
@@ -116,10 +116,10 @@ void							SettingMenu::Do									()
 
 int								SettingMenu::HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
-	assert(List && List->GetItemCount() != 0);
+	assert(List.GetItemCount() != 0);
 
 	//Get a refence to the setting
-	const MDFNCS& Setting = *(const MDFNCS*)List->GetSelected()->Setting;
+	const MDFNCS& Setting = *(const MDFNCS*)List.GetSelected()->Setting;
 
 	//HACK: Set the input wait flag if no header refresh is waiting
 	if(RefreshHeader == false)
@@ -190,7 +190,7 @@ void							SettingMenu::DoHeaderRefresh					()
 	if(RefreshHeader)
 	{
 		//Set the header
-		List->SetHeader(List->GetSelected()->Setting->desc->description);
+		List.SetHeader(List.GetSelected()->Setting->desc->description);
 	}
 }
 
@@ -301,25 +301,25 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 	else if(aButton == ES_BUTTON_ACCEPT)
 	{
 		//Create the list
-		EnumListType* list = new EnumListType(Area(10, 10, 80, 80));
-		list->SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
+		EnumListType list(Area(10, 10, 80, 80));
+		list.SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
 
 		//Place all settings into the list
 		while(values && values->string)
 		{
-			list->AddItem(new SummerfaceItem(values->string, ""));
+			list.AddItem(new SummerfaceItem(values->string, ""));
 			values ++;
 		}
 
-		assert(list->GetItemCount() != 0);
+		assert(list.GetItemCount() != 0);
 
 		//Run the list
-		Summerface sface("List", list); sface.Do();
+		Summerface("List", &list, false).Do();
 
 		//Get the new setting and feed it to mednafen
-		if(!list->WasCanceled())
+		if(!list.WasCanceled())
 		{
-			MDFNI_SetSetting(aSetting.name, list->GetSelected()->GetText().c_str());
+			MDFNI_SetSetting(aSetting.name, list.GetSelected()->GetText().c_str());
 			MednafenEmu::ReadSettings();
 		}
 
