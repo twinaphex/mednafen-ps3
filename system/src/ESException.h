@@ -1,5 +1,4 @@
-#ifndef SYSTEM__EXCEPTION_H
-#define SYSTEM__EXCEPTION_H
+#pragma once
 
 class					ESException : public std::exception
 {
@@ -25,5 +24,4 @@ class					ESException : public std::exception
 		std::string		Error;
 };
 
-#endif
 

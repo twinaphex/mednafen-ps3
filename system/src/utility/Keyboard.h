@@ -4,7 +4,7 @@ class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 {
 	public:
 											Keyboard				(const Area& aRegion, const std::string& aHeader, const std::string& aText);
-		virtual								~Keyboard				();
+		virtual								~Keyboard				() {};
 
 		bool								Draw					();
 		bool								Input					(uint32_t aButton);

@@ -155,3 +155,4 @@ uint32_t						ESInput::GetAnyButton			(uint32_t aPad)
 ESInput::InputDeviceList		ESInput::Inputs;
 ESInput::InputDeviceList		ESInput::SubInputs;
 uint32_t						ESInput::ESKeyIndex[14];
+

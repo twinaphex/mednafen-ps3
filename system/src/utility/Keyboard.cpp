@@ -19,13 +19,6 @@ namespace
 	Canceled = false;
 }
 
-							Keyboard::~Keyboard								()
-{
-							
-}
-
-							
-//TODO: This code can be dangerous
 bool						Keyboard::Draw									()
 {
 	FontManager::GetBigFont()->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
@@ -46,7 +39,6 @@ bool						Keyboard::Draw									()
 	return false;	
 }
 
-//TODO: This code can be dangerous
 bool						Keyboard::Input									(uint32_t aButton)
 {
 	Row += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
@@ -79,3 +71,4 @@ bool						Keyboard::Input									(uint32_t aButton)
 		
 	return false;
 }
+

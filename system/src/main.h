@@ -17,8 +17,10 @@ void					QuitES					();
 bool					ESHasArgument			(const std::string& aName);
 volatile bool			WantToDie				();
 volatile bool			WantToSleep				();
-void					Abort					(const char* aMessage);
+void __attribute__((__deprecated__))			Abort					(const char* aMessage);
 void					ESSUB_Error				(const char* aMessage);
 std::string				ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage);
 bool					ESSUB_Confirm			(const char* aMessage, bool* aCancel = 0);
 bool					ESSUB_GetNumber			(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex);
+
+

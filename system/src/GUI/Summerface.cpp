@@ -1,11 +1,11 @@
 #include <es_system.h>
 #include "Summerface.h"
 
-											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow)
+											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership)
 {
 	if(aWindow)
 	{
-		AddWindow(aName, aWindow);
+		AddWindow(aName, aWindow, aAssumeOwnership);
 	}
 }
 
@@ -18,9 +18,9 @@
 	}
 
 	//Kill Windows
-	for(WindowSet::iterator i = Windows.begin(); i != Windows.end(); i ++)
+	for(WindowSet::iterator i = OwnedWindows.begin(); i != OwnedWindows.end(); i ++)
 	{
-		delete i->second;
+		delete *i;
 	}
 }
 
@@ -49,7 +49,7 @@ bool										Summerface::Draw									()
 	}
 
 	//Draw the windows
-	for(WindowSet::iterator i = Windows.begin(); i != Windows.end(); i ++)
+	for(WindowMap::iterator i = Windows.begin(); i != Windows.end(); i ++)
 	{
 		if(i->second->PrepareDraw())
 		{
@@ -82,6 +82,36 @@ bool										Summerface::Input									(uint32_t aButton)
 
 	return Windows[ActiveWindow]->Input(aButton);
 }
+
+void										Summerface::AddWindow								(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership)
+{
+	assert(Windows.find(aName) == Windows.end());
+	assert(aWindow);
+
+	Windows[aName] = aWindow; ActiveWindow = aName;
+
+	if(aAssumeOwnership)
+	{
+		OwnedWindows.insert(aWindow);
+	}
+}
+
+///Remove a SummerfaceWindow from the interface.
+///@param aName Name of the window. It is an error if a matching window is not found.
+void										Summerface::RemoveWindow							(const std::string& aName)
+{
+	assert(Windows.find(aName) != Windows.end());
+
+	WindowSet::iterator windowIterator = OwnedWindows.find(Windows.find(aName)->second);
+	if(windowIterator != OwnedWindows.end())
+	{
+		delete *windowIterator;
+		OwnedWindows.erase(windowIterator);
+	}
+
+	Windows.erase(aName);
+}
+
 
 bool										(*Summerface::BackgroundCallback)					() = 0;
 
