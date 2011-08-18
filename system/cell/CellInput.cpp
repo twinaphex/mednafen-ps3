@@ -17,7 +17,7 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 		}
 
 		//Buttons
-		for(int i = 0; i != 16; i ++)
+		for(int j = 0; j != 16; j ++)
 		{
 			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0, ""));
 		}
@@ -26,7 +26,7 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 
 void							ESInputPlatform::Shutdown				()
 {
-	cellPadQuit();
+	cellPadEnd();
 }
 
 void							ESInputPlatform::Refresh				()
@@ -51,19 +51,19 @@ void							ESInputPlatform::Refresh				()
 bool							ESInputPlatform::FetchAxisLow			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 {
 	int realaxis = 4 + (4 - 1 - aAxis);
-	return CurrentState[aPad].button[realaxis] < 0x40);
+	return CurrentState[aPad].button[realaxis] < 0x40;
 }
 
 bool							ESInputPlatform::FetchAxisHigh			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 {
 	int realaxis = 4 + (4 - 1 - aAxis);
-	return CurrentState[aPad].button[realaxis] > 0xC0);
+	return CurrentState[aPad].button[realaxis] > 0xC0;
 }
 
 bool							ESInputPlatform::FetchButton			(uint32_t aPad, uint32_t aButton, uint32_t aA)
 {
 	uint32_t totalButtons = CurrentState[aPad].button[0] | (CurrentState[aPad].button[1] << 8);
-	return totalButtons & (a << aButton);
+	return totalButtons & (1 << aButton);
 }
 
 CellPadInfo2					ESInputPlatform::PadInfo;

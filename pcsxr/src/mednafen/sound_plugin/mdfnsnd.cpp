@@ -5,6 +5,10 @@
 #include <module_helper.h>
 using namespace pcsxr;
 
+#ifdef __CELLOS_LV2__ //math.h must NOT be included in an 'extern "C"' block.
+#include <math.h>
+#endif
+
 extern "C"
 {
 	#include "stdafx.h"

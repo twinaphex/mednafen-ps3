@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #define RRand(range) (random()%range)  
 #include <string.h> 
-#include <math.h>  
+//#include <math.h>  
 
 #undef CALLBACK
 #define CALLBACK

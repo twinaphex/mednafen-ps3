@@ -3,7 +3,7 @@
 #include "src/thirdparty/fex/fex/fex.h"
 
 											ArchiveList::ArchiveList					(const Area& aRegion, const std::string& aFileName) : 
-	AnchoredListView(aRegion),
+	AnchoredListView<SummerfaceItem>(aRegion),
 	Archive(0)
 {
 	//Open the archive
