@@ -1,8 +1,6 @@
 export TOP := $(dir $(lastword $(MAKEFILE_LIST)))
 export PATH := $(CELL_SDK)/host-win32/bin:$(CELL_SDK)/host-win32/ppu/bin:$(PATH)
 
-.SUFFIXES:
-
 AR			:=	ppu-lv2-ar
 AS			:=	ppu-lv2-gcc
 CC			:=	ppu-lv2-gcc
@@ -32,7 +30,8 @@ DEPSOPTIONS			=  -MMD -MP
 include $(TOP)/Makefile.common
 ###
 
-pkg: $(BUILD)-cell
-	@$(MAKE_SELF_GH) $(OUTPUT).elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000	
-	@$(PKG) --contentid $(CONTENTID) pkg/ $(OUTPUT).pkg
+.PHONY: pkg
+pkg: $(BUILD)
+	$(MAKE_SELF_GH) mednafen.elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
+	@$(PKG) --contentid $(CONTENTID) pkg/ mednafen.pkg
 

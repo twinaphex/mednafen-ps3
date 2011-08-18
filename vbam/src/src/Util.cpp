@@ -654,7 +654,11 @@ gzFile utilMemGzOpen(char *memory, int available, const char *mode)
   utilGzWriteFunc = memgzwrite;
   utilGzReadFunc = memgzread;
   utilGzCloseFunc = memgzclose;
+#ifndef __CELLOS_LV2__ //Different prototype for memgzseek
   utilGzSeekFunc = memgzseek;
+#else
+  utilGzSeekFunc = (std::off_t (*)(void*, std::off_t, int))memgzseek;
+#endif
 
   return memgzopen(memory, available, mode);
 }

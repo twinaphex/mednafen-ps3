@@ -5,7 +5,10 @@
 #include <src/git.h>
 #include <src/general.h>
 #include <stdarg.h>
-#include "config.h"
+
+#ifdef __CELLOS_LV2__ //math.h must NOT be included in an 'extern "C"' block.
+#include <math.h>
+#endif
 
 #define MODULENAMESPACE pcsxr
 #include <module_helper.h>

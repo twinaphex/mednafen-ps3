@@ -4,8 +4,7 @@ endif
 
 TARGET		:=	libemusys
 TYPE		:=	lib
-SOURCE		:=	$(PLATFORM) src src/GUI src/GUI/Summerface opengl_common src/utility src/utility/Files 
-
+SOURCE		:=	$(PLATFORM) src src/GUI opengl_common src/utility src/utility/Files 
 
 SNDTOUCHFILES	:=	src/thirdparty/soundtouch/source/SoundTouch/AAFilter.cpp            src/thirdparty/soundtouch/source/SoundTouch/BPMDetect.cpp					\
 					src/thirdparty/soundtouch/source/SoundTouch/PeakFinder.cpp			src/thirdparty/soundtouch/source/SoundTouch/RateTransposer.cpp				\
@@ -31,13 +30,6 @@ CXXFILES		+=	$(FEXCPPFILES) $(SNDTOUCHFILES)
 
 
 INCLUDE		:=	. src src/thirdparty/fex src/thirdparty/soundtouch/include
-
-#ifneq ($(strip $(NO_LUA)),1)
-#	SOURCE	+=	src/lua
-#	INCLUDE	+=	src/lua
-#else
-#	CXXFLAGS+=	-DNO_LUA
-#endif
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 

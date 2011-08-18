@@ -6,7 +6,12 @@
 #include "Patch.h"
 
 
-#ifdef __GNUC__
+#ifdef __CELLOS_LV2__	//Change fseek types to 32-bit, maybe not work
+typedef off_t __off64_t;
+#define fseeko64 fseek
+#define ftello64 ftell
+
+#elif defined(__GNUC__)
 #if defined(__APPLE__) || defined (BSD)
 typedef off_t __off64_t; /* off_t is 64 bits on BSD. */
 #define	fseeko64 fseeko

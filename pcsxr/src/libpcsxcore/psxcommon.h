@@ -29,7 +29,13 @@
 extern "C" {
 #endif
 
+#ifndef MDFNPS3  //Not needed for mednafen, don't know where it was pulled from before. 
 #include "config.h"
+#endif
+
+#ifdef __CELLOS_LV2__	//Define MAXPATHLEN
+#define MAXPATHLEN	512
+#endif
 
 // System includes
 #include <stdio.h>
