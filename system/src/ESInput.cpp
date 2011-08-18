@@ -1,12 +1,6 @@
 #include <es_system.h>
 
-#if defined(MDCELL)
-# include "cell/CellInput.h"
-#elif defined(MDWINDOWS)
-# include "windows/WindowsInput.h"
-#else
-# include "sdl/SDLInput.h"
-#endif
+#include "PlatformInput.h"
 
 void							ESInput::Button::SetState		(bool aPressed)
 {

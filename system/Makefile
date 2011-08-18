@@ -2,9 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
-TARGET		:=	libemusys
-TYPE		:=	lib
-SOURCE		:=	$(PLATFORM) src src/GUI opengl_common src/utility src/utility/Files 
+TARGET			:=	libemusys
+TYPE			:=	lib
 
 SNDTOUCHFILES	:=	src/thirdparty/soundtouch/source/SoundTouch/AAFilter.cpp            src/thirdparty/soundtouch/source/SoundTouch/BPMDetect.cpp					\
 					src/thirdparty/soundtouch/source/SoundTouch/PeakFinder.cpp			src/thirdparty/soundtouch/source/SoundTouch/RateTransposer.cpp				\
@@ -28,8 +27,8 @@ FEXCPPFILES		:=	src/thirdparty/fex/fex/Binary_Extractor.cpp  src/thirdparty/fex/
 CFILES			+=	$(FEXCFILES) $(SIMPLEINIFILES) $(UTF8DECODEFILES)
 CXXFILES		+=	$(FEXCPPFILES) $(SNDTOUCHFILES)
 
-
-INCLUDE		:=	. src src/thirdparty/fex src/thirdparty/soundtouch/include
+SOURCE			:=	$(PLATFORM) src src/GUI opengl_common src/utility src/utility/Files 
+INCLUDE			:=	. src $(PLATFORM) src/thirdparty/fex src/thirdparty/soundtouch/include
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
