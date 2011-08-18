@@ -1,14 +1,47 @@
 #include <es_system.h>
 
-static const char*				vaprint									(const char* aFormat, ...)
+namespace
 {
-	static char buf[1024];
-	va_list args;
-	va_start(args, aFormat);
-	vsnprintf(buf, 1024, aFormat, args);
-	va_end(args);
+	const char*					vaprint									(const char* aFormat, ...)
+	{
+		static char buf[1024];
+		va_list args;
+		va_start(args, aFormat);
+		vsnprintf(buf, 1024, aFormat, args);
+		va_end(args);
 
-	return buf;
+		return buf;
+	}
+
+	//SDL joystick objects
+	std::vector<SDL_Joystick*>		Joysticks;
+
+	//State callbacks
+	bool							FetchKey							(uint32_t aKey, uint32_t aA, uint32_t aB)
+	{
+		int numkeys;
+		return SDL_GetKeyState(&numkeys)[aKey];
+	}
+
+	bool							FetchAxisLow						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) < -0x4000;
+	}
+
+	bool							FetchAxisHigh						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) > 0x4000;
+	}
+
+	bool							FetchHat							(uint32_t aPad, uint32_t aHat, uint32_t aDirection)
+	{
+		return SDL_JoystickGetHat(Joysticks[aPad], aHat) & aDirection;
+	}
+
+	bool							FetchButton							(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	{
+		return SDL_JoystickGetButton(Joysticks[aPad], aButton);
+	}
 }
 
 void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, ESInput::InputDeviceList& aSubDevices, uint32_t aESKeyIndex[14])
@@ -81,33 +114,5 @@ void							ESInputPlatform::Refresh				()
 		SetExit();
 	}
 }
-
-bool							ESInputPlatform::FetchKey				(uint32_t aKey, uint32_t aA, uint32_t aB)
-{
-	int numkeys;
-	return SDL_GetKeyState(&numkeys)[aKey];
-}
-
-bool							ESInputPlatform::FetchAxisLow			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) < -0x4000;
-}
-
-bool							ESInputPlatform::FetchAxisHigh			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) > 0x4000;
-}
-
-bool							ESInputPlatform::FetchHat				(uint32_t aPad, uint32_t aHat, uint32_t aDirection)
-{
-	return SDL_JoystickGetHat(Joysticks[aPad], aHat) & aDirection;
-}
-
-bool							ESInputPlatform::FetchButton			(uint32_t aPad, uint32_t aButton, uint32_t aA)
-{
-	return SDL_JoystickGetButton(Joysticks[aPad], aButton);
-}
-
-std::vector<SDL_Joystick*>		ESInputPlatform::Joysticks;
 
 

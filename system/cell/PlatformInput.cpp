@@ -14,14 +14,33 @@ namespace
 		return buf;
 	}
 
-	//+8 = Skip Axis
-	const uint32_t esIndex[14] = {4 + 8, 6 + 8, 7 + 8, 5 + 8, 14 + 8, 13 + 8, 12 + 8, 15 + 8, 10 + 8, 11 + 8, 8 + 8, 9 + 8, 1 + 8, 2 + 8};
-
+	//Pad data	
+	const uint32_t				esIndex[14] = {4 + 8, 6 + 8, 7 + 8, 5 + 8, 14 + 8, 13 + 8, 12 + 8, 15 + 8, 10 + 8, 11 + 8, 8 + 8, 9 + 8, 1 + 8, 2 + 8};
 	const char* const			AxisNames[] = {"Left X", "Left Y", "Right X", "Right Y"};
 	const char* const			ButtonNames[] = {"Select", "L3", "R3", "Start", "Up", "Right", "Down", "Left", "L2", "R2", "L1", "R1", "Triangle", "Circle", "Cross", "Square"};
 
+	//libpad data
 	CellPadInfo2				PadInfo;
 	CellPadData					CurrentState[4];
+
+	//Callbacks to obtain button state.
+	bool						FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		int realaxis = 4 + (4 - 1 - aAxis);
+		return CurrentState[aPad].button[realaxis] < 0x40;
+	}
+
+	bool						FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		int realaxis = 4 + (4 - 1 - aAxis);
+		return CurrentState[aPad].button[realaxis] > 0xC0;
+	}
+
+	bool						FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	{
+		uint32_t totalButtons = CurrentState[aPad].button[2] | (CurrentState[aPad].button[3] << 8);
+		return (totalButtons & (1 << aButton)) ? true : false;
+	}
 }
 
 void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, ESInput::InputDeviceList& aSubDevices, uint32_t aESKeyIndex[14])
@@ -76,21 +95,4 @@ void							ESInputPlatform::Refresh				()
 	}
 }
 
-bool							ESInputPlatform::FetchAxisLow			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	int realaxis = 4 + (4 - 1 - aAxis);
-	return CurrentState[aPad].button[realaxis] < 0x40;
-}
-
-bool							ESInputPlatform::FetchAxisHigh			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	int realaxis = 4 + (4 - 1 - aAxis);
-	return CurrentState[aPad].button[realaxis] > 0xC0;
-}
-
-bool							ESInputPlatform::FetchButton			(uint32_t aPad, uint32_t aButton, uint32_t aA)
-{
-	uint32_t totalButtons = CurrentState[aPad].button[2] | (CurrentState[aPad].button[3] << 8);
-	return (totalButtons & (1 << aButton)) ? true : false;
-}
 

@@ -11,9 +11,46 @@
 #include <windows.h>
 #include <XInput.h>
 
-//XInput info here, don't wan't XInput.h in every compile unit
 namespace
 {
+	const char*					vaprint									(const char* aFormat, ...)
+	{
+		static char buf[1024];
+		va_list args;
+		va_start(args, aFormat);
+		vsnprintf(buf, 1024, aFormat, args);
+		va_end(args);
+
+		return buf;
+	}
+
+	//Button Defintions for XInput pads
+	static const struct
+	{
+		uint32_t					Mask;
+		const char*					Name;
+	}								XIButtons[] = 
+	{
+	
+		{XINPUT_GAMEPAD_DPAD_UP,			"Up"			},
+		{XINPUT_GAMEPAD_DPAD_DOWN,			"Down"			},
+		{XINPUT_GAMEPAD_DPAD_LEFT,			"Left"			},
+		{XINPUT_GAMEPAD_DPAD_RIGHT,			"Right"			},
+		{XINPUT_GAMEPAD_START,				"Start"			},
+		{XINPUT_GAMEPAD_BACK,				"Back"			},
+		{XINPUT_GAMEPAD_LEFT_THUMB,			"Left Thumb"	},
+		{XINPUT_GAMEPAD_RIGHT_THUMB,		"Right Thumb"	},
+		{XINPUT_GAMEPAD_LEFT_SHOULDER,		"Left Shoulder"	},
+		{XINPUT_GAMEPAD_RIGHT_SHOULDER,		"Right Shoulder"},
+		{XINPUT_GAMEPAD_A,					"A"				},
+		{XINPUT_GAMEPAD_B,					"B"				},
+		{XINPUT_GAMEPAD_X,					"X"				},
+		{XINPUT_GAMEPAD_Y,					"Y"				},
+	};
+
+	static uint32_t				esIndex[14] = {0, 1, 2, 3, 10, 11, 12, 13, 8, 9, 23, 24, 6, 7};
+
+	//XInpuit pad info
 	struct						PadState
 	{
 		bool					Valid;
@@ -23,45 +60,22 @@ namespace
 	};
 
 	static PadState				Pads[4];
+
+	bool						FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] < -8192) ? true : false) : false;
+	}
+
+	bool						FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	{
+		return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] > 8192) ? true : false) : false;
+	}
+
+	bool						FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	{
+		return Pads[aPad].Valid ? ((Pads[aPad].State.Gamepad.wButtons & aButton) ? true : false) : false;
+	}
 }
-
-//Helper function to build strings
-static const char*				vaprint									(const char* aFormat, ...)
-{
-	static char buf[1024];
-	va_list args;
-	va_start(args, aFormat);
-	vsnprintf(buf, 1024, aFormat, args);
-	va_end(args);
-
-	return buf;
-}
-
-//Button Defintions for XInput pads
-static const struct
-{
-	uint32_t					Mask;
-	const char*					Name;
-}								XIButtons[] = 
-{
-	
-	{XINPUT_GAMEPAD_DPAD_UP,			"Up"			},
-	{XINPUT_GAMEPAD_DPAD_DOWN,			"Down"			},
-	{XINPUT_GAMEPAD_DPAD_LEFT,			"Left"			},
-	{XINPUT_GAMEPAD_DPAD_RIGHT,			"Right"			},
-	{XINPUT_GAMEPAD_START,				"Start"			},
-	{XINPUT_GAMEPAD_BACK,				"Back"			},
-	{XINPUT_GAMEPAD_LEFT_THUMB,			"Left Thumb"	},
-	{XINPUT_GAMEPAD_RIGHT_THUMB,		"Right Thumb"	},
-	{XINPUT_GAMEPAD_LEFT_SHOULDER,		"Left Shoulder"	},
-	{XINPUT_GAMEPAD_RIGHT_SHOULDER,		"Right Shoulder"},
-	{XINPUT_GAMEPAD_A,					"A"				},
-	{XINPUT_GAMEPAD_B,					"B"				},
-	{XINPUT_GAMEPAD_X,					"X"				},
-	{XINPUT_GAMEPAD_Y,					"Y"				},
-};
-
-static uint32_t esIndex[14] = {0, 1, 2, 3, 10, 11, 12, 13, 8, 9, 23, 24, 6, 7};
 
 void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, ESInput::InputDeviceList& aSubDevices, uint32_t aESKeyIndex[14])
 {
@@ -126,17 +140,4 @@ void							ESInputPlatform::Refresh				()
 	}	
 }
 
-bool							ESInputPlatform::FetchAxisLow			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] < -8192) ? true : false) : false;
-}
 
-bool							ESInputPlatform::FetchAxisHigh			(uint32_t aPad, uint32_t aAxis, uint32_t aA)
-{
-	return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] > 8192) ? true : false) : false;
-}
-
-bool							ESInputPlatform::FetchButton			(uint32_t aPad, uint32_t aButton, uint32_t aA)
-{
-	return Pads[aPad].Valid ? ((Pads[aPad].State.Gamepad.wButtons & aButton) ? true : false) : false;
-}

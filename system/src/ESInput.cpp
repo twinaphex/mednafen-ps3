@@ -1,7 +1,5 @@
 #include <es_system.h>
 
-#include "PlatformInput.h"
-
 void							ESInput::Button::SetState		(bool aPressed)
 {
 	//Update jammed state

@@ -28,7 +28,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/ESVideo.h"
 #include "PlatformVideo.h"
 #include "PlatformAudio.h"
-#include "PlatformInput.h"
 #include "PlatformNetwork.h"
 
 #include "src/Helpers.h"

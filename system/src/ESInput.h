@@ -203,4 +203,12 @@ class				ESInput
 		static uint32_t						ESKeyIndex[14];			///<Mapping of System keys to platform specific keys.
 };
 
+///Static class to be implemented by a port.
+class										ESInputPlatform
+{
+	public:
+		static void							Initialize				(ESInput::InputDeviceList& aDevices, ESInput::InputDeviceList& aSubDevices, uint32_t aESKeyIndex[14]);
+		static void							Shutdown				();
+		static void							Refresh					();
+};
 
