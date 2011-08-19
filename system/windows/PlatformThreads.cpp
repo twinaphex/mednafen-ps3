@@ -1,23 +1,11 @@
 #include <es_system.h>
 #include <windows.h>
 
-namespace
-{
-	struct				ThreadStart
-	{
-		ThreadFunction	Function;
-		void*			UserData;
-	};
-
-	DWORD WINAPI		WindowsRunThread						(void* aData)
-	{
-		ThreadStart* data = (ThreadStart*)aData;
-		return data->Function(data->UserData);
-	}	
-};
-
 struct					ESPlatformThreadPrivate
 {
+	ThreadFunction		Function;
+	void*				UserData;
+
 	HANDLE				Thread;
 	int32_t				Result;
 	bool				Dead;
@@ -37,10 +25,20 @@ struct					ESPlatformSemaphorePrivate
 };
 
 
+static DWORD WINAPI		WindowsRunThread						(void* aData)
+{
+	ESPlatformThreadPrivate* data = (ESPlatformThreadPrivate*)aData;
+	return data->Function(data->UserData);
+}	
+
+
 						ESThread::ESThread						(ThreadFunction aThreadFunction, void* aUserData) : Data(new ESPlatformThreadPrivate())
 {
-	ThreadStart data = {aThreadFunction, aUserData};
-	Data->Thread = CreateThread(0, 0, WindowsRunThread, &data, 0, 0);
+	Data->Function = aThreadFunction;
+	Data->UserData = aUserData;
+	Data->Result = 0;
+	Data->Dead = false;
+	Data->Thread = CreateThread(0, 0, WindowsRunThread, &Data, 0, 0);
 }
 
 						ESThread::~ESThread						()
@@ -99,7 +97,10 @@ void					ESMutex::Unlock							()
 
 uint32_t				ESSemaphore::GetValue					()
 {
-	return Data->Value;
+	Data->Sadness.Lock();
+	uint32_t result = Data->Value;
+	Data->Sadness.Unlock();
+	return result;
 }
 
 void					ESSemaphore::Post						()
@@ -111,10 +112,10 @@ void					ESSemaphore::Post						()
 
 void					ESSemaphore::Wait						()
 {
-	WaitForSingleObject(Data->Semaphore, INFINITE);
 	Data->Sadness.Lock();
 	Data->Value -= 1;
 	Data->Sadness.Unlock();
+	WaitForSingleObject(Data->Semaphore, INFINITE);
 }
 
 void					ESThreads::Initialize			()
