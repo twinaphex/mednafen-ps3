@@ -21,6 +21,7 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/ESThreads.h"
 #include "src/ESInput.h"
 #include "src/ESAudio.h"
+#include "src/ESNetwork.h"
 #include "src/main.h"
 
 #include "Platform.h"
@@ -28,7 +29,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "opengl_common/Texture.h"
 #include "src/ESVideo.h"
 #include "PlatformVideo.h"
-#include "PlatformNetwork.h"
 
 #include "src/Helpers.h"
 #include "src/utility/Font.h"
