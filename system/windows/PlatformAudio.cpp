@@ -53,7 +53,7 @@ namespace
 void								ESAudio::Initialize				()
 {
 	//Make thread objects
-	Semaphore = es_threads->MakeSemaphore(1);
+	Semaphore = ESThreads::MakeSemaphore(1);
 
 	//Setup XAudio2
 	WAVEFORMATEX waveFormat = {WAVE_FORMAT_PCM, 2, 48000, 48000 * 2, 4, 16, 0};

@@ -50,12 +50,6 @@ void				ESSUB_Quit				()
 	cellSysutilUnregisterCallback(0);
 }
 
-ESThreads*			ESSUB_MakeThreads		()
-{
-	return new CellThreads();
-}
-
-
 bool				ESSUB_WantToDie			()
 {
 	cellSysutilCheckCallback();

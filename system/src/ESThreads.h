@@ -1,39 +1,58 @@
 #pragma once
 
-typedef int (*ThreadFunction) (void*);
-
+typedef int							(*ThreadFunction)	(void*);
+class								ESPlatformThreadPrivate;
 class								ESThread
 {
 	public:
-		virtual						~ESThread			() {};
+									ESThread			(ThreadFunction aFunction, void* aUserData);
+									~ESThread			();
 
-		virtual int32_t				Wait				() = 0;
+		int32_t						Wait				();
+
+	private:
+		ESPlatformThreadPrivate*	Data;
 };
 
+class								ESPlatformMutexPrivate;
 class								ESMutex
 {
 	public:
-		virtual						~ESMutex			() {};
+									ESMutex				();
+									~ESMutex			();
 
-		virtual void				Lock				() = 0;
-		virtual void				Unlock				() = 0;
+		void						Lock				();
+		void						Unlock				();
+
+	private:
+		ESPlatformMutexPrivate*		Data;
+
 };
 
+class								ESPlatformSemaphorePrivate;
 class								ESSemaphore
 {
 	public:
-		virtual						~ESSemaphore		() {};
+									ESSemaphore			(uint32_t aValue);			
+									~ESSemaphore		();
 
-		virtual uint32_t			GetValue			() = 0;
-		virtual void				Post				() = 0;
-		virtual void				Wait				() = 0;
+		uint32_t					GetValue			();
+		void						Post				();
+		void						Wait				();
+
+	private:
+		ESPlatformSemaphorePrivate*	Data;
+
 };
 
 class								ESThreads
 {
 	public:
-		virtual ESThread*			MakeThread			(ThreadFunction aFunction, void* aUserData) = 0;
-		virtual	ESMutex*			MakeMutex			() = 0;
-		virtual ESSemaphore*		MakeSemaphore		(uint32_t aValue) = 0;
+		static void					Initialize			();
+		static void					Shutdown			();
+
+		static ESThread*			MakeThread			(ThreadFunction aFunction, void* aUserData) {return new ESThread(aFunction, aUserData);}
+		static ESMutex*				MakeMutex			() {return new ESMutex();}
+		static ESSemaphore*			MakeSemaphore		(uint32_t aValue) {return new ESSemaphore(aValue);}
 };
 

@@ -150,7 +150,7 @@ struct							MDFN_Mutex
 MDFN_Thread*					MDFND_CreateThread			(int (*fn)(void *), void *data)
 {
 	MDFN_Thread* thread = new MDFN_Thread;
-	thread->Thread = es_threads->MakeThread(fn, data);
+	thread->Thread = ESThreads::MakeThread(fn, data);
 	return thread;
 }
 
@@ -175,7 +175,7 @@ void							MDFND_KillThread			(MDFN_Thread *thread)
 MDFN_Mutex*						MDFND_CreateMutex			(void)
 {
 	MDFN_Mutex* mutex = new MDFN_Mutex;
-	mutex->Mutex = es_threads->MakeMutex();
+	mutex->Mutex = ESThreads::MakeMutex();
 	return mutex;
 }
 

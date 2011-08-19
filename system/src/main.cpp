@@ -3,7 +3,6 @@
 #include "src/utility/Keyboard.h"
 
 Logger*				es_log;
-ESThreads*			es_threads = 0;
 PathBuild*			es_paths = 0;
 
 namespace
@@ -16,8 +15,6 @@ namespace
 
 void				ESSUB_Init				();
 void				ESSUB_Quit				();
-ESVideo*			ESSUB_MakeVideo			();
-ESThreads*			ESSUB_MakeThreads		();
 bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
 std::string			ESSUB_GetBaseDirectory	();
@@ -100,7 +97,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
 	Colors::LoadColors();
 
-	es_threads = ESSUB_MakeThreads();
+	ESThreads::Initialize();
 	ESNetwork::Initialize();
 	ESVideo::Initialize();
 	ESAudio::Initialize();
@@ -123,7 +120,7 @@ void				QuitES					()
 	ESAudio::Shutdown();
 	ESVideo::Shutdown();
 	ESNetwork::Shutdown();
-	delete es_threads;
+	ESThreads::Shutdown();
 
 	delete es_paths;
 

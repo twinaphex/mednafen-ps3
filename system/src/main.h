@@ -2,10 +2,7 @@
 
 //ES Interfaces with happy macro
 #define DEC_AND_DEF(a,b)	class a; extern a* b;
-
-DEC_AND_DEF(ESThreads, es_threads);
 DEC_AND_DEF(PathBuild, es_paths);
-
 #undef DEC_AND_DEF
 
 class	Logger;

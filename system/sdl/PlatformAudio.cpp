@@ -35,7 +35,7 @@ void						ESAudio::Initialize				()
 	SDL_OpenAudio(&spec, &Format);
 	SDL_PauseAudio(0);
 
-	Semaphore = es_threads->MakeSemaphore(1);
+	Semaphore = ESThreads::MakeSemaphore(1);
 
 	//Soundtouch setup
 	PitchShifter.setSampleRate(48000);

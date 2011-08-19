@@ -20,11 +20,6 @@ void				ESSUB_Quit				()
 	SDL_Quit();
 }
 
-ESThreads*			ESSUB_MakeThreads		()
-{
-	return new SDLThreads();
-}
-
 bool				ESSUB_WantToDie			()
 {
 	return want_to_die;

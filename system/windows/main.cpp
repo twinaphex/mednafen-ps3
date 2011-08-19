@@ -34,11 +34,6 @@ void				ESSUB_Quit				()
 	timeEndPeriod(1);
 }
 
-ESThreads*			ESSUB_MakeThreads		()
-{
-	return new WindowsThreads();
-}
-
 bool				ESSUB_WantToDie			()
 {
 	return want_to_die;
