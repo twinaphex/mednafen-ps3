@@ -1,72 +1,107 @@
 #include <es_system.h>
 
-						SDLThread::SDLThread			(ThreadFunction aThreadFunction, void* aUserData) : 
-	Thread(0),
-	Result(0),
-	Dead(false)
+struct					ESPlatformThreadPrivate
 {
-	Thread = SDL_CreateThread(aThreadFunction, aUserData);
+	SDL_Thread*			Thread;
+	int32_t				Result;
+	bool				Dead;
+};
+
+struct					ESPlatformMutexPrivate
+{
+	SDL_mutex*			Mutex;
+};
+
+struct					ESPlatformSemaphorePrivate
+{
+	SDL_sem*			Semaphore;
+};
+
+
+						ESThread::ESThread				(ThreadFunction aThreadFunction, void* aUserData) : 
+	Data(new ESPlatformThreadPrivate)
+{
+	Data->Thread = SDL_CreateThread(aThreadFunction, aUserData);
+	Data->Result = 0;
+	Data->Dead = false;
 }
 
-						SDLThread::~SDLThread			()
+						ESThread::~ESThread				()
 {
 	Wait();
+
+	delete Data;
 }
 
-int32_t					SDLThread::Wait					()
+int32_t					ESThread::Wait					()
 {
-	if(!Dead)
+	if(!Data->Dead)
 	{
-		SDL_WaitThread(Thread, &Result);
+		SDL_WaitThread(Data->Thread, &Data->Result);
 	}
 
-	Dead = true;
-	return Result;
+	Data->Dead = true;
+	return Data->Result;
 }
 
-						SDLMutex::SDLMutex				()
+						ESMutex::ESMutex				() : Data(new ESPlatformMutexPrivate)
 {
-	Mutex = SDL_CreateMutex();
+	Data->Mutex = SDL_CreateMutex();
 }
 
-						SDLMutex::~SDLMutex				()
+						ESMutex::~ESMutex				()
 {
-	SDL_DestroyMutex(Mutex);
+	SDL_DestroyMutex(Data->Mutex);
+
+	delete Data;
 }
 
-void					SDLMutex::Lock					()
+void					ESMutex::Lock					()
 {
-	SDL_mutexP(Mutex);
+	SDL_mutexP(Data->Mutex);
 }
 
-void					SDLMutex::Unlock				()
+void					ESMutex::Unlock					()
 {
-	SDL_mutexV(Mutex);
+	SDL_mutexV(Data->Mutex);
 }
 
-						SDLSemaphore::SDLSemaphore		(uint32_t aValue)
+						ESSemaphore::ESSemaphore		(uint32_t aValue) : Data(new ESPlatformSemaphorePrivate)
 {
-	Semaphore = SDL_CreateSemaphore(aValue);
+	Data->Semaphore = SDL_CreateSemaphore(aValue);
 }
 
-						SDLSemaphore::~SDLSemaphore		()
+						ESSemaphore::~ESSemaphore		()
 {
-	SDL_DestroySemaphore(Semaphore);
+	SDL_DestroySemaphore(Data->Semaphore);
+
+	delete Data;
 }
 
-uint32_t				SDLSemaphore::GetValue			()
+uint32_t				ESSemaphore::GetValue			()
 {
-	return SDL_SemValue(Semaphore);
+	return SDL_SemValue(Data->Semaphore);
 }
 
-void					SDLSemaphore::Post				()
+void					ESSemaphore::Post				()
 {
-	SDL_SemPost(Semaphore);
+	SDL_SemPost(Data->Semaphore);
 }
 
-void					SDLSemaphore::Wait				()
+void					ESSemaphore::Wait				()
 {
-	SDL_SemWait(Semaphore);
+	SDL_SemWait(Data->Semaphore);
 }
+
+void					ESThreads::Initialize			()
+{
+
+}
+
+void					ESThreads::Shutdown				()
+{
+
+}
+
 
 

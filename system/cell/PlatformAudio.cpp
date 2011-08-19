@@ -92,8 +92,8 @@ void						ESAudio::Initialize				()
 	cellMSCoreSetVolume64(CELL_MS_MASTER_BUS, CELL_MS_DRY, volumes);
 
 	/* Create thread */
-	Thread = es_threads->MakeThread(ProcessAudioThread, 0);
-	Semaphore = es_threads->MakeSemaphore(1);
+	Thread = ESThreads::MakeThread(ProcessAudioThread, 0);
+	Semaphore = ESThreads::MakeSemaphore(1);
 
 	/* Setup audio stream */
 	for(int i = 0; i != 2; i ++)
