@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <SDL/SDL_net.h>
 
 struct						ESPlatformSocketPrivate
 {
