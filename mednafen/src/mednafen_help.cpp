@@ -461,17 +461,17 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	}
 
 	if(0 == strcmp(command.c_str(), "DoCheatSearch"))		CheatSearcher::Do();
-	if(0 == strcmp(command.c_str(), "DoCheatMenu"))			CheatMenu().Do();
+	if(0 == strcmp(command.c_str(), "DoCheatMenu"))			{CheatMenu* menu = new CheatMenu(); menu->Do(); delete menu;}
 	if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 	if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator("");
-	if(0 == strcmp(command.c_str(), "DoSettings"))			SettingMenu(GameInfo->shortname).Do();
+	if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu* menu = new SettingMenu(GameInfo->shortname); menu->Do(); delete menu;}
 	if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 	if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 	if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 	if(0 == strcmp(command.c_str(), "DoSaveState"))			MDFNI_SaveState(0, 0, Surface, &EmulatorSpec.DisplayRect, VideoWidths);
 	if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
-	if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu(false).Do(); SuspendDraw = false;}
-	if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu(true).Do(); SuspendDraw = false;}
+	if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu* menu = new StateMenu(false); menu->Do(); delete menu; SuspendDraw = false;}
+	if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu* menu = new StateMenu(true);  menu->Do(); delete menu; SuspendDraw = false;}
 	if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
 	if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
 
