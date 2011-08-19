@@ -1,15 +1,21 @@
 #include <es_system.h>
 
-							ESSocket::ESSocket				(const char* aHost, uint32_t aPort)
+struct						ESPlatformSocketPrivate
 {
-	Socket = socket(AF_INET, SOCK_STREAM, 0);
-	ErrorCheck(Socket != -1, "CellNetwork: Could not open socket");
+	int						Socket;
+};
+
+
+							ESSocket::ESSocket				(const char* aHost, uint32_t aPort) : Data(new ESPlatformSocketPrivate)
+{
+	Data->Socket = socket(AF_INET, SOCK_STREAM, 0);
+	ErrorCheck(Data->Socket != -1, "CellNetwork: Could not open socket");
 
 	//TODO: gethostby name is appently evil?
 	struct hostent* server = gethostbyname(aHost);
 	if(server == 0)
 	{
-		close(Socket);
+		close(Data->Socket);
 		ErrorCheck(0, "CellNetwork: Host look up failed");
 	}
 
@@ -19,16 +25,18 @@
 	serv_addr.sin_family = AF_INET;
 	memcpy((char *)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
 
-	if(-1 != connect(Socket, (sockaddr*)&serv_addr, sizeof(serv_addr)))
+	if(-1 != connect(Data->Socket, (sockaddr*)&serv_addr, sizeof(serv_addr)))
 	{
-		close(Socket);
+		close(Data->Socket);
 		ErrorCheck(0, "CellNetwork: connect() failed");
 	}
 }
 
 							ESSocket::~ESSocket				()
 {
-	close(Socket);
+	close(Data->Socket);
+
+	delete Data;
 }
 
 uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
@@ -37,7 +45,7 @@ uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
 
 	for(int i = 0; i != aLength; i ++)
 	{
-		int count = recv(Socket, &buff[i], 1, 0);
+		int count = recv(Data->Socket, &buff[i], 1, 0);
 
 		if(0 == count || buff[i] == 0x0A)
 		{
@@ -54,7 +62,7 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 {
 	uint8_t* buff = (uint8_t*)aBuffer;
 
-	int count = recv(Socket, aBuffer, aLength, 0);
+	int count = recv(Data->Socket, aBuffer, aLength, 0);
 
 	ErrorCheck(count >= 0, "CellNetwork: failed to read socket");
 
@@ -63,7 +71,7 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 
 void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
-	ErrorCheck(aLength == send(Socket, aBuffer, aLength, 0), "CellNetwork: failed to write socket");
+	ErrorCheck(aLength == send(Data->Socket, aBuffer, aLength, 0), "CellNetwork: failed to write socket");
 }
 
 void						ESNetwork::Initialize			()

@@ -1,5 +1,7 @@
 #pragma once
 
+class								ESPlatformSocketPrivate;
+
 class								ESSocket
 {
 	public:
@@ -11,7 +13,7 @@ class								ESSocket
 		void						Write				(const void* aBuffer, uint32_t aLength);
 
 	protected:
-		int							Socket;
+		ESPlatformSocketPrivate*	Data;
 };
 
 class								ESNetwork
