@@ -2,9 +2,6 @@
 
 struct					ESPlatformThreadPrivate
 {
-	ThreadFunction		Function;
-	void*				UserData;
-
 	sys_ppu_thread_t	Thread;
 	int32_t				Result;
 	bool				Dead;
@@ -20,11 +17,16 @@ struct					ESPlatformSemaphorePrivate
 	sys_semaphore_t		Semaphore;
 };
 
+struct					ThreadStart
+{
+	ThreadFunction		Function;
+	void*				Data;
+};
 
 static void				ThreadWrapper					(uint64_t aUserData)
 {
-	ESThread* thread = (ESThread*)aUserData;
-	int32_t result = thread->Data->Function(thread->Data->UserData);
+	ThreadStart* thread = (ThreadStart*)aUserData;
+	int32_t result = thread->Function(thread->Data);
 	sys_ppu_thread_exit(result);
 }
 
@@ -32,14 +34,12 @@ static void				ThreadWrapper					(uint64_t aUserData)
 						ESThread::ESThread				(ThreadFunction aThreadFunction, void* aUserData) : 
 	Data(new ESPlatformThreadPrivate())
 {
-	Data->Function = aThreadFunction;
-	Data->UserData = aUserData;
+	ThreadStart startData = {aThreadFunction, aUserData};
+	sys_ppu_thread_create(&Data->Thread, ThreadWrapper, (uint64_t)&startData, 500, 65536, SYS_PPU_THREAD_CREATE_JOINABLE, "\0");
 
 	Data->Thread = 0;
 	Data->Result = 0;
 	Data->Dead = false;
-
-	sys_ppu_thread_create(&Data->Thread, ThreadWrapper, (uint64_t)this, 500, 65536, SYS_PPU_THREAD_CREATE_JOINABLE, "\0");
 }
 
 						ESThread::~ESThread				()
@@ -60,7 +60,7 @@ int32_t					ESThread::Wait					()
 		Data->Result = (int32_t)result64;
 	}
 
-	return Result;
+	return Data->Result;
 }
 
 						ESMutex::ESMutex				() : Data(new ESPlatformMutexPrivate())

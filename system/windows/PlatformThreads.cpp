@@ -40,14 +40,14 @@ struct					ESPlatformSemaphorePrivate
 						ESThread::ESThread						(ThreadFunction aThreadFunction, void* aUserData) : Data(new ESPlatformThreadPrivate())
 {
 	ThreadStart data = {aThreadFunction, aUserData};
-	Thread = CreateThread(0, 0, WindowsRunThread, &data, 0, 0);
+	Data->Thread = CreateThread(0, 0, WindowsRunThread, &data, 0, 0);
 }
 
 						ESThread::~ESThread						()
 {
-	if(!Dead)
+	if(!Data->Dead)
 	{
-		WaitForSingleObject(Thread, INFINITE);
+		WaitForSingleObject(Data->Thread, INFINITE);
 	}
 
 	delete Data;
@@ -55,13 +55,13 @@ struct					ESPlatformSemaphorePrivate
 
 int32_t					ESThread::Wait							()
 {
-	if(!Dead)
+	if(!Data->Dead)
 	{
-		Result = WaitForSingleObject(Thread, INFINITE);
+		Data->Result = WaitForSingleObject(Data->Thread, INFINITE);
 	}
 
-	Dead = true;
-	return Result;
+	Data->Dead = true;
+	return Data->Result;
 }
 
 						ESMutex::ESMutex						() : Data(new ESPlatformMutexPrivate())
@@ -99,7 +99,7 @@ void					ESMutex::Unlock							()
 
 uint32_t				ESSemaphore::GetValue					()
 {
-	return Value;
+	return Data->Value;
 }
 
 void					ESSemaphore::Post						()
