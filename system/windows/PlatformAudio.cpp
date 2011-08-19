@@ -7,38 +7,47 @@
 
 namespace
 {
+	//XAudio2 Interfaces
 	IXAudio2*						Device;
 	IXAudio2MasteringVoice*			MasterVoice;
 	IXAudio2SourceVoice*			Voice;
 
+	//Audio Buffer
 	AudioBuffer<8192>				Buffer;
-	ESSemaphore*					Semaphore;
+	ESThread*						FeedThread;
 
+	//Pitch correction
 	soundtouch::SoundTouch			PitchShifter;
 	uint32_t						AuxBuffer[48000];
 	uint32_t						Speed = 1;
 
+	//XAudio Sound buffering
+	HANDLE							BufferEvent;
+	HANDLE							BufferReadyEvent;
 	uint32_t						Buffers[2][256];
 	uint32_t						NextBuffer = 0;
+
+	int								BufferFeed						(void* aData)
+	{
+		while(WAIT_OBJECT_0 == WaitForSingleObject(BufferEvent, INFINITE))
+		{
+			Buffer.ReadDataSilentUnderrun(Buffers[NextBuffer], 256);
+
+			XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[NextBuffer], 0, 0, 0, 0, 0, 0};
+			Voice->SubmitSourceBuffer(&buf);
+
+			NextBuffer ^= 1;
+
+			SetEvent(BufferReadyEvent);
+		}
+
+		return 0;
+	}
 
 	class							VoiceCallback : public IXAudio2VoiceCallback
 	{
 		public:
-			void __stdcall			OnBufferEnd						(void * pBufferContext)
-			{
-				Buffer.ReadDataSilentUnderrun(Buffers[NextBuffer], 256);
-
-				XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[NextBuffer], 0, 0, 0, 0, 0, 0};
-				Voice->SubmitSourceBuffer(&buf);
-
-				NextBuffer ^= 1;
-
-				if(!Semaphore->GetValue())
-				{
-					Semaphore->Post();
-				}
-			}
-
+			void __stdcall			OnBufferEnd						(void * pBufferContext) {SetEvent(BufferEvent);}
 			void __stdcall			OnStreamEnd						() { }
 			void __stdcall			OnVoiceProcessingPassEnd		() { }
 			void __stdcall			OnVoiceProcessingPassStart		(UINT32 SamplesRequired) { }
@@ -53,7 +62,8 @@ namespace
 void								ESAudio::Initialize				()
 {
 	//Make thread objects
-	Semaphore = ESThreads::MakeSemaphore(1);
+	BufferEvent = CreateEvent(0, 0, TRUE, 0);
+	BufferReadyEvent = CreateEvent(0, 0, 0, 0);
 
 	//Setup XAudio2
 	WAVEFORMATEX waveFormat = {WAVE_FORMAT_PCM, 2, 48000, 48000 * 2, 4, 16, 0};
@@ -62,14 +72,12 @@ void								ESAudio::Initialize				()
 	Device->CreateMasteringVoice(&MasterVoice, 2, 48000);
 	Device->CreateSourceVoice(&Voice, &waveFormat, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &AudioCallbacks);
 
-	//Send first buffer to voice
-	XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[1], 0, 0, 0, 0, 0, 0};
-	Voice->SubmitSourceBuffer(&buf);
-	Voice->Start();
-
 	//Soundtouch setup
 	PitchShifter.setSampleRate(48000);
 	PitchShifter.setChannels(2);
+
+	//Start the feed thread
+	FeedThread = ESThreads::MakeThread(BufferFeed, (void*)0);
 }
 
 void								ESAudio::Shutdown				()
@@ -79,7 +87,10 @@ void								ESAudio::Shutdown				()
 	Voice = 0;
 	MasterVoice = 0;
 
-	delete Semaphore;
+	CloseHandle(BufferEvent);
+	CloseHandle(BufferReadyEvent);
+
+	delete FeedThread;
 }
 
 
@@ -101,7 +112,7 @@ void								ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 
 			//Put them in the ringbuffer as normal
 			while(Buffer.GetBufferFree() < sampleCount)
-				Semaphore->Wait();
+				WaitForSingleObject(BufferReadyEvent, INFINITE);
 
 			Buffer.WriteData((uint32_t*)AuxBuffer, sampleCount);
 		}
@@ -110,7 +121,7 @@ void								ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 	{
 		//Put them in the ringbuffer as normal
 		while(Buffer.GetBufferFree() < aCount)
-			Semaphore->Wait();
+			WaitForSingleObject(BufferReadyEvent, INFINITE);
 
 		Buffer.WriteData((uint32_t*)aSamples, aCount);
 	}
