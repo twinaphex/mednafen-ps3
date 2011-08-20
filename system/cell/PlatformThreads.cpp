@@ -35,7 +35,7 @@ static void				ThreadWrapper					(uint64_t aUserData)
 	Data->UserData = aUserData;
 	Data->Result = 0;
 	Data->Dead = false;
-	sys_ppu_thread_create(&Data->Thread, ThreadWrapper, (uint64_t)&Data, 500, 65536, SYS_PPU_THREAD_CREATE_JOINABLE, "\0");
+	sys_ppu_thread_create(&Data->Thread, ThreadWrapper, (uint64_t)Data, 500, 65536, SYS_PPU_THREAD_CREATE_JOINABLE, "\0");
 }
 
 						ESThread::~ESThread				()

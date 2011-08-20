@@ -48,7 +48,7 @@ namespace
 		{XINPUT_GAMEPAD_Y,					"Y"				},
 	};
 
-	static uint32_t				esIndex[14] = {0, 1, 2, 3, 10, 11, 12, 13, 8, 9, 23, 24, 6, 7};
+	static uint32_t				esIndex[14] = {0, 1, 2, 3, 10, 11, 12, 13, 8, 9, 22, 23, 6, 7};
 
 	//XInpuit pad info
 	struct						PadState
