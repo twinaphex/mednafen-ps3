@@ -1,14 +1,11 @@
 #pragma once
 
-#include <unistd.h>
 #include <assert.h>
-#include <dirent.h>
 #include <sys/stat.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <SDL/SDL.h>
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 

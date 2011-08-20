@@ -2,46 +2,52 @@
 
 namespace
 {
-	SDL_Surface*								Screen;
+	HWND										Window;
+	HDC											DeviceContext;
+	HGLRC										RenderContext;
+	
+	LRESULT CALLBACK							WindowProc								(HWND aWindow, UINT aMessage, WPARAM aWParam, LPARAM aLParam)
+	{
+		if((aMessage == WM_SYSCOMMAND) && (aWParam == SC_SCREENSAVE))
+		{
+			return 0;
+		}
+
+		if(aMessage == WM_CLOSE)
+		{
+			PostQuitMessage(0);
+			return 0;
+		}
+
+		return DefWindowProc(aWindow, aMessage, aWParam, aLParam);
+	}
 }
 
 void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeight)
 {
-	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
+	//TODO: Error checking!
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+	WNDCLASS windowClass = {CS_OWNDC, WindowProc, 0, 0, GetModuleHandle(0), 0, 0, 0, 0, "ESWindow"};
+	RegisterClass(&windowClass);
 
-	if(ESHasArgument("-window"))
-	{
-		Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
-	}
-	else
-	{
-		Screen = SDL_SetVideoMode(dispinfo->current_w, dispinfo->current_h, 32, SDL_OPENGL | SDL_FULLSCREEN);
-	}
+	//TODO: Make name configurable
+	Window = CreateWindow("ESWindow", "mednafen", WS_POPUP | WS_MAXIMIZE | WS_VISIBLE, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetModuleHandle(0), 0);
+	DeviceContext = GetDC(Window);
 
-	if(!Screen)
-	{
-		printf("SDL Couldn't set video mode: %s\n", SDL_GetError());
-		throw "SDL couldn't set video mode";
-	}
-	
-	SDL_ShowCursor(SDL_DISABLE);
-	SDL_WM_SetCaption("Mednafen PS3", "Mednafen PS3");
-	
-	aWidth = dispinfo->current_w;
-	aHeight = dispinfo->current_h;
+	static const uint32_t formatFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER | PFD_DEPTH_DONTCARE;
+	static const PIXELFORMATDESCRIPTOR format = {sizeof(PIXELFORMATDESCRIPTOR), 1, formatFlags, PFD_TYPE_RGBA, 24};
+	uint32_t formatID = ChoosePixelFormat(DeviceContext, &format);
+	SetPixelFormat(DeviceContext, formatID, &format);
+	RenderContext = wglCreateContext(DeviceContext);
+	wglMakeCurrent(DeviceContext,RenderContext);
 
-#ifdef __WIN32__
+	//Get window size
+	RECT windowSize;
+	GetWindowRect(Window, &windowSize);
+	aWidth = windowSize.right - windowSize.left;
+	aHeight = windowSize.bottom - windowSize.top;
+
 	glewInit();
-#endif
 }
 
 void											ESVideoPlatform::Shutdown				()
@@ -50,7 +56,7 @@ void											ESVideoPlatform::Shutdown				()
 
 void											ESVideoPlatform::Flip					()
 {
-	SDL_GL_SwapBuffers();
+	SwapBuffers(DeviceContext);
 }
 
 bool											ESVideoPlatform::SupportsVSyncSelect	()
