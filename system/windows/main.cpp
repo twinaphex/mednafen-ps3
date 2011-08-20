@@ -19,8 +19,6 @@ void				ESSUB_Init				()
 	timeBeginPeriod(1);
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
-
 	GdiplusStartupInput gdipsi;
 	GdiplusStartup(&GdiPlusToken, &gdipsi, NULL);
 }
@@ -28,8 +26,6 @@ void				ESSUB_Init				()
 void				ESSUB_Quit				()
 {
 	GdiplusShutdown(GdiPlusToken);
-
-	SDL_Quit();
 
 	timeEndPeriod(1);
 }

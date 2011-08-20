@@ -114,15 +114,20 @@ void							SetExit									();
 void							ESInputPlatform::Refresh				()
 {
 	//HACK
-	SDL_Event event;
-	while(SDL_PollEvent(&event))
+	MSG message;
+	while(PeekMessage(&message, 0, 0, 0, PM_REMOVE))
 	{
-		if(event.type == SDL_QUIT)
+		if(message.message == WM_QUIT)
 		{
 			SetExit();
 		}
+		else
+		{
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
 	}
-
+	
 	//Poll XInput
 	for(int i = 0; i != 4; i ++)
 	{
