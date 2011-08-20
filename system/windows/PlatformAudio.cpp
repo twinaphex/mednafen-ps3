@@ -13,12 +13,7 @@ namespace
 	IXAudio2SourceVoice*			Voice;
 
 	//Audio Buffer
-	AudioBuffer<8192>				Buffer;
-
-	//Pitch correction
-	soundtouch::SoundTouch			PitchShifter;
-	uint32_t						AuxBuffer[48000];
-	uint32_t						Speed = 1;
+	SoundTouchAudioBuffer			Buffer;
 
 	//XAudio Sound buffering
 	HANDLE							BufferReadyEvent;
@@ -71,10 +66,6 @@ void								ESAudio::Initialize				()
 	XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[7], 0, 0, 0, 0, 0, 0};
 	Voice->SubmitSourceBuffer(&buf);
 	Voice->Start();
-
-	//Soundtouch setup
-	PitchShifter.setSampleRate(48000);
-	PitchShifter.setChannels(2);
 }
 
 void								ESAudio::Shutdown				()
@@ -90,35 +81,10 @@ void								ESAudio::Shutdown				()
 
 void								ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)
 {
-	//Pitch shifting
-	if(Speed != 1)
-	{
-		//Add samples to sound touch
-		PitchShifter.putSamples((int16_t*)aSamples, aCount);
+	while(Buffer.GetBufferFree() < aCount)
+		WaitForSingleObject(BufferReadyEvent, INFINITE);
 
-		//Process any available samples 
-		int32_t sampleCount = PitchShifter.numSamples();
-
-		if(sampleCount)
-		{
-			//Don't process too large of a block
-			sampleCount = PitchShifter.receiveSamples((int16_t*)AuxBuffer, std::min(2048, sampleCount));
-
-			//Put them in the ringbuffer as normal
-			while(Buffer.GetBufferFree() < sampleCount)
-				WaitForSingleObject(BufferReadyEvent, INFINITE);
-
-			Buffer.WriteData((uint32_t*)AuxBuffer, sampleCount);
-		}
-	}
-	else
-	{
-		//Put them in the ringbuffer as normal
-		while(Buffer.GetBufferFree() < aCount)
-			WaitForSingleObject(BufferReadyEvent, INFINITE);
-
-		Buffer.WriteData((uint32_t*)aSamples, aCount);
-	}
+	Buffer.WriteData((uint32_t*)aSamples, aCount);
 }
 
 volatile int32_t					ESAudio::GetBufferAmount		()
@@ -133,7 +99,6 @@ volatile int32_t					ESAudio::GetBufferFree			()
 
 void								ESAudio::SetSpeed				(uint32_t aSpeed)
 {
-	Speed = aSpeed;
-	PitchShifter.setTempo(aSpeed);
+	Buffer.SetSpeed(aSpeed);
 }
 

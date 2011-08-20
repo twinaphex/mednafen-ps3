@@ -5,24 +5,19 @@
 
 //If Length is not a power of two you are in for a world of hurt (MODULOS GALORE)
 template<int Length=8192>
-class						AudioBuffer
+class								AudioBuffer
 {
 	public:
-							AudioBuffer						() : ReadCount(0), WriteCount(0), InputSpeed(1)
-		{
-		}
+									AudioBuffer						() : ReadCount(0), WriteCount(0), InputSpeed(1) {}
+		virtual						~AudioBuffer					() {}
 
-		virtual				~AudioBuffer					()
-		{
-		}
-
-		void				SetSpeed						(uint32_t aSpeed)
+		void						SetSpeed						(uint32_t aSpeed)
 		{
 			assert(aSpeed && aSpeed <= 16);
 			InputSpeed = aSpeed;
 		}
 
-		uint32_t			WriteData						(const uint32_t* aData, uint32_t aLength)
+		uint32_t					WriteData						(const uint32_t* aData, uint32_t aLength)
 		{
 			if(InputSpeed == 1)
 			{
@@ -68,7 +63,7 @@ class						AudioBuffer
 			return aLength;
 		}
 
-		uint32_t			ReadData						(uint32_t* aData, uint32_t aLength)
+		uint32_t					ReadData						(uint32_t* aData, uint32_t aLength)
 		{
 			//Clip to available space (if you wan't to block, do it in the caller.)
 			uint32_t available = GetBufferAmount();
@@ -97,7 +92,7 @@ class						AudioBuffer
 			return aLength;
 		}
 
-		uint32_t			ReadDataSilentUnderrun			(uint32_t* aData, uint32_t aLength)
+		uint32_t					ReadDataSilentUnderrun			(uint32_t* aData, uint32_t aLength)
 		{
 			uint32_t count = ReadData(aData, aLength);
 
@@ -109,15 +104,36 @@ class						AudioBuffer
 			return count;
 		}
 
-		volatile int32_t 	GetBufferAmount					() const {return (WriteCount - ReadCount);}
-		volatile int32_t 	GetBufferFree					() const {return Length - (WriteCount - ReadCount);}
+		volatile int32_t		 	GetBufferAmount					() const {return (WriteCount - ReadCount);}
+		volatile int32_t		 	GetBufferFree					() const {return Length - (WriteCount - ReadCount);}
 
 	private:
-		uint32_t			RingBuffer[Length];
+		uint32_t					RingBuffer[Length];
 
-		uint32_t			ReadCount;
-		uint32_t			WriteCount;
+		uint32_t					ReadCount;
+		uint32_t					WriteCount;
 
-		uint32_t			InputSpeed;
+		uint32_t					InputSpeed;
+};
+
+namespace							soundtouch
+{
+	class							SoundTouch;
+};
+
+//Note that the methods in this class are NOT virtual.
+class								SoundTouchAudioBuffer : public AudioBuffer<8192>
+{
+	public:
+									SoundTouchAudioBuffer			();
+									~SoundTouchAudioBuffer			();
+
+		void						SetSpeed						(uint32_t aSpeed);
+		uint32_t					WriteData						(const uint32_t* aData, uint32_t aLength);
+
+	private:
+		soundtouch::SoundTouch*		PitchShifter;
+		uint32_t					AuxBuffer[48000];
+		uint32_t					Speed;
 };
 
