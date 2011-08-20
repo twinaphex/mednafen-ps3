@@ -13,6 +13,11 @@ namespace
 			return 0;
 		}
 
+		if(aMessage == WM_ACTIVATE)
+		{
+			ShowCursor(LOWORD(aWParam) == 0);
+		}
+
 		if(aMessage == WM_CLOSE)
 		{
 			PostQuitMessage(0);
@@ -52,6 +57,9 @@ void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeig
 
 void											ESVideoPlatform::Shutdown				()
 {
+	wglMakeCurrent(DeviceContext, 0);
+	wglDeleteContext(RenderContext);
+	ReleaseDC(Window, DeviceContext);
 }
 
 void											ESVideoPlatform::Flip					()
