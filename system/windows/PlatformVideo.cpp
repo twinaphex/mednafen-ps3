@@ -1,6 +1,11 @@
 #include <es_system.h>
 
-void					ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeight)
+namespace
+{
+	SDL_Surface*								Screen;
+}
+
+void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeight)
 {
 	const SDL_VideoInfo* dispinfo = SDL_GetVideoInfo();
 
@@ -39,14 +44,26 @@ void					ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeight)
 #endif
 }
 
-void					ESVideoPlatform::Shutdown				()
+void											ESVideoPlatform::Shutdown				()
 {
 }
 
-void					ESVideoPlatform::Flip					()
+void											ESVideoPlatform::Flip					()
 {
 	SDL_GL_SwapBuffers();
 }
 
-SDL_Surface*			ESVideoPlatform::Screen;
+bool											ESVideoPlatform::SupportsVSyncSelect	()
+{
+	return false;
+}
+
+bool											ESVideoPlatform::SupportsModeSwitch		()
+{
+	return false;
+}
+
+void											ESVideoPlatform::SetVSync				(bool aOn) {assert(false);}
+void											ESVideoPlatform::SetMode				(uint32_t aIndex) {assert(false);}
+ESVideoPlatform::ModeList::const_iterator		ESVideoPlatform::GetModes				() {assert(false);}
 

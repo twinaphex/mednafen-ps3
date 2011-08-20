@@ -1,84 +1,50 @@
 #pragma once
 
-class							Area
-{
-	public:
-		int32_t					X, Y, Width, Height;
-
-		int32_t					Left					() const {return X;}		
-		int32_t					Right					() const {return X + Width;}
-		int32_t					Top						() const {return Y;}
-		int32_t					Bottom					() const {return Y + Height;}
-
-								Area					(int32_t aX = 0, int32_t aY = 0, int32_t aWidth = 0, int32_t aHeight = 0)
-		{
-			X = aX;
-			Y = aY;
-			Width = aWidth;
-			Height = aHeight;
-		};
-
-		void					Inflate					(int32_t aAmount)
-		{
-			X -= aAmount;
-			Y -= aAmount;
-			Width += aAmount * 2;
-			Height += aAmount * 2;
-		}
-
-		bool					ContainsPoint			(int32_t aX, int32_t aY) const
-		{
-			return (aX >= X && aX < Right() && aY >= Y && aY < Bottom());
-		}
-
-		bool					Intersects				(const Area& aArea) const
-		{
-			return !((Right() < aArea.Left()) || (Left() > aArea.Right()) || (Bottom() < aArea.Top()) || (Top() > aArea.Bottom()));
-		}
-
-		bool					Contains				(const Area& aArea) const
-		{
-			return (aArea.Left() >= Left()) && (aArea.Right() <= Right()) && (aArea.Top() >= Top()) && (aArea.Bottom() <= Bottom());
-		}
-
-		bool					Valid					(uint32_t aWidth, uint32_t aHeight) const
-		{
-			return (X >= 0) && (Y >= 0) && (Width > 0) && (Height > 0) && (Right() <= aWidth) && (Bottom() <= aHeight);
-		}
-
-		bool					operator==				(const Area& aB) const
-		{
-			return (X == aB.X && Y == aB.Y && Width == aB.Width && Height == aB.Height);
-		}	
-
-		bool					operator!=				(const Area& aB) const
-		{
-			return !(X == aB.X && Y == aB.Y && Width == aB.Width && Height == aB.Height);
-		}	
-
-		friend std::ostream&	operator<<				(std::ostream& aStream, const Area& aA)
-		{
-			aStream << aA.X << " " << aA.Y << " " << aA.Width << " " << aA.Height;
-			return aStream;
-		}
-
-		friend std::istream&	operator>>				(std::istream& aStream, Area& aA)
-		{
-			aStream >> aA.X >> aA.Y >> aA.Width >> aA.Height;
-			return aStream;
-		}
-};
-
+#include "utility/Area.h"
 #include "../opengl_common/Shaders.h"
 
-class								ESVideo
+///Static class to be implemented by a port.
+class										ESVideoPlatform
+{
+	public:
+		//Doc Note: Set Name to zero to terminate the list.
+		struct								Mode
+		{
+			const char*						Name;
+			uint32_t						ID;
+		};
+
+		typedef std::list<Mode>				ModeList;
+
+	protected:	
+		static void							Initialize				(uint32_t& aWidth, uint32_t& aHeight); //External
+		static void							Shutdown				(); //External
+		static void							Flip					();
+
+	public:
+		///Determine if the platform supports specifing the vertical sync setting. If this returns false, it is an error to call
+		///the SetVSync function.
+		///@return True if supported, false otherwise.
+		static bool							SupportsVSyncSelect		();
+
+		///Determine if the platform supports specifing the screen resolution. If this returns false, it is an error to call
+		///the SetMode and GetModes functions.
+		///@return True if supported, false otherwise.
+		static bool							SupportsModeSwitch		();
+
+		//Doc Note: All of these must assert if not supported
+		static void							SetVSync				(bool aOn);
+		static void							SetMode					(uint32_t aIndex);
+		static ModeList::const_iterator		GetModes				();
+};
+
+
+class								ESVideo : public ESVideoPlatform
 {
 	public:	
 		static void					Initialize				(); //External
 		static void					Shutdown				(); //External
 
-		static void					EnableVsync				(bool aOn) {}
-	
 		static Texture*				CreateTexture			(uint32_t aWidth, uint32_t aHeight, bool aStatic = false) {return new Texture(aWidth, aHeight);};
 	
 		static void					SetScreenSize			(uint32_t aX, uint32_t aY); //External
@@ -128,5 +94,4 @@ void								ESVideo::SetClip		(const Area& aClip)
 	Clip = aClip.Valid(GetScreenWidth(), GetScreenHeight()) ? aClip : Area(0, 0, GetScreenWidth(), GetScreenHeight());
 	glScissor(Clip.X, GetScreenHeight() - Clip.Bottom(), Clip.Width, Clip.Height);
 }
-
 
