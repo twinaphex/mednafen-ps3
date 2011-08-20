@@ -183,16 +183,16 @@ class				ESInput
 			}
 
 			//Fetch from main device
-			if(aButton < 0x10000 && aPad < Inputs.size())
+			if(aButton < 0x10000 && aPad < Inputs.size() && aButton < Inputs[aPad].size())
 			{
 				return &Inputs[aPad][aButton];
 			}
 			//Fetch from sub device
-			else if(((aButton - 0x10000) / 0x10000) < SubInputs.size())
+			else if(aButton >= 0x10000)
 			{
 				uint32_t device = ((aButton - 0x10000) / 0x10000);
 				uint32_t button = aButton & 0xFFFF;
-				return &SubInputs[device][button];
+				return ((device < SubInputs.size()) && (button < SubInputs[device].size())) ? &SubInputs[device][button] : 0;
 			}
 
 			return 0;

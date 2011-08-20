@@ -38,7 +38,7 @@ static DWORD WINAPI		WindowsRunThread						(void* aData)
 	Data->UserData = aUserData;
 	Data->Result = 0;
 	Data->Dead = false;
-	Data->Thread = CreateThread(0, 0, WindowsRunThread, &Data, 0, 0);
+	Data->Thread = CreateThread(0, 0, WindowsRunThread, Data, 0, 0);
 }
 
 						ESThread::~ESThread						()

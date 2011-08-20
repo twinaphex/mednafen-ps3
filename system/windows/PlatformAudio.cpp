@@ -24,11 +24,13 @@ namespace
 	//XAudio Sound buffering
 	HANDLE							BufferEvent;
 	HANDLE							BufferReadyEvent;
-	uint32_t						Buffers[2][256];
+	uint32_t						Buffers[8][256];
 	uint32_t						NextBuffer = 0;
 
 	int								BufferFeed						(void* aData)
 	{
+		CoInitializeEx(0, COINIT_MULTITHREADED);
+
 		while(WAIT_OBJECT_0 == WaitForSingleObject(BufferEvent, INFINITE))
 		{
 			Buffer.ReadDataSilentUnderrun(Buffers[NextBuffer], 256);
@@ -36,7 +38,7 @@ namespace
 			XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[NextBuffer], 0, 0, 0, 0, 0, 0};
 			Voice->SubmitSourceBuffer(&buf);
 
-			NextBuffer ^= 1;
+			NextBuffer = (NextBuffer == 7) ? 0 : (NextBuffer + 1);
 
 			SetEvent(BufferReadyEvent);
 		}
@@ -71,6 +73,11 @@ void								ESAudio::Initialize				()
 	XAudio2Create(&Device);
 	Device->CreateMasteringVoice(&MasterVoice, 2, 48000);
 	Device->CreateSourceVoice(&Voice, &waveFormat, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &AudioCallbacks);
+
+	//Setup voice
+	XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[7], 0, 0, 0, 0, 0, 0};
+	Voice->SubmitSourceBuffer(&buf);
+	Voice->Start();
 
 	//Soundtouch setup
 	PitchShifter.setSampleRate(48000);
