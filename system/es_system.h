@@ -27,7 +27,6 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "Platform.h"
 #include "opengl_common/Texture.h"
 #include "src/ESVideo.h"
-#include "PlatformVideo.h"
 
 #include "src/Helpers.h"
 #include "src/utility/Font.h"

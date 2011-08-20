@@ -14,7 +14,6 @@ namespace
 
 	//Audio Buffer
 	AudioBuffer<8192>				Buffer;
-	ESThread*						FeedThread;
 
 	//Pitch correction
 	soundtouch::SoundTouch			PitchShifter;
@@ -22,26 +21,20 @@ namespace
 	uint32_t						Speed = 1;
 
 	//XAudio Sound buffering
-	HANDLE							BufferEvent;
 	HANDLE							BufferReadyEvent;
 	uint32_t						Buffers[8][256];
 	uint32_t						NextBuffer = 0;
 
 	int								BufferFeed						(void* aData)
 	{
-		CoInitializeEx(0, COINIT_MULTITHREADED);
+		Buffer.ReadDataSilentUnderrun(Buffers[NextBuffer], 256);
 
-		while(WAIT_OBJECT_0 == WaitForSingleObject(BufferEvent, INFINITE))
-		{
-			Buffer.ReadDataSilentUnderrun(Buffers[NextBuffer], 256);
+		XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[NextBuffer], 0, 0, 0, 0, 0, 0};
+		Voice->SubmitSourceBuffer(&buf);
 
-			XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[NextBuffer], 0, 0, 0, 0, 0, 0};
-			Voice->SubmitSourceBuffer(&buf);
+		NextBuffer = (NextBuffer == 7) ? 0 : (NextBuffer + 1);
 
-			NextBuffer = (NextBuffer == 7) ? 0 : (NextBuffer + 1);
-
-			SetEvent(BufferReadyEvent);
-		}
+		SetEvent(BufferReadyEvent);
 
 		return 0;
 	}
@@ -49,7 +42,8 @@ namespace
 	class							VoiceCallback : public IXAudio2VoiceCallback
 	{
 		public:
-			void __stdcall			OnBufferEnd						(void * pBufferContext) {SetEvent(BufferEvent);}
+			//TODO: XAudio docs say I should signal a thread here to do the lifting
+			void __stdcall			OnBufferEnd						(void * pBufferContext) {BufferFeed(0);}
 			void __stdcall			OnStreamEnd						() { }
 			void __stdcall			OnVoiceProcessingPassEnd		() { }
 			void __stdcall			OnVoiceProcessingPassStart		(UINT32 SamplesRequired) { }
@@ -64,7 +58,6 @@ namespace
 void								ESAudio::Initialize				()
 {
 	//Make thread objects
-	BufferEvent = CreateEvent(0, 0, TRUE, 0);
 	BufferReadyEvent = CreateEvent(0, 0, 0, 0);
 
 	//Setup XAudio2
@@ -82,9 +75,6 @@ void								ESAudio::Initialize				()
 	//Soundtouch setup
 	PitchShifter.setSampleRate(48000);
 	PitchShifter.setChannels(2);
-
-	//Start the feed thread
-	FeedThread = ESThreads::MakeThread(BufferFeed, (void*)0);
 }
 
 void								ESAudio::Shutdown				()
@@ -94,10 +84,7 @@ void								ESAudio::Shutdown				()
 	Voice = 0;
 	MasterVoice = 0;
 
-	CloseHandle(BufferEvent);
 	CloseHandle(BufferReadyEvent);
-
-	delete FeedThread;
 }
 
 

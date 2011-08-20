@@ -72,7 +72,6 @@ namespace
 	MDFNSetting SystemSettings[] = 
 	{
 		{"display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" },
 		{"display.aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"display.underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
 		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 },
@@ -526,6 +525,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 			{
 				DisplayMessage("Finished recording audio.");
 				MDFNI_StopWAVRecord();
+
 				RecordingWave = false;
 			}
 			else
@@ -562,10 +562,9 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		Counter.SetToggle(MDFN_GetSettingUI(SETTINGNAME("speed.toggle")));
 		Counter.SetButton(MDFN_GetSettingUI(SETTINGNAME("speed.button")));
 
-		if(aOnLoad || (VsyncSetting != MDFN_GetSettingB(SETTINGNAME("display.vsync"))))
+		if(ESVideo::SupportsVSyncSelect())
 		{
-			VsyncSetting = MDFN_GetSettingB(SETTINGNAME("display.vsync"));
-			ESVideo::EnableVsync(VsyncSetting);
+			ESVideo::SetVSync(MDFN_GetSettingB(SETTINGNAME("display.vsync")));
 		}
 
 		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
@@ -589,6 +588,9 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 
 void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 {
+	//Some platform specific settings
+	static const MDFNSetting VSync = {"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
+
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
 		for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
@@ -603,6 +605,14 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 			}
 			//TODO: This strdup will not be freed
 			thisone.name = strdup(myname.c_str());
+			aSettings.push_back(thisone);
+		}
+
+		//Attach platform specific settings
+		if(ESVideo::SupportsVSyncSelect())
+		{
+			MDFNSetting thisone = VSync;
+			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.display.vsync").c_str());
 			aSettings.push_back(thisone);
 		}
 	}
@@ -642,6 +652,5 @@ int32_t						MednafenEmu::AspectSetting = false;
 int32_t						MednafenEmu::UnderscanSetting = 10;
 std::string					MednafenEmu::ShaderSetting = "";
 Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
-bool						MednafenEmu::VsyncSetting = true;
 std::string					MednafenEmu::BorderSetting = "";
 
