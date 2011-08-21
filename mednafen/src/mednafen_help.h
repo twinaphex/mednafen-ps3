@@ -111,10 +111,7 @@ class	MednafenEmu
 		//Setting cache
 		static bool						RewindSetting;		///<Determine if the State rewinder should be actively recording frames.
 		static bool						DisplayFPSSetting;	///<Determine if the Frames per second should be displayed in the corner of the screen.
-		static int32_t					AspectSetting;		///<Determine the aspect correction mode to use.
-		static int32_t					UnderscanSetting;	///<Amount, in percent, that the screen should be scaled to account for display differences.
 		static std::string				ShaderSetting;		///<Name of CG shader file used for presenting the screen.
-		static Area						UndertuneSetting;	///<Amount, in percent, that the screen should be scaled to account for display differences.
 		static std::string				BorderSetting;		///<Path to a png file made available for use by the CG shader.
 };
 

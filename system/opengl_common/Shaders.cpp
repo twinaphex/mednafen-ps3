@@ -355,19 +355,9 @@ GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::
 		std::string shader1 = es_paths->Build(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader", ""));
 		std::string shader2 = es_paths->Build(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader2", ""));
 
-		if(aPrescale > 1)
-		{
-			GLShader* output = new GLShader(aContext, "", 0, aPrescale);
-			output->AttachNext(new GLShader(aContext, shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1)));
-			output->AttachNext(new GLShader(aContext, shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-			return output;
-		}
-		else
-		{
-			GLShader* output = new GLShader(aContext, shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-			output->AttachNext(new GLShader(aContext, shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
-			return output;
-		}
+		GLShader* output = new GLShader(aContext, shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+		output->AttachNext(new GLShader(aContext, shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+		return output;
 	}
 	else
 	{
