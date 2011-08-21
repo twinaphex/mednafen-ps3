@@ -34,7 +34,9 @@
 
 #ifndef _MSC_VER
 #include <unistd.h>
+#ifndef MDFNPS3	//No sys/dir.h
 #include <sys/dir.h>
+#endif
 #endif
 
 #include "fatdir.h"
