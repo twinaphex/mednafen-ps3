@@ -16,8 +16,11 @@ endif
 
 CFLAGS		+= -DMDSDL -O2 -g -std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN
 CXXFLAGS	+= -DMDSDL -O2 -g `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DGL_GLEXT_PROTOTYPES
-LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm -lCg -lCgGL
+LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm -lCg -lCgGL 
 DEPSOPTIONS	=  -MMD -MP 
+
+#Needed to link desmume
+#LIBS		+=	`pkg-config glib-2.0 --libs`
 
 #Determine how to link opengl
 ifeq ($(strip $(TARGETPLATFORM)),windows)

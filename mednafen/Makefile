@@ -60,8 +60,8 @@ INCLUDE				:=	. src ../system ../system/$(PLATFORM) src/src/hw_misc src/src/hw_v
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella
 LIBS				:=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella
 
-#LIBDIRS			+=	../lsnes ../yabause
-#LIBS				+=	-llsnes -lsnes -lyabause
+#LIBDIRS			+=	../lsnes ../yabause ../desmume
+#LIBS				+=	-llsnes -lsnes -lyabause -ldesmume
 
 ##Build info
 TARGET				:=	mednafen
