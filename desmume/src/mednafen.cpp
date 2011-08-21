@@ -44,6 +44,18 @@ GPU3DInterface*								core3DList[] =
 	NULL
 };
 
+static void									ReadSettings			(const char* aName)
+{
+	CommonSettings.num_cores = MDFN_GetSettingUI("desmume.num_cores");
+	CommonSettings.GFX3D_HighResolutionInterpolateColor = MDFN_GetSettingB("desmume.highresintp");
+	CommonSettings.GFX3D_EdgeMark = MDFN_GetSettingB("desmume.edgemark");
+	CommonSettings.GFX3D_Fog = MDFN_GetSettingB("desmume.fog");
+	CommonSettings.GFX3D_Texture = MDFN_GetSettingB("desmume.texture");
+	CommonSettings.GFX3D_LineHack = MDFN_GetSettingB("desmume.linehack");
+	CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack = MDFN_GetSettingB("desmume.zeldashadowhack");
+	CommonSettings.rigorous_timing = MDFN_GetSettingB("desmume.rigorous_timing");
+	CommonSettings.advanced_timing = MDFN_GetSettingB("desmume.advanced_timing");
+}
 
 namespace MODULENAMESPACE
 {
@@ -93,6 +105,15 @@ namespace MODULENAMESPACE
 
 	static MDFNSetting						ModuleSettings[] =
 	{
+		{"desmume.num_cores",		MDFNSF_NOFLAGS,	"Number of CPU cores to use. (1, 2 or 4 (3=2))",	NULL,	MDFNST_UINT,	"1",	"1",	"4",	0,	ReadSettings},
+		{"desmume.highresintp",		MDFNSF_NOFLAGS,	"Use High resolution color interpolation",			NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.edgemark",		MDFNSF_NOFLAGS,	"Edge Mark?",										NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.fog",				MDFNSF_NOFLAGS,	"Enable Fog",										NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.texture",			MDFNSF_NOFLAGS,	"Enable Texturing",									NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.linehack",		MDFNSF_NOFLAGS,	"Enable Line Hack?",								NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.zeldashadowhack",	MDFNSF_NOFLAGS,	"Enable Zelda Shadow Depth Hack",					NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.rigorous_timing",	MDFNSF_NOFLAGS,	"Enable Rigorous Timing",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.advanced_timing",	MDFNSF_NOFLAGS,	"Enable Advanced Timing",							NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
 		{NULL}
 	};
 
@@ -104,6 +125,9 @@ namespace MODULENAMESPACE
 		md5.update(fp->data, fp->size);
 		md5.finish(MDFNGameInfo->MD5);
 
+		//Fetch settings
+		ReadSettings(0);
+
 		//Setup desmume
 		struct NDS_fw_config_data fw_config;
 		NDS_FillDefaultFirmwareConfigData(&fw_config);
@@ -112,7 +136,7 @@ namespace MODULENAMESPACE
 		NDS_Init();
 		NDS_CreateDummyFirmware(&fw_config);
 		NDS_3D_ChangeCore(0);
-		SPU_ChangeSoundCore(SNDCORE_MDFN, 735 * 4);		
+		SPU_ChangeSoundCore(SNDCORE_MDFN, 735 * 2);		
 		backup_setManualBackupType(MC_TYPE_AUTODETECT);
 
 		//Load ROM
