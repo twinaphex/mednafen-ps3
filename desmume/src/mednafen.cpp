@@ -5,7 +5,10 @@
 #include <src/git.h>
 #include <src/general.h>
 #include <src/md5.h>
+#include <src/driver.h>
+
 #include <stdarg.h>
+
 
 //Desmume includes
 #define SFORMAT dsSFORMAT
@@ -44,6 +47,10 @@ GPU3DInterface*								core3DList[] =
 	NULL
 };
 
+static bool									OneScreen = false;
+static bool									TopScreen = true;
+static bool									HoldingScreenButton = false;
+
 static void									ReadSettings			(const char* aName)
 {
 	CommonSettings.num_cores = MDFN_GetSettingUI("desmume.num_cores");
@@ -55,6 +62,9 @@ static void									ReadSettings			(const char* aName)
 	CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack = MDFN_GetSettingB("desmume.zeldashadowhack");
 	CommonSettings.rigorous_timing = MDFN_GetSettingB("desmume.rigorous_timing");
 	CommonSettings.advanced_timing = MDFN_GetSettingB("desmume.advanced_timing");
+
+	//Local settings
+	OneScreen = MDFN_GetSettingB("desmume.one_screen");
 }
 
 namespace MODULENAMESPACE
@@ -75,12 +85,13 @@ namespace MODULENAMESPACE
 		{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
 		{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
 		{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
-		{ "lid",	"Lid",					12,	IDIT_BUTTON,			NULL	}
+		{ "lid",	"Lid",					12,	IDIT_BUTTON,			NULL	},
+		{ "screen",	"Toggle Screens",		13, IDIT_BUTTON,			NULL	}
 	};
 
 	static InputDeviceInfoStruct 			InputDeviceInfoPort[] =
 	{
-		{"gamepad", "Gamepad",	NULL,	13,	GamepadIDII},
+		{"gamepad", "Gamepad",	NULL,	14,	GamepadIDII},
 	};
 
 
@@ -114,6 +125,7 @@ namespace MODULENAMESPACE
 		{"desmume.zeldashadowhack",	MDFNSF_NOFLAGS,	"Enable Zelda Shadow Depth Hack",					NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
 		{"desmume.rigorous_timing",	MDFNSF_NOFLAGS,	"Enable Rigorous Timing",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
 		{"desmume.advanced_timing",	MDFNSF_NOFLAGS,	"Enable Advanced Timing",							NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.one_screen",		MDFNSF_NOFLAGS,	"Display only one screen",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
 		{NULL}
 	};
 
@@ -205,14 +217,39 @@ namespace MODULENAMESPACE
 	
 		NDS_endProcessingInput();
 
+		bool ScreenButtonDown = (portData & 1) ? true : false;
+
 		//CHEATS
 		//EMULATE
+		if(espec->skip)
+		{
+			NDS_SkipNextFrame();
+		}
+
 		NDS_exec<false>();
 		SPU_Emulate_user();
 
 		//VIDEO: TODO: Support other color formats
-		Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
-		Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
+		if(!OneScreen)
+		{
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
+			Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
+		}
+		else
+		{
+			//Toggle screens
+			if(ScreenButtonDown && !HoldingScreenButton)
+			{
+				TopScreen = !TopScreen;
+				MDFND_DispMessage((UTF8*)strdup(TopScreen ? "Showing Top Screen" : "Showing Bottom Screen"));
+			}
+
+			HoldingScreenButton = ScreenButtonDown;
+
+			//Draw
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (TopScreen ? 0 : (256 * 192)), 256, 192 * 2, 256);
+			Video::SetDisplayRect(espec, 0, 0, 256, 192);
+		}
 
 		//AUDIO
 		Resampler::Fetch(espec);
