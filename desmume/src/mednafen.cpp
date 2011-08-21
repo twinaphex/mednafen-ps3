@@ -50,6 +50,8 @@ GPU3DInterface*								core3DList[] =
 static bool									OneScreen = false;
 static bool									TopScreen = true;
 static bool									HoldingScreenButton = false;
+static bool									ScreenGap = false;
+static bool									NeedScreenClear = false;
 
 static void									ReadSettings			(const char* aName)
 {
@@ -65,6 +67,13 @@ static void									ReadSettings			(const char* aName)
 
 	//Local settings
 	OneScreen = MDFN_GetSettingB("desmume.one_screen");
+
+	bool newGap = MDFN_GetSettingB("desmume.screen_gap");
+	if(newGap && !ScreenGap)
+	{
+		NeedScreenClear = true;
+	}
+	ScreenGap = newGap;
 }
 
 namespace MODULENAMESPACE
@@ -126,6 +135,7 @@ namespace MODULENAMESPACE
 		{"desmume.rigorous_timing",	MDFNSF_NOFLAGS,	"Enable Rigorous Timing",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
 		{"desmume.advanced_timing",	MDFNSF_NOFLAGS,	"Enable Advanced Timing",							NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
 		{"desmume.one_screen",		MDFNSF_NOFLAGS,	"Display only one screen",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.screen_gap",		MDFNSF_NOFLAGS,	"Display 32 pixel gap between screens.",			NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
 		{NULL}
 	};
 
@@ -230,10 +240,26 @@ namespace MODULENAMESPACE
 		SPU_Emulate_user();
 
 		//VIDEO: TODO: Support other color formats
+		if(NeedScreenClear)
+		{
+			Video::Clear<uint32_t>(espec, 256, 192 * 2 + 32);
+			NeedScreenClear = false;
+		}
+
+		//TODO: libes REALLY needs a 1:1 apsect mode...
 		if(!OneScreen)
 		{
-			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
-			Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
+			if(!ScreenGap)
+			{
+				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
+				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
+			}
+			else
+			{
+				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, 0);
+				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, 192 + 32);
+				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2 + 32);
+			}
 		}
 		else
 		{
@@ -299,12 +325,12 @@ namespace MODULENAMESPACE
 	/*	fps:				*/	0,
 	/*	multires:			*/	true,
 	/*	lcm_width:			*/	256,
-	/*	lcm_height:			*/	192*2,
+	/*	lcm_height:			*/	192 * 2 + 32,
 	/*	dummy_separator:	*/	0,
 	/*	nominal_width:		*/	256,
-	/*	nominal_height:		*/	192*2,
+	/*	nominal_height:		*/	192 * 2 + 32,
 	/*	fb_width:			*/	256,
-	/*	fb_height:			*/	192*2,
+	/*	fb_height:			*/	192 * 2 + 32,
 	/*	soundchan:			*/	2
 	};
 }
