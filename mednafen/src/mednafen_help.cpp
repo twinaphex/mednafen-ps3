@@ -13,6 +13,20 @@
 
 namespace
 {
+	//Emulator loaders
+	extern "C" MDFNGI*				nestGetEmulator			(uint32_t aIndex);
+	extern "C" MDFNGI*				gmbtGetEmulator			(uint32_t aIndex);
+	extern "C" MDFNGI*				vbamGetEmulator			(uint32_t aIndex);
+	extern "C" MDFNGI*				pcsxGetEmulator			(uint32_t aIndex);
+	extern "C" MDFNGI*				stellaGetEmulator		(uint32_t aIndex);
+	
+	#ifdef TEST_MODULES
+	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disalbed due to glib requirement
+	extern "C" MDFNGI*				lsnesGetEmulator		(uint32_t aIndex);		//Disabled because it requires a user provided build of libsnes and conflicts with the build in snes emulator
+	extern "C" MDFNGI*				yabauseGetEmulator		(uint32_t aIndex);		//Disabled because the c68k emu conflicts with the built in megadrive emulator
+	#endif
+
+
 	const MDFNSetting_EnumList	AspectEnumList[] =
 	{
 		{"auto", 0, "Autodetect (Broken)", ""},
@@ -118,6 +132,7 @@ void						MednafenEmu::Init				()
 #ifdef TEST_MODULES
 		externalSystems.push_back(lsnesGetEmulator(0));
 		externalSystems.push_back(yabauseGetEmulator(0));
+		externalSystems.push_back(desmumeGetEmulator(0));
 #endif
 		MDFNI_InitializeModules(externalSystems);
 
@@ -530,6 +545,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 			}
 			else
 			{
+
 				if(MDFNI_StartWAVRecord(MDFN_MakeFName(MDFNMKF_AUDIO, 0, 0).c_str(), 48000))
 				{
 					DisplayMessage("Begin recording audio.");
