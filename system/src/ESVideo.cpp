@@ -70,7 +70,7 @@ void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, c
 }
 
 
-void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort)
 {
 	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
 	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
@@ -81,8 +81,7 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int3
 	//Enter present state
 	EnterPresentState();
 
-	const Area& output = CalculatePresentArea(aAspectOverride, aUnderscan, aUnderscanFine);
-	Presenter->Set(output, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
+	Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
 	aTexture->Apply();
 
 	GLuint borderTexture = 0;
@@ -99,6 +98,37 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort, int3
 
 	/* Reset vertex buffer */
 	GLShader::ApplyVertexBuffer(VertexBuffer, true);
+}
+
+void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
+{
+	//Cache size converted to float
+	float fwidth = (float)ESVideo::GetScreenWidth();
+	float fheight = (float)ESVideo::GetScreenHeight();
+
+	//Calculate underscan adjustment
+	int32_t usLeft = (int32_t)(fwidth * ((float)(aUnderscan + aUnderscanFine.X) / 200.0f));
+	int32_t usRight = ESVideo::GetScreenWidth() - (int32_t)(fwidth * ((float)(aUnderscan + aUnderscanFine.Width) / 200.0f));
+	int32_t usTop = (int32_t)(fheight * ((float)(aUnderscan + aUnderscanFine.Y) / 200.0f));
+	int32_t usBottom = ESVideo::GetScreenHeight() - (int32_t)(fheight * ((float)(aUnderscan + aUnderscanFine.Height) / 200.0f));
+
+	//Update float size to underscaned area
+	fwidth = (float)(usRight - usLeft);
+	fheight = (float)(usBottom - usTop);
+
+	//1:1 mode
+	if(aAspectOverride == 2)
+	{
+
+	}
+	//Apply pillarbox
+	else if((aAspectOverride == 0 && ESVideo::IsWideScreen()) || (aAspectOverride < 0))
+	{
+		usLeft += (int32_t)(fwidth * .125f);
+		usRight -= (int32_t)(fwidth * .125f);
+	}
+
+	PresentArea = Area(usLeft, usTop, usRight - usLeft, usBottom - usTop);
 }
 
 void					ESVideo::SetVertex				(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV)
@@ -138,52 +168,18 @@ void					ESVideo::ExitPresentState		()
 }
 
 
-const Area&				ESVideo::CalculatePresentArea	(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
-{
-	static Area PresentArea;
-	static int32_t LastAspect;
-	static int32_t LastUnderscan;
-	static Area LastUnderscanFine;
-
-	if(aAspectOverride != LastAspect || LastUnderscan != aUnderscan || aUnderscanFine != LastUnderscanFine)
-	{
-		LastAspect = aAspectOverride;
-		LastUnderscan = aUnderscan;
-		LastUnderscanFine = aUnderscanFine;
-
-		int32_t xLeft = 0, xRight = ESVideo::GetScreenWidth(), yTop = 0, yBottom = ESVideo::GetScreenHeight();
-		float fwidth = (float)ESVideo::GetScreenWidth();
-		float fheight = (float)ESVideo::GetScreenHeight();
-
-		if((LastAspect == 0 && ESVideo::IsWideScreen()) || (LastAspect < 0))
-		{
-			xLeft += (int32_t)(fwidth * .125f);
-			xRight -= (int32_t)(fwidth * .125f);
-			fwidth -= fwidth * .250f;
-		}
-
-		xLeft += (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.X) / 200.0f));
-		xRight -= (int32_t)(fwidth * ((float)(LastUnderscan + LastUnderscanFine.Width) / 200.0f));
-		yTop += (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Y) / 200.0f));
-		yBottom -= (int32_t)(fheight * ((float)(LastUnderscan + LastUnderscanFine.Height) / 200.0f));
-
-		PresentArea = Area(xLeft, yTop, xRight - xLeft, yBottom - yTop);
-	}
-
-	return PresentArea;
-}
-
-
 Texture*				ESVideo::FillerTexture;
+Area					ESVideo::Clip;
+
+Area					ESVideo::PresentArea;
+
+GLfloat*				ESVideo::VertexBuffer;
 
 CGcontext				ESVideo::ShaderContext;
 GLShader*				ESVideo::Presenter;
-
-GLfloat*				ESVideo::VertexBuffer;
+Texture*				ESVideo::Border;
 
 uint32_t				ESVideo::ScreenWidth;
 uint32_t				ESVideo::ScreenHeight;
 bool					ESVideo::WideScreen;
-Area					ESVideo::Clip;
-Texture*				ESVideo::Border;
 

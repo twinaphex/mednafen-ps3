@@ -19,13 +19,9 @@ namespace
 	extern "C" MDFNGI*				vbamGetEmulator			(uint32_t aIndex);
 	extern "C" MDFNGI*				pcsxGetEmulator			(uint32_t aIndex);
 	extern "C" MDFNGI*				stellaGetEmulator		(uint32_t aIndex);
-	
-	#ifdef TEST_MODULES
-	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disalbed due to glib requirement
+	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disalbed 
 	extern "C" MDFNGI*				lsnesGetEmulator		(uint32_t aIndex);		//Disabled because it requires a user provided build of libsnes and conflicts with the build in snes emulator
 	extern "C" MDFNGI*				yabauseGetEmulator		(uint32_t aIndex);		//Disabled because the c68k emu conflicts with the built in megadrive emulator
-	#endif
-
 
 	const MDFNSetting_EnumList	AspectEnumList[] =
 	{
@@ -130,9 +126,9 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(stellaGetEmulator(0));
 
 #ifdef TEST_MODULES
+		externalSystems.push_back(desmumeGetEmulator(0));
 		externalSystems.push_back(lsnesGetEmulator(0));
 		externalSystems.push_back(yabauseGetEmulator(0));
-		externalSystems.push_back(desmumeGetEmulator(0));
 #endif
 		MDFNI_InitializeModules(externalSystems);
 
@@ -406,7 +402,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 	//Unmap and present the texture
 	Buffer->Unmap();
-	ESVideo::PresentFrame(Buffer, output, AspectSetting, UnderscanSetting, Area(0, 0, 0, 0));
+	ESVideo::PresentFrame(Buffer, output);
 }
 
 void						MednafenEmu::DoCommands			()
@@ -570,19 +566,22 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 
 		RewindSetting = MDFN_GetSettingB(SETTINGNAME("speed.rewind"));;
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
-		AspectSetting = MDFN_GetSettingI(SETTINGNAME("display.aspect"));
-		UnderscanSetting = MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("display.underscanadjust"));
 
 		Counter.SetNormalSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.normalrate")));
 		Counter.SetFastSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.fastrate")));
 		Counter.SetToggle(MDFN_GetSettingUI(SETTINGNAME("speed.toggle")));
 		Counter.SetButton(MDFN_GetSettingUI(SETTINGNAME("speed.button")));
 
+		//Update Video Area
+		ESVideo::UpdatePresentArea(MDFN_GetSettingI(SETTINGNAME("display.aspect")), MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("display.underscanadjust")), Area(0, 0, 0, 0));
+
+		//Update vsync
 		if(ESVideo::SupportsVSyncSelect())
 		{
 			ESVideo::SetVSync(MDFN_GetSettingB(SETTINGNAME("display.vsync")));
 		}
 
+		//Update border
 		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
 		{
 			BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
@@ -594,6 +593,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			}
 		}
 
+		//Update shader
 		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
 		{
 			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
@@ -664,9 +664,6 @@ TextFileViewer*				MednafenEmu::TextFile;
 
 bool						MednafenEmu::RewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
-int32_t						MednafenEmu::AspectSetting = false;
-int32_t						MednafenEmu::UnderscanSetting = 10;
 std::string					MednafenEmu::ShaderSetting = "";
-Area						MednafenEmu::UndertuneSetting = Area(0, 0, 0, 0);
 std::string					MednafenEmu::BorderSetting = "";
 
