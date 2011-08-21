@@ -24,7 +24,8 @@
 #include "armcpu.h"
 #include <string.h>
 #include "saves.h"
-#ifdef WIN32
+//#ifdef WIN32
+#if defined(WIN32) && !defined(MDFNPS3) //Never
 #include "windows/main.h"
 #endif
 #include "movie.h"

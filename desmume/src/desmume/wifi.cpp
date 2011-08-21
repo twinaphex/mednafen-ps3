@@ -23,6 +23,7 @@
 #include "bits.h"
 
 
+#ifndef MDFNPS3
 #ifdef _WINDOWS
 	#include <winsock2.h> 	 
 	#include <ws2tcpip.h>
@@ -61,6 +62,7 @@ sockaddr_t sendAddr;
 #include "pcap/pcap.h"
 #endif
 pcap_t *wifi_bridge = NULL;
+#endif
 #endif
 
 //sometimes this isnt defined

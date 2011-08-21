@@ -23,7 +23,8 @@
 #include <iostream>
 #include "emufile.h"
 
-#ifdef WIN32
+//#ifdef WIN32
+#if defined(WIN32) && !defined(MDFNPS3) //Never
 static char MicSampleName[256];
 bool LoadSample(const char *name);
 #endif

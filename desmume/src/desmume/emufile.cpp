@@ -20,6 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#ifdef MDFNPS3 //Need unistd.h
+# include <unistd.h>
+#endif
+
 #include "emufile.h"
 
 #include <vector>
