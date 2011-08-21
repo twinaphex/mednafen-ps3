@@ -83,46 +83,47 @@ void						ReloadEmulator			(const std::string& aFileName)
 			uint32_t size = archive->GetSelectedSize();
 
 			//We can only load files up to 64 megabytes, for CD's you should load cue files not BIN files
-			if(size && size <= 64 * 1024 * 1024)
+			if(size)
 			{
 				void* data = malloc(size);
-				assert(data);
-
-				if(archive->GetSelectedData(size, data))
+				if(data)
 				{
-					//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
-					if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
+					if(archive->GetSelectedData(size, data))
 					{
-						filename = filename.substr(0, filename.rfind('/') + 1);
-						filename += archive->GetSelectedFileName();
+						//Clean up the filename, if we are loading a file from an archive replace the name of the zip file with the name of the file inside
+						if(ArchiveList::IsArchive(filename) && filename.rfind('/') != std::string::npos)
+						{
+							filename = filename.substr(0, filename.rfind('/') + 1);
+							filename += archive->GetSelectedFileName();
+						}
+						else
+						{
+							filename = archive->GetSelectedFileName();
+						}
+
+						//Load the game into mednafen
+						MednafenEmu::CloseGame();
+						if(!MednafenEmu::LoadGame(filename, data, size))
+						{
+							ReloadEmulator("");
+							return;
+						}
 					}
 					else
 					{
-						filename = archive->GetSelectedFileName();
-					}
+						free(data);
 
-					//Load the game into mednafen
-					MednafenEmu::CloseGame();
-					if(!MednafenEmu::LoadGame(filename, data, size))
-					{
+						ESSUB_Error("Could not read file. [Failed to extract]");
 						ReloadEmulator("");
 						return;
 					}
 				}
 				else
 				{
-					free(data);
-
-					ESSUB_Error("Could not read file. [Failed to extract]");
+					ESSUB_Error("Could not allocate enough memory to load file. All CD games must be loaded through cue files. [File size too large]");
 					ReloadEmulator("");
 					return;
 				}
-			}
-			else if(size > 64 * 1024 * 1024)
-			{
-				ESSUB_Error("File is larger than 64MB, this is not supported. If this is a CD game you must load it through a cue file.");
-				ReloadEmulator("");
-				return;
 			}
 			else
 			{
