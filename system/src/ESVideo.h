@@ -128,6 +128,8 @@ class								ESVideo : public ESVideoPlatform
 		static uint32_t				ScreenWidth;					///<Width of the screen.
 		static uint32_t				ScreenHeight;					///<Height of the screen.
 		static bool					WideScreen;						///<True if the display has a wide aspect ratio.
+
+		static bool					NoAspect;						///<Use a 1:1 scaling with no aspect correction.
 };
 
 //---Inlines

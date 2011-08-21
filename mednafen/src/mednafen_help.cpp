@@ -27,7 +27,8 @@ namespace
 	{
 		{"auto", 0, "Autodetect (Broken)", ""},
 		{"pillarbox", -1, "Pillarbox", ""},
-		{"fullframe", 1, "No Correction", ""},
+		{"fullframe", 1, "Fill Screen", ""},
+		{"1to1", 2, "Scale image with no correction", ""},
 		{0, 0, 0, 0}
 	};
 

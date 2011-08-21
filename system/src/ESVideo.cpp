@@ -81,7 +81,18 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort)
 	//Enter present state
 	EnterPresentState();
 
-	Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
+	if(NoAspect)
+	{
+		uint32_t x = PresentArea.X, y = PresentArea.Y, w = PresentArea.Width, h = PresentArea.Height;
+		Utility::CenterAndScale(x, y, w, h, aViewPort.Width, aViewPort.Height);
+
+		Presenter->Set(Area(x,y,w,h), aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
+	}
+	else
+	{
+		Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
+	}
+
 	aTexture->Apply();
 
 	GLuint borderTexture = 0;
@@ -117,12 +128,10 @@ void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUndersca
 	fheight = (float)(usBottom - usTop);
 
 	//1:1 mode
-	if(aAspectOverride == 2)
-	{
+	NoAspect = (aAspectOverride == 2);
 
-	}
 	//Apply pillarbox
-	else if((aAspectOverride == 0 && ESVideo::IsWideScreen()) || (aAspectOverride < 0))
+	if(!NoAspect && ((aAspectOverride == 0 && ESVideo::IsWideScreen()) || (aAspectOverride < 0)))
 	{
 		usLeft += (int32_t)(fwidth * .125f);
 		usRight -= (int32_t)(fwidth * .125f);
@@ -183,3 +192,4 @@ uint32_t				ESVideo::ScreenWidth;
 uint32_t				ESVideo::ScreenHeight;
 bool					ESVideo::WideScreen;
 
+bool					ESVideo::NoAspect;
