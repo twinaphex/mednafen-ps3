@@ -29,10 +29,12 @@
 #include "NDSSystem.h"
 
 //temporary hack until we have better error reporting facilities
+#ifndef MDFNPS3	//No MessageBox ever
 #ifdef _WINDOWS
 #include <windows.h>
 #elif defined(_XBOX)
 #include <xtl.h>	// it`s really need?
+#endif
 #endif
 
 #define FW_CMD_READ             0x03
@@ -461,7 +463,8 @@ void BackupDevice::reset_command()
 			case 0:
 			case 1:
 				printf("Catastrophic error while autodetecting save type.\nIt will need to be specified manually\n");
-				#ifdef _WINDOWS
+//				#ifdef _WINDOWS
+				#if defined(_WINDOWS) && !defined(MDFNPS3) //No MessageBox ever
 				MessageBox(0,"Catastrophic Error Code: Camel;\nyour save type has not been autodetected correctly;\nplease report to developers",0,0);
 				#endif
 				addr_size = 1; //choose 1 just to keep the busted savefile from growing too big

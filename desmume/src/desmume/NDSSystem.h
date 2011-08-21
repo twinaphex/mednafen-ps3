@@ -32,7 +32,7 @@
 
 #include <string>
 
-#if defined(_WINDOWS) && !defined(WXPORT)
+#if defined(_WINDOWS) && !defined(WXPORT) && !defined(MDFNPS3) //Never
 #include "pathsettings.h"
 #endif
 

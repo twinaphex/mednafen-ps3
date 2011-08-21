@@ -14,7 +14,6 @@
 #include "NDSSystem.h"
 #include "debug.h"
 #include "sndsdl.h"
-#include "ctrlssdl.h"
 #include "render3D.h"
 #include "rasterize.h"
 #include "saves.h"

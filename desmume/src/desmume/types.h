@@ -36,7 +36,8 @@
 #define IF_DEVELOPER(X)
 #endif
 
-#ifdef _WINDOWS
+//#ifdef _WINDOWS
+#if defined(_WINDOWS) && !defined(MDFNPS3) //Never
 	//#define HAVE_WX //not useful yet....
 	#define HAVE_LIBAGG
 	#define ENABLE_SSE
@@ -435,13 +436,15 @@ template<typename T> inline void reconstruct(T* t) {
 
 //-------------fixed point speedup macros
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#if defined(_WIN32) && !defined(MDFNPS3)
 #include <intrin.h>
 #endif
 
 FORCEINLINE s64 fx32_mul(const s32 a, const s32 b)
 {
-#ifdef _WIN32
+//#ifdef _WIN32
+#if defined(_WIN32) && !defined(MDFNPS3)
 	return __emul(a,b);
 #else
 	return ((s64)a)*((s64)b);
@@ -450,7 +453,8 @@ FORCEINLINE s64 fx32_mul(const s32 a, const s32 b)
 
 FORCEINLINE s32 fx32_shiftdown(const s64 a)
 {
-#ifdef _WIN32
+//#ifdef _WIN32
+#if defined(_WIN32) && !defined(MDFNPS3)
 	return (s32)__ll_rshift(a,12);
 #else
 	return (s32)(a>>12);
@@ -459,7 +463,8 @@ FORCEINLINE s32 fx32_shiftdown(const s64 a)
 
 FORCEINLINE s64 fx32_shiftup(const s32 a)
 {
-#ifdef _WIN32
+//#ifdef _WIN32
+#if defined(_WIN32) && !defined(MDFNPS3)
 	return __ll_lshift(a,12);
 #else
 	return ((s64)a)<<12;
