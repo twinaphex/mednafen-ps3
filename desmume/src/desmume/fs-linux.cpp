@@ -26,6 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __CELLOS_LV2__ //S_ISDIR
+# define S_ISDIR(x) ((x) & S_IFDIR)
+#endif
+
 typedef struct {
 	DIR * dir;
 	char * path;
