@@ -9,7 +9,6 @@
 
 //Desmume includes
 #define SFORMAT dsSFORMAT
-#include <glib.h>
 
 #include "MMU.h"
 #include "NDSSystem.h"
@@ -21,8 +20,6 @@
 #include "saves.h"
 #include "firmware.h"
 #include "GPU_osd.h"
-#include "desmume_config.h"
-#include "commandline.h"
 #include "addons.h"
 
 #define MODULENAMESPACE desmume

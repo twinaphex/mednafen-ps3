@@ -19,9 +19,6 @@ CXXFLAGS	+= -DMDSDL -O2 -g `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` 
 LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm -lCg -lCgGL 
 DEPSOPTIONS	=  -MMD -MP 
 
-#Needed to link desmume
-#LIBS		+=	`pkg-config glib-2.0 --libs`
-
 #Determine how to link opengl
 ifeq ($(strip $(TARGETPLATFORM)),windows)
 	LIBS		+= -lopengl32 -lglew32

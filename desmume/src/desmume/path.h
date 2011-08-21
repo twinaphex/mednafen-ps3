@@ -17,6 +17,9 @@
 
 #include <string>
 
+//ROBO: ...
+#if 0
+
 #ifdef _MSC_VER
 #define mkdir _mkdir
 #endif
@@ -35,10 +38,15 @@
 #elif !defined(DESMUME_COCOA)
 #include <glib.h>
 #endif /* _WINDOWS */
+#endif
 
 #include "time.h"
 #include "utils/xstring.h"
 
+//ROBO: ...
+#define FILE_EXT_DELIMITER_CHAR		'.'
+#define DIRECTORY_DELIMITER_CHAR	'/'
+#if 0
 #ifdef _WINDOWS
 #define FILE_EXT_DELIMITER_CHAR		'.'
 #define DIRECTORY_DELIMITER_CHAR	'\\'
@@ -46,10 +54,12 @@
 #define FILE_EXT_DELIMITER_CHAR		'.'
 #define DIRECTORY_DELIMITER_CHAR	'/'
 #endif
-
-#ifdef _WINDOWS
-void FCEUD_MakePathDirs(const char *fname);
 #endif
+
+//ROBO: ...
+//#ifdef _WINDOWS
+//void FCEUD_MakePathDirs(const char *fname);
+//#endif
 
 class Path
 {
@@ -124,14 +134,18 @@ public:
 		std::vector<std::string> parts = tokenize_str(filename,"|");
 		SetRomName(parts[parts.size()-1].c_str());
 		LoadModulePath();
-#ifndef WIN32
-		ReadPathSettings();
-#endif
+//ROBO: ...
+//#ifndef WIN32
+//		ReadPathSettings();
+//#endif
 		
 	}
 
 	void LoadModulePath()
 	{
+//ROBO: ...
+		strncpy(pathToModule, ".", MAX_PATH);
+#if 0
 #if defined(_WINDOWS)
 
 		char *p;
@@ -151,6 +165,7 @@ public:
 		strncpy(pathToModule, cwd, MAX_PATH);
 		g_free(cwd);
 #endif
+#endif
 	}
 
 	enum Action
@@ -161,26 +176,28 @@ public:
 
 	void GetDefaultPath(char *pathToDefault, const char *key, int maxCount)
 	{
-#ifdef _WINDOWS
-		std::string temp = (std::string)"." + DIRECTORY_DELIMITER_CHAR + pathToDefault;
-		strncpy(pathToDefault, temp.c_str(), maxCount);
-#else
+//ROBO: ...
+//#ifdef _WINDOWS
+//		std::string temp = (std::string)"." + DIRECTORY_DELIMITER_CHAR + pathToDefault;
+//		strncpy(pathToDefault, temp.c_str(), maxCount);
+//#else
 		strncpy(pathToDefault, pathToModule, maxCount);
-#endif
+//#endif
 	}
 
 	void ReadKey(char *pathToRead, const char *key)
 	{
-#ifdef _WINDOWS
-		GetPrivateProfileString(SECTION, key, key, pathToRead, MAX_PATH, IniName);
-		if(strcmp(pathToRead, key) == 0) {
-			//since the variables are all intialized in this file they all use MAX_PATH
-			GetDefaultPath(pathToRead, key, MAX_PATH);
-		}
-#else
+//ROBO: ...
+//#ifdef _WINDOWS
+//		GetPrivateProfileString(SECTION, key, key, pathToRead, MAX_PATH, IniName);
+//		if(strcmp(pathToRead, key) == 0) {
+//			//since the variables are all intialized in this file they all use MAX_PATH
+//			GetDefaultPath(pathToRead, key, MAX_PATH);
+//		}
+//#else
 		//since the variables are all intialized in this file they all use MAX_PATH
 		GetDefaultPath(pathToRead, key, MAX_PATH);
-#endif
+//#endif
 	}
 
 	void ReadPathSettings()
@@ -197,12 +214,13 @@ public:
 		ReadKey(pathToSounds, SOUNDKEY);
 		ReadKey(pathToFirmware, FIRMWAREKEY);
 		ReadKey(pathToLua, LUAKEY);
-#ifdef _WINDOWS
-		GetPrivateProfileString(SECTION, FORMATKEY, "%f_%s_%r", screenshotFormat, MAX_FORMAT, IniName);
-		savelastromvisit	= GetPrivateProfileBool(SECTION, LASTVISITKEY, true, IniName);
-		currentimageformat	= (ImageFormat)GetPrivateProfileInt(SECTION, DEFAULTFORMATKEY, PNG, IniName);
-		r4Format = (R4Format)GetPrivateProfileInt(SECTION, R4FORMATKEY, R4_CHEAT_DAT, IniName);
-#endif
+//ROBO: ...
+//#ifdef _WINDOWS
+//		GetPrivateProfileString(SECTION, FORMATKEY, "%f_%s_%r", screenshotFormat, MAX_FORMAT, IniName);
+//		savelastromvisit	= GetPrivateProfileBool(SECTION, LASTVISITKEY, true, IniName);
+//		currentimageformat	= (ImageFormat)GetPrivateProfileInt(SECTION, DEFAULTFORMATKEY, PNG, IniName);
+//		r4Format = (R4Format)GetPrivateProfileInt(SECTION, R4FORMATKEY, R4_CHEAT_DAT, IniName);
+//#endif
 	/*
 		needsSaving		= GetPrivateProfileInt(SECTION, NEEDSSAVINGKEY, TRUE, IniName);
 		if(needsSaving)
@@ -265,9 +283,10 @@ public:
 			}
 
 			strncpy(buffer, thePath.c_str(), MAX_PATH);
-			#ifdef _WINDOWS
-			FCEUD_MakePathDirs(buffer);
-			#endif
+//ROBO: ...
+//			#ifdef _WINDOWS
+//			FCEUD_MakePathDirs(buffer);
+//			#endif
 		}
 		else if(action == SET)
 		{
@@ -380,25 +399,27 @@ public:
 
 	enum R4Format
 	{
-#if defined(_WINDOWS) && !defined(WXPORT)
-		R4_CHEAT_DAT = IDC_R4TYPE1,
-		R4_USRCHEAT_DAT = IDC_R4TYPE2
-#else
+//ROBO: ...
+//#if defined(_WINDOWS) && !defined(WXPORT)
+//		R4_CHEAT_DAT = IDC_R4TYPE1,
+//		R4_USRCHEAT_DAT = IDC_R4TYPE2
+//#else
 		R4_CHEAT_DAT,
 		R4_USRCHEAT_DAT
-#endif
+//#endif
 	};
 	R4Format r4Format;
 
 	enum ImageFormat
 	{
-#if defined(_WINDOWS) && !defined(WXPORT)
-		PNG = IDC_PNG,
-		BMP = IDC_BMP
-#else
+//ROBO: ...
+//#if defined(_WINDOWS) && !defined(WXPORT)
+//		PNG = IDC_PNG,
+//		BMP = IDC_BMP
+//#else
 		PNG,
 		BMP
-#endif
+//#endif
 	};
 
 	ImageFormat currentimageformat;
