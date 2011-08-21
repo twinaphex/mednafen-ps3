@@ -5,7 +5,21 @@
 
 #include "../../types.h"
 
-#ifdef _MSC_VER
+#ifdef __MINGW32__ //MDFNPS3: MingW environment fixes
+
+#include <unistd.h>
+#include <sys/stat.h>
+
+#define S_IRGRP S_IREAD
+#define S_IROTH S_IREAD
+#define S_IWGRP S_IWRITE
+#define S_IWOTH S_IWRITE
+
+#define ENOTSUP 0
+#define EOVERFLOW 0
+
+//#ifdef _MSC_VER
+#elif defined(_MSC_VER)
 
 #define ENOTSUP 0
 #define EOVERFLOW 0

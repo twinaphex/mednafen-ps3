@@ -41,7 +41,12 @@
 #include "bit_ops.h"
 #include "filetime.h"
 
-#ifdef __APPLE__
+#ifdef __MINGW32__ //MDFNPS3: mingw needs malloc.h for alloca
+#include <malloc.h>
+#endif
+
+//#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW32__) //MDFNPS3: need strnlen for mingw
 //apple doesn't provide strnlen. how unkind
 static size_t strnlen(const char *s, size_t n)
 {
