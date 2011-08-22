@@ -17,7 +17,6 @@ class						TextFileViewer
 	private:
 		TextViewer*			Viewer;						///<Widget to display the text.
 		Summerface*			Interface;					///<Interface used for displaying the text file.
-		BookmarkList		Bookmarks;					///<Unused bookmark container.
 		FileSelect*			Browser;					///<Browser for selecting files.
 		bool				Loaded;						///<Is a text file loaded?
 };

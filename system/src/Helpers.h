@@ -191,10 +191,8 @@ class				Utility
 			return PlatformHelpers::Sleep(aMilliseconds);
 		}
 
-		static std::vector<std::string>	StringToVector				(const std::string& aString, char aSeparate)
+		static void						StringToVector				(std::vector<std::string>& aOutput, const std::string& aString, char aSeparate)
 		{
-			std::vector<std::string> result;
-		
 			char* string = (char*)malloc(aString.length() + 10);
 			char sepp[2] = {0, 0};
 			sepp[0] = aSeparate;
@@ -203,24 +201,22 @@ class				Utility
 			char* value = strtok(string, sepp);
 			while(value)
 			{
-				result.push_back(std::string(value));
+				aOutput.push_back(std::string(value));
 				value = strtok(0, sepp);
 			}
 			
 			free(string);
-			return result;
 		}
 		
-		static std::string				VectorToString				(std::vector<std::string>& aStrings, char aSeparate)
+		static std::string&				VectorToString				(std::string& aOutput, const std::vector<std::string>& aStrings, char aSeparate)
 		{
-			std::string output;
-			
-			for(std::vector<std::string>::iterator i = aStrings.begin(); i != aStrings.end(); i ++)
+			for(std::vector<std::string>::const_iterator i = aStrings.begin(); i != aStrings.end(); i ++)
 			{
-				output += (*i) + std::string(1, aSeparate);
+				aOutput += (*i) + std::string(1, aSeparate);
 			}
-			
-			return output.substr(0, output.length() - 1);
+
+			aOutput.erase(aOutput.length() - 1);
+			return aOutput;
 		}
 
 		static int32_t					Clamp						(int32_t aValue, int32_t aMin, int32_t aMax)

@@ -8,7 +8,7 @@
 					TextFileViewer::TextFileViewer				() :
 	Viewer(new TextViewer(Area(10, 10, 80, 80), "NO FILE", false)),
 	Interface(new Summerface("TextViewer", Viewer)),
-	Browser(new FileSelect("Select Text File", Bookmarks, "")),
+	Browser(new FileSelect("Select Text File", "", "")),
 	Loaded(false)
 {
 	Interface->AttachConduit(new SummerfaceTemplateConduit<TextFileViewer>(this));
