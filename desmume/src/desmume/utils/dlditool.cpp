@@ -60,6 +60,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: Building on cell sdk...
+#define MAXPATHLEN 1024
+#define getenv(x) 0		//No getenv on ps3
+#include <stdint.h>
+#include <unistd.h>
+#else //!__CELLOS_LV2__
 #ifndef _MSC_VER
 #include <stdint.h>
 #include <unistd.h>
@@ -68,6 +74,7 @@
 typedef int int32_t;
 #define MAXPATHLEN      1024
 #endif
+#endif //__CELLOS_LV2__
 
 #include <sys/stat.h>
 

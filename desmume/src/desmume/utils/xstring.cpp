@@ -1,5 +1,10 @@
 //taken from fceux on 10/27/08
 
+//ROBO: MDFNPS3: Various calls to toupper and tolower were prefixed with std:: for cell sdk
+#ifndef __CELLOS_LV2__ //Cell needs ctype.h for toupper
+#include <ctype.h>
+#endif
+
 #include "xstring.h"
 #include <string>
 
@@ -30,7 +35,7 @@ std::string toupper(const std::string& str)
 {
 	std::string ret = str;
 	for(u32 i=0;i<str.size();i++)
-		ret[i] = toupper(ret[i]);
+		ret[i] = std::toupper(ret[i]);
 	return ret;
 }
 
@@ -288,7 +293,7 @@ std::string BytesToString(const void* data, int len)
 ///returns -1 if this is not a hex string
 int HexStringToBytesLength(const std::string& str)
 {
-	if(str.size()>2 && str[0] == '0' && toupper(str[1]) == 'X')
+	if(str.size()>2 && str[0] == '0' && std::toupper(str[1]) == 'X')
 		return str.size()/2-1;
 	else return -1;
 }
@@ -336,7 +341,7 @@ bool StringToBytes(const std::string& str, void* data, int len)
 		}
 		return true;
 	}
-	if(str.size()>2 && str[0] == '0' && toupper(str[1]) == 'X')
+	if(str.size()>2 && str[0] == '0' && std::toupper(str[1]) == 'X')
 	{
 		// hex
 		int amt = len;
@@ -345,8 +350,8 @@ bool StringToBytes(const std::string& str, void* data, int len)
 			amt = bytesAvailable;
 		const char* cstr = str.c_str()+2;
 		for(int i=0;i<amt;i++) {
-			char a = toupper(cstr[i*2]);
-			char b = toupper(cstr[i*2+1]);
+			char a = std::toupper(cstr[i*2]);
+			char b = std::toupper(cstr[i*2+1]);
 			if(a>='A') a=a-'A'+10;
 			else a-='0';
 			if(b>='A') b=b-'A'+10;
@@ -723,7 +728,7 @@ std::string getExtension(const char* input) {
 	strcpy(ext, dot+1);
 	int k, extlen=strlen(ext);
 	for(k=0;k<extlen;k++)
-		ext[k]=tolower(ext[k]);
+		ext[k]=std::tolower(ext[k]);
 	return ext;
 }
 

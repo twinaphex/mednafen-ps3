@@ -6,6 +6,8 @@ TARGET		:=	libdesmume
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/desmume
 CPPFLAGS	+=	-DMDFNPS3 -DHAVE_LIBZ
+CPPFLAGS	+=	-DSNDCoreList=dsSNDCoreList -DSNDDummy=dsSNDDummy -DInputDisplayString=dsInputDisplayString
+
 CXXFILES	+=	src/mednafen.cpp																																											\
 				src/desmume/addons.cpp				src/desmume/cp15.cpp			src/desmume/FIFO.cpp				src/desmume/NDSSystem.cpp		src/desmume/slot1.cpp								\
 				src/desmume/firmware.cpp			src/desmume/matrix.cpp			src/desmume/armcpu.cpp				src/desmume/debug.cpp			src/desmume/mc.cpp									\
