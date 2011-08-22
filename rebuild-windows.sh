@@ -19,6 +19,9 @@ make -j3
 cd ../pcsxr
 make clean
 make -j3
+cd ../yabause
+make clean
+make -j3
 cd ../mednafen
 make clean
 make -j3

@@ -125,11 +125,11 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(vbamGetEmulator(1));
 		externalSystems.push_back(pcsxGetEmulator(0));
 		externalSystems.push_back(stellaGetEmulator(0));
+		externalSystems.push_back(yabauseGetEmulator(0));
 
 #ifdef TEST_MODULES
 		externalSystems.push_back(desmumeGetEmulator(0));
 		externalSystems.push_back(lsnesGetEmulator(0));
-		externalSystems.push_back(yabauseGetEmulator(0));
 #endif
 		MDFNI_InitializeModules(externalSystems);
 

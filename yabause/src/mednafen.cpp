@@ -40,7 +40,7 @@ extern "C"
 
 	M68K_struct * M68KCoreList[] =
 	{
-		&M68KC68K,
+		&M68KQ68,
 		0
 	};
 
@@ -139,7 +139,7 @@ namespace MODULENAMESPACE
 		yinit.vidcoretype = VIDCORE_SOFT;
 		yinit.sndcoretype = SNDCORE_MDFN;
 		yinit.cdcoretype = CDCORE_ARCH;
-		yinit.m68kcoretype = 1;
+		yinit.m68kcoretype = M68KCORE_Q68;
 		yinit.carttype = CART_NONE;
 		yinit.regionid = REGION_AUTODETECT;
 		yinit.biospath = biospath;
