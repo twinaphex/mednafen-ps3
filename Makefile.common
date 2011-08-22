@@ -13,11 +13,11 @@
 
 %.elf:
 	@echo "[LD]  $(notdir $@)"
-	@$(LD) $^ $(LDFLAGS) $(LIBS) -o $@
+	@$(LD) $^ $(LDFLAGS) -o $@
 
 %.exe:
 	@echo "[LD]  $(notdir $@)"
-	@$(LD) $^ $(LDFLAGS) $(LIBS) -o $@
+	@$(LD) $^ $(LDFLAGS) -o $@
 
 ################
 
