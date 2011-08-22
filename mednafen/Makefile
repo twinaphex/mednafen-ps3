@@ -57,11 +57,11 @@ FRONTENDSRC			:=	src
 CPPFLAGS			+=	$(MAINCPP) $(SMSCPP) $(MDCPP) $(WSWANCPP) $(NGPCPP) $(PCECPP) $(PCEFASTCPP) $(VBCPP) $(LYNXCPP) $(PCFXCPP)
 SOURCE				+=	$(FRONTENDSRC) $(MAINSRC) $(SMSSRC) $(MDSRC) $(WSWANSRC) $(NGPSRC) $(PCESRC) $(PCEFASTSRC) $(VBSRC) $(LYNXSRC) $(PCFXSRC)
 INCLUDE				:=	. src ../system ../system/$(PLATFORM) src/src/hw_misc src/src/hw_video src/include src/src/hw_cpu src/src/sms src/src/hw_sound src/include/blip src/src/ngp src/src/ngp/TLCS-900h src/src/snes/src/lib
-LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella
-LIBS				:=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella
+LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella ../yabause
+LIBS				:=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella -lyabause
 
-#LIBDIRS			+=	../lsnes ../yabause ../desmume
-#LIBS				+=	-llsnes -lsnes -lyabause -ldesmume
+#LIBDIRS			+=	../lsnes ../desmume
+#LIBS				+=	-llsnes -lsnes -ldesmume
 
 ##Build info
 TARGET				:=	mednafen

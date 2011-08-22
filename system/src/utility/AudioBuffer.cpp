@@ -4,6 +4,7 @@
 #include <SoundTouch.h>
 #include "AudioBuffer.h"
 
+#ifndef __CELLOS_LV2__
 							SoundTouchAudioBuffer::SoundTouchAudioBuffer		() : PitchShifter(new soundtouch::SoundTouch())
 {
 	PitchShifter->setSampleRate(48000);
@@ -47,4 +48,4 @@ uint32_t					SoundTouchAudioBuffer::WriteData					(const uint32_t* aData, uint32
 		AudioBuffer::WriteData(aData, aLength);
 	}
 }
-
+#endif

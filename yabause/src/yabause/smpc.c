@@ -230,6 +230,8 @@ static void SmpcINTBACKStatus(void) {
    memcpy(&times, localtime(&tmp), sizeof(times));
 #elif defined(_arch_dreamcast) || defined(PSP)
    internal_localtime_r(&tmp, &times);
+#elif defined(__CELLOS_LV2__) //MDFNPS3: HACK
+	memcpy(&times, localtime(&tmp), sizeof(times));
 #else
    localtime_r(&tmp, &times);
 #endif

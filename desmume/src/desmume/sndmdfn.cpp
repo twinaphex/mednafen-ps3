@@ -25,94 +25,32 @@
 #include <module_helper.h>
 using namespace desmume;
 
+#include "SPU.h"
+#include "types.h"
+
 #define SNDCORE_MDFN	10010
 
-#include <stdlib.h>
-#include <string.h>
+static int	SNDMDFNInit			(int buffersize)				{return 0;}
+static void SNDMDFNDeInit		()								{}
+static void SNDMDFNUpdateAudio	(s16 *buffer, u32 num_samples)	{Resampler::Fill(buffer, num_samples);}
+static u32	SNDMDFNGetAudioSpace()								{return (Resampler::Written() > 1000) ? 0 : 735 * 2;}
+static void SNDMDFNMuteAudio	()								{}
+static void SNDMDFNUnMuteAudio	()								{}
+static void SNDMDFNSetVolume	(int volume)					{}
 
-#include "types.h"
-#include "SPU.h"
-#include "debug.h"
-
-static int SNDMDFNInit(int buffersize);
-static void SNDMDFNDeInit();
-static void SNDMDFNUpdateAudio(s16 *buffer, u32 num_samples);
-static u32 SNDMDFNGetAudioSpace();
-static void SNDMDFNMuteAudio();
-static void SNDMDFNUnMuteAudio();
-static void SNDMDFNSetVolume(int volume);
-static u32 SNDMDFNbuffersize;
-
-SoundInterface_struct SNDMDFN = {
-SNDCORE_MDFN,
-"Mednafen Sound Interface",
-SNDMDFNInit,
-SNDMDFNDeInit,
-SNDMDFNUpdateAudio,
-SNDMDFNGetAudioSpace,
-SNDMDFNMuteAudio,
-SNDMDFNUnMuteAudio,
-SNDMDFNSetVolume
+SoundInterface_struct SNDMDFN =
+{
+	SNDCORE_MDFN,
+	"Mednafen Sound Interface",
+	SNDMDFNInit,
+	SNDMDFNDeInit,
+	SNDMDFNUpdateAudio,
+	SNDMDFNGetAudioSpace,
+	SNDMDFNMuteAudio,
+	SNDMDFNUnMuteAudio,
+	SNDMDFNSetVolume
 };
 
-//////////////////////////////////////////////////////////////////////////////
-
-static int SNDMDFNInit(int buffersize)
-{
-	SNDMDFNbuffersize = buffersize;
-   return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static void SNDMDFNDeInit()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static int SNDMDFNReset()
-{
-   return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static void SNDMDFNUpdateAudio(s16 *buffer, u32 num_samples)
-{
-	int16_t* rbuffer = Resampler::Buffer(num_samples);
-
-	if(rbuffer)
-	{
-		memcpy(rbuffer, buffer, num_samples * 4);
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static u32 SNDMDFNGetAudioSpace()
-{
-   return (Resampler::Written() > 1000) ? 0 : SNDMDFNbuffersize;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static void SNDMDFNMuteAudio()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static void SNDMDFNUnMuteAudio()
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-static void SNDMDFNSetVolume(int volume)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////
 
 #endif
+
