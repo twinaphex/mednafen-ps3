@@ -45,8 +45,13 @@
 #include <malloc.h>
 #endif
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: Cell needs alloca.h for alloca
+#include <alloca.h>
+#endif
+
+
 //#ifdef __APPLE__
-#if defined(__APPLE__) || defined(__MINGW32__) //MDFNPS3: need strnlen for mingw
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(__CELLOS_LV2__)//MDFNPS3: need strnlen for cell sdk and mingw
 //apple doesn't provide strnlen. how unkind
 static size_t strnlen(const char *s, size_t n)
 {

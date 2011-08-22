@@ -23,6 +23,11 @@
 #include "guid.h"
 #include "../types.h"
 
+#ifdef __CELLOS_LV2__	//PS3 needs <ctype.h> for toupper and <stdio.h> for sprintf
+#include <ctype.h>
+#include <stdio.h>
+#endif
+
 void Desmume_Guid::newGuid()
 {
 	for(int i=0;i<size;i++)
