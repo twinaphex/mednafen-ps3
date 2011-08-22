@@ -167,8 +167,7 @@ int								SettingMenu::HandleInput						(Summerface* aInterface, const std::str
 	//Browse for a file and use its path as the setting value (may be canceled by setting handlers)
 	else if(aButton == ES_BUTTON_TAB)
 	{
-		std::vector<std::string> nomarks;
-		FileSelect browse("Select File", nomarks, "");
+		FileSelect browse("Select File", "", "");
 		
 		std::string result = browse.GetFile();
 		if(result.length() != 0)

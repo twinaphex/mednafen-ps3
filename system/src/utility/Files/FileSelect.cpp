@@ -24,12 +24,15 @@ namespace
 }
 
 
-										FileSelect::FileSelect				(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook) :
+										FileSelect::FileSelect				(const std::string& aHeader, const std::string& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook) :
 	List(Area(10, 10, 80, 80)),
 	Interface("List", &List, false),
-	Header(aHeader),
-	BookMarks(aBookMarks)
+	Header(aHeader)
 {
+	//Bookmarks
+	Utility::StringToVector(BookMarks, aBookMarks, ';');
+
+	//Setup
 	if(aInputHook)
 	{
 		Interface.AttachConduit(aInputHook);
@@ -107,6 +110,11 @@ std::string								FileSelect::GetFile					()
 	}
 
 	return "";
+}
+
+std::string&						FileSelect::GetBookmarks					(std::string& aOutput)
+{
+	return Utility::VectorToString(aOutput, BookMarks, ';');
 }
 
 void								FileSelect::LoadList						(const std::string& aPath)

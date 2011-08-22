@@ -1,8 +1,6 @@
 #ifndef SYSTEM__FILESELECT_H
 #define SYSTEM__FILESELECT_H
 
-typedef std::vector<std::string>					BookmarkList;
-
 class												FileSelect
 {
 	public:
@@ -29,23 +27,26 @@ class												FileSelect
 
 	public:
 		//Doc Note: aInputHook must be a uniqe pointer and will be deleted by the FileSelect object.
-													FileSelect						(const std::string& aHeader, BookmarkList& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook = 0);
+													FileSelect						(const std::string& aHeader, const std::string& aBookMarks, const std::string& aPath, SummerfaceInputConduit* aInputHook = 0);
 		virtual										~FileSelect						() {};
-													
+
 		int											HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
 		std::string									GetFile							();
+		std::string&								GetBookmarks					(std::string& aOutput);
 
 	private:
 		void										LoadList						(const std::string& aPath);
 
 	private:
+		typedef std::vector<std::string>			BookmarkList;
+
 		DirectoryList								List;
 		Summerface									Interface;
 		std::stack<std::string>						Paths;
 
 		std::string									Header;
-		BookmarkList&								BookMarks;
+		BookmarkList								BookMarks;
 };
 
 #endif

@@ -40,15 +40,15 @@ void						Exit					()
 
 static std::string			GetFile					()
 {
-	std::vector<std::string> bookmarks = Utility::StringToVector(MDFN_GetSettingS("es.bookmarks"), ';');
-
 	if(FileChooser == 0)
 	{
-		FileChooser = new FileSelect("Select ROM", bookmarks, "", new SummerfaceStaticConduit(FileBrowserHook, (void*)0));
+		FileChooser = new FileSelect("Select ROM", MDFN_GetSettingS("es.bookmarks"), "", new SummerfaceStaticConduit(FileBrowserHook, (void*)0));
 	}
 
 	std::string result = FileChooser->GetFile();
-	MDFNI_SetSetting("es.bookmarks", Utility::VectorToString(bookmarks, ';').c_str());
+
+	std::string bookmarks;
+	MDFNI_SetSetting("es.bookmarks", FileChooser->GetBookmarks(bookmarks).c_str());
 
 	return result;
 }
