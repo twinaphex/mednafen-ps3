@@ -14,16 +14,16 @@ ifeq ($(strip $(FREETYPECONFIG)),)
 	FREETYPECONFIG=freetype-config
 endif
 
-CFLAGS		+= -DMDSDL -O2 -g -std=gnu99 `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN
-CXXFLAGS	+= -DMDSDL -O2 -g `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DGL_GLEXT_PROTOTYPES
-LIBS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm -lCg -lCgGL 
+CPPFLAGS	+= -DMDSDL `$(FREETYPECONFIG) --cflags` `$(SDLCONFIG) --cflags` -DLSB_FIRST -DSIZEOF_DOUBLE=8 -DHAVE_MKDIR -DWORDS_LITTLEENDIAN -DGL_GLEXT_PROTOTYPES
+CFLAGS		+= -std=gnu99  
+LDFLAGS		+= `$(SDLCONFIG) --static-libs` `$(FREETYPECONFIG) --libs` -lpng -lSDL_net -lz -lm -lCg -lCgGL 
 DEPSOPTIONS	=  -MMD -MP 
 
 #Determine how to link opengl
 ifeq ($(strip $(TARGETPLATFORM)),windows)
-	LIBS		+= -lopengl32 -lglew32
+	LDFLAGS		+= -lopengl32 -lglew32
 else
-	LIBS		+= -lGL
+	LDFLAGS		+= -lGL
 endif
 
 ###
