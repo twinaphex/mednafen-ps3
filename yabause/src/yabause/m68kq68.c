@@ -34,6 +34,10 @@
 # define NEED_TRAMPOLINE
 #endif
 
+#if defined(MDFNPS3) && defined(__i386__) //Try to detect the NEED_TRAMPOLINE function automatically, hopefully without breaking AMD64.
+# define NEED_TRAMPOLINE
+#endif
+
 /**
  * PROFILE_68K: Perform simple profiling of the 68000 emulation, reporting
  * the average time per 68000 clock cycle.  (Realtime execution would be

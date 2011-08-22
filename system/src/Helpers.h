@@ -26,6 +26,18 @@ class				Colors
 class				Utility
 {
 	public:
+		static char*					VAPrint						(char* aBuffer, uint32_t aLength, const char* aFormat, ...)
+		{
+			assert(aFormat && aBuffer && aLength);
+
+			va_list args;
+			va_start(args, aFormat);
+			vsnprintf(aBuffer, aLength, aFormat, args);
+			va_end(args);
+
+			return aBuffer;
+		}
+
 		static void						CenterAndScale				(uint32_t& aX, uint32_t& aY, uint32_t& aWidth, uint32_t& aHeight, uint32_t aImageWidth, uint32_t aImageHeight)
 		{
 			float outputaspect = (float)aImageWidth / (float)aImageHeight;
