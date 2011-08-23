@@ -1,8 +1,8 @@
 #include <es_system.h>
-#include "src/utility/Logger.h"
+#include "src/utility//TextViewer.h"
 #include "src/utility/Keyboard.h"
 
-Logger*				es_log;
+TextViewer*			es_log;
 PathBuild*			es_paths = 0;
 
 namespace
@@ -107,7 +107,8 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 
 	ESInput::Initialize();
 
-	es_log = new Logger(Area(10, 10, 80, 80));
+	es_log = new TextViewer(Area(10, 10, 80, 80), "Begin Log:", false);
+	es_log->SetHeader("[Global Log]");
 }
 
 void				QuitES					()

@@ -2,7 +2,7 @@
 
 #ifndef ES_HAVE_LOADPNG
 #include <png.h>
-#include "Logger.h"
+#include "TextViewer.h"
 
 class										PingPNG
 {
@@ -31,7 +31,7 @@ class										PingPNG
 						{
 							if(setjmp(png_jmpbuf(PngPtr)))
 							{
-								es_log->Log("PNG Reader: Error during init_io. [File: %s]", aPath.c_str());
+								es_log->AppendLine("PNG Reader: Error during init_io. [File: %s]", aPath.c_str());
 								return;
 							}
 
@@ -41,7 +41,7 @@ class										PingPNG
 	
 							if(setjmp(png_jmpbuf(PngPtr)))
 							{
-								es_log->Log("PNG Reader: Error during read_png. [File: %s]", aPath.c_str());
+								es_log->AppendLine("PNG Reader: Error during read_png. [File: %s]", aPath.c_str());
 								return;
 							}
 							png_read_png(PngPtr, InfoPtr, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_SWAP_ALPHA, 0);
@@ -49,7 +49,7 @@ class										PingPNG
 							RowPointers = png_get_rows(PngPtr, InfoPtr);
 							if(!RowPointers)
 							{
-								es_log->Log("PNG Reader: Failed to get pixels. [File: %s]", aPath.c_str());
+								es_log->AppendLine("PNG Reader: Failed to get pixels. [File: %s]", aPath.c_str());
 								return;
 							}
 
@@ -60,25 +60,25 @@ class										PingPNG
 						}
 						else
 						{
-							es_log->Log("PNG Reader: png_create_info_struct failed. [File: %s]", aPath.c_str());
+							es_log->AppendLine("PNG Reader: png_create_info_struct failed. [File: %s]", aPath.c_str());
 							return;
 						}
 					}
 					else
 					{
-						es_log->Log("PNG Reader: png_create_read_struct failed. [File: %s]", aPath.c_str());
+						es_log->AppendLine("PNG Reader: png_create_read_struct failed. [File: %s]", aPath.c_str());
 						return;
 					}
 				}
 				else
 				{
-					es_log->Log("PNG Reader: File not recognized as a PNG file. [File: %s]", aPath.c_str());
+					es_log->AppendLine("PNG Reader: File not recognized as a PNG file. [File: %s]", aPath.c_str());
 					return;
 				}
 			}
 			else
 			{
-				es_log->Log("PNG Reader: File could not be opened for reading. [File: %s]", aPath.c_str());
+				es_log->AppendLine("PNG Reader: File could not be opened for reading. [File: %s]", aPath.c_str());
 				return;
 			}
 		}

@@ -1,5 +1,5 @@
 #include <es_system.h>
-#include "src/utility/Logger.h"
+#include "src/utility/TextViewer.h"
 
 #ifndef __CELLOS_LV2__
 # define	FRAG_PROFILE				cgGLGetLatestProfile(CG_GL_FRAGMENT)
@@ -363,7 +363,7 @@ GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::
 	{
 		if(!aFile.empty())
 		{
-			es_log->Log("Shader preset not found [File: %s]", aFile.c_str());
+			es_log->AppendLine("Shader preset not found [File: %s]", aFile.c_str());
 		}
 		return new GLShader(aContext, "", 0, 1);
 	}

@@ -5,8 +5,8 @@
 DEC_AND_DEF(PathBuild, es_paths);
 #undef DEC_AND_DEF
 
-class	Logger;
-extern Logger* es_log;
+class	TextViewer;
+extern TextViewer* es_log;
 
 //Happy functions
 void					InitES					(void (*aExitFunction)() = 0, int argc = 0, char** argv = 0);

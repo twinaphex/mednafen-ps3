@@ -1,33 +1,31 @@
 #include <es_system.h>
 #include "TextViewer.h"
 
-						TextViewer::TextViewer					(const Area& aRegion, const std::string& aFileName, bool aFile) : SummerfaceWindow(aRegion)
+						TextViewer::TextViewer					(const Area& aRegion, const char* aFileName, bool aFile) : SummerfaceWindow(aRegion)
 {
+	SetHeader("[Text Viewer]");
 	Reload(aFileName, aFile);
 }
-						
-								
-						TextViewer::~TextViewer					()
-{
-						
-}
-		
-void					TextViewer::Reload						(const std::string& aFileName, bool aFile)
+
+void					TextViewer::Reload						(const char* aFileName, bool aFile)
 {
 	Lines.clear();
 
 	std::istream* stream;
-
 	if(aFile)
 	{
-		stream = new std::ifstream(aFileName.c_str());
+		stream = new std::ifstream(aFileName);
 	}
 	else
 	{
 		stream = new std::stringstream(aFileName);
 	}
 
-	if(stream->fail())
+	if(!stream->fail())
+	{
+		LoadStream(stream);	
+	}
+	else
 	{
 		Lines.push_back("Couldn't open file");
 		LongestLine = Lines[0].length();
@@ -35,11 +33,20 @@ void					TextViewer::Reload						(const std::string& aFileName, bool aFile)
 		return;
 	}
 
-	LoadStream(stream);	
-	
-	SetHeader("[Text Viewer]");
-
 	delete stream;
+}
+
+void					TextViewer::AppendLine					(const char* aMessage, ...)
+{
+	char array[1024];
+	va_list args;
+	va_start (args, aMessage);
+	vsnprintf(array, 1024, aMessage, args);
+	va_end(args);
+
+	Lines.push_back(std::string(array));
+
+	LongestLine = Lines[Lines.size() - 1].length() > LongestLine ? Lines[Lines.size() - 1].length() : LongestLine;
 }
 
 bool					TextViewer::Draw						()
@@ -47,13 +54,8 @@ bool					TextViewer::Draw						()
 	uint32_t lineheight = FontManager::GetFixedFont()->GetHeight();
 	LinesDrawn = ESVideo::GetClip().Height / lineheight;
 	
-	for(int i = 0; i != LinesDrawn; i ++)
+	for(int i = 0; (i != LinesDrawn) && ((i + Top) < Lines.size()); i ++)
 	{
-		if(i + Top >= Lines.size())
-		{
-			break;
-		}
-		
 		if(Lines[Top + i].length() > Left)
 		{
 			FontManager::GetFixedFont()->PutString(Lines[Top + i].substr(Left).c_str(), 2, i * lineheight, Colors::Normal);
@@ -83,6 +85,8 @@ bool					TextViewer::Input						(uint32_t aButton)
 		
 void					TextViewer::LoadStream					(std::istream* aStream)
 {
+	assert(aStream && !aStream->fail());
+
 	std::string line;
 
 	Top = 0;

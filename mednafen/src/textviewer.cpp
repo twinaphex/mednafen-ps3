@@ -40,7 +40,7 @@ int					TextFileViewer::HandleInput					(Summerface* aInterface, const std::stri
 		std::string file = Browser->GetFile();
 		if(!file.empty())
 		{
-			Viewer->Reload(file);
+			Viewer->Reload(file.c_str());
 		}
 
 		return 1;

@@ -25,7 +25,7 @@ namespace
 	{
 		ErrorCheck(lua_gettop(L) == 1 && lua_isstring(L, 1), "Lua: luaLogMessage argument error");
 
-		es_log->Log(lua_tostring(L, 1));
+		es_log->AppendLine(lua_tostring(L, 1));
 		return 0;
 	}
 
