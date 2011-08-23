@@ -38,6 +38,23 @@ extern "C"
 	FT_Done_Face(FontFace);
 }
 
+void					Font::Resize				(uint32_t aPixelSize)
+{
+	//Delete cached glyphs
+	for(std::map<uint32_t, FontCharacter*>::iterator i = Cache.begin(); i != Cache.end(); i ++)
+	{
+		delete i->second->CharTexture;
+		delete i->second;
+	}
+
+	Cache.clear();
+
+	//Calculate new size
+	FT_Set_Pixel_Sizes(FontFace, 0, aPixelSize);
+	Width = FontFace->size->metrics.max_advance / 64;
+	Height = FontFace->size->metrics.height / 64;
+}
+
 uint32_t				Font::PutString				(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow, uint32_t aShadowColor, int32_t aShadowXOffset, int32_t aShadowYOffset)
 {
 	return PutString(aString, 0xFFFFFFFF, aX, aY, aColor, aDropShadow, aShadowColor, aShadowXOffset, aShadowYOffset);
@@ -192,18 +209,24 @@ Font*					FontManager::GetFixedFont	()
 
 void					FontManager::InitFonts		()
 {
-	if(!FontsOpen)
+	if(FontsOpen)
+	{
+		BigFont->Resize(ESVideo::GetScreenHeight() / 25);
+		SmallFont->Resize(ESVideo::GetScreenHeight() / 40);
+		FixedFont->Resize(ESVideo::GetScreenHeight() / 36);
+	}
+	else
 	{
 		if(0 != FT_Init_FreeType(&FreeType))
 		{
 			Abort("FontManager::Init: Failed to initialize freetype");
 		}
-	
+
 		BigFont = new Font(ESVideo::GetScreenHeight() / 25);
 		SmallFont = new Font(ESVideo::GetScreenHeight() / 40);
 		FixedFont = new Font(ESVideo::GetScreenHeight() / 36, true);
 	}
-	
+
 	FontsOpen = true;
 }
 

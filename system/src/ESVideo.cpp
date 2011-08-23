@@ -37,7 +37,8 @@ void					ESVideo::SetScreenSize			(uint32_t aX, uint32_t aY)
 	ScreenWidth = aX;
 	ScreenHeight = aY;
 	InitializeState();
-	glDisable(GL_SCISSOR_TEST);
+
+	FontManager::InitFonts();
 }
 
 void					ESVideo::Flip					()
@@ -159,7 +160,7 @@ void					ESVideo::InitializeState		()
 	//Setup Projection
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight(), 0, -1, 1);
+	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
 }
 
 void					ESVideo::EnterPresentState		()

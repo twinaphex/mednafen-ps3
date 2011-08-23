@@ -88,8 +88,7 @@ class													SummerfaceWindow
 
 		std::string										Name;							///<Name of the window, according to the parent interface.
 		std::string										Header;							///<The window's header.
-		Area											Region;							///<The area the window occupies.
-		Area											Client;							///<The area of the inner portion of the window.
+		Area											Region;							///<The area the window occupies, in percent.
 
 		bool											UseBorder;						///<True if the border should be drawn by prepare draw.
 };
