@@ -4,8 +4,9 @@ endif
 
 TARGET		:=	liblsnes
 TYPE		:=	lib
-SOURCE		:=	src
 INCLUDE		:=	.. ../mednafen/src src
+
+CXXFILES	+=	src/mednafen.cpp
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
