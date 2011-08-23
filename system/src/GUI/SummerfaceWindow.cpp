@@ -1,17 +1,24 @@
 #include <es_system.h>
 #include "SummerfaceWindow.h"
 
-uint32_t ptpp(uint32_t aIn, bool aX)
+namespace
 {
-	uint32_t s = aX ? ESVideo::GetScreenWidth() : ESVideo::GetScreenHeight();
-	return s * ((double)aIn / 100.0);
+	uint32_t								ptpp												(uint32_t aIn, bool aX)
+	{
+		uint32_t s = aX ? ESVideo::GetScreenWidth() : ESVideo::GetScreenHeight();
+		return s * ((double)aIn / 100.0);
+	}
+
+	Area									Area_PercentToPix									(const Area& aArea)
+	{
+		return Area(ptpp(aArea.X, 1), ptpp(aArea.Y, 0), ptpp(aArea.Width, 1), ptpp(aArea.Height, 0));
+	}
 }
 
 
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion, bool aBorder) :
 	Interface(0),
-	Region(Area(ptpp(aRegion.X, 1), ptpp(aRegion.Y, 0), ptpp(aRegion.Width, 1), ptpp(aRegion.Height, 0))),
-	Client(Area(Region.X + BorderWidth, Region.Y + BorderWidth, Region.Width - BorderWidth * 2, Region.Height - BorderWidth * 2)),
+	Region(aRegion),
 	UseBorder(aBorder)
 {
 }
@@ -19,6 +26,9 @@ uint32_t ptpp(uint32_t aIn, bool aX)
 //Draw the border and background, leave clip set to the windows client area
 bool										SummerfaceWindow::PrepareDraw						()
 {
+	//Convert screen area from percent to pixels
+	Area pixRegion = Area_PercentToPix(Region);
+
 	if(UseBorder)
 	{
 #if 0
@@ -69,31 +79,33 @@ bool										SummerfaceWindow::PrepareDraw						()
 		{
 			ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
 
-		//TODO: Make border color
-			ESVideo::FillRectangle(Area(Region.X, Region.Y, Region.Width, BorderWidth), 0xFFFFFFFF);
-			ESVideo::FillRectangle(Area(Region.X + BorderWidth, Region.Bottom(), Region.Width, BorderWidth), 0x00000080);
-			ESVideo::FillRectangle(Area(Region.X, Region.Bottom() - BorderWidth, Region.Width, BorderWidth), 0xFFFFFFFF);
+			//TODO: Make border color
+			ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Y, pixRegion.Width, BorderWidth), 0xFFFFFFFF);
+			ESVideo::FillRectangle(Area(pixRegion.X + BorderWidth, pixRegion.Bottom(), pixRegion.Width, BorderWidth), 0x00000080);
+			ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Bottom() - BorderWidth, pixRegion.Width, BorderWidth), 0xFFFFFFFF);
 
-			ESVideo::FillRectangle(Area(Region.X, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
-			ESVideo::FillRectangle(Area(Region.Right(), Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth), 0x00000080);
-			ESVideo::FillRectangle(Area(Region.Right() - BorderWidth, Region.Y + BorderWidth, BorderWidth, Region.Height - BorderWidth * 2), 0xFFFFFFFF);
+			ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth * 2), 0xFFFFFFFF);
+			ESVideo::FillRectangle(Area(pixRegion.Right(), pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth), 0x00000080);
+			ESVideo::FillRectangle(Area(pixRegion.Right() - BorderWidth, pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth * 2), 0xFFFFFFFF);
 
-			ESVideo::FillRectangle(Client, Colors::BackGround);
+			//Remove border pixels from region
+			pixRegion.Inflate(-BorderWidth);
+			ESVideo::FillRectangle(pixRegion, Colors::BackGround);
 		}
 
-		ESVideo::SetClip(Client);
+		ESVideo::SetClip(pixRegion);
 
 		std::string header = GetHeader();
 		if(!header.empty())
 		{
 			FontManager::GetBigFont()->PutString(header.c_str(), 1, 1, Colors::Normal, true);
-			ESVideo::FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, Client.Width, 1), 0xFFFFFFFF);
-			ESVideo::SetClip(Area(Client.X, Client.Y + FontManager::GetBigFont()->GetHeight() + 3, Client.Width, Client.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
+			ESVideo::FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 1, pixRegion.Width, 1), 0xFFFFFFFF);
+			ESVideo::SetClip(Area(pixRegion.X, pixRegion.Y + FontManager::GetBigFont()->GetHeight() + 3, pixRegion.Width, pixRegion.Height - (FontManager::GetBigFont()->GetHeight() + 3)));
 		}
 	}
 	else
 	{
-		ESVideo::SetClip(Region);
+		ESVideo::SetClip(pixRegion);
 	}
 
 	return Draw();
