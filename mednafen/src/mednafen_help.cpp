@@ -9,7 +9,7 @@
 #include "textviewer.h"
 #include "FastCounter.h"
 
-#include "src/utility/Logger.h"	//TODO: Cleaner path for es includes
+#include "src/utility/TextViewer.h"	//TODO: Cleaner path for es includes
 
 namespace
 {

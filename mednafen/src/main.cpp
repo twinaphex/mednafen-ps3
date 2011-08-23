@@ -18,7 +18,7 @@ namespace
 
 		if(aButton == ES_BUTTON_AUXLEFT3)
 		{
-			Summerface("Text", new TextViewer(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt"))).Do();
+			Summerface("Text", new TextViewer(Area(10, 10, 80, 80), es_paths->Build("mednafen/Readme.txt").c_str())).Do();
 			return 1;
 		}
 

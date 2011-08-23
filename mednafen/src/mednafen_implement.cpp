@@ -1,6 +1,6 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
-#include "src/utility/Logger.h"
+#include "src/utility/TextViewer.h"
 
 
 //How to implement these?
@@ -84,12 +84,12 @@ bool							MDFND_ExitBlockingLoop		()
 
 void							MDFND_PrintError			(const char *s)
 {
-	es_log->Log("ERROR: %s", s);
+	es_log->AppendLine("ERROR: %s", s);
 }
 
 void							MDFND_Message				(const char *s)
 {
-	es_log->Log(" INFO: %s", s);
+	es_log->AppendLine(" INFO: %s", s);
 }
 
 void							MDFND_DispMessage			(UTF8 *text)
