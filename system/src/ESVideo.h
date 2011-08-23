@@ -3,6 +3,8 @@
 #include "utility/Area.h"
 #include "../opengl_common/Shaders.h"
 
+class										FrameBuffer;
+
 ///Static class to be implemented by a port.
 class										ESVideoPlatform
 {
@@ -32,10 +34,16 @@ class										ESVideoPlatform
 		///@return True if supported, false otherwise.
 		static bool							SupportsModeSwitch		();
 
+		///Determine if the platform supports a second OpenGL context with shared display lists. If this returns false, it is an error
+		///to call the MakePrimaryActive and MakeSecondaryActive functions.
+		static bool							SupportsSecondaryContext();
+
 		//Doc Note: All of these must assert if not supported
 		static void							SetVSync				(bool aOn);
 		static void							SetMode					(uint32_t aIndex);
 		static ModeList::const_iterator		GetModes				();
+		static void							MakePrimaryActive		();
+		static void							MakeSecondaryActive		();
 };
 
 
@@ -71,6 +79,10 @@ class								ESVideo : public ESVideoPlatform
 		///Flip the screen buffers and reset clipping to cover the entire screen.
 		static void					Flip					();
 		
+		///Make a FrameBuffer object the render target.
+		///@param aFrameBuffer Frame buffer to set as the render target. If null the default target will be restored.
+		static void					SetRenderTarget			(FrameBuffer* aBuffer);
+
 		///Blit a porition of a Texture to the screen. The Texture's alpha channel will be respected. The Texture may be stretched and color modulated.
 		///@param aTexture Pointer to the Texture to blit.
 		///@param aDestination Screen area to place the Texture.
@@ -92,6 +104,11 @@ class								ESVideo : public ESVideoPlatform
 		///@param aViewPort Portion, in pixels, of the texture that should be drawn.
 		static void					PresentFrame			(Texture* aTexture, const Area& aViewPort); //External
 
+		///Present a FrameBuffer to the screen. The FrameBuffer will fill the entire screen and may be passed through a Cg fragment shader.
+		///@param aFrameBuffer Pointer to the FrameBuffer to draw.
+		///@param aViewPort Portion, in pixels, of the FrameBuffer that should be drawn.
+		static void					PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort); //External
+
 		///Update the output Area that will be used by PresentFrame.
 		///@param aAspectOverride Override aspect ratio correction. If -1 the image will be drawn to cover the entire screen, if 1 the image will have bars along the
 		///side and 0 will auto-detect the method to use.
@@ -105,6 +122,8 @@ class								ESVideo : public ESVideoPlatform
 		static void					SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = GLShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
 		
 	private:
+		static void					PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort);
+
 		static void					SetVertex				(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV);
 		static void					InitializeState			();
 		static void					EnterPresentState		();
@@ -116,6 +135,8 @@ class								ESVideo : public ESVideoPlatform
 		static Area					Clip;							///<Area, outside of which PlaceTexture and FillRectangle will not draw.
 
 		static Area					PresentArea;					///<Area that will be used for output by PresentFrame.
+
+		static GLuint				FrameBufferID;					///<ID of the FrameBuffer object.
 
 		static const uint32_t		VertexBufferCount = 4;			///<Number of vertices in the Vertex buffer.
 		static const uint32_t		VertexSize = 9;					///<Number of GLfloat entries per vertex.

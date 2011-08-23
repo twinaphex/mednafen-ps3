@@ -1,8 +1,22 @@
 #include <es_system.h>
 
-#ifdef	MDCELL
-#define	glOrtho	glOrthof
+#include "opengl_common/FrameBuffer.h"
+
+#ifndef __CELLOS_LV2__
+# define	glGenFramebuffersES			glGenFramebuffersEXT
+# define	glDeleteFramebuffersES		glDeleteFramebuffersEXT
+# define	glBindFramebufferES			glBindFramebufferEXT
+# define	glFramebufferTexture2DES	glFramebufferTexture2DEXT
+# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_EXT
+#else
+# define	glGenFramebuffersES			glGenFramebuffersOES
+# define	glDeleteFramebuffersES		glDeleteFramebuffersOES
+# define	glBindFramebufferES			glBindFramebufferOES
+# define	glFramebufferTexture2DES	glFramebufferTexture2DOES
+# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_OES
+# define	glOrtho						glOrthof
 #endif
+
 
 void					ESVideo::Initialize				()
 {
@@ -22,10 +36,16 @@ void					ESVideo::Initialize				()
 	//Init shaders
 	ShaderContext = cgCreateContext();
 	Presenter = new GLShader(ShaderContext, "", false, 1);
+
+	//Init framebuffer
+	glGenFramebuffersES(1, &FrameBufferID);
 }
 
 void					ESVideo::Shutdown				()
 {
+	SetRenderTarget(0);
+	glDeleteFramebuffersES(1, &FrameBufferID);
+
 	delete FillerTexture;
 	free(VertexBuffer);
 
@@ -46,6 +66,19 @@ void					ESVideo::Flip					()
 	ESVideoPlatform::Flip();
 	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
 	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
+{
+	if(aBuffer)
+	{
+		glBindFramebufferES(GL_FRAMEBUFFER_ES, FrameBufferID);
+		glFramebufferTexture2DES(GL_FRAMEBUFFER_ES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0);
+	}
+	else
+	{
+		glBindFramebufferES(GL_FRAMEBUFFER_ES, 0);
+	}
 }
 
 void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, const Area& aSource, uint32_t aColor)
@@ -73,44 +106,18 @@ void					ESVideo::PlaceTexture			(Texture* aTexture, const Area& aDestination, c
 
 void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort)
 {
-	float xl = (float)aViewPort.X / (float)aTexture->GetWidth();
-	float xr = (float)aViewPort.Right() / (float)aTexture->GetWidth();
-	float yl = (float)aViewPort.Y / (float)aTexture->GetHeight();
-	float yr = (float)aViewPort.Bottom() / (float)aTexture->GetHeight();
-	Presenter->SetViewport(xl, xr, yl, yr);
-
-	//Enter present state
-	EnterPresentState();
-
-	if(NoAspect)
-	{
-		uint32_t x = PresentArea.X, y = PresentArea.Y, w = PresentArea.Width, h = PresentArea.Height;
-		Utility::CenterAndScale(x, y, w, h, aViewPort.Width, aViewPort.Height);
-
-		Presenter->Set(Area(x,y,w,h), aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
-	}
-	else
-	{
-		Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aTexture->GetWidth(), aTexture->GetHeight());
-	}
+	assert(aTexture);
 
 	aTexture->Apply();
-
-	GLuint borderTexture = 0;
-	if(Border)
-	{
-		Border->Apply();
-		borderTexture = Border ? Border->GetID() : 0;
-	}
-
-	Presenter->Present(aTexture->GetID(), borderTexture);
-
-	//Exit present state
-	ExitPresentState();
-
-	/* Reset vertex buffer */
-	GLShader::ApplyVertexBuffer(VertexBuffer, true);
+	PresentFrame(aTexture->GetID(), aTexture->GetWidth(), aTexture->GetHeight(), aViewPort);
 }
+
+void					ESVideo::PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort)
+{
+	assert(aFrameBuffer);
+	PresentFrame(aFrameBuffer->GetID(), aFrameBuffer->GetWidth(), aFrameBuffer->GetHeight(), aViewPort);
+}
+
 
 void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine)
 {
@@ -140,6 +147,46 @@ void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUndersca
 
 	PresentArea = Area(usLeft, usTop, usRight - usLeft, usBottom - usTop);
 }
+
+void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort)
+{
+	float xl = (float)aViewPort.X / (float)aWidth;
+	float xr = (float)aViewPort.Right() / (float)aWidth;
+	float yl = (float)aViewPort.Y / (float)aHeight;
+	float yr = (float)aViewPort.Bottom() / (float)aHeight;
+	Presenter->SetViewport(xl, xr, yl, yr);
+
+	//Enter present state
+	EnterPresentState();
+
+	if(NoAspect)
+	{
+		uint32_t x = PresentArea.X, y = PresentArea.Y, w = PresentArea.Width, h = PresentArea.Height;
+		Utility::CenterAndScale(x, y, w, h, aViewPort.Width, aViewPort.Height);
+
+		Presenter->Set(Area(x,y,w,h), aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+	}
+	else
+	{
+		Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+	}
+
+	GLuint borderTexture = 0;
+	if(Border)
+	{
+		Border->Apply();
+		borderTexture = Border ? Border->GetID() : 0;
+	}
+
+	Presenter->Present(aID, borderTexture);
+
+	//Exit present state
+	ExitPresentState();
+
+	/* Reset vertex buffer */
+	GLShader::ApplyVertexBuffer(VertexBuffer, true);
+}
+
 
 void					ESVideo::SetVertex				(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV)
 {
@@ -182,6 +229,8 @@ Texture*				ESVideo::FillerTexture;
 Area					ESVideo::Clip;
 
 Area					ESVideo::PresentArea;
+
+GLuint					ESVideo::FrameBufferID;
 
 GLfloat*				ESVideo::VertexBuffer;
 
