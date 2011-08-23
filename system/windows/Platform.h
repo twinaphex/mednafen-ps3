@@ -26,7 +26,7 @@ class				PlatformHelpers
 
 		static void						Sleep						(uint32_t aMilliseconds)
 		{
-			Sleep(aMilliseconds);
+			::Sleep(aMilliseconds);
 		}
 
 		template<typename T>

@@ -70,6 +70,8 @@ int32_t					ESThread::Wait							()
 						ESMutex::~ESMutex						()
 {
 	CloseHandle(Data->Mutex);
+
+	delete Data;
 }
 
 void					ESMutex::Lock							()
