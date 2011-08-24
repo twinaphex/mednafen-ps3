@@ -353,6 +353,7 @@ struct GFX3D_State
 	u8 shininessTable[128];
 };
 
+#ifndef MDFNPS3 //No Viewer3D
 struct Viewer3d_State
 {
 	int frameNumber;
@@ -363,6 +364,7 @@ struct Viewer3d_State
 };
 
 extern Viewer3d_State* viewer3d_state;
+#endif
 
 struct GFX3D
 {

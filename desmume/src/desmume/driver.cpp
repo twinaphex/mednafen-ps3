@@ -213,6 +213,7 @@ private:
 
 #endif
 
+#ifndef MDFNPS3 //No VIEW3D
 static VIEW3D_Driver nullView3d;
 BaseDriver::BaseDriver()
 : view3d(NULL)
@@ -233,6 +234,11 @@ void BaseDriver::VIEW3D_Init()
 	view3d = new VIEW3D_Driver_WX();
 #endif
 }
+#else //MDFNPS3: No VIEW3D
+BaseDriver::BaseDriver()
+{
+}
+#endif
 
 BaseDriver::~BaseDriver()
 {

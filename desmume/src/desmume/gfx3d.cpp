@@ -244,7 +244,9 @@ using std::max;
 using std::min;
 
 GFX3D gfx3d;
+#ifndef MDFNPS3 //No viewer3D
 Viewer3d_State* viewer3d_state = NULL;
+#endif
 static GFX3D_Clipper boxtestClipper;
 
 //tables that are provided to anyone
@@ -489,8 +491,11 @@ void gfx3d_reset()
 #endif
 
 	reconstruct(&gfx3d);
+
+#ifndef MDFNPS3 //No viewer3D
 	delete viewer3d_state;
 	viewer3d_state = new Viewer3d_State();
+#endif
 	
 	gxf_hardware.reset();
 
@@ -2126,6 +2131,7 @@ static void gfx3d_doFlush()
 	//switch to the new lists
 	twiddleLists();
 
+#ifndef MDFNPS3 //No viewer3D
 	if(driver->view3d->IsRunning())
 	{
 		viewer3d_state->frameNumber = currFrameCounter;
@@ -2135,6 +2141,7 @@ static void gfx3d_doFlush()
 		viewer3d_state->indexlist = gfx3d.indexlist;
 		driver->view3d->NewFrame();
 	}
+#endif
 
 	drawPending = TRUE;
 }

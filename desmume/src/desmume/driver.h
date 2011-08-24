@@ -31,6 +31,7 @@
 #include <pcap.h>
 #endif
 
+#ifndef MDFNPS3 //No VIEW3D
 class VIEW3D_Driver
 {
 public:
@@ -38,6 +39,7 @@ public:
 	virtual void NewFrame() {}
 	virtual bool IsRunning() { return false; }
 };
+#endif
 
 //each platform needs to implement this, although it doesnt need to implement any functions
 class BaseDriver {
@@ -91,9 +93,11 @@ public:
 
 	virtual void DEBUG_UpdateIORegView(eDebug_IOReg category) { }
 
+#ifndef MDFNPS3 //No VIEW3D
 	VIEW3D_Driver* view3d;
 	void VIEW3D_Shutdown();
 	void VIEW3D_Init();
+#endif
 };
 extern BaseDriver* driver;
 
