@@ -29,6 +29,6 @@ include $(TOP)/Makefile.common
 
 .PHONY: pkg
 pkg: $(BUILD)
-	$(MAKE_SELF_GH) mednafen.elf pkg/USRDIR/EBOOT.BIN UP0001-MDFN90002_00-0000000000000000
-	@$(PKG) --contentid $(CONTENTID) pkg/ mednafen.pkg
+	$(MAKE_SELF_GH) $(TARGET).elf pkg/USRDIR/EBOOT.BIN UP0001-$(APPID)_00-0000000000000000
+	@$(PKG) --contentid $(CONTENTID) pkg/ $(TARGET).pkg
 

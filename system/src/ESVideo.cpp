@@ -72,6 +72,11 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 {
 	if(aBuffer)
 	{
+		glBindTexture(GL_TEXTURE_2D, aBuffer->GetID());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glBindFramebufferES(GL_FRAMEBUFFER_ES, FrameBufferID);
 		glFramebufferTexture2DES(GL_FRAMEBUFFER_ES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0);
 	}
