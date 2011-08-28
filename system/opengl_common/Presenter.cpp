@@ -1,12 +1,11 @@
 #include <es_system.h>
+#include "Presenter.h"
+#include "Shaders.h"
 
 #ifndef __CELLOS_LV2__ //Don't need these files on PS3
 # include <Cg/cg.h>
 # include <Cg/cgGL.h>
 #endif
-
-#include "Presenter.h"
-#include "Shaders.h"
 
 namespace
 {

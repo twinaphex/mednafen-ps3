@@ -191,7 +191,7 @@ void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight,
 	}
 
 	//Call kiddie present if possible
-	if(SupportsShaders)
+	if(SupportsShaders())
 	{
 		Present(aID, aWidth, aHeight, aViewPort, presentArea);
 
