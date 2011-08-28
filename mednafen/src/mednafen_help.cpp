@@ -5,7 +5,7 @@
 #include "ers.h"
 #include "inputhandler.h"
 #include "mednafen_help.h"
-#include "settingmenu.h"
+#include "SettingCategoryMenu.h"
 #include "textviewer.h"
 #include "FastCounter.h"
 
@@ -19,9 +19,10 @@ namespace
 	extern "C" MDFNGI*				vbamGetEmulator			(uint32_t aIndex);
 	extern "C" MDFNGI*				pcsxGetEmulator			(uint32_t aIndex);
 	extern "C" MDFNGI*				stellaGetEmulator		(uint32_t aIndex);
-	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disalbed 
+	extern "C" MDFNGI*				yabauseGetEmulator		(uint32_t aIndex);
+	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disabled because it uses too much bss for PS3 (TODO: Enable conditionally on non-ps3 builds)
 	extern "C" MDFNGI*				lsnesGetEmulator		(uint32_t aIndex);		//Disabled because it requires a user provided build of libsnes and conflicts with the build in snes emulator
-	extern "C" MDFNGI*				yabauseGetEmulator		(uint32_t aIndex);		//Disabled because the c68k emu conflicts with the built in megadrive emulator
+
 
 	const MDFNSetting_EnumList	AspectEnumList[] =
 	{
@@ -77,21 +78,21 @@ namespace
 		return results;
 	}
 
-
-	#define SETTINGNAME(b) ((std::string(GameInfo->shortname) + ".es." + b).c_str())
+	//Must have defined settingName on stack to use, sizeof(settingName) must be valid, b MUST be a string constant
+	#define SETTINGNAME(b) (Utility::VAPrint(settingName, sizeof(settingName) - 1, "%s.es."b, GameInfo->shortname))
 
 	MDFNSetting SystemSettings[] = 
 	{
-		{"display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"display.aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
-		{"display.underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
-		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
-		{"speed.rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
-		{"speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "1", "1", "16" },
-		{"speed.fastrate", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
-		{"speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" },
+		{"%s.es.display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
+		{"%s.es.display.aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
+		{"%s.es.display.underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
+		{"%s.es.autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
+		{"%s.es.speed.rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
+		{"%s.es.speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "1", "1", "16" },
+		{"%s.es.speed.fastrate", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
+		{"%s.es.speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" },
 		//HACK: 4294967051 = ES_BUTTON_AUXRIGHT2
-		{"speed.button", MDFNSF_CAT_INPUT, "Button used for fast forward.", NULL, MDFNST_UINT, "4294967051" }
+		{"%s.es.speed.button", MDFNSF_CAT_INPUT, "Button used for fast forward.", NULL, MDFNST_UINT, "4294967051" }
 	};
 
 	MDFNSetting ESSettings[] =
@@ -156,8 +157,10 @@ void						MednafenEmu::Quit				()
 	}
 }
 
-bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize)
+bool						MednafenEmu::LoadGame			(const char* aFileName, void* aData, int aSize)
 {
+	assert(aFileName);
+
 	if(IsInitialized)
 	{
 		if(IsLoaded)
@@ -167,13 +170,13 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 
 		//Load the game
 		//TODO: Support other casing of '.cue'
-		if(strstr(aFileName.c_str(), ".cue"))
+		if(strstr(aFileName, ".cue"))
 		{
-			GameInfo = MDFNI_LoadCD(0, aFileName.c_str());
+			GameInfo = MDFNI_LoadCD(0, aFileName);
 		}
 		else
 		{
-			GameInfo = MDFNI_LoadGame(0, aFileName.c_str(), aData, aSize);
+			GameInfo = MDFNI_LoadGame(0, aFileName, aData, aSize);
 		}
 
 		//Display log on error!
@@ -213,6 +216,7 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		Buffer->Clear(0);
 
 		//Load automatic state
+		char settingName[1024];
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_LoadState(0, "mcq");
@@ -245,6 +249,7 @@ void						MednafenEmu::CloseGame			()
 		}
 
 		//Save any anto states
+		char settingName[1024];
 		if(MDFN_GetSettingB(SETTINGNAME("autosave")))
 		{
 			MDFNI_SaveState(0, "mcq", 0, 0, 0);
@@ -261,6 +266,7 @@ void						MednafenEmu::CloseGame			()
 		delete Buffer; Buffer = 0;
 		delete Surface; Surface = 0;
 		delete TextFile; TextFile = 0;
+
 
 
 		IsLoaded = false;
@@ -477,7 +483,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	if(0 == strcmp(command.c_str(), "DoCheatMenu"))			{CheatMenu* menu = new CheatMenu(); menu->Do(); delete menu;}
 	if(0 == strcmp(command.c_str(), "DoDiskSide"))			MDFN_DoSimpleCommand(MDFN_MSC_SELECT_DISK);
 	if(0 == strcmp(command.c_str(), "DoReload"))			ReloadEmulator("");
-	if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingMenu* menu = new SettingMenu(GameInfo->shortname); menu->Do(); delete menu;}
+	if(0 == strcmp(command.c_str(), "DoSettings"))			{SettingCategoryMenu* menu = new SettingCategoryMenu(GameInfo->shortname); menu->Do(); delete menu;}
 	if(0 == strcmp(command.c_str(), "DoReset"))				MDFNI_Reset();
 	if(0 == strcmp(command.c_str(), "DoNetplay"))			MDFND_NetStart();
 	if(0 == strcmp(command.c_str(), "DoScreenShot"))		MDFNI_SaveSnapshot(Surface, &EmulatorSpec.DisplayRect, VideoWidths);
@@ -563,6 +569,8 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 
 void						MednafenEmu::ReadSettings		(bool aOnLoad)
 {
+	char settingName[1024];
+
 	if(IsGameLoaded())
 	{
 		Inputs->ReadSettings();
@@ -610,43 +618,45 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 
 void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 {
-	//Some platform specific settings
-	static const MDFNSetting VSync	= {"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
+	//TODO: Lots of strdup's called in this function will never have their memory free'd, shouldn't matter as the OS will clean up and this is never called more than once.
 
-	static const MDFNSetting Shader	= {"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 };
-	static const MDFNSetting Border	= {"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" };
+	//Some platform specific settings
+	static const MDFNSetting VSync	= {"%s.es.display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
+	static const MDFNSetting Shader	= {"%s.es.shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 };
+	static const MDFNSetting Border	= {"%s.es.shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" };
 
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
+		char nameBuffer[1024];
+		const char* sysName = MDFNSystems[i]->shortname;
+		MDFNSetting thisSetting;
+
+		//Attach settings
 		for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
 		{
-			std::string myname = std::string(MDFNSystems[i]->shortname) + ".es." + std::string(SystemSettings[j].name);		
-	
-			MDFNSetting thisone;
-			memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));
-			//TODO: This strdup will not be freed
-			thisone.name = strdup(myname.c_str());
-			aSettings.push_back(thisone);
+			thisSetting = SystemSettings[j];
+			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			aSettings.push_back(thisSetting);
 		}
 
-		//Attach platform specific settings
+		//Attach port specific settings
 		if(ESVideo::SupportsVSyncSelect())
 		{
-			MDFNSetting thisone = VSync;
-			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.display.vsync").c_str());
-			aSettings.push_back(thisone);
+			thisSetting = VSync;
+			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			aSettings.push_back(thisSetting);
 		}
 
 		if(ESVideo::SupportsShaders())
 		{
-			MDFNSetting thisone = Shader;
-			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.shader.preset").c_str());
-			thisone.enum_list = BuildShaderEnum();
-			aSettings.push_back(thisone);
+			thisSetting = Shader;
+			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			thisSetting.enum_list = BuildShaderEnum();
+			aSettings.push_back(thisSetting);
 
-			thisone = Border;
-			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.shader.border").c_str());
-			aSettings.push_back(thisone);
+			thisSetting = Border;
+			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			aSettings.push_back(thisSetting);
 		}
 	}
 }

@@ -33,72 +33,59 @@ struct								SettingItem
 
 
 ///Class used to list and edit mednafen's settings.
-class								SettingMenu
+class								SettingGroupMenu
 {
-	typedef std::map<std::string, std::vector<const MDFNCS*> >	SettingCollection;	///<Collection type for the Settings cache
-
-	typedef SummerfaceItemUser<std::string>						CategoryListItem;
-	typedef AnchoredListView<CategoryListItem>					CategoryListType;
-
 	typedef GroupListView<SettingItem>							SettingListType;
-
 	typedef AnchoredListView<SummerfaceItem>					EnumListType;
 
 	public:
-		///Create a new SettingMenu.
-		///@param aDefaultCategory The name of the default category. This category will be selected at load, and shaded in a special color.
-									SettingMenu							(const std::string& aDefaultCategory = std::string());
+		///Create a new SettingGroupMenu.
+		///@param aSettings List of settings for the menu to edit.
+		///@param aSystemName Name of the system, or empty if a general category.
+									SettingGroupMenu			(const std::vector<const MDFNCS*>& aSettings, const std::string& aSystemName);
 
 		///Blank virtual destructor for SetttingMenu.
-		virtual						~SettingMenu						() {}
+		virtual						~SettingGroupMenu			() {}
 
 		///Run the setting editor.
-		void						Do									();
+		void						Do							();
 
-		int							HandleInput							(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
+		int							HandleInput					(Summerface* aInterface, const std::string& aWindow, uint32_t aButton);
 
 		///Refresh the parent list's header if needed.
-		void						DoHeaderRefresh						();
+		void						DoHeaderRefresh				();
 
-		bool						HandleButton						(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleButton				(uint32_t aButton, const MDFNCS& aSetting);
 
 		///Handle changing a boolean setting.
 		///@param aButton System button that was pressed.
 		///@param aSetting Setting to update.
 		///@return True if this function has eaten the input, false to continue processing.
-		bool						HandleBool							(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleBool					(uint32_t aButton, const MDFNCS& aSetting);
 
 		///Handle changing an int or unsigned int setting.
 		///@param aButton System button that was pressed.
 		///@param aSetting Setting to update.
 		///@return True if this function has eaten the input, false to continue processing.
-		bool						HandleInt							(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleInt					(uint32_t aButton, const MDFNCS& aSetting);
 
 		///Handle changing an enumeration setting.
 		///@param aButton System button that was pressed.
 		///@param aSetting Setting to update.
 		///@return True if this function has eaten the input, false to continue processing.
-		bool						HandleEnum							(uint32_t aButton, const MDFNCS& aSetting);
+		bool						HandleEnum					(uint32_t aButton, const MDFNCS& aSetting);
 
 	private:
-		///Load and cache all of the settings from the mednafen core.
-		void						LoadSettings						();
-
 		///Translate a setting into a group name.
 		///@param aSyatem System name of the setting, or an empty string for a general setting.
 		///@return A group name.
-		std::string					TranslateGroup						(const MDFNCS& aSetting, const std::string& aSystem);
-
-		///Translate a sparse category name to a friendly one.
-		std::string					TranslateCategory					(const char* aCategory);
+		std::string					TranslateGroup				(const MDFNCS& aSetting, const std::string& aSystem);
 
 	private:
-		SettingListType				List;								///<SummerfaceList used for displaying a category of settings.
-		CategoryListType			CategoryList;						///<SummerfaceList used for displaying all categories.
-		Summerface					CategoryInterface;					///<Summerface object used for the CategoryList.
+		SettingListType				List;						///<SummerfaceList used for displaying a category of settings.
+		Summerface					Interface;					///<Summerface object used for the list.
 
-		SettingCollection			Settings;							///<The cache of settings from mednafen.
-
-		bool						RefreshHeader;						///<True if the header needs to be refreshed.
+		bool						RefreshHeader;				///<True if the header needs to be refreshed.
 };
+
 

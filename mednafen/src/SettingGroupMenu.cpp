@@ -1,6 +1,6 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
-#include "settingmenu.h"
+#include "SettingGroupMenu.h"
 #include "inputhandler.h"
 
 #include "src/utility/Files/FileSelect.h"
@@ -55,66 +55,31 @@ std::string						SettingItem::GetText							()
 }
 
 
-								SettingMenu::SettingMenu						(const std::string& aDefaultCategory) :
+								SettingGroupMenu::SettingGroupMenu				(const std::vector<const MDFNCS*>& aSettings, const std::string& aSystemName) :
 	List(Area(10, 10, 80, 80)),
-	CategoryList(Area(10, 10, 80, 80)),
-	CategoryInterface("Categories", &CategoryList, false)
+	Interface("Settings", &List, false),
+	RefreshHeader(true)
 {
-	//Cache the setting values from mednafen
-	LoadSettings();
-
-	//Setup the category list
-	CategoryList.SetHeader("Choose Setting Category");
-
-	//Stuff the category list
-	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
+	//Add all settings from the catagory
+	for(int i = 0; i != aSettings.size(); i ++)
 	{
-		CategoryList.AddItem(new CategoryListItem(TranslateCategory(i->first.c_str()), "", i->first));
+		List.AddItem(new SettingItem(aSettings[i], TranslateGroup(*aSettings[i], aSystemName)));
 	}
 
-	//Sort the list and choose the default selection
-	CategoryList.Sort();
-	CategoryList.SetSelection(TranslateCategory(aDefaultCategory.c_str()));
+	//Sort the setting list
+	List.Sort(CompareItems);
+
+	//Setup interface
+	Interface.SetInputWait(false);
+	Interface.AttachConduit(new SummerfaceTemplateConduit<SettingGroupMenu>(this));
 }
 
-void							SettingMenu::Do									()
+void							SettingGroupMenu::Do							()
 {
-	while(!WantToDie())
-	{
-		//Run the category list
-		CategoryInterface.Do();
-
-		//Leave if the category list is canceled and everything checks out
-		if(!CategoryList.WasCanceled())
-		{
-			//Clear the setting list
-			List.ClearItems();
-
-			//Add all settings from the catagory
-			const std::vector<const MDFNCS*>& items = Settings[CategoryList.GetSelected()->UserData];
-			for(int i = 0; i != items.size(); i ++)
-			{
-				List.AddItem(new SettingItem(items[i], TranslateGroup(*items[i], CategoryList.GetSelected()->UserData)));
-			}
-
-			//Sort the setting list
-			List.Sort(CompareItems);
-
-			//HACK: Create the interface without input wait until the header is updated
-			Summerface sface("SettingList", &List, false);
-			sface.SetInputWait(false);
-			sface.AttachConduit(new SummerfaceTemplateConduit<SettingMenu>(this));
-			sface.Do();
-		}
-		else
-		{
-			//Done
-			return;
-		}
-	}
+	Interface.Do();
 }
 
-int								SettingMenu::HandleInput						(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
+int								SettingGroupMenu::HandleInput					(Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
 {
 	assert(List.GetItemCount() != 0);
 
@@ -183,7 +148,7 @@ int								SettingMenu::HandleInput						(Summerface* aInterface, const std::str
 	return (aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT) ? 1 : 0;
 }
 
-void							SettingMenu::DoHeaderRefresh					()
+void							SettingGroupMenu::DoHeaderRefresh				()
 {
 	//If a refresh is scheduled and a list item is available
 	if(RefreshHeader)
@@ -193,7 +158,7 @@ void							SettingMenu::DoHeaderRefresh					()
 	}
 }
 
-bool							SettingMenu::HandleButton						(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingGroupMenu::HandleButton					(uint32_t aButton, const MDFNCS& aSetting)
 {
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
 	{
@@ -213,7 +178,7 @@ bool							SettingMenu::HandleButton						(uint32_t aButton, const MDFNCS& aSett
 	return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
 }
 
-bool							SettingMenu::HandleBool							(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingGroupMenu::HandleBool					(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Toggle if the button is left, right, or accept
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
@@ -227,7 +192,7 @@ bool							SettingMenu::HandleBool							(uint32_t aButton, const MDFNCS& aSetti
 	return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
 }
 
-bool							SettingMenu::HandleInt							(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingGroupMenu::HandleInt						(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Get the change to be applied
 	int32_t value = (aButton == ES_BUTTON_LEFT) ? -1 : 0;
@@ -257,7 +222,7 @@ bool							SettingMenu::HandleInt							(uint32_t aButton, const MDFNCS& aSettin
 	return aButton == ES_BUTTON_TAB;
 }
 
-bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetting)
+bool							SettingGroupMenu::HandleEnum					(uint32_t aButton, const MDFNCS& aSetting)
 {
 	//Get a poitner to the enumeration values
 	const MDFNSetting_EnumList* values = aSetting.desc->enum_list;
@@ -330,44 +295,7 @@ bool							SettingMenu::HandleEnum							(uint32_t aButton, const MDFNCS& aSetti
 	return aButton == ES_BUTTON_TAB;
 }
 
-
-void							SettingMenu::LoadSettings						()
-{
-	//Get the settings map from mednafen
-	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
-	assert(settings);
-
-	//Iterate it and get all of the settings
-	for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
-	{
-		//Default category is "General Settings"
-		std::string header = "general";
-	
-		//HACK: Don't use filesys.*samedir
-		if(strstr(iter->second.name, "filesys.") != 0 && strstr(iter->second.name, "samedir") != 0)
-		{
-			MDFNI_SetSettingB(iter->second.name, false);
-			continue;
-		}
-
-		//Don't list input or the bookmarks settings, these are set in a different manner	
-		if(std::string(iter->second.name).find(".esinput.") != std::string::npos || std::string(iter->second.name).find(".bookmarks") != std::string::npos)
-		{
-			continue;
-		}
-	
-		//Get the header, all text leading up to the first dot
-		if(std::string(iter->second.name).find(".") != std::string::npos)
-		{
-			header = std::string(iter->second.name).substr(0, std::string(iter->second.name).find_first_of("."));
-		}
-
-		//Add the setting into the local cache
-		Settings[header].push_back(&iter->second);
-	}
-}
-
-std::string						SettingMenu::TranslateGroup						(const MDFNCS& aSetting, const std::string& aSystem)
+std::string						SettingGroupMenu::TranslateGroup				(const MDFNCS& aSetting, const std::string& aSystem)
 {
 	std::string settingName = aSetting.name;
 
@@ -388,38 +316,4 @@ std::string						SettingMenu::TranslateGroup						(const MDFNCS& aSetting, const
 	}
 }
 
-std::string						SettingMenu::TranslateCategory					(const char* aCategoryName)
-{
-	//The name of any emulator module is the module's full name
-	for(int i = 0; i != MDFNSystems.size(); i ++)
-	{
-		if(strcmp(aCategoryName, MDFNSystems[i]->shortname) == 0)
-		{
-			return MDFNSystems[i]->fullname;
-		}
-	}
-
-	//Other generic setting categories
-	//NOTE: A space is added to ensure they bubble to the top of sorting
-	const char* settingscats[] = 
-	{
-		"qtrecord", " Video Recording",
-		"net", " Netplay",
-		"general", " General Settings",
-		"ftp", " FTP Client",
-		"filesys", " File System",
-		"cdrom", " CDROM Settings"
-	};
-
-	for(int i = 0; i != 6; i ++)
-	{
-		if(strcmp(settingscats[i * 2], aCategoryName) == 0)
-		{
-			return settingscats[i * 2 + 1];
-		}
-	}
-
-	//No translation, use the default
-	return aCategoryName;
-}
 

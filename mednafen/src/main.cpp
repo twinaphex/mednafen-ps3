@@ -1,6 +1,7 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
-#include "settingmenu.h"
+
+#include "SettingCategoryMenu.h"
 
 #include "src/utility/TextViewer.h"
 #include "src/utility/Files/FileSelect.h"
@@ -12,7 +13,7 @@ namespace
 	{
 		if(aButton == ES_BUTTON_AUXRIGHT3)
 		{
-			SettingMenu().Do();
+			SettingCategoryMenu().Do();
 			return 1;
 		}
 
@@ -103,7 +104,7 @@ void						ReloadEmulator			(const std::string& aFileName)
 
 						//Load the game into mednafen
 						MednafenEmu::CloseGame();
-						if(!MednafenEmu::LoadGame(filename, data, size))
+						if(!MednafenEmu::LoadGame(filename.c_str(), data, size))
 						{
 							ReloadEmulator("");
 							return;
