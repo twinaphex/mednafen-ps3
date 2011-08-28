@@ -8,7 +8,7 @@
 #include <src/driver.h>
 
 #include <stdarg.h>
-
+#include <algorithm>
 
 //Desmume includes
 #define SFORMAT dsSFORMAT
@@ -52,6 +52,14 @@ static bool									TopScreen = true;
 static bool									HoldingScreenButton = false;
 static bool									ScreenGap = false;
 static bool									NeedScreenClear = false;
+static int32_t								TouchX;
+static int32_t								TouchY;
+
+template<int min, int max>
+static int32_t								ClampedMove				(int32_t aTarget, int32_t aValue)
+{
+	return std::max(min, std::min(max, aTarget + aValue));
+}
 
 static void									ReadSettings			(const char* aName)
 {
@@ -82,25 +90,30 @@ namespace MODULENAMESPACE
 
 	static const InputDeviceInputInfoStruct	GamepadIDII[] =
 	{
-		{ "r",		"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
-		{ "l",		"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
-		{ "x",		"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-		{ "y",		"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-		{ "a",		"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-		{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
-		{ "start",	"START",				5,	IDIT_BUTTON,			NULL	},
-		{ "select",	"SELECT",				4,	IDIT_BUTTON,			NULL	},
-		{ "up",		"UP ↑",					0,	IDIT_BUTTON,			"down"	},
-		{ "down",	"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
-		{ "left",	"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
-		{ "right",	"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
-		{ "lid",	"Lid",					12,	IDIT_BUTTON,			NULL	},
-		{ "screen",	"Toggle Screens",		13, IDIT_BUTTON,			NULL	}
+		{ "r",			"Right Shoulder",		11,	IDIT_BUTTON,			NULL	},
+		{ "l",			"Left Shoulder",		10,	IDIT_BUTTON,			NULL	},
+		{ "x",			"X (center, upper)",	8,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "y",			"Y (left)",				6,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "a",			"A (right)",			9,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "b",			"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "start",		"START",				5,	IDIT_BUTTON,			NULL	},
+		{ "select",		"SELECT",				4,	IDIT_BUTTON,			NULL	},
+		{ "up",			"UP ↑",					0,	IDIT_BUTTON,			"down"	},
+		{ "down",		"DOWN ↓",				1,	IDIT_BUTTON,			"up"	},
+		{ "left",		"LEFT ←",				2,	IDIT_BUTTON,			"right"	},
+		{ "right",		"RIGHT →",				3,	IDIT_BUTTON,			"left"	},
+		{ "lid",		"Lid",					12,	IDIT_BUTTON,			NULL	},
+		{ "screen",		"Toggle Screens",		13, IDIT_BUTTON,			NULL	},
+		{ "cur_up",		"Touch Screen Up",		14, IDIT_BUTTON,			NULL	},
+		{ "cur_down",	"Touch Screen Down",	15, IDIT_BUTTON,			NULL	},
+		{ "cur_left",	"Touch Screen Left",	16, IDIT_BUTTON,			NULL	},
+		{ "cur_right",	"Touch Screen Right",	17, IDIT_BUTTON,			NULL	},
+		{ "touch",		"Touch Screen",			18, IDIT_BUTTON,			NULL	}
 	};
 
 	static InputDeviceInfoStruct 			InputDeviceInfoPort[] =
 	{
-		{"gamepad", "Gamepad",	NULL,	14,	GamepadIDII},
+		{"gamepad", "Gamepad",	NULL,	19,	GamepadIDII},
 	};
 
 
@@ -214,19 +227,34 @@ namespace MODULENAMESPACE
 		//AUDIO PREP
 		Resampler::Init(espec, 44100.0);
 
-		//INPUT
-		uint32_t portData = Input::GetPort<0, 2>() << 1; //input.array[0] will never be set
+		//INPUT: desmume has a rather intricate input scheme, something here is probably not the 'right' way to do it.
+		uint32_t portData = Input::GetPort<0, 3>() << 1; //input.array[0] will never be set
 
+		//Touch Screen
+		uint32_t touchData = portData >> 14;
+
+		TouchX = ClampedMove<0, 255>(TouchX, ((touchData & 8) ? -1 : 0) + ((touchData & 16) ? 1 : 0));
+		TouchY = ClampedMove<0, 191>(TouchY, ((touchData & 2) ? -1 : 0) + ((touchData & 4) ? 1 : 0));
+		if(touchData & 32)
+		{
+			NDS_setTouchPos(TouchX, TouchY);
+		}
+		else
+		{
+			NDS_releaseTouch();
+		}
+
+		//Buttons
 		NDS_beginProcessingInput();
 		UserButtons& input = NDS_getProcessingUserInput().buttons;
-
 		for(int i = 0; i != 14; i ++, portData >>= 1)
 		{
 			input.array[i] = portData & 1;
 		}
-	
+
 		NDS_endProcessingInput();
 
+		//Screen toggle button
 		bool ScreenButtonDown = (portData & 1) ? true : false;
 
 		//CHEATS
@@ -246,18 +274,19 @@ namespace MODULENAMESPACE
 			NeedScreenClear = false;
 		}
 
-		//TODO: libes REALLY needs a 1:1 apsect mode...
 		if(!OneScreen)
 		{
 			if(!ScreenGap)
 			{
 				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
+				espec->surface->pixels[(256 * 192) + TouchY * 256 + TouchX] = 0xFF0000FF;
 				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
 			}
 			else
 			{
 				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, 0);
 				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, 192 + 32);
+				espec->surface->pixels[(256 * (192 + 32)) + TouchY * 256 + TouchX] = 0xFF0000FF;
 				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2 + 32);
 			}
 		}
@@ -274,6 +303,12 @@ namespace MODULENAMESPACE
 
 			//Draw
 			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (TopScreen ? 0 : (256 * 192)), 256, 192 * 2, 256);
+
+			if(!TopScreen)
+			{
+				espec->surface->pixels[TouchY * 256 + TouchX] = 0xFF0000FF;
+			}
+
 			Video::SetDisplayRect(espec, 0, 0, 256, 192);
 		}
 
