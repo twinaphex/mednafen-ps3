@@ -47,13 +47,35 @@ GPU3DInterface*								core3DList[] =
 	NULL
 };
 
-static bool									OneScreen = false;
-static bool									TopScreen = true;
-static bool									HoldingScreenButton = false;
-static bool									ScreenGap = false;
-static bool									NeedScreenClear = false;
+static bool									OneScreen;
+static bool									HoldingScreenButton;
+static bool									NeedScreenClear;
 static int32_t								TouchX;
 static int32_t								TouchY;
+static int32_t								MaxCursorTime;
+static int32_t								CursorFrames;
+static int32_t								TopScreenLine;
+static int32_t								BottomScreenLine;
+
+static uint8_t								CursorImage[16*16] =
+{
+	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 2, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0
+};
 
 template<int min, int max>
 static int32_t								ClampedMove				(int32_t aTarget, int32_t aValue)
@@ -63,6 +85,10 @@ static int32_t								ClampedMove				(int32_t aTarget, int32_t aValue)
 
 static void									ReadSettings			(const char* aName)
 {
+	//Force screen refersh
+	NeedScreenClear = true;
+
+	//Read desmume core settings
 	CommonSettings.num_cores = MDFN_GetSettingUI("desmume.num_cores");
 	CommonSettings.GFX3D_HighResolutionInterpolateColor = MDFN_GetSettingB("desmume.highresintp");
 	CommonSettings.GFX3D_EdgeMark = MDFN_GetSettingB("desmume.edgemark");
@@ -73,15 +99,24 @@ static void									ReadSettings			(const char* aName)
 	CommonSettings.rigorous_timing = MDFN_GetSettingB("desmume.rigorous_timing");
 	CommonSettings.advanced_timing = MDFN_GetSettingB("desmume.advanced_timing");
 
-	//Local settings
-	OneScreen = MDFN_GetSettingB("desmume.one_screen");
+	//Read local settings
+	MaxCursorTime = MDFN_GetSettingI("desmume.cursor_time") * 60;
+	CursorFrames = MaxCursorTime;
 
-	bool newGap = MDFN_GetSettingB("desmume.screen_gap");
-	if(newGap && !ScreenGap)
+	OneScreen = MDFN_GetSettingB("desmume.one_screen");
+	bool useGap = MDFN_GetSettingB("desmume.screen_gap");
+
+	//Calculate the new screen positions
+	if(!OneScreen)
 	{
-		NeedScreenClear = true;
+		TopScreenLine = 0;
+		BottomScreenLine = 192 + (useGap ? 32 : 0);
 	}
-	ScreenGap = newGap;
+	else if((TopScreenLine >= 0) && (BottomScreenLine >= 0)) //Don't reset the screen positions if not needed
+	{
+		TopScreenLine = 0;
+		BottomScreenLine = -1;
+	}
 }
 
 namespace MODULENAMESPACE
@@ -138,17 +173,18 @@ namespace MODULENAMESPACE
 
 	static MDFNSetting						ModuleSettings[] =
 	{
-		{"desmume.num_cores",		MDFNSF_NOFLAGS,	"Number of CPU cores to use. (1, 2 or 4 (3=2))",	NULL,	MDFNST_UINT,	"1",	"1",	"4",	0,	ReadSettings},
-		{"desmume.highresintp",		MDFNSF_NOFLAGS,	"Use High resolution color interpolation",			NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.edgemark",		MDFNSF_NOFLAGS,	"Edge Mark?",										NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.fog",				MDFNSF_NOFLAGS,	"Enable Fog",										NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.texture",			MDFNSF_NOFLAGS,	"Enable Texturing",									NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.linehack",		MDFNSF_NOFLAGS,	"Enable Line Hack?",								NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.zeldashadowhack",	MDFNSF_NOFLAGS,	"Enable Zelda Shadow Depth Hack",					NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
-		{"desmume.rigorous_timing",	MDFNSF_NOFLAGS,	"Enable Rigorous Timing",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
-		{"desmume.advanced_timing",	MDFNSF_NOFLAGS,	"Enable Advanced Timing",							NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
-		{"desmume.one_screen",		MDFNSF_NOFLAGS,	"Display only one screen",							NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
-		{"desmume.screen_gap",		MDFNSF_NOFLAGS,	"Display 32 pixel gap between screens.",			NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.num_cores",		MDFNSF_NOFLAGS,	"Number of CPU cores to use. (1, 2 or 4 (3=2))",				NULL,	MDFNST_UINT,	"1",	"1",	"4",	0,	ReadSettings},
+		{"desmume.highresintp",		MDFNSF_NOFLAGS,	"Use High resolution color interpolation",						NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.edgemark",		MDFNSF_NOFLAGS,	"Edge Mark?",													NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.fog",				MDFNSF_NOFLAGS,	"Enable Fog",													NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.texture",			MDFNSF_NOFLAGS,	"Enable Texturing",												NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.linehack",		MDFNSF_NOFLAGS,	"Enable Line Hack?",											NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.zeldashadowhack",	MDFNSF_NOFLAGS,	"Enable Zelda Shadow Depth Hack",								NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.rigorous_timing",	MDFNSF_NOFLAGS,	"Enable Rigorous Timing",										NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.advanced_timing",	MDFNSF_NOFLAGS,	"Enable Advanced Timing",										NULL,	MDFNST_BOOL,	"1",	"0",	"1",	0,	ReadSettings},
+		{"desmume.one_screen",		MDFNSF_NOFLAGS,	"Display only one screen",										NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.screen_gap",		MDFNSF_NOFLAGS,	"Display 32 pixel gap between screens.",						NULL,	MDFNST_BOOL,	"0",	"0",	"1",	0,	ReadSettings},
+		{"desmume.cursor_time",		MDFNSF_NOFLAGS,	"Time to display touch screen cursor. (-1 never, 0 always)",	NULL,	MDFNST_INT,		"0",	"-1",	"10",	0,	ReadSettings},
 		{NULL}
 	};
 
@@ -231,11 +267,11 @@ namespace MODULENAMESPACE
 		uint32_t portData = Input::GetPort<0, 3>() << 1; //input.array[0] will never be set
 
 		//Touch Screen
-		uint32_t touchData = portData >> 14;
+		uint32_t touchData = (portData >> 15) & 0x1F;
 
-		TouchX = ClampedMove<0, 255>(TouchX, ((touchData & 8) ? -1 : 0) + ((touchData & 16) ? 1 : 0));
-		TouchY = ClampedMove<0, 191>(TouchY, ((touchData & 2) ? -1 : 0) + ((touchData & 4) ? 1 : 0));
-		if(touchData & 32)
+		TouchX = ClampedMove<0, 255>(TouchX, ((touchData & 4) ? -1 : 0) + ((touchData & 8) ? 1 : 0));
+		TouchY = ClampedMove<0, 191>(TouchY, ((touchData & 1) ? -1 : 0) + ((touchData & 2) ? 1 : 0));
+		if(touchData & 16)
 		{
 			NDS_setTouchPos(TouchX, TouchY);
 		}
@@ -243,6 +279,8 @@ namespace MODULENAMESPACE
 		{
 			NDS_releaseTouch();
 		}
+
+		CursorFrames = (touchData) ? MaxCursorTime : (CursorFrames - 1);
 
 		//Buttons
 		NDS_beginProcessingInput();
@@ -274,43 +312,59 @@ namespace MODULENAMESPACE
 			NeedScreenClear = false;
 		}
 
-		if(!OneScreen)
+		//Screen toogle
+		if(OneScreen && (ScreenButtonDown && !HoldingScreenButton))
 		{
-			if(!ScreenGap)
+			bool gotoTop = TopScreenLine < 0;
+
+			TopScreenLine = (gotoTop) ? 0 : -1;
+			BottomScreenLine = (gotoTop) ? -1 : 0;
+			MDFND_DispMessage((UTF8*)strdup((TopScreenLine == 0) ? "Showing Top Screen" : "Showing Bottom Screen"));
+		}
+
+		HoldingScreenButton = ScreenButtonDown;
+
+		//Top screen
+		if(TopScreenLine >= 0)
+		{
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, TopScreenLine);
+		}
+
+		//Bottom screen
+		if(BottomScreenLine >= 0)
+		{
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, BottomScreenLine);
+
+			//Draw cursor
+			if(((MaxCursorTime >= 0 && (CursorFrames >= 0)) || MaxCursorTime == 0))
 			{
-				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192 * 2, 256);
-				espec->surface->pixels[(256 * 192) + TouchY * 256 + TouchX] = 0xFF0000FF;
-				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2);
-			}
-			else
-			{
-				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, 0);
-				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, 192 + 32);
-				espec->surface->pixels[(256 * (192 + 32)) + TouchY * 256 + TouchX] = 0xFF0000FF;
-				Video::SetDisplayRect(espec, 0, 0, 256, 192 * 2 + 32);
+				uint32_t* bottomScreenLocation = (uint32_t*)&espec->surface->pixels[espec->surface->pitchinpix * BottomScreenLine];
+
+				for(int i = 0; i != 16; i ++)
+				{
+					if((TouchY + i) >= 192)
+					{
+						break;
+					}
+
+					for(int j = 0; j != 16; j ++)
+					{
+						if((TouchX + j) >= 256)
+						{
+							break;
+						}
+
+						if(CursorImage[i * 16 + j])
+						{
+							bottomScreenLocation[(TouchY + i) * espec->surface->pitchinpix + (TouchX + j)] = (CursorImage[i * 16 + j] == 1) ? 0xFFFFFFFF : 0;
+						}
+					}
+				}
 			}
 		}
-		else
-		{
-			//Toggle screens
-			if(ScreenButtonDown && !HoldingScreenButton)
-			{
-				TopScreen = !TopScreen;
-				MDFND_DispMessage((UTF8*)strdup(TopScreen ? "Showing Top Screen" : "Showing Bottom Screen"));
-			}
 
-			HoldingScreenButton = ScreenButtonDown;
-
-			//Draw
-			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (TopScreen ? 0 : (256 * 192)), 256, 192 * 2, 256);
-
-			if(!TopScreen)
-			{
-				espec->surface->pixels[TouchY * 256 + TouchX] = 0xFF0000FF;
-			}
-
-			Video::SetDisplayRect(espec, 0, 0, 256, 192);
-		}
+		//Set output rectangle
+		Video::SetDisplayRect(espec, 0, 0, 256, OneScreen ? 192 : (BottomScreenLine + 192));
 
 		//AUDIO
 		Resampler::Fetch(espec);
