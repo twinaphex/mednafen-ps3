@@ -2,20 +2,41 @@
 
 #include "opengl_common/FrameBuffer.h"
 
-#ifndef __CELLOS_LV2__
-# define	glGenFramebuffersES			glGenFramebuffersEXT
-# define	glDeleteFramebuffersES		glDeleteFramebuffersEXT
-# define	glBindFramebufferES			glBindFramebufferEXT
-# define	glFramebufferTexture2DES	glFramebufferTexture2DEXT
-# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_EXT
-#else
-# define	glGenFramebuffersES			glGenFramebuffersOES
-# define	glDeleteFramebuffersES		glDeleteFramebuffersOES
-# define	glBindFramebufferES			glBindFramebufferOES
-# define	glFramebufferTexture2DES	glFramebufferTexture2DOES
-# define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_OES
+//Rename tokens for OpenGL ES Support
+#ifdef ES_OPENGLES
+# define	glGenFramebuffersEXT		glGenFramebuffersOES
+# define	glDeleteFramebuffersEXT		glDeleteFramebuffersOES
+# define	glBindFramebufferEXT		glBindFramebufferOES
+# define	glFramebufferTexture2DEXT	glFramebufferTexture2DOES
+# define	GL_FRAMEBUFFER_EXT			GL_FRAMEBUFFER_OES
 # define	glOrtho						glOrthof
 #endif
+
+namespace
+{
+	//HACK:
+	inline void							ApplyVertexBuffer	(GLfloat* aBuffer, bool aColors)
+	{
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]);
+		glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]);
+
+		glClientActiveTexture(GL_TEXTURE1);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glClientActiveTexture(GL_TEXTURE0);
+
+		if(aColors)
+		{
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]);
+		}
+		else
+		{
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+	}
+}
 
 
 void					ESVideo::Initialize				()
@@ -27,24 +48,20 @@ void					ESVideo::Initialize				()
 
 	// Setup vertex buffer
 	VertexBuffer = (GLfloat*)malloc(VertexBufferCount * VertexSize * sizeof(GLfloat));
-	GLShader::ApplyVertexBuffer(VertexBuffer, true);
+	ApplyVertexBuffer(VertexBuffer, true);
 
 	//Texture for FillRectangle
 	FillerTexture = new Texture(2, 2);
 	FillerTexture->Clear(0xFFFFFFFF);
 
-	//Init shaders
-	ShaderContext = cgCreateContext();
-	Presenter = new GLShader(ShaderContext, "", false, 1);
-
 	//Init framebuffer
-	glGenFramebuffersES(1, &FrameBufferID);
+	glGenFramebuffersEXT(1, &FrameBufferID);
 }
 
 void					ESVideo::Shutdown				()
 {
 	SetRenderTarget(0);
-	glDeleteFramebuffersES(1, &FrameBufferID);
+	glDeleteFramebuffersEXT(1, &FrameBufferID);
 
 	delete FillerTexture;
 	free(VertexBuffer);
@@ -77,12 +94,12 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		glBindFramebufferES(GL_FRAMEBUFFER_ES, FrameBufferID);
-		glFramebufferTexture2DES(GL_FRAMEBUFFER_ES, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FrameBufferID);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0);
 	}
 	else
 	{
-		glBindFramebufferES(GL_FRAMEBUFFER_ES, 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	}
 }
 
@@ -155,41 +172,51 @@ void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUndersca
 
 void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort)
 {
-	float xl = (float)aViewPort.X / (float)aWidth;
-	float xr = (float)aViewPort.Right() / (float)aWidth;
-	float yl = (float)aViewPort.Y / (float)aHeight;
-	float yr = (float)aViewPort.Bottom() / (float)aHeight;
-	Presenter->SetViewport(xl, xr, yl, yr);
-
 	//Enter present state
 	EnterPresentState();
+
+	//Calculate output area
+	Area presentArea;
 
 	if(NoAspect)
 	{
 		uint32_t x = PresentArea.X, y = PresentArea.Y, w = PresentArea.Width, h = PresentArea.Height;
 		Utility::CenterAndScale(x, y, w, h, aViewPort.Width, aViewPort.Height);
 
-		Presenter->Set(Area(x,y,w,h), aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+		presentArea = Area(x, y, w, h);
 	}
 	else
 	{
-		Presenter->Set(PresentArea, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+		presentArea = PresentArea;
 	}
 
-	GLuint borderTexture = 0;
-	if(Border)
+	//Call kiddie present if possible
+	if(SupportsShaders)
 	{
-		Border->Apply();
-		borderTexture = Border ? Border->GetID() : 0;
-	}
+		Present(aID, aWidth, aHeight, aViewPort, presentArea);
 
-	Presenter->Present(aID, borderTexture);
+		/* Reset vertex buffer */
+		ApplyVertexBuffer(VertexBuffer, true);
+	}
+	else
+	{
+		float xl = (float)aViewPort.X / (float)aWidth;
+		float xr = (float)aViewPort.Right() / (float)aWidth;
+		float yl = (float)aViewPort.Y / (float)aHeight;
+		float yr = (float)aViewPort.Bottom() / (float)aHeight;
+
+		glBindTexture(GL_TEXTURE_2D, aID);
+
+		SetVertex(&VertexBuffer[0 * VertexSize], presentArea.X, 		presentArea.Y, 			1.0f, 1.0f, 1.0f, 1.0f, xl, yl);
+		SetVertex(&VertexBuffer[1 * VertexSize], presentArea.Right(), 	presentArea.Y, 			1.0f, 1.0f, 1.0f, 1.0f, xr, yl);
+		SetVertex(&VertexBuffer[2 * VertexSize], presentArea.Right(),	presentArea.Bottom(),	1.0f, 1.0f, 1.0f, 1.0f, xr, yr);
+		SetVertex(&VertexBuffer[3 * VertexSize], presentArea.X,			presentArea.Bottom(),	1.0f, 1.0f, 1.0f, 1.0f, xl, yr);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+	}
 
 	//Exit present state
 	ExitPresentState();
-
-	/* Reset vertex buffer */
-	GLShader::ApplyVertexBuffer(VertexBuffer, true);
 }
 
 
@@ -238,10 +265,6 @@ Area					ESVideo::PresentArea;
 GLuint					ESVideo::FrameBufferID;
 
 GLfloat*				ESVideo::VertexBuffer;
-
-CGcontext				ESVideo::ShaderContext;
-GLShader*				ESVideo::Presenter;
-Texture*				ESVideo::Border;
 
 uint32_t				ESVideo::ScreenWidth;
 uint32_t				ESVideo::ScreenHeight;

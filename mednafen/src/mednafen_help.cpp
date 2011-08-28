@@ -40,7 +40,7 @@ namespace
 		if(results == 0)
 		{
 			std::vector<std::string> shaders;
-			if(Utility::ListDirectory(es_paths->Build("assets/presets"), shaders))
+			if(ESVideo::SupportsShaders() && Utility::ListDirectory(es_paths->Build("assets/presets"), shaders))
 			{
 				std::sort(shaders.begin(), shaders.end());
 
@@ -85,8 +85,6 @@ namespace
 		{"display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
 		{"display.aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
 		{"display.underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
-		{"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 },
-		{"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" },
 		{"autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
 		{"speed.rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
 		{"speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "1", "1", "16" },
@@ -187,7 +185,10 @@ bool						MednafenEmu::LoadGame			(std::string aFileName, void* aData, int aSize
 		}
 
 		//HACK: Attach a default border
-		ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
+		if(ESVideo::SupportsShaders())
+		{
+			ESVideo::AttachBorder(ImageManager::GetImage("GameBorder"));
+		}
 
 		//HACK: Put this before IsLoaded = true to prevent crash on PS3
 		Inputs = new InputHandler(GameInfo);
@@ -260,6 +261,7 @@ void						MednafenEmu::CloseGame			()
 		delete Buffer; Buffer = 0;
 		delete Surface; Surface = 0;
 		delete TextFile; TextFile = 0;
+
 
 		IsLoaded = false;
 	}
@@ -582,23 +584,26 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			ESVideo::SetVSync(MDFN_GetSettingB(SETTINGNAME("display.vsync")));
 		}
 
-		//Update border
-		if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
+		if(ESVideo::SupportsShaders())
 		{
-			BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
-			if(Utility::FileExists(BorderSetting))
+			//Update border
+			if(aOnLoad || (BorderSetting != MDFN_GetSettingS(SETTINGNAME("shader.border"))))
 			{
-				ImageManager::Purge();
-				ImageManager::LoadImage("GameBorderCustom", BorderSetting);
-				ESVideo::AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+				BorderSetting = MDFN_GetSettingS(SETTINGNAME("shader.border"));
+				if(Utility::FileExists(BorderSetting))
+				{
+					ImageManager::Purge();
+					ImageManager::LoadImage("GameBorderCustom", BorderSetting);
+					ESVideo::AttachBorder(ImageManager::GetImage("GameBorderCustom"));
+				}
 			}
-		}
 
-		//Update shader
-		if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
-		{
-			ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
-			ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
+			//Update shader
+			if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
+			{
+				ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
+				ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
+			}
 		}
 	}
 }
@@ -606,7 +611,10 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 {
 	//Some platform specific settings
-	static const MDFNSetting VSync = {"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
+	static const MDFNSetting VSync	= {"display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
+
+	static const MDFNSetting Shader	= {"shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 };
+	static const MDFNSetting Border	= {"shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" };
 
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
@@ -616,10 +624,6 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 	
 			MDFNSetting thisone;
 			memcpy(&thisone, &SystemSettings[j], sizeof(MDFNSetting));
-			if(strcmp(thisone.name, "shader.preset") == 0)
-			{
-				thisone.enum_list = BuildShaderEnum();
-			}
 			//TODO: This strdup will not be freed
 			thisone.name = strdup(myname.c_str());
 			aSettings.push_back(thisone);
@@ -630,6 +634,18 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 		{
 			MDFNSetting thisone = VSync;
 			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.display.vsync").c_str());
+			aSettings.push_back(thisone);
+		}
+
+		if(ESVideo::SupportsShaders())
+		{
+			MDFNSetting thisone = Shader;
+			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.shader.preset").c_str());
+			thisone.enum_list = BuildShaderEnum();
+			aSettings.push_back(thisone);
+
+			thisone = Border;
+			thisone.name = strdup((std::string(MDFNSystems[i]->shortname) + ".es.shader.border").c_str());
 			aSettings.push_back(thisone);
 		}
 	}

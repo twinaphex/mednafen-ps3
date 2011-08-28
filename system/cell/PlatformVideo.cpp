@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <opengl_common/Presenter.h>
 
 namespace
 {
@@ -28,11 +29,12 @@ void										ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeigh
 
 	//Init shaders
 	cgRTCgcInit();
+	CgPresenter::Initialize();
 }
 
 void										ESVideoPlatform::Shutdown				()
 {
-	//Destory ShaderContext
+	CgPresenter::Shutdown();
 
 	psglDestroyContext(Context);
 	psglDestroyDevice(Device);
@@ -45,6 +47,29 @@ void										ESVideoPlatform::Flip					()
 	psglSwap();
 }
 
+//PRESENTER
+bool											ESVideoPlatform::SupportsShaders		()
+{
+	return true;
+}
+
+void											ESVideoPlatform::AttachBorder			(Texture* aTexture)
+{
+	CgPresenter::AttachBorder(aTexture);
+}
+
+void											ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t aPrescale)
+{
+	CgPresenter::SetFilter(aName, aPrescale);
+}
+
+void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
+{
+	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput);
+}
+
+
+//OTHER
 bool										ESVideoPlatform::SupportsVSyncSelect	()
 {
 	return true;

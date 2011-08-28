@@ -1,7 +1,9 @@
 #include <es_system.h>
-#include "src/utility/TextViewer.h"
 
+//Ugly hack to support both normal and PS3 modes in one file.
 #ifndef __CELLOS_LV2__
+# include	<Cg/cg.h>
+# include	<Cg/cgGL.h>
 # define	FRAG_PROFILE				cgGLGetLatestProfile(CG_GL_FRAGMENT)
 # define	VERT_PROFILE				cgGLGetLatestProfile(CG_GL_VERTEX)
 # define	glGenFramebuffersES			glGenFramebuffersEXT
@@ -19,6 +21,9 @@
 # define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_OES
 # define	glOrtho						glOrthof
 #endif
+
+#include "Shaders.h"
+#include "src/utility/TextViewer.h"
 
 namespace
 {

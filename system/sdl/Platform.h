@@ -14,8 +14,6 @@
 #ifndef __WIN32__
 #include <SDL/SDL_opengl.h>
 #endif
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
 
 #ifdef __WIN32__
 #define WIN32_LEAN_AND_MEAN

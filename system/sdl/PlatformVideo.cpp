@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <opengl_common/Presenter.h>
 
 namespace
 {
@@ -42,10 +43,15 @@ void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeig
 #ifdef __WIN32__
 	glewInit();
 #endif
+
+	CgPresenter::Initialize();
 }
 
 void											ESVideoPlatform::Shutdown				()
 {
+	CgPresenter::Shutdown();
+
+	//TODO
 }
 
 void											ESVideoPlatform::Flip					()
@@ -53,6 +59,29 @@ void											ESVideoPlatform::Flip					()
 	SDL_GL_SwapBuffers();
 }
 
+//PRESENTER
+bool											ESVideoPlatform::SupportsShaders		()
+{
+	return true;
+}
+
+void											ESVideoPlatform::AttachBorder			(Texture* aTexture)
+{
+	CgPresenter::AttachBorder(aTexture);
+}
+
+void											ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t aPrescale)
+{
+	CgPresenter::SetFilter(aName, aPrescale);
+}
+
+void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
+{
+	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput);
+}
+
+
+//OTHER
 bool											ESVideoPlatform::SupportsVSyncSelect	()
 {
 	return false;
@@ -63,7 +92,7 @@ bool											ESVideoPlatform::SupportsModeSwitch		()
 	return false;
 }
 
-void											ESVideoPlatform::SetVSync				(bool aOn) {}
+void											ESVideoPlatform::SetVSync				(bool aOn) {assert(false);}
 void											ESVideoPlatform::SetMode				(uint32_t aIndex) {assert(false);}
 ESVideoPlatform::ModeList::const_iterator		ESVideoPlatform::GetModes				() {assert(false);}
 
