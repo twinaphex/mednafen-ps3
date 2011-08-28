@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utility/Area.h"
-#include "../opengl_common/Shaders.h"
 
 class										FrameBuffer;
 
@@ -24,6 +23,21 @@ class										ESVideoPlatform
 		static void							Flip					();
 
 	public:
+		///Determine if the platform supports the shader interface. If this returns false, it is an error to call the SetFilter,
+		///AttachBorder and Present functions.
+		static bool							SupportsShaders			();
+
+		///Attach a Texture to pass to the presenter as TEXUNIT1. Must not be called if SupportsShaders returns false.
+		///@param aTexture Pointer to the texture to attach.
+		static void							AttachBorder			(Texture* aTexture);
+
+		///Set a new cg shader to be used by PresentFrame. Must not be called if SupportsShaders returns false.
+		///@param aName Name of shader preset file to use.
+		///@param aPrescale Unused, set to 1.
+		static void							SetFilter				(const std::string& aName, uint32_t aPrescale);
+
+		static void							Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput);
+
 		///Determine if the platform supports specifing the vertical sync setting. If this returns false, it is an error to call
 		///the SetVSync function.
 		///@return True if supported, false otherwise.
@@ -95,9 +109,7 @@ class								ESVideo : public ESVideoPlatform
 		///@param aColor Color to fill with.
 		static void					FillRectangle			(const Area& aArea, uint32_t aColor) {PlaceTexture(FillerTexture, aArea, Area(0, 0, 2, 2), aColor);}
 
-		///Attach a Texture to pass to the presenter as TEXUNIT1.
-		///@param aTexture Pointer to the texture to attach.
-		static void					AttachBorder			(Texture* aTexture) {Border = aTexture;};
+
 
 		///Present a Texture to the screen. The texture will fill the entire screen and may be passed through a Cg fragment shader.
 		///@param aTexture Pointer to the texture to draw.
@@ -116,10 +128,6 @@ class								ESVideo : public ESVideoPlatform
 		///@param aUnderscanFine Amount in percent that the image will be adjusted on each side in addition to the aUnderscan value.
 		static void					UpdatePresentArea		(int32_t aAspectOverride, int32_t aUnderscan, const Area& aUnderscanFine = Area(0, 0, 0, 0));
 
-		///Set a new cg shader to be used by PresentFrame.
-		///@param aName Name of shader preset file to use.
-		///@param aPrescale Unused, set to 1.
-		static void					SetFilter				(const std::string& aName, uint32_t aPrescale) {delete Presenter; Presenter = GLShader::MakeChainFromPreset(ShaderContext, aName, aPrescale);};
 		
 	private:
 		static void					PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort);
@@ -141,10 +149,6 @@ class								ESVideo : public ESVideoPlatform
 		static const uint32_t		VertexBufferCount = 4;			///<Number of vertices in the Vertex buffer.
 		static const uint32_t		VertexSize = 9;					///<Number of GLfloat entries per vertex.
 		static GLfloat*				VertexBuffer;					///<Buffer used to store OpenGL vertices. (VertexBufferCount * VertexSize * sizeof(GLfloat) bytes long)
-
-		static CGcontext			ShaderContext;					///<Cg Context used by PresentFrame.
-		static GLShader*			Presenter;						///<Helper object used to manage Cg shaders.
-		static Texture*				Border;							///<Texture attached to TEXUNIT1 for Cg shaders.
 
 		static uint32_t				ScreenWidth;					///<Width of the screen.
 		static uint32_t				ScreenHeight;					///<Height of the screen.
