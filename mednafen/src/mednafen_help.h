@@ -27,7 +27,7 @@ class	MednafenEmu
 		///@param aFileName Name of the file to load. If aData and aSize are non-zero this is only informational.
 		///@param aData Preloaded data for the ROM. If set to 0 the file from aFileName is loaded from disk.
 		///@param aSize Size of preloaded ROM data.
-		static bool						LoadGame			(std::string aFileName, void* aData = 0, int aSize = 0);
+		static bool						LoadGame			(const char* aFileName, void* aData = 0, int aSize = 0);
 
 		///Close any running game. Does nothing if no game is loaded.
 		static void						CloseGame			();
@@ -68,7 +68,7 @@ class	MednafenEmu
 
 		///Set a message to be displayed in the corner of the screen for a brief period.
 		///@param aMessage Message to display.
-		static void						DisplayMessage		(std::string aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
+		static void						DisplayMessage		(const char* aMessage) {Message = aMessage; MessageTime = MDFND_GetTime();}
 		
 		///Tell the emulator core to redraw the last emulated frame. Used to keep the game image in the background while
 		///the GUI is active. It is OK to call this function before a game is loaded.
