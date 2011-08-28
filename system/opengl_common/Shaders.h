@@ -1,34 +1,10 @@
 #pragma once
 
-class	GLShaderProgram;
-typedef std::map<std::string, GLShaderProgram*>	ShaderMap;
-class								GLShaderProgram
-{
-	public:
-									GLShaderProgram			(CGcontext& aContext, const std::string& aFileName);
-		void						Apply					(uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight, uint32_t aOutWidth, uint32_t aOutHeight, uint32_t aFrameCount);
+//Forward declare CG types
+#define CG_TYPE(x)					struct _##x; typedef struct _##x* x;
+CG_TYPE(CGcontext)
 
-	public:
-		static GLShaderProgram*		Get						(CGcontext& aContext, const std::string& aFileName);
-
-	private:
-		static ShaderMap			Shaders;
-
-		CGcontext&					Context;
-
-		CGprogram					VertexProgram;
-		CGprogram					FragmentProgram;
-
-		CGparameter					Projection;
-		CGparameter					FragmentVideoSize;
-		CGparameter					FragmentTextureSize;
-		CGparameter					FragmentOutputSize;
-		CGparameter					FragmentFrameCount;
-		CGparameter					VertexVideoSize;
-		CGparameter					VertexTextureSize;
-		CGparameter					VertexOutputSize;
-		CGparameter					VertexFrameCount;
-};
+class								CgProgram;
 
 class								GLShader
 {
@@ -50,9 +26,8 @@ class								GLShader
 		static GLShader*			MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale);
 
 	private:
-		CGcontext&					Context;
 		GLShader*					Next;
-		GLShaderProgram*			Program;
+		CgProgram*					Program;
 
 		Area						Output;
 
@@ -62,9 +37,8 @@ class								GLShader
 		uint32_t					TextureHeight;
 		uint32_t					FrameCount;
 
-		GLuint						TextureID;
-		GLuint						FrameBufferID;
-		GLfloat						VertexBuffer[20];	//TODO: Use AttributeSets
+		FrameBuffer*				RenderTarget;
+		GLfloat						VertexBuffer[20];
 
 		uint32_t					ScaleFactor;
 		bool						Smooth;
