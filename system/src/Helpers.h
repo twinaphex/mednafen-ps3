@@ -38,6 +38,21 @@ class				Utility
 			return aBuffer;
 		}
 
+		static char*					VAPrintD					(const char* aFormat, ...)
+		{
+			assert(aFormat);
+
+			char buffer[1024];
+
+			va_list args;
+			va_start(args, aFormat);
+			vsnprintf(buffer, 1023, aFormat, args);
+			va_end(args);
+
+			return strdup(buffer);
+		}
+
+
 		static void						CenterAndScale				(uint32_t& aX, uint32_t& aY, uint32_t& aWidth, uint32_t& aHeight, uint32_t aImageWidth, uint32_t aImageHeight)
 		{
 			float outputaspect = (float)aImageWidth / (float)aImageHeight;
@@ -210,12 +225,16 @@ class				Utility
 		
 		static std::string&				VectorToString				(std::string& aOutput, const std::vector<std::string>& aStrings, char aSeparate)
 		{
-			for(std::vector<std::string>::const_iterator i = aStrings.begin(); i != aStrings.end(); i ++)
+			if(aStrings.size())
 			{
-				aOutput += (*i) + std::string(1, aSeparate);
+				for(std::vector<std::string>::const_iterator i = aStrings.begin(); i != aStrings.end(); i ++)
+				{
+					aOutput += (*i) + std::string(1, aSeparate);
+				}
+
+				aOutput.erase(aOutput.length() - 1);
 			}
 
-			aOutput.erase(aOutput.length() - 1);
 			return aOutput;
 		}
 
