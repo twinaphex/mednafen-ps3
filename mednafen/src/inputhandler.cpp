@@ -1,5 +1,6 @@
 #include <mednafen_includes.h>
 #include "inputhandler.h"
+#include "SettingGroupMenu.h"
 
 namespace
 {
@@ -76,7 +77,27 @@ void							InputHandler::Process					()
 
 void							InputHandler::Configure				()
 {
-	Summerface sface;
+	//Get the settings map from mednafen
+	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
+	assert(settings);
+
+	//Get all settings pertaining to the loaded system
+	std::vector<const MDFNCS*> settingList;
+	char settingHeader[1024];
+	Utility::VAPrint(settingHeader, sizeof(settingHeader) - 1, "%s.esinput.", GameInfo->shortname);
+
+	for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
+	{
+		if(strstr(iter->second.name, settingHeader) == iter->second.name)
+		{
+			settingList.push_back(&iter->second);
+		}
+	}
+
+	SettingGroupMenu(settingList, "").Do();
+	ReadSettings();
+
+/*	Summerface sface;
 
 	//Get Controller type
 	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
@@ -151,7 +172,7 @@ void							InputHandler::Configure				()
 		}
 	}
 
-	ReadSettings();
+	ReadSettings();*/
 }
 
 void							InputHandler::ReadSettings			()
@@ -189,46 +210,68 @@ void							InputHandler::ReadSettings			()
 
 void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings)
 {
+	//Note the many unfree'd strdups from Utility::VAPrintD, deal with it
+
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
+		//Add ports
+		const char* defaultDeviceName = MDFNSystems[i]->InputInfo->Types[0].DefaultDevice ? MDFNSystems[i]->InputInfo->Types[0].DefaultDevice : MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[0].ShortName;
+		MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port1", MDFNSystems[i]->shortname), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, BuildPortEnum(MDFNSystems[i]->InputInfo->Types[0])};
+		aSettings.push_back(thisinput);
+
+		//Add devices
 		for(int k = 0; k != MDFNSystems[i]->InputInfo->Types[0].NumTypes; k ++)
 		{
-			if(k == 0)
-			{
-				//TODO: Strdup will no be freed
-				MDFNSetting thisinput = {strdup((std::string(MDFNSystems[i]->shortname) + ".esinput.port1").c_str()), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_STRING, "gamepad"};
-				aSettings.push_back(thisinput);
-			}
+			InputDeviceInfoStruct* thisDevice = &MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k];
 
 			//TODO: Support port expanders
-			if(MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].PortExpanderDeviceInfo)
+			if(thisDevice->PortExpanderDeviceInfo)
 			{
 				continue;
 			}
 
+			//Get the description of this device
 			std::vector<InputInfo> inputs;
-			GetGamepad(MDFNSystems[i]->InputInfo, MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName, inputs);
+			GetGamepad(MDFNSystems[i]->InputInfo, thisDevice->ShortName, inputs);
 
+			//Add all of the buttons as settings
 			for(int j = 0; j != inputs.size(); j ++)
 			{
+				//If SettingName is null, ignore it
 				if(inputs[j].Data->SettingName)
 				{
-					std::string settingname = std::string(MDFNSystems[i]->shortname) + ".esinput." + MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k].ShortName + "." + std::string(inputs[j].Data->SettingName);
-					//TODO: These strdups will never be freed, poor captive strdups
-					MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_CAT_INPUT, "Input.", NULL, MDFNST_UINT, "0"};
-					aSettings.push_back(thisinput);
+					MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, "Input.", thisDevice->ShortName, MDFNST_UINT, "0"};
 
+					thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s", MDFNSystems[i]->shortname, thisDevice->ShortName, inputs[j].Data->SettingName);
+					aSettings.push_back(thisInput);
+
+					//Rapid button support
 					if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
 					{
-						settingname += "_rapid";
-						//TODO: These strdups will never be freed, poor captive strdups
-						MDFNSetting	thisinput = {strdup(settingname.c_str()), MDFNSF_CAT_INPUT, "Input.", NULL, MDFNST_UINT, "0"};
-						aSettings.push_back(thisinput);
+						thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s_rapid", MDFNSystems[i]->shortname, thisDevice->ShortName, inputs[j].Data->SettingName);
+						aSettings.push_back(thisInput);
 					}
 				}
 			}
 		}
 	}
+}
+
+MDFNSetting_EnumList*			InputHandler::BuildPortEnum				(const InputPortInfoStruct& aPort)
+{
+	MDFNSetting_EnumList* results = new MDFNSetting_EnumList[aPort.NumTypes + 1];
+
+	for(int i = 0; i != aPort.NumTypes; i ++)
+	{
+		results[i].string = aPort.DeviceInfo[i].ShortName;
+		results[i].number = i;
+		results[i].description = aPort.DeviceInfo[i].FullName;
+		results[i].description_extra = "";
+	}
+
+	memset(&results[aPort.NumTypes], 0, sizeof(MDFNSetting_EnumList));
+
+	return results;
 }
 
 
