@@ -15,6 +15,9 @@ class												InputHandler
 		void										ReadSettings					();
 		static void									GenerateSettings				(std::vector<MDFNSetting>& aSettings);
 
+		//Doc Note: delete[] the result, not free!
+		static MDFNSetting_EnumList*				BuildPortEnum					(const InputPortInfoStruct& aPort);
+
 	public: //Inlines
 		//TODO: FIXME: These will crash if given bad values
 		uint32_t									GetPadCount						() const {return GameInfo->InputInfo->InputPorts;}

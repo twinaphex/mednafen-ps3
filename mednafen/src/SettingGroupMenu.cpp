@@ -312,8 +312,12 @@ std::string						SettingGroupMenu::TranslateGroup				(const MDFNCS& aSetting, co
 	}
 	else
 	{
+		if(aSetting.desc->flags & MDFNSF_CAT_INPUT)
+		{
+			return aSetting.desc->description_extra ? aSetting.desc->description_extra : "";
+		}
+
 		return "";
 	}
 }
-
 
