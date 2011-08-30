@@ -6,7 +6,7 @@ TARGET		:=	libgambatte
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system
 
-CPPLAGS		+=	-DHAVE_STDINT_H
+CPPFLAGS	+=	-DMDFNPS3 -DHAVE_STDINT_H
 
 CXXFILES	+=	src/mednafen.cpp
 
