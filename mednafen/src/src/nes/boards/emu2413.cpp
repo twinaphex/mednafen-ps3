@@ -60,6 +60,13 @@ if the origin of this software is not misrepresented.
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#ifdef __CELLOS_LV2__ //MDFNPS3: PS3's math.h is stupid
+static inline double nClog(double v) {return log(v);};
+#define log nClog
+#endif
+
+
 #include "emu2413.h"
 
 static const unsigned char default_inst[15][8] = {
@@ -135,9 +142,7 @@ static void makeAdjustTable (OPLL * opll)
 
   opll->AR_ADJUST_TABLE[0] = (1 << EG_BITS);
   for (i = 1; i < 128; i++)
-//ROBO: SDK
-//    opll->AR_ADJUST_TABLE[i] = (e_uint16) ((double) (1 << EG_BITS) - 1 - (1 << EG_BITS) * log (i) / log (128));
-    opll->AR_ADJUST_TABLE[i] = (e_uint16) ((double) (1 << EG_BITS) - 1 - (1 << EG_BITS) * log ((float)i) / log ((float)128));
+    opll->AR_ADJUST_TABLE[i] = (e_uint16) ((double) (1 << EG_BITS) - 1 - (1 << EG_BITS) * log (i) / log (128));
 }
 
 

@@ -537,25 +537,6 @@ static void RemoveReadPatches(void)
  }
 }
 
-//ROBO: Peek + Poke
-static uint8 Peek(uint32 addr)
-{
- if(addr > 0x2000)
- {
-  return 0;
- }
- return RAM[addr & 0x7FF];
-}
-
-static void Poke(uint32 addr, uint8_t value)
-{
- if(addr < 0x2000)
- {
-  RAM[addr & 0x7FF] = value;
- }
-}
-
-
 static const FileExtensionSpecStruct KnownExtensions[] =
 {
  { ".nes", "iNES Format ROM Image" },
@@ -606,10 +587,7 @@ MDFNGI EmulatedNES =
  256,	// Nominal width
  240,	// Nominal height
  256,	// Framebuffer width(altered if NTSC blitter is enabled)
- 256,	// Framebuffer height
+ 240,	// Framebuffer height
 
  1,     // Number of output sound channels
-//ROBO: Peek + Poke
- Peek,
- Poke
 };

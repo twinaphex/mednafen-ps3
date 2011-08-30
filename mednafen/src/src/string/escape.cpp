@@ -18,8 +18,7 @@
 #include "../mednafen.h"
 #include "escape.h"
 
-//ROBO: PS3SDK
-#ifdef MDCELL
+#ifdef __CELLOS_LV2__ //MDFNPS3: Need ctype.h for tolower
 #include <ctype.h>
 #endif
 

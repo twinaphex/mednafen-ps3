@@ -9,8 +9,14 @@
 /* Define if we are compiling with AltiVec usage. */
 #undef ARCH_POWERPC_ALTIVEC
 
-/* Define if we are compiling for x86 architectures. */
+/* Define if we are compiling for 32-bit or 64-bit x86 architectures. */
 #undef ARCH_X86
+
+/* Define if we are compiling for 32-bit x86 architectures. */
+#undef ARCH_X86_32
+
+/* Define if we are compiling for 64-bit x86 architectures. */
+#undef ARCH_X86_64
 
 /* Blip Buffer resample ratio accuracy. */
 #undef BLIP_BUFFER_ACCURACY
@@ -42,6 +48,9 @@
 
 /* Define if we are compiling with ALSA support. */
 #undef HAVE_ALSA
+
+/* Define if altivec.h is present and usable. */
+#undef HAVE_ALTIVEC_H
 
 /* Define if we should include from OpenGL instead of GL */
 #undef HAVE_APPLE_OPENGL_FRAMEWORK
@@ -111,6 +120,24 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `fopen64' function. */
+#undef HAVE_FOPEN64
+
+/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
+#undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `fseeko64' function. */
+#undef HAVE_FSEEKO64
+
+/* Define to 1 if you have the `fstat64' function. */
+#undef HAVE_FSTAT64
+
+/* Define to 1 if you have the `ftello' function. */
+#undef HAVE_FTELLO
+
+/* Define to 1 if you have the `ftello64' function. */
+#undef HAVE_FTELLO64
+
 /* Define to 1 if you have the `fwprintf' function. */
 #undef HAVE_FWPRINTF
 
@@ -131,6 +158,9 @@
 
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getpwuid' function. */
+#undef HAVE_GETPWUID
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
@@ -233,11 +263,17 @@
 /* Define if we are compiling with SDL sound support. */
 #undef HAVE_SDL
 
+/* Define if we are compiling with SDL_net support. */
+#undef HAVE_SDL_NET
+
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
 
 /* Define to 1 if you have the `setlocale' function. */
 #undef HAVE_SETLOCALE
+
+/* Define to 1 if you have the `sigaction' function. */
+#undef HAVE_SIGACTION
 
 /* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL
@@ -359,9 +395,6 @@
 /* Define on big-endian platforms. */
 #undef MSB_FIRST
 
-/* Define if we are compiling with network play code. */
-#undef NETWORK
-
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 
@@ -406,6 +439,9 @@
 
 /* The size of `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
+
+/* The size of `off_t', as computed by sizeof. */
+#undef SIZEOF_OFF_T
 
 /* The size of `ptrdiff_t', as computed by sizeof. */
 #undef SIZEOF_PTRDIFF_T
@@ -519,6 +555,9 @@
 /* Define if we are compiling with PC-FX emulation. */
 #undef WANT_PCFX_EMU
 
+/* Define if we are compiling with PlayStation emulation. */
+#undef WANT_PSX_EMU
+
 /* Define if we are compiling with SMS+GG emulation. */
 #undef WANT_SMS_EMU
 
@@ -545,6 +584,15 @@
 #  undef WORDS_BIGENDIAN
 # endif
 #endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#undef _LARGEFILE_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX

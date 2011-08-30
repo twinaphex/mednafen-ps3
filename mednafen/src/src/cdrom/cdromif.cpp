@@ -204,6 +204,7 @@ static int ReadThreadStart(void *arg)
   CDIF_Message msg;
 
   // Only do a blocking-wait for a message if we don't have any sectors to read-ahead.
+  // MDFN_DispMessage("%d %d %d\n", last_read_lba, ra_lba, ra_count);
   if(ReadThreadQueue->Read(&msg, ra_count ? FALSE : TRUE))
   {
    switch(msg.message)
@@ -213,19 +214,28 @@ static int ReadThreadStart(void *arg)
 
     case CDIF_MSG_READ_SECTOR:
 			 {
+                          static const int max_ra = 16;
+			  static const int initial_ra = 1;
+			  static const int speedmult_ra = 2;
 			  uint32 new_lba = msg.args[0];
+
+			  assert((unsigned int)max_ra < (SBSize / 4));
 
 			  if(new_lba == (last_read_lba + 1))
 			  {
-			   //if(ra_count < 8)
-			   // ra_count += 2;
-			   //else
+			   int how_far_ahead = ra_lba - new_lba;
+
+			   assert(how_far_ahead >= 0);
+
+			   if(how_far_ahead <= max_ra)
+			    ra_count = std::min(speedmult_ra, 1 + max_ra - how_far_ahead);
+			   else
 			    ra_count++;
 			  }
 			  else
 			  {
                            ra_lba = new_lba;
-			   ra_count = 4;
+			   ra_count = initial_ra;
 			  }
 			  last_read_lba = new_lba;
 			 }
@@ -361,19 +371,6 @@ bool CDIF_Close(void)
  return(1);
 }
 
-uint32 CDIF_GetTrackStartPositionLBA(int32 track)
-{
- if(track == (toc.last_track + 1)) // Leadout track.
-  track = 100;
- else if(track < toc.first_track || track > toc.last_track)
- {
-  assert(0);
-  return(0);
- }
-
- return(toc.tracks[track].lba);
-}
-
 int CDIF_FindTrackByLBA(uint32 LBA)
 {
  for(int32 track = toc.first_track; track <= (toc.last_track + 1); track++)
@@ -435,8 +432,10 @@ bool CDIF_HintReadSector(uint32 lba)
  return(1);
 }
 
-bool CDIF_ReadSector(uint8* pBuf, uint32 lba, uint32 nSectors)
+int CDIF_ReadSector(uint8* pBuf, uint32 lba, uint32 nSectors)
 {
+ int ret = 0;
+
  while(nSectors--)
  {
   uint8 tmpbuf[2352 + 96];
@@ -456,6 +455,9 @@ bool CDIF_ReadSector(uint8* pBuf, uint32 lba, uint32 nSectors)
 
   const int mode = tmpbuf[12 + 3];
 
+  if(!ret)
+   ret = mode;
+
   if(mode == 1)
   {
    memcpy(pBuf, &tmpbuf[12 + 4], 2048);
@@ -474,12 +476,7 @@ bool CDIF_ReadSector(uint8* pBuf, uint32 lba, uint32 nSectors)
   lba++;
  }
 
- return(true);
-}
-
-uint32 CDIF_GetTrackSectorCount(int32 track)
-{
- return(cdrfile_get_track_sec_count(p_cdrfile, track));
+ return(ret);
 }
 
 bool CDIF_CheckSubQChecksum(uint8 *SubQBuf)

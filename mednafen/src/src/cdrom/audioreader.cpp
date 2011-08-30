@@ -35,11 +35,6 @@
 #include "../general.h"
 #include "../endian.h"
 
-//ROBO: For windows
-#ifdef __WIN32__
-#include <io.h>
-#endif
-
 AudioReader::AudioReader()
 {
 
@@ -50,13 +45,13 @@ AudioReader::~AudioReader()
 
 }
 
-int64 AudioReader::Read(int16 *buffer, int64 frames)
+int64 AudioReader::Read_(int16 *buffer, int64 frames)
 {
  abort();
  return(false);
 }
 
-bool AudioReader::Seek(int64 frame_offset)
+bool AudioReader::Seek_(int64 frame_offset)
 {
  abort();
  return(false);
@@ -85,7 +80,7 @@ class OggVorbisReader : public AudioReader
   ov_clear(&ovfile);
  }
 
- int64 Read(int16 *buffer, int64 frames)
+ int64 Read_(int16 *buffer, int64 frames)
  {
   uint8 *tw_buf = (uint8 *)buffer;
   int cursection = 0;
@@ -105,7 +100,7 @@ class OggVorbisReader : public AudioReader
   return(frames - toread / sizeof(int16) / 2);
  }
 
- bool Seek(int64 frame_offset)
+ bool Seek_(int64 frame_offset)
  {
   ov_pcm_seek(&ovfile, frame_offset);
   return(true);
@@ -154,7 +149,7 @@ class MPCReader : public AudioReader
   // TODO
  }
 
- int64 Read(int16 *buffer, int64 frames)
+ int64 Read_(int16 *buffer, int64 frames)
  {
       //  MPC_SAMPLE_FORMAT MPCBuffer[MPC_DECODER_BUFFER_LENGTH];
       //MPC_SAMPLE_FORMAT sample_buffer[MPC_DECODER_BUFFER_LENGTH];
@@ -183,9 +178,7 @@ class MPCReader : public AudioReader
 
        for(int x = 0; x < tmplen; x++)
        {
-//ROBO: Can't shift MPC_SAMPLE_FORMAT
-//  int32 samp = MPCBuffer[MPCBufferOffs + x] >> 14;
-    int32 samp = (int32)MPCBuffer[MPCBufferOffs + x] >> 14;
+	int32 samp = MPCBuffer[MPCBufferOffs + x] >> 14;
 
 	//if(samp < - 32768 || samp > 32767) // This happens with some MPCs of ripped games I've tested, and it's not just 1 or 2 over, and I don't know why!
 	// printf("MPC Sample out of range: %d\n", samp);
@@ -201,7 +194,7 @@ class MPCReader : public AudioReader
   return(frames - toread / 2);
  }
 
- bool Seek(int64 frame_offset)
+ bool Seek_(int64 frame_offset)
  {
   mpc_decoder_seek_sample(&MPCDecoder, frame_offset);
 
@@ -243,12 +236,12 @@ class SFReader : public AudioReader
   sf_close(sf);
  }
 
- int64 Read(int16 *buffer, int64 frames)
+ int64 Read_(int16 *buffer, int64 frames)
  {
   return(sf_read_short(sf, (short*)buffer, frames * 2) / 2);
  }
 
- bool Seek(int64 frame_offset)
+ bool Seek_(int64 frame_offset)
  {
   // FIXME error condition
   if(sf_seek(sf, frame_offset, SEEK_SET) != frame_offset)

@@ -175,10 +175,7 @@ static void Emulate(EmulateSpecStruct *espec)
  bitmap.data = (uint8*)espec->surface->pixels;
  bitmap.width = 256;
  bitmap.height = 240;
-
-//ROBO: Fix for pitch
-// bitmap.pitch = 256 * sizeof(uint32);
- bitmap.pitch = espec->surface->pitch32 * sizeof(uint32);
+ bitmap.pitch = 256 * sizeof(uint32);
 
  system_frame(espec->skip);
 
@@ -381,23 +378,6 @@ static bool ToggleLayer(int which)
  return(TRUE);
 }
 
-//ROBO: Peek + Poke
-static uint8 Peek(uint32 addr)
-{
- if(addr >= 0xC000 && addr < 0x10000)
- {
-  return sms.wram[addr & 0x1FFF];
- }
-}
-
-static void Poke(uint32 addr, uint8_t value)
-{
- if(addr >= 0xC000 && addr < 0x10000)
- {
-  sms.wram[addr & 0x1FFF] = value;
- }
-}
-
 static MDFNSetting_EnumList Territory_List[] =
 {
  { "domestic", TERRITORY_DOMESTIC, gettext_noop("Domestic(Japanese)") },
@@ -468,15 +448,12 @@ MDFNGI EmulatedSMS =
  256,	// Framebuffer height
 
  2,     // Number of output sound channels
-//ROBO: Peek+poke
- Peek,
- Poke
 };
 
 MDFNGI EmulatedGG =
 {
  "gg",
- "Game Gear",
+ "Sega Game Gear",
  GGKnownExtensions,
  MODPRIO_INTERNAL_HIGH,
  NULL,
@@ -512,8 +489,5 @@ MDFNGI EmulatedGG =
  256,	// Framebuffer height 
 
  2,     // Number of output sound channels
-//ROBO: Peek+poke
- Peek,
- Poke
 };
 

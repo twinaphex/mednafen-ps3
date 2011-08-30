@@ -1,5 +1,3 @@
-//ROBO: Comment out all references to supergameboy
-
 #include <../base.hpp>
 
 #define SYSTEM_CPP
@@ -17,7 +15,7 @@ System system;
 #include "input/input.cpp"
 
 void System::coprocessor_enter() {
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.enter();
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.enter();
   if(cartridge.has_superfx()) superfx.enter();
   if(cartridge.has_sa1()) sa1.enter();
   if(cartridge.has_21fx()) s21fx.enter();
@@ -90,7 +88,7 @@ void System::init(Interface *interface_) {
   interface = interface_;
   assert(interface != 0);
 
-//  supergameboy.init();
+  supergameboy.init();
   superfx.init();
   sa1.init();
   bsxbase.init();
@@ -141,7 +139,7 @@ void System::power() {
   if(expansion() == ExpansionBSX) bsxbase.enable();
   if(memory::bsxflash.data()) bsxflash.enable();
   if(cartridge.mode() == Cartridge::ModeBsx) bsxcart.enable();
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.enable();
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.enable();
 
   if(cartridge.has_superfx()) superfx.enable();
   if(cartridge.has_sa1())     sa1.enable();
@@ -162,7 +160,7 @@ void System::power() {
   if(expansion() == ExpansionBSX) bsxbase.power();
   if(memory::bsxflash.data()) bsxflash.power();
   if(cartridge.mode() == Cartridge::ModeBsx) bsxcart.power();
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.power();
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.power();
 
   if(cartridge.has_superfx()) superfx.power();
   if(cartridge.has_sa1())     sa1.power();
@@ -203,7 +201,7 @@ void System::reset() {
   if(expansion() == ExpansionBSX) bsxbase.reset();
   if(memory::bsxflash.data()) bsxflash.reset();
   if(cartridge.mode() == Cartridge::ModeBsx) bsxcart.reset();
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.reset();
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.reset();
 
   if(cartridge.has_superfx()) superfx.reset();
   if(cartridge.has_sa1())     sa1.reset();
@@ -228,7 +226,7 @@ void System::reset() {
 }
 
 void System::unload() {
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.unload();
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.unload();
 }
 
 void System::scanline() {

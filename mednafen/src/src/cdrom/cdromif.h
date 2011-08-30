@@ -37,12 +37,11 @@ bool CDIF_ReadRawSector(uint8 *buf, uint32 lba);
 bool CDIF_ValidateRawSector(uint8 *buf);
 
 // Utility/Wrapped functions
-bool CDIF_ReadSector(uint8* pBuf, uint32 sector, uint32 nSectors);
+// Reads mode 1 and mode2 form 1 sectors(2048 bytes per sector returned)
+// Will return the type(1, 2) of the first sector read to the buffer supplied, 0 on error
+int CDIF_ReadSector(uint8* pBuf, uint32 lba, uint32 nSectors);
 
-uint32 CDIF_GetTrackStartPositionLBA(int32 track);
 int CDIF_FindTrackByLBA(uint32 LBA);
-
-uint32 CDIF_GetTrackSectorCount(int32 track);
 
 bool CDIF_CheckSubQChecksum(uint8 *SubQBuf);
 

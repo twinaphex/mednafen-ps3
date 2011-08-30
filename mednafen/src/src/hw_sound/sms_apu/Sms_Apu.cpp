@@ -1,8 +1,6 @@
 // Sms_Snd_Emu 0.1.4. http://www.slack.net/~ant/
 
-//ROBO: It's moved
-//#include "mednafen/mednafen.h"
-#include "src/mednafen.h"
+#include "mednafen/mednafen.h"
 #include "Sms_Apu.h"
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you

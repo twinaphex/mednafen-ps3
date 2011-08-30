@@ -26,8 +26,10 @@
 #include "../general.h"
 #include "../md5.h"
 #include "../mempatcher.h"
-//ROBO: No iconv
-//#include <iconv.h>
+
+#ifndef MDFNPS3 //No iconv
+#include <iconv.h>
+#endif
 
 //#define VB_SUPPORT_BIN_EXT		// Even with this enabled, any *.bin file loaded must be in the internal database to be recognized as a VB game.
 
@@ -473,28 +475,29 @@ struct VB_HeaderInfo
 
 static void ReadHeader(MDFNFILE *fp, VB_HeaderInfo *hi)
 {
-//ROBO: No iconv
-// iconv_t sjis_ict = iconv_open("UTF-8", "shift_jis");
+#ifndef MDFNPS3 //No iconv
+ iconv_t sjis_ict = iconv_open("UTF-8", "shift_jis");
 
-// if(sjis_ict != (iconv_t)-1)
-// {
-//  char *in_ptr, *out_ptr;
-//  size_t ibl, obl;
+ if(sjis_ict != (iconv_t)-1)
+ {
+  char *in_ptr, *out_ptr;
+  size_t ibl, obl;
 
-//  ibl = 20;
-//  obl = sizeof(hi->game_title) - 1;
+  ibl = 20;
+  obl = sizeof(hi->game_title) - 1;
 
-//  in_ptr = (char*)fp->data + (0xFFFFFDE0 & (fp->size - 1));
-//  out_ptr = hi->game_title;
+  in_ptr = (char*)fp->data + (0xFFFFFDE0 & (fp->size - 1));
+  out_ptr = hi->game_title;
 
-//  iconv(sjis_ict, (ICONV_CONST char **)&in_ptr, &ibl, &out_ptr, &obl);
-//  iconv_close(sjis_ict);
+  iconv(sjis_ict, (ICONV_CONST char **)&in_ptr, &ibl, &out_ptr, &obl);
+  iconv_close(sjis_ict);
 
-//  *out_ptr = 0;
+  *out_ptr = 0;
 
-//  MDFN_trim(hi->game_title);
-// }
-// else
+  MDFN_trim(hi->game_title);
+ }
+ else
+#endif
   hi->game_title[0] = 0;
 
  hi->game_code = MDFN_de32lsb(fp->data + (0xFFFFFDFB & (fp->size - 1)));

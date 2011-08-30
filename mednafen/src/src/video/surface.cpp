@@ -15,9 +15,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-//ROBO: It's moved
-//#include <mednafen/mednafen.h>
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 #include "surface.h"
 
 MDFN_PixelFormat::MDFN_PixelFormat()

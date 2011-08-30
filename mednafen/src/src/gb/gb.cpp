@@ -223,6 +223,9 @@ static const int gbRamSizesMasks[6] = { 0x00000000,
                            0x0000ffff
 };
 
+static uint8 *Custom_GB_ColorMap = NULL;
+static uint8 *Custom_GBC_ColorMap = NULL;
+
 static void gbGenFilter(const MDFN_PixelFormat &format) //int rs, int gs, int bs)
 {
  for(int r = 0; r < 32; r++)
@@ -237,6 +240,13 @@ static void gbGenFilter(const MDFN_PixelFormat &format) //int rs, int gs, int bs
     ng /= 31;
     nb /= 31;
 
+    if(Custom_GBC_ColorMap)
+    {
+     nr = Custom_GBC_ColorMap[((b << 10) | (g << 5) | r) * 3 + 0];
+     ng = Custom_GBC_ColorMap[((b << 10) | (g << 5) | r) * 3 + 1];
+     nb = Custom_GBC_ColorMap[((b << 10) | (g << 5) | r) * 3 + 2];
+    }
+
     gbColorFilter[(b << 10) | (g << 5) | r] = format.MakeColor(nr, ng, nb);
    }
 
@@ -248,11 +258,67 @@ static void gbGenFilter(const MDFN_PixelFormat &format) //int rs, int gs, int bs
   g = (3 - (i & 3)) * 48 + 32;
   b = (3 - (i & 3)) * 48 + 32;
 
+  if(Custom_GB_ColorMap)
+  {
+   r = Custom_GB_ColorMap[i * 3 + 0];
+   g = Custom_GB_ColorMap[i * 3 + 1];
+   b = Custom_GB_ColorMap[i * 3 + 2];
+  }
+
   gbMonoColorMap[i] = gbMonoColorMap[i + 4] = format.MakeColor(r, g, b);
  }
 
  gbMonoColorMap[8] = gbMonoColorMap[0];
 }
+
+static bool LoadCPalette(const char *syspalname, uint8 **ptr, uint32 num_entries)
+{
+ std::string colormap_fn = MDFN_MakeFName(MDFNMKF_PALETTE, 0, syspalname).c_str();
+ FILE *fp;
+
+ MDFN_printf(_("Loading custom palette from \"%s\"...\n"),  colormap_fn.c_str());
+ MDFN_indent(1);
+
+ if(!(fp = fopen(colormap_fn.c_str(), "rb")))
+ {
+  ErrnoHolder ene(errno);
+
+  MDFN_printf(_("Error opening file: %s\n"), ene.StrError());
+
+  MDFN_indent(-1);
+
+  return(ene.Errno() == ENOENT);	// Return fatal error if it's an error other than the file not being found.
+ }
+
+ if(!(*ptr = (uint8 *)MDFN_malloc(num_entries * 3, _("custom color map"))))
+ {
+  MDFN_indent(-1);
+
+  fclose(fp);
+  return(false);
+ }
+
+ if(fread(*ptr, 1, num_entries * 3, fp) != (num_entries * 3))
+ {
+  ErrnoHolder ene(errno);
+
+  MDFN_printf(_("Error reading file: %s\n"), feof(fp) ? "EOF" : ene.StrError());
+  MDFN_indent(-1);
+
+  MDFN_free(*ptr);
+  *ptr = NULL;
+  fclose(fp);
+
+  return(false);
+ }
+
+ fclose(fp);
+
+ MDFN_indent(-1);
+
+ return(true);
+}
+
 
 void gbCopyMemory(uint16 d, uint16 s, int count)
 {
@@ -781,7 +847,7 @@ void gbWriteMemory(uint16 address, uint8 value)
 
       if(bank == gbWramBank)
         return;
-      
+
       int wramAddress = bank * 0x1000;
       gbMemoryMap[0x0d] = &gbWram[wramAddress];
 
@@ -1756,10 +1822,24 @@ static void CloseGame(void)
   gbColorFilter = NULL;
  }
 
+ if(Custom_GB_ColorMap)
+ {
+  MDFN_free(Custom_GB_ColorMap);
+  Custom_GB_ColorMap = NULL;
+ }
+
+ if(Custom_GBC_ColorMap)
+ {
+  MDFN_free(Custom_GBC_ColorMap);
+  Custom_GBC_ColorMap = NULL;
+ }
 }
 
 static void StateRest(int version)
 {
+ register_SVBK &= 7;
+ register_VBK &= 1;
+
   gbMemoryMap[0x00] = &gbRom[0x0000];
   gbMemoryMap[0x01] = &gbRom[0x1000];
   gbMemoryMap[0x02] = &gbRom[0x2000];
@@ -2004,6 +2084,15 @@ static int Load(const char *name, MDFNFILE *fp)
 
  gbReadBatteryFile(MDFN_MakeFName(MDFNMKF_SAV, 0, "sav").c_str());
  gblayerSettings = 0xFF;
+
+ // Custom palettes
+ if(!LoadCPalette("gb", &Custom_GB_ColorMap, 4))
+  return(0);
+
+ if(!LoadCPalette("gbc", &Custom_GBC_ColorMap, 32768))
+  return(0);
+
+
  return(1);
 }
 
@@ -2546,46 +2635,6 @@ static void DoSimpleCommand(int cmd)
  }
 }
 
-//ROBO: Peek + Poke
-static uint8 Peek(uint32 addr)
-{
- if(addr < 0x10000 && gbMemoryMap[(addr >> 12) & 0xF])
- {
-   return gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF];
- }
- else if(addr < 0x20000)
- {
-  if(gbCgbMode)
-  {
-    return gbWram[(addr - 0x10000) & 0x7FFF];
-  }
-  else
-  {
-    return gbWram[(addr - 0x10000) & 0x1FFF];
-  }
- }
- return 0;
-}
-
-static void Poke(uint32 addr, uint8_t value)
-{
- if(addr >= 0xC000 && addr < 0xE000 && gbMemoryMap[(addr >> 12) & 0xF])
- {
-  gbMemoryMap[(addr >> 12) & 0xF][addr & 0xFFF] = value;
- }
- else if(addr < 0x20000)
- {
-  if(gbCgbMode)
-  {
-    gbWram[(addr - 0x10000) & 0x7FFF] = value;
-  }
-  else
-  {
-    gbWram[(addr - 0x10000) & 0x1FFF] = value;
-  }
- }
-}
-
 static MDFNSetting GBSettings[] =
 {
  { NULL }
@@ -2678,8 +2727,4 @@ MDFNGI EmulatedGB =
  144,	// Framebuffer height
 
  2,     // Number of output sound channels
-//ROBO: Peek+poke
- Peek,
- Poke
 };
-

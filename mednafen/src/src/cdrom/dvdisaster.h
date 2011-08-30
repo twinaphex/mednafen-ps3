@@ -40,8 +40,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-//ROBO: Sony doesn't give you options
-#ifndef MDCELL
+#ifndef __CELLOS_LV2__ //MDFNPS3: No getopt.h on PS3
 #include <getopt.h>
 #endif
 #include <math.h>

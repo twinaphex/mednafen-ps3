@@ -35,6 +35,8 @@ class FileWrapper
  void put_string(const char *str);
  void put_string(const std::string &str);
 
+ char *get_line(char *s, int size);	// Same semantics as fgets(), for now
+
  void seek(int64 offset, int whence);
 
  int64 tell(void);

@@ -117,9 +117,8 @@ static INLINE uint8 Z80_RP_MACRO(uint16 A)
 
 void z80_set_interrupt(int set);
 
-//ROBO: It's moved
-//#include "../../mednafen/state.h"
-#include "../../state.h"
+
+#include "../../mednafen/state.h"
 int z80_state_action(StateMem *sm, int load, int data_only, const char *section_name);
 
 #endif			/* #ifndef FUSE_Z80_H */

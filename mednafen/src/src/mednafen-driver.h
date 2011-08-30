@@ -15,10 +15,9 @@ void MDFN_printf(const char *format, ...) throw() MDFN_FORMATSTR(printf, 1, 2);
 
 #define MDFNI_printf MDFN_printf
 
-//ROBO: Rumble Rumble
-/* Enable Rumble */
+#ifdef MDFNPS3 //Add MDFND_Rumble
 void MDFND_Rumble(int s, int l);
-
+#endif
 
 /* Displays an error.  Can block or not. */
 void MDFND_PrintError(const char *s);
@@ -66,8 +65,11 @@ void MDFNI_Power(void);
 bool MDFND_ExitBlockingLoop(void);
 
 /* name=path and file to load.  returns NULL on failure. */
-//ROBO: Support loading games from memory
-MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void *data, uint32_t size);
+#ifndef MDFNPS3 //Support loading games from memory
+MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name);
+#else
+MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, uint32_t size);
+#endif
 
 MDFNGI *MDFNI_LoadCD(const char *sysname, const char *devicename);
 

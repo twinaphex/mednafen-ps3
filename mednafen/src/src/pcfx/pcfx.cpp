@@ -231,7 +231,7 @@ static void Emulate(EmulateSpecStruct *espec)
   SoundBox_SetSoundRate(espec->SoundRate);
 
 
- KING_StartFrame(fx_vdc_chips, espec->surface, &espec->DisplayRect, espec->LineWidths, espec->skip);
+ KING_StartFrame(fx_vdc_chips, espec);	//espec->surface, &espec->DisplayRect, espec->LineWidths, espec->skip);
 
  v810_timestamp = PCFX_V810.Run(pcfx_event_handler);
 
@@ -357,7 +357,7 @@ static void PCFXDBG_GetAddressSpaceBytes(const char *name, uint32 Address, uint3
  else if(!strncmp(name, "track", strlen("track")))
  {
   int track = atoi(name + strlen("track"));
-  int32 sector_base = CDIF_GetTrackStartPositionLBA(track);
+  int32 sector_base = atoi(strchr(name, '-') + 1);
 
   while(Length--)
   {
@@ -366,7 +366,8 @@ static void PCFXDBG_GetAddressSpaceBytes(const char *name, uint32 Address, uint3
 
    if(sector != GAS_SectorCacheWhich)
    {
-    CDIF_ReadSector(GAS_SectorCache, sector, 1);
+    if(!CDIF_ReadSector(GAS_SectorCache, sector, 1))
+     memset(GAS_SectorCache, 0, 2048);
     GAS_SectorCacheWhich = sector;
    }
 
@@ -588,10 +589,10 @@ static bool LoadCommon(void)
      char tmpn[256], tmpln[256];
      uint32 sectors;
 
-     trio_snprintf(tmpn, 256, "track%d", track);
+     trio_snprintf(tmpn, 256, "track%d-%d", track, toc.tracks[track].lba);
      trio_snprintf(tmpln, 256, "CD Track %d", track);
 
-     sectors = CDIF_GetTrackSectorCount(track);
+     sectors = toc.tracks[track + 1].lba - toc.tracks[track].lba;
      ASpace_Add(PCFXDBG_GetAddressSpaceBytes, PCFXDBG_PutAddressSpaceBytes, tmpn, tmpln, 0, sectors * 2048);
     }
    }

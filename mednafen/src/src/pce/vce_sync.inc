@@ -121,7 +121,6 @@
     for(int32 i = 0; i < div_clocks; i++) // * vce_ratios[dot_clock]; i++)
     {
      uint32 pix = color_table_cache[pixels[0][i] & 0x3FF];
-
      scanline_out_ptr[pixel_offset] = pix;
      pixel_offset++;
     }
@@ -146,6 +145,8 @@
    }
    else
    {
+    uint32 *prev_sop = scanline_out_ptr;
+
     if(sgfx)
     {
      int add = 0;
@@ -224,7 +225,27 @@
 
      LW[scanline].x = x;
      LW[scanline].w = w;
+
+     if(SubTValid && prev_sop)
+     {
+      uint32 *slp = prev_sop + x_offsets[0][dot_clock];
+      uint32 scale_factor = 256 * 65536 / w_cows[0][dot_clock];
+      for(int x = 0; x < w_cows[0][dot_clock]; x++)
+      {
+       uint32 src_x = (x * scale_factor) >> 16;
+       uint32 mul_front = (SubTBuffer[src_x] >> 12) & 0xF;
+       uint32 mul_back = 16 - mul_front;
+       uint32 front = SubTLUT[SubTBuffer[src_x] & 0xFFF];
+       uint32 back = slp[x];
+
+       front = (((front & 0xF0F0F0F0) >> 4) * mul_front) + ((((front & 0x0F0F0F0F) * mul_front) >> 4) & 0x0F0F0F0F);
+       back = (((back & 0xF0F0F0F0) >> 4) * mul_back) + ((((back & 0x0F0F0F0F) * mul_back) >> 4) & 0x0F0F0F0F);
+
+       slp[x] = front + back;
+      }
+     }
     }
+    SubTValid = SubHW_DisplayLine(SubTBuffer);
    }
    hblank_counter = hblank ? 237 : 1128;
 
@@ -242,6 +263,8 @@
    {
     NeedSLReset = TRUE;
    }
+   else
+    SubHW_CVSync();
 
    for(int chip = 0; chip < chip_count; chip++)
     child_event[chip] = vdc[chip]->VSync(vblank);

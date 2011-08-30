@@ -255,6 +255,21 @@ void FileWrapper::put_string(const std::string &str)
  write(str.data(), str.size());
 }
 
+char *FileWrapper::get_line(char *buf_s, int buf_size)
+{
+ char *ret;
+
+ clearerr(fp);
+ ret = ::fgets(buf_s, buf_size, fp);
+ if(ferror(fp))
+ {
+  ErrnoHolder ene(errno);
+
+  throw(MDFN_Error(ene.Errno(), _("Error reading line in opened file \"%s\": %s"), path_save.c_str(), ene.StrError()));
+ }
+ return(ret);
+}
+
 
 void FileWrapper::seek(int64 offset, int whence)
 {

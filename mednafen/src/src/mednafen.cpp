@@ -34,6 +34,7 @@
 #include	"state.h"
 #include	"movie.h"
 #include        "video.h"
+#include	"video/Deinterlacer.h"
 #include	"file.h"
 #include	"sound/WAVRecord.h"
 #include	"cdrom/cdromif.h"
@@ -90,6 +91,9 @@ static MDFNSetting MednafenSettings[] =
   { "cdrom.lec_eval", MDFNSF_NOFLAGS, gettext_noop("Enable simple error correction of raw data sector rips by evaluating L-EC and EDC data."), NULL, MDFNST_BOOL, "1" },
   // TODO: { "cdrom.ignore_physical_pq", MDFNSF_NOFLAGS, gettext_noop("Ignore P-Q subchannel data when reading physical discs, instead using computed P-Q data."), NULL, MDFNST_BOOL, "1" },
 
+  { "filesys.untrusted_fip_check", MDFNSF_NOFLAGS, gettext_noop("Enable untrusted file-inclusion path security check."),
+	gettext_noop("When this setting is set to \"1\", the default, paths to files referenced from files like CUE sheets and PSF rips are checked for certain characters that can be used in directory traversal, and if found, loading is aborted.  Set it to \"0\" if you want to allow constructs like absolute paths in CUE sheets, but only if you understand the security implications of doing so(see \"Security Issues\" section in the documentation)."), MDFNST_BOOL, "1" },
+
   { "filesys.path_snap", MDFNSF_NOFLAGS, gettext_noop("Path to directory for screen snapshots."), NULL, MDFNST_STRING, "snaps" },
   { "filesys.path_sav", MDFNSF_NOFLAGS, gettext_noop("Path to directory for save games and nonvolatile memory."), gettext_noop("WARNING: Do not set this path to a directory that contains Famicom Disk System disk images, or you will corrupt them when you load an FDS game and exit Mednafen."), MDFNST_STRING, "sav" },
   { "filesys.path_state", MDFNSF_NOFLAGS, gettext_noop("Path to directory for save states."), NULL, MDFNST_STRING, "mcs" },
@@ -97,10 +101,11 @@ static MDFNSetting MednafenSettings[] =
   { "filesys.path_cheat", MDFNSF_NOFLAGS, gettext_noop("Path to directory for cheats."), NULL, MDFNST_STRING, "cheats" },
   { "filesys.path_palette", MDFNSF_NOFLAGS, gettext_noop("Path to directory for custom palettes."), NULL, MDFNST_STRING, "palettes" },
   { "filesys.path_firmware", MDFNSF_NOFLAGS, gettext_noop("Path to directory for firmware."), NULL, MDFNST_STRING, "firmware" },
-//ROBO: Extras for me
+
+#ifdef MDFNPS3 //Video and Wave filenames
   { "filesys.path_video", MDFNSF_NOFLAGS, gettext_noop("Path to directory for video recordings."), NULL, MDFNST_STRING, "video" },
   { "filesys.path_audio", MDFNSF_NOFLAGS, gettext_noop("Path to directory for wave recordings."), NULL, MDFNST_STRING, "wave" },
-
+#endif
 
   { "filesys.fname_movie", MDFNSF_NOFLAGS, gettext_noop("Format string for movie filename."), fname_extra, MDFNST_STRING, "%f.%M%p.%x" },
   { "filesys.fname_state", MDFNSF_NOFLAGS, gettext_noop("Format string for state filename."), fname_extra, MDFNST_STRING, "%f.%M%X" /*"%F.%M%p.%x"*/ },
@@ -117,8 +122,8 @@ static MDFNSetting MednafenSettings[] =
   { NULL }
 };
 
-//ROBO: We didn't rename anything
-/*static MDFNSetting RenamedSettings[] =
+#ifndef MDFNPS3 //No Renamed settings here
+static MDFNSetting RenamedSettings[] =
 {
  { "path_snap", MDFNSF_NOFLAGS, NULL, NULL, MDFNST_ALIAS  , 	"filesys.path_snap"	},
  { "path_sav", MDFNSF_NOFLAGS, NULL, NULL, MDFNST_ALIAS  , 	"filesys.path_sav"	},
@@ -149,7 +154,8 @@ static MDFNSetting MednafenSettings[] =
  { "fs", MDFNSF_NOFLAGS, NULL, NULL, MDFNST_ALIAS              , "video.fs" },
 
  { NULL }
-};*/
+};
+#endif
 
 static char *PortDeviceCache[16];
 static void *PortDataCache[16];
@@ -167,6 +173,9 @@ static bool FFDiscard = FALSE; // TODO:  Setting to discard sound samples instea
 
 static MDFN_PixelFormat last_pixel_format;
 static double last_sound_rate;
+
+static bool PrevInterlaced;
+static Deinterlacer deint;
 
 bool MDFNI_StartWAVRecord(const char *path, double SoundRate)
 {
@@ -326,6 +335,10 @@ extern MDFNGI EmulatedPCE_Fast;
 
 #ifdef WANT_PCFX_EMU
 extern MDFNGI EmulatedPCFX;
+#endif
+
+#ifdef WANT_PSX_EMU
+extern MDFNGI EmulatedPSX;
 #endif
 
 #ifdef WANT_VB_EMU
@@ -521,18 +534,17 @@ static bool LoadIPS(MDFNFILE &GameFile, const char *path)
  IPSFile = fopen(path, "rb");
  if(!IPSFile)
  {
-//ROBO: This causes non loads, just assume ENOENT and get on with it
-//  ErrnoHolder ene(errno);
+  ErrnoHolder ene(errno);
 
-//  MDFN_printf(_("Failed: %s\n"), ene.StrError());
+  MDFN_printf(_("Failed: %s\n"), ene.StrError());
 
-//  if(ene.Errno() == ENOENT)
+  if(ene.Errno() == ENOENT)
    return(1);
-//  else
-//  {
-//   MDFN_PrintError(_("Error opening IPS file: %s\n"), ene.StrError());
-//   return(0);
-//  }  
+  else
+  {
+   MDFN_PrintError(_("Error opening IPS file: %s\n"), ene.StrError());
+   return(0);
+  }  
  }
 
  if(!GameFile.ApplyIPS(IPSFile))
@@ -545,8 +557,11 @@ static bool LoadIPS(MDFNFILE &GameFile, const char *path)
  return(1);
 }
 
-//ROBO: Patch to support memory files
+#ifndef MDFNPS3 //Support loading files from memory
+MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name)
+#else
 MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, uint32_t size)
+#endif
 {
         MDFNFILE GameFile;
 	struct stat stat_buf;
@@ -556,12 +571,13 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
 	{
 	 return(MDFNI_LoadCD(force_module, name));
 	}
-
-//ROBO: Can't load a CD this way
-//	if(!stat(name, &stat_buf) && !S_ISREG(stat_buf.st_mode))
-//	{
-//	 return(MDFNI_LoadCD(force_module, name));
-//	}
+	
+#ifndef MDFNPS3 //No physical drive support
+	if(!stat(name, &stat_buf) && !S_ISREG(stat_buf.st_mode))
+	{
+	 return(MDFNI_LoadCD(force_module, name));
+	}
+#endif
 
 	MDFNI_CloseGame();
 
@@ -596,7 +612,13 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
 	 valid_iae.push_back(tmpext);
 	}
 
-	//ROBO: Support loading files from memory
+#ifndef MDFNPS3 //Load games from memory
+	if(!GameFile.Open(name, &valid_iae[0], _("game")))
+        {
+	 MDFNGameInfo = NULL;
+	 return 0;
+	}
+#else
 	if(data == 0)
 	{
 	 if(!GameFile.Open(name, &valid_iae[0], _("game")))
@@ -613,6 +635,7 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
 	  return 0;
 	 }
 	}
+#endif
 
 	if(!LoadIPS(GameFile, MDFN_MakeFName(MDFNMKF_IPS, 0, 0).c_str()))
 	{
@@ -728,6 +751,9 @@ MDFNGI *MDFNI_LoadGame(const char *force_module, const char *name, void* data, u
          if((tmp = strrchr((char *)MDFNGameInfo->name, '.')))
           *tmp = 0;
         }
+
+	PrevInterlaced = false;
+	deint.ClearState();
 
 	TBlur_Init();
 
@@ -880,6 +906,10 @@ bool MDFNI_InitializeModules(const std::vector<MDFNGI *> &ExternalSystems)
   &EmulatedNGP,
   #endif
 
+  #ifdef WANT_PSX_EMU
+  &EmulatedPSX,
+  #endif
+
   #ifdef WANT_VB_EMU
   &EmulatedVB,
   #endif
@@ -999,8 +1029,9 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 	  MDFN_MergeSettings(MDFNSystems[x]->Settings);
 	}
 
-//ROBO: We didn't rename anything
-//	MDFN_MergeSettings(RenamedSettings);
+#ifndef MDFNPS3 //No RenamedSettings
+	MDFN_MergeSettings(RenamedSettings);
+#endif
 
         if(!MFDN_LoadSettings(basedir))
 	 return(0);
@@ -1275,6 +1306,19 @@ void MDFNI_Emulate(EmulateSpecStruct *espec)
  espec->NeedSoundReverse = MDFN_StateEvil(espec->NeedRewind);
 
  MDFNGameInfo->Emulate(espec);
+
+ if(espec->InterlaceOn)
+ {
+  if(!PrevInterlaced)
+   deint.ClearState();
+
+  deint.Process(espec->surface, espec->DisplayRect, espec->LineWidths, espec->InterlaceField);
+
+  PrevInterlaced = true;
+
+  espec->InterlaceOn = false;
+  espec->InterlaceField = 0;
+ }
 
  ProcessAudio(espec);
 

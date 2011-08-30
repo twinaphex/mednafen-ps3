@@ -24,9 +24,7 @@
 
 /* Modified somewhat for usage in Mednafen */
 
-//ROBO: It's moved
-//#include "mednafen/mednafen.h"
-#include "src/mednafen.h"
+#include "mednafen/mednafen.h"
 
 #include "z80.h"
 #include "z80_macros.h"

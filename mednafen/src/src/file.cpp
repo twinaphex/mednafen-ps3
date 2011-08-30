@@ -361,12 +361,22 @@ MDFNFILE::MDFNFILE() : size(f_size), data((const uint8* const &)f_data), ext((co
  #endif
 }
 
+MDFNFILE::MDFNFILE(const char *path, const FileExtensionSpecStruct *known_ext, const char *purpose) : size(f_size), data((const uint8* const &)f_data), ext((const char * const &)f_ext)
+{
+ if(!Open(path, known_ext, purpose, false))
+ {
+  throw(MDFN_Error(0, "TODO ERROR"));
+ }
+}
+
+
 MDFNFILE::~MDFNFILE()
 {
  Close();
 }
 
-//ROBO: Load from memory
+
+#ifdef MDFNPS3
 bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, void* data, int size, const char *purpose, const bool suppress_notfound_pe)
 {
  f_size = size;
@@ -385,7 +395,7 @@ bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, 
  
  return 1;
 }
-
+#endif
 
 bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, const char *purpose, const bool suppress_notfound_pe)
 {
@@ -518,9 +528,9 @@ bool MDFNFILE::Open(const char *path, const FileExtensionSpecStruct *known_ext, 
   {
    int fd;
 
-//ROBO: No dup on ps3sdk :(, luckily this probably won't run with mednafen-ps3's archive loader
-//   fd = dup(fileno( (FILE *)t));
-   fd = 0;
+#ifndef MDFNPS3 //No dup on ps3sdk :(, luckily this probably won't run with mednafen-ps3's archive loader
+   fd = dup(fileno( (FILE *)t));
+#endif
    lseek(fd, 0, SEEK_SET);
 
    if(!(t=gzdopen(fd, "rb")))

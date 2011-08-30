@@ -17,6 +17,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ Notes and TODO:
+
+	POSTGAP in CUE sheets may not be handled properly, should the directive automatically increment the index number?
+
+	INDEX nn where 02 <= nn <= 99 is not supported in CUE sheets.
+
+	TOC reading code is extremely barebones, leaving out support for more esoteric features.
+
+	A PREGAP statement in the first track definition in a CUE sheet may not work properly(depends on what is proper);
+	it will be added onto the implicit default 00:02:00 of pregap.
+
+	Trying to read sectors at an LBA of less than 0 is not supported.  TODO: support it(at least up to -150).
+*/
+
 #define _CDROMFILE_INTERNAL
 #include "../mednafen.h"
 
@@ -43,6 +58,8 @@
 
 #include "audioreader.h"
 
+#include <map>
+
 struct CDRFILE_TRACK_INFO
 {
         int32 LBA;
@@ -53,9 +70,13 @@ struct CDRFILE_TRACK_INFO
         //track_format_t Format;	
 	//bool IsData2352;
 
-
         int32 pregap;
-	int32 index;
+	int32 pregap_dv;
+
+	int32 postgap;
+
+	int32 index[2];
+
 	int32 sectors;	// Not including pregap sectors!
         FILE *fp;
 	bool FirstFileInstance;
@@ -68,6 +89,33 @@ struct CDRFILE_TRACK_INFO
 	AudioReader *AReader;
 	int16 AudioBuf[588 * 2];
 };
+#if 0
+struct Medium_Chunk
+{
+	int64 Offset;		// Offset in [..TODO..]
+	uint32 DIFormat;
+
+        FILE *fp;
+        bool FirstFileInstance;
+        bool RawAudioMSBFirst;
+        unsigned int SubchannelMode;
+
+        uint32 LastSamplePos;
+        AudioReader *AReader;
+};
+
+struct CD_Chunk
+{
+	int32 LBA;
+	int32 Track;
+	int32 Index;
+	bool DataType;
+
+	Medium_Chunk Medium;
+};
+
+static std::vector<CD_Chunk> Chunks;
+#endif
 
 struct CDRFile
 {
@@ -139,8 +187,8 @@ bool cdrfile_check_subq_checksum(uint8 *SubQBuf)
 }
 
 
-// MakeSubQ will OR the simulated Q subchannel data into SubPWBuf.
-static void MakeSubQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf);
+// MakeSubPQ will OR the simulated P and Q subchannel data into SubPWBuf.
+static void MakeSubPQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf);
 
 
 void cdrfile_deinterleave_subq(const uint8 *SubPWBuf, uint8 *qbuf)
@@ -247,18 +295,18 @@ void cdrfile_destroy(CDRFile *p_cdrfile)
   for(track = p_cdrfile->FirstTrack; track < (p_cdrfile->FirstTrack + p_cdrfile->NumTracks); track++)
   {
    CDRFILE_TRACK_INFO *this_track = &p_cdrfile->Tracks[track];
- 
-   if(p_cdrfile->Tracks[track].AReader)
+
+   if(this_track->FirstFileInstance)
    {
-    delete p_cdrfile->Tracks[track].AReader;
-    p_cdrfile->Tracks[track].AReader = NULL;
-   }
-   else
-   {
-    if(this_track->FirstFileInstance)
+    if(p_cdrfile->Tracks[track].AReader)
+    {
+     delete p_cdrfile->Tracks[track].AReader;
+     p_cdrfile->Tracks[track].AReader = NULL;
+    }
+    else if(this_track->fp)
      fclose(this_track->fp);
    }
-  }  
+  }
  }
  free(p_cdrfile);
 }
@@ -270,6 +318,13 @@ static bool ParseTOCFileLineInfo(CDRFILE_TRACK_INFO *track, const int tracknum, 
  int m, s, f;
  uint32 sector_mult;
  long sectors;
+
+ if(!MDFN_IsFIROPSafe(filename))
+ {
+  MDFN_printf(_("Referenced path \"%s\" is potentially unsafe.  See \"filesys.untrusted_fip_check\" setting.\n"), filename);
+  return(0);
+ }
+
  std::string efn = MDFN_MakeFName(MDFNMKF_AUX, 0, filename);
 
  if(NULL == (track->fp = fopen(efn.c_str(), "rb")))
@@ -765,7 +820,15 @@ static CDRFile *ImageOpen(const char *path)
       memset(&TmpTrack, 0, sizeof(TmpTrack));
       active_track = -1;
      }
+
+     if(!MDFN_IsFIROPSafe(args[0]))
+     {
+      MDFN_printf(_("Referenced path \"%s\" is potentially unsafe.  See \"filesys.untrusted_fip_check\" setting.\n"), args[0]);
+      return(0);
+     }
+
      std::string efn = MDFN_MakeFName(MDFNMKF_AUX, 0, args[0]);
+
      if(NULL == (TmpTrack.fp = fopen(efn.c_str(), "rb")))
      {
       ErrnoHolder ene(errno);
@@ -807,6 +870,10 @@ static CDRFile *ImageOpen(const char *path)
       memcpy(&ret->Tracks[active_track], &TmpTrack, sizeof(TmpTrack));
       TmpTrack.FirstFileInstance = 0;
       TmpTrack.pregap = 0;
+      TmpTrack.pregap_dv = 0;
+      TmpTrack.postgap = 0;
+      TmpTrack.index[0] = -1;
+      TmpTrack.index[1] = 0;
      }
      active_track = atoi(args[0]);
 
@@ -841,11 +908,15 @@ static CDRFile *ImageOpen(const char *path)
     }
     else if(!strcasecmp(cmdbuf, "INDEX"))
     {
-     if(active_track >= 0 && (!strcasecmp(args[0], "01") || !strcasecmp(args[0], "1")))
+     if(active_track >= 0)
      {
       int m,s,f;
       trio_sscanf(args[1], "%d:%d:%d", &m, &s, &f);
-      TmpTrack.index = (m * 60 + s) * 75 + f;
+
+      if(!strcasecmp(args[0], "01") || !strcasecmp(args[0], "1"))
+       TmpTrack.index[1] = (m * 60 + s) * 75 + f;
+      else if(!strcasecmp(args[0], "00") || !strcasecmp(args[0], "0"))
+       TmpTrack.index[0] = (m * 60 + s) * 75 + f;
      }
     }
     else if(!strcasecmp(cmdbuf, "PREGAP"))
@@ -856,6 +927,19 @@ static CDRFile *ImageOpen(const char *path)
       trio_sscanf(args[0], "%d:%d:%d", &m, &s, &f);
       TmpTrack.pregap = (m * 60 + s) * 75 + f;
      }
+    }
+    else if(!strcasecmp(cmdbuf, "POSTGAP"))
+    {
+     if(active_track >= 0)
+     {
+      int m,s,f;
+      trio_sscanf(args[0], "%d:%d:%d", &m, &s, &f);
+      TmpTrack.postgap = (m * 60 + s) * 75 + f;
+     }
+    }
+    else
+    {
+     MDFN_printf(_("Unknown CUE sheet directive \"%s\".\n"), cmdbuf);
     }
    } // end of CUE sheet handling
   } // end of fgets() loop
@@ -900,6 +984,7 @@ static CDRFile *ImageOpen(const char *path)
    RunningLBA += ret->Tracks[x].pregap;
    ret->Tracks[x].LBA = RunningLBA;
    RunningLBA += ret->Tracks[x].sectors;
+   RunningLBA += ret->Tracks[x].postgap;
   }
   else // else handle CUE sheet...
   {
@@ -908,7 +993,17 @@ static CDRFile *ImageOpen(const char *path)
     LastIndex = 0;
     FileOffset = 0;
    }
+
    RunningLBA += ret->Tracks[x].pregap;
+
+   ret->Tracks[x].pregap_dv = 0;
+
+   if(ret->Tracks[x].index[0] != -1)
+    ret->Tracks[x].pregap_dv = ret->Tracks[x].index[1] - ret->Tracks[x].index[0];
+
+   FileOffset += ret->Tracks[x].pregap_dv * DI_Size_Table[ret->Tracks[x].DIFormat];
+
+   RunningLBA += ret->Tracks[x].pregap_dv;
 
    ret->Tracks[x].LBA = RunningLBA;
 
@@ -930,11 +1025,15 @@ static CDRFile *ImageOpen(const char *path)
    else
    { 
     // Fix the sector count if we're CUE+BIN
-    ret->Tracks[x].sectors = ret->Tracks[x + 1].index - ret->Tracks[x].index;
+    if(ret->Tracks[x + 1].index[0] == -1)
+     ret->Tracks[x].sectors = ret->Tracks[x + 1].index[1] - ret->Tracks[x].index[1];
+    else
+     ret->Tracks[x].sectors = ret->Tracks[x + 1].index[0] - ret->Tracks[x].index[1];	//ret->Tracks[x + 1].index - ret->Tracks[x].index;
    }
 
    //printf("Poo: %d %d\n", x, ret->Tracks[x].sectors);
    RunningLBA += ret->Tracks[x].sectors;
+   RunningLBA += ret->Tracks[x].postgap;
 
    //printf("%d, %ld %d %d %d %d\n", x, FileOffset, ret->Tracks[x].index, ret->Tracks[x].pregap, ret->Tracks[x].sectors, ret->Tracks[x].LBA);
 
@@ -975,7 +1074,7 @@ int cdrfile_read_raw_sector(CDRFile *p_cdrfile, uint8 *buf, int32 lba)
 
  memset(buf + 2352, 0, 96);
 
- MakeSubQ(p_cdrfile, lba, buf + 2352);
+ MakeSubPQ(p_cdrfile, lba, buf + 2352);
 
  cdrfile_deinterleave_subq(buf + 2352, SimuQ);
 
@@ -1014,7 +1113,7 @@ int cdrfile_read_raw_sector(CDRFile *p_cdrfile, uint8 *buf, int32 lba)
   }
   else // else to if(p_cdrfile->CanMMC)
   {
-   // using the subq data calculated in MakeSubQ() makes more sense than figuring out which track we're on again.
+   // using the subq data calculated in MakeSubPQ() makes more sense than figuring out which track we're on again.
    if(SimuQ[0] & 0x40)	// Data sector
    {
     int64 end_time = MDFND_GetTime() + MMC_TIMEOUT_DEFAULT;
@@ -1056,29 +1155,22 @@ int cdrfile_read_raw_sector(CDRFile *p_cdrfile, uint8 *buf, int32 lba)
   {
    CDRFILE_TRACK_INFO *ct = &p_cdrfile->Tracks[track];
 
-   if(lba >= (ct->LBA - ct->pregap) && lba < (ct->LBA + ct->sectors))
+   if(lba >= (ct->LBA - ct->pregap_dv - ct->pregap) && lba < (ct->LBA + ct->sectors + ct->postgap))
    {
     TrackFound = TRUE;
 
-    if(lba < ct->LBA)
+    // Handle pregap and postgap reading
+    if(lba < (ct->LBA - ct->pregap_dv) || lba >= (ct->LBA + ct->sectors))
     {
-     //puts("Pregap read");
-     memset(buf, 0, 2352);
+     //printf("Pre/post-gap read, LBA=%d(LBA-track_start_LBA=%d)\n", lba, lba - ct->LBA);
+     memset(buf, 0, 2352);	// Null sector data, per spec
     }
     else
     {
      if(ct->AReader)
      {
-      long SeekPos = (ct->FileOffset / 4) + (lba - ct->LBA) * 588;
+      int frames_read = ct->AReader->Read((ct->FileOffset / 4) + (lba - ct->LBA) * 588, ct->AudioBuf, 588);
 
-      if(ct->LastSamplePos != SeekPos)
-      {
-       if(ct->AReader->Seek(SeekPos))
-        ct->LastSamplePos = SeekPos;
-      }
-
-      int frames_read = ct->AReader->Read(ct->AudioBuf, 588);
-      
       ct->LastSamplePos += frames_read;
 
       if(frames_read < 0 || frames_read > 588)	// This shouldn't happen.
@@ -1169,7 +1261,7 @@ int cdrfile_read_raw_sector(CDRFile *p_cdrfile, uint8 *buf, int32 lba)
   memcpy(dummy_buf + 16, buf + 16, 2048); 
   memset(dummy_buf + 2352, 0, 96);
 
-  MakeSubQ(p_cdrfile, lba, dummy_buf + 2352);
+  MakeSubPQ(p_cdrfile, lba, dummy_buf + 2352);
   lec_encode_mode1_sector(lba + 150, dummy_buf);
 
   for(int i = 0; i < 2352 + 96; i++)
@@ -1203,28 +1295,24 @@ CD_Track_Format_t cdrfile_get_track_format(const CDRFile *p_cdrfile, int32 i_tra
  return(p_cdrfile->Tracks[i_track].Format);
 }
 
-unsigned int cdrfile_get_track_sec_count(const CDRFile *p_cdrfile, int32 i_track)
-{
- return(p_cdrfile->Tracks[i_track].sectors);
-}
-
 int32 cdrfile_get_first_track_num(const CDRFile *p_cdrfile)
 {
  return(p_cdrfile->FirstTrack);
 }
 
-static void MakeSubQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf)
+static void MakeSubPQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf)
 {
  uint8 buf[0xC];
  int32 track;
  uint32 lba_relative;
  uint32 ma, sa, fa;
  uint32 m, s, f;
+ uint8 pause_or = 0x00;
  bool track_found = FALSE;
 
  for(track = p_cdrfile->FirstTrack; track < (p_cdrfile->FirstTrack + p_cdrfile->NumTracks); track++)
  {
-  if(lba >= (p_cdrfile->Tracks[track].LBA - p_cdrfile->Tracks[track].pregap) && lba < (p_cdrfile->Tracks[track].LBA + p_cdrfile->Tracks[track].sectors))
+  if(lba >= (p_cdrfile->Tracks[track].LBA - p_cdrfile->Tracks[track].pregap_dv - p_cdrfile->Tracks[track].pregap) && lba < (p_cdrfile->Tracks[track].LBA + p_cdrfile->Tracks[track].sectors + p_cdrfile->Tracks[track].postgap))
   {
    track_found = TRUE;
    break;
@@ -1235,7 +1323,7 @@ static void MakeSubQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf)
 
  if(!track_found)
  {
-  printf("MakeSubQ error for sector %u!", lba);
+  printf("MakeSubPQ error for sector %u!", lba);
   track = p_cdrfile->FirstTrack;
  }
 
@@ -1251,6 +1339,31 @@ static void MakeSubQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf)
 
  uint8 adr = 0x1; // Q channel data encodes position
  uint8 control = (p_cdrfile->Tracks[track].Format == CD_TRACK_FORMAT_AUDIO) ? 0x00 : 0x04;
+
+ // Handle pause(D7 of interleaved subchannel byte) bit, should be set to 1 when in pregap or postgap.
+ if((lba < p_cdrfile->Tracks[track].LBA) || (lba >= p_cdrfile->Tracks[track].LBA + p_cdrfile->Tracks[track].sectors))
+ {
+  //printf("pause_or = 0x80 --- %d\n", lba);
+  pause_or = 0x80;
+ }
+
+ // Handle pregap between audio->data track
+ {
+  int32 pg_offset = (int32)lba - p_cdrfile->Tracks[track].LBA;
+
+  // If we're more than 2 seconds(150 sectors) from the real "start" of the track/INDEX 01, and the track is a data track,
+  // and the preceding track is an audio track, encode it as audio.
+  if(pg_offset < -150)
+  {
+   if(p_cdrfile->Tracks[track].Format == CD_TRACK_FORMAT_DATA && (p_cdrfile->FirstTrack < track) && 
+	p_cdrfile->Tracks[track - 1].Format == CD_TRACK_FORMAT_AUDIO)
+   {
+    //printf("Pregap part 1 audio->data: lba=%d track_lba=%d\n", lba, p_cdrfile->Tracks[track].LBA);
+    control = 0x00;
+   }
+  }
+ }
+
 
  memset(buf, 0, 0xC);
  buf[0] = (adr << 0) | (control << 4);
@@ -1283,15 +1396,8 @@ static void MakeSubQ(const CDRFile *p_cdrfile, uint32 lba, uint8 *SubPWBuf)
  buf[0xb] = ~(crc);
 
  for(int i = 0; i < 96; i++)
-  SubPWBuf[i] |= ((buf[i >> 3] >> (7 - (i & 0x7))) & 1) ? 0x40 : 0x00;
+  SubPWBuf[i] |= (((buf[i >> 3] >> (7 - (i & 0x7))) & 1) ? 0x40 : 0x00) | pause_or;
 }
-
-uint32_t cdrfile_stat_size (const CDRFile *p_cdrfile)
-{
- return(p_cdrfile->total_sectors);
-}
-
-
 
 bool cdrfile_read_toc(const CDRFile *p_cdrfile, CD_TOC *toc)
 {

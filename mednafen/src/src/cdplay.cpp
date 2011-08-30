@@ -22,10 +22,12 @@
 #include <blip/Blip_Buffer.h>
 #include <trio/trio.h>
 #include <vector>
-#include "Fir_Resampler.h"
 #include <math.h>
 
-static Fir_Resampler<256> resampler;
+
+#include <mednafen/resampler/resampler.h>
+
+SpeexResamplerState *resampler = NULL;
 
 static uint8 *controller_ptr;
 static uint8 last_controller;
@@ -43,6 +45,11 @@ enum
 static int PlayMode;
 static uint32 PlaySector;
 static int16 CDDABuffer[588 * 2];
+
+static int16 ResampBuffer[588 * 2][2];	// Resampler input buffer, * 2 for resampler leftovers
+static uint32 ResampBufferPos;
+static uint32 PrevRate;
+
 static int32 CurrentATLI;
 
 static std::vector<int32> AudioTrackList;
@@ -76,9 +83,14 @@ static int LoadCD(void)
  PlaySector = toc.tracks[AudioTrackList[CurrentATLI]].lba;
  PlayMode = PLAYMODE_PLAY;   //STOP;
 
-
- resampler.buffer_size(588 * 2 + 100);
- resampler.time_ratio((double)44100 / 48000, 0.9965);
+ {
+  int err;
+  resampler = speex_resampler_init(2, 44100, (int)48000, 5, &err);
+  PrevRate = 48000;
+ }
+ //resampler.buffer_size(588 * 2 + 100);
+ //resampler.time_ratio((double)44100 / 48000, 0.9965);
+ ResampBufferPos = 0;
 
  InitLUT();
 
@@ -102,8 +114,11 @@ static bool TestMagicCD(void)
 
 static void CloseGame(void)
 {
-
-
+ if(resampler)
+ {
+  speex_resampler_destroy(resampler);
+  resampler = NULL;
+ }
 }
 
 static uint8 SubQBuf[3][0xC];
@@ -171,11 +186,13 @@ static void Emulate(EmulateSpecStruct *espec)
 
  if(PlayMode == PLAYMODE_STOP || PlayMode == PLAYMODE_PAUSE)
  {
-  for(int i = 0; i < 588 * 2; i++)
-   resampler.buffer()[i] = 0;
-
-  if(espec->SoundBuf)
-   resampler.write(588 * 2);
+  //memset(CDDABuffer, 0, sizeof(CDDABuffer));
+  for(int i = 0; i < 588; i++)
+  {
+   ResampBuffer[ResampBufferPos][0] = 0;
+   ResampBuffer[ResampBufferPos][1] = 0;
+   ResampBufferPos++;
+  }
  }
  else
  {
@@ -186,14 +203,45 @@ static void Emulate(EmulateSpecStruct *espec)
   {
    CDDABuffer[i] = MDFN_de16lsb(&sector_buffer[i * sizeof(int16)]);
 
-   resampler.buffer()[i] = /*(rand() & 0x7FFF) - 0x4000;*/ CDDABuffer[i] / 2;
+   ResampBuffer[ResampBufferPos + (i >> 1)][i & 1] = CDDABuffer[i] / 2;
   }
-  if(espec->SoundBuf)
-   resampler.write(588 * 2);
+  ResampBufferPos += 588;
  }
 
  if(espec->SoundBuf)
-  espec->SoundBufSize = resampler.read(espec->SoundBuf, resampler.avail()) >> 1;
+ {
+  if((int)espec->SoundRate == 44100)
+  {
+   memcpy(espec->SoundBuf, ResampBuffer, ResampBufferPos * 2 * sizeof(int16));
+   espec->SoundBufSize = ResampBufferPos;
+   ResampBufferPos = 0;
+  }
+  else
+  {
+   spx_uint32_t in_len;
+   spx_uint32_t out_len;
+
+   if(PrevRate != (uint32)espec->SoundRate)
+   {
+    speex_resampler_set_rate(resampler, 44100, (uint32)espec->SoundRate);
+    PrevRate = (uint32)espec->SoundRate;
+   }
+
+   in_len = ResampBufferPos;
+   out_len = 2048;	// FIXME, real size.
+
+   speex_resampler_process_interleaved_int(resampler, (const spx_int16_t *)ResampBuffer, &in_len, (spx_int16_t *)espec->SoundBuf, &out_len);
+
+   assert(in_len <= ResampBufferPos);
+
+   if((ResampBufferPos - in_len) > 0)
+    memmove(ResampBuffer, ResampBuffer + in_len, (ResampBufferPos - in_len) * sizeof(int16) * 2);
+
+   ResampBufferPos -= in_len;
+
+   espec->SoundBufSize = out_len;
+  }
+ }
 // for(int i = 0; i < espec->SoundBufSize * 2; i++)
 //  espec->SoundBuf[i] = (rand() & 0x7FFF) - 0x4000;	//(rand() * 192) >> 8
 
