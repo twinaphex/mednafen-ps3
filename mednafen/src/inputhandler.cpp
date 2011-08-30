@@ -2,6 +2,171 @@
 #include "inputhandler.h"
 #include "SettingGroupMenu.h"
 
+class									InputEnumeratorBase : public InputEnumerator
+{
+	public:
+										InputEnumeratorBase				() : GameInfo(0), PortInfo(0), DeviceInfo(0) {}
+		virtual void					System							(const MDFNGI* aDescription) {GameInfo = aDescription;}
+		virtual bool					Port							(const InputPortInfoStruct* aDescription) {PortInfo = aDescription; return true;}
+		virtual bool					Device							(const InputDeviceInfoStruct* aDescription) {DeviceInfo = aDescription; return true;}
+
+	protected:
+		const MDFNGI*					GameInfo;
+		const InputPortInfoStruct*		PortInfo;
+		const InputDeviceInfoStruct*	DeviceInfo;
+
+		char							StringBuffer[1024];
+};
+
+class									SettingGenerator : public InputEnumeratorBase
+{
+	public:
+										SettingGenerator				(std::vector<MDFNSetting>& aSettings) : Settings(aSettings) {}
+
+		virtual bool					Port							(const InputPortInfoStruct* aDescription)
+		{
+			InputEnumeratorBase::Port(aDescription);
+
+			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
+			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port1", GameInfo->shortname), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, InputHandler::BuildPortEnum(*PortInfo)};
+			Settings.push_back(thisinput);
+
+			return true;
+		}
+
+		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
+		{
+			if(aDescription->SettingName)
+			{
+				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "0"};
+
+				thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName);
+				Settings.push_back(thisInput);
+
+				//Rapid button support
+				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+				{
+					thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s_rapid", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName);
+					Settings.push_back(thisInput);
+				}
+			}
+		}
+
+	private:
+		std::vector<MDFNSetting>&		Settings;
+
+};
+
+class									ConfigurePrepper : public InputEnumeratorBase
+{
+	public:
+		void							AddSetting						(const char* aName)
+		{
+			const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
+
+			for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
+			{
+				if(strcmp(iter->second.name, aName) == 0)
+				{
+					Settings.push_back(&iter->second);
+					return;
+				}
+			}
+		}
+
+		virtual bool					Port							(const InputPortInfoStruct* aDescription)
+		{
+			InputEnumeratorBase::Port(aDescription);
+
+			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
+			AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port1", GameInfo->shortname));
+
+			return true;
+		}
+
+		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
+		{
+			if(aDescription->SettingName)
+			{
+				AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+
+				//Rapid button support
+				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+				{
+					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s_rapid", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+				}
+			}
+		}
+
+		virtual void					Finish							()
+		{
+			SettingGroupMenu(Settings, "").Do();
+		}
+
+	private:
+		std::vector<const MDFNCS*>		Settings;
+};
+
+class									SettingReader : public InputEnumeratorBase
+{
+	public:
+										SettingReader					(InputHandler* aHandler, std::vector<InputHandler::InputInfo>& aInputs) : byte(0), bit(0), found(0), Handler(aHandler), Inputs(aInputs) {}
+
+		virtual bool					Device							(const InputDeviceInfoStruct* aDescription)
+		{
+			InputEnumeratorBase::Device(aDescription);
+
+			const char* type = MDFN_GetSettingS(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port1", GameInfo->shortname)).c_str();
+			if(strcmp(type, DeviceInfo->ShortName) == 0)
+			{
+				MDFNI_SetInput(0, type, Handler->GetRawBits(0), 2);
+				return true;
+			}
+
+			return false;
+		}
+
+		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
+		{
+			InputHandler::InputInfo ii;
+			memset(&ii, 0, sizeof(ii));
+
+			//TODO: Support other types of inputs
+			if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+			{
+				//Mednafen has the most convoluted input scheme. 
+				ii.BitOffset = byte * 8 + bit;
+				if(++bit == 8)
+				{
+					bit = 0;
+					byte ++;
+				}
+			}
+
+			ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+			if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+			{
+				ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s_rapid", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+			}
+
+			ii.Index = found ++;
+			ii.Data = aDescription;
+			Inputs.push_back(ii);
+		}
+
+
+	private:
+		InputHandler*									Handler;
+		std::vector<InputHandler::InputInfo>&			Inputs;
+
+
+		std::vector<const MDFNCS*>		Settings;
+
+		int								byte;
+		int								bit;
+		int								found;
+};
+
 namespace
 {
 	bool								InputSortC								(InputHandler::InputInfo a, InputHandler::InputInfo b)
@@ -37,6 +202,34 @@ namespace
 	}
 
 	Configure();
+}
+
+void							InputHandler::EnumerateInputs			(const MDFNGI* aSystem, InputEnumerator* aEnumerator)
+{
+	assert(aSystem && aEnumerator);
+
+	aEnumerator->System(aSystem);
+
+	//Ports: TODO: Multiple ports
+	if(aEnumerator->Port(&aSystem->InputInfo->Types[0]))
+	{
+		//Devices
+		const InputDeviceInfoStruct* thisDevice = aSystem->InputInfo->Types[0].DeviceInfo;
+		for(int i = 0; i != aSystem->InputInfo->Types[0].NumTypes; i ++, thisDevice ++)
+		{
+			if(aEnumerator->Device(thisDevice))
+			{
+				//Buttons
+				const InputDeviceInputInfoStruct* thisButton = thisDevice->IDII;
+				for(int j = 0; j != thisDevice->NumInputs; j ++, thisButton ++)
+				{
+					aEnumerator->Button(thisButton);
+				}
+			}
+		}
+	}
+
+	aEnumerator->Finish();
 }
 
 void							InputHandler::Process					()
@@ -75,185 +268,29 @@ void							InputHandler::Process					()
 	RapidCount = RapidCount ? RapidCount - 1 : 3;
 }
 
+
 void							InputHandler::Configure				()
 {
-	//Get the settings map from mednafen
-	const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
-	assert(settings);
-
-	//Get all settings pertaining to the loaded system
-	std::vector<const MDFNCS*> settingList;
-	char settingHeader[1024];
-	Utility::VAPrint(settingHeader, sizeof(settingHeader) - 1, "%s.esinput.", GameInfo->shortname);
-
-	for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
-	{
-		if(strstr(iter->second.name, settingHeader) == iter->second.name)
-		{
-			settingList.push_back(&iter->second);
-		}
-	}
-
-	SettingGroupMenu(settingList, "").Do();
+	ConfigurePrepper buttonList;
+	EnumerateInputs(GameInfo, &buttonList);
 	ReadSettings();
-
-/*	Summerface sface;
-
-	//Get Controller type
-	if(GameInfo->InputInfo->Types[0].NumTypes > 1)
-	{
-		//More than one type, run a list to choose
-		InputList* linelist = new InputList(Area(10, 10, 80, 20));
-
-		for(int i = 0; i != GameInfo->InputInfo->Types[0].NumTypes; i ++)
-		{
-			linelist->AddItem(new InputItem(GameInfo->InputInfo->Types[0].DeviceInfo[i].FullName, "", GameInfo->InputInfo->Types[0].DeviceInfo[i].ShortName));
-		}
-
-		sface.AddWindow("Categories", linelist);
-		sface.Do();
-
-		PadType = linelist->GetSelected()->UserData;
-	}
-	else
-	{
-		//Only one type, skip the list
-		PadType = GameInfo->InputInfo->Types[0].DeviceInfo[0].ShortName;
-	}
-
-	//Stash the pad type in the settings file
-	MDFNI_SetSetting((std::string(GameInfo->shortname) + ".esinput.port1").c_str(), PadType.c_str());
-
-	//Get Buttons
-	std::vector<InputInfo> inputs;
-	GetGamepad(GameInfo->InputInfo, PadType.c_str(), inputs);
-
-	uint32_t buttonID;
-
-	//Create the window to receive input
-	SummerfaceLabel* button = new SummerfaceLabel(Area(10, 30, 80, 10), "");
-
-	//Add the window to the interface and attach the input hook
-	sface.AddWindow("InputWindow", button);
-	sface.AttachConduit(new SummerfaceStaticConduit(GetButton, &buttonID));
-	sface.SetInputWait(false);
-
-	//Attach any available layout images
-	std::string imagename = std::string(GameInfo->shortname) + PadType + "IMAGE";
-	if(ImageManager::GetImage(imagename))
-	{
-		sface.AddWindow("InputImage", new SummerfaceImage(Area(10, 50, 80, 40), imagename));
-		sface.SetActiveWindow("InputWindow");	//Make sure the button window has the input focus
-	}
-
-	//Grab all of the buttons
-	for(int j = 0; j != inputs.size(); j ++)
-	{
-		//Skip any whose setting name is null? (Was this REALLY needed?)
-		if(inputs[j].Data->SettingName)
-		{
-			//Prep and run the interface
-			button->SetMessage("Press button for [%s]", inputs[j].Data->Name);
-			sface.Do();
-
-			//Put the result in the settings file
-			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(inputs[j].Data->SettingName);
-			MDFNI_SetSettingUI(settingname.c_str(), buttonID);
-
-			//If this button has the rapid flag set, do it again for the rapid version
-			if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
-			{
-				button->SetMessage("Press button for [Rapid %s]", inputs[j].Data->Name);
-				sface.Do();
-
-				settingname += "_rapid";
-				MDFNI_SetSettingUI(settingname.c_str(), buttonID);
-			}
-		}
-	}
-
-	ReadSettings();*/
 }
 
 void							InputHandler::ReadSettings			()
 {
-	//Get the contoller type, and it's details
-	PadType = MDFN_GetSettingS((std::string(GameInfo->shortname) + ".esinput.port1").c_str());
-	GetGamepad(GameInfo->InputInfo, PadType.c_str(), Inputs);
+	Inputs.clear();
 
-	//Set the input types and bits to the mednafen core
-	//TODO: Separate pad type for each port
-	for(int i = 0; i != GameInfo->InputInfo->InputPorts; i ++)
-	{
-		MDFNI_SetInput(i, PadType.c_str(), &ControllerBits[i], 2);
-	}
-
-	//Get the button mapping from the settings file
-	for(int j = 0; j != Inputs.size(); j ++)
-	{
-		//Skip any whose setting name is NULL
-		if(Inputs[j].Data->SettingName)
-		{
-			//Fetch the setting
-			std::string settingname = std::string(GameInfo->shortname) + ".esinput." + PadType + "." + std::string(Inputs[j].Data->SettingName);
-			Inputs[j].Button = MDFN_GetSettingUI(settingname.c_str());
-
-			//Fetch any rapid button mapping
-			if(Inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
-			{
-				settingname += "_rapid";
-				Inputs[j].RapidButton = MDFN_GetSettingUI(settingname.c_str());
-			}
-		}
-	}
+	SettingReader reader(this, Inputs);
+	EnumerateInputs(GameInfo, &reader);
 }
 
 void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings)
 {
-	//Note the many unfree'd strdups from Utility::VAPrintD, deal with it
+	SettingGenerator generator(aSettings);
 
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
-		//Add ports
-		const char* defaultDeviceName = MDFNSystems[i]->InputInfo->Types[0].DefaultDevice ? MDFNSystems[i]->InputInfo->Types[0].DefaultDevice : MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[0].ShortName;
-		MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port1", MDFNSystems[i]->shortname), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, BuildPortEnum(MDFNSystems[i]->InputInfo->Types[0])};
-		aSettings.push_back(thisinput);
-
-		//Add devices
-		for(int k = 0; k != MDFNSystems[i]->InputInfo->Types[0].NumTypes; k ++)
-		{
-			InputDeviceInfoStruct* thisDevice = &MDFNSystems[i]->InputInfo->Types[0].DeviceInfo[k];
-
-			//TODO: Support port expanders
-			if(thisDevice->PortExpanderDeviceInfo)
-			{
-				continue;
-			}
-
-			//Get the description of this device
-			std::vector<InputInfo> inputs;
-			GetGamepad(MDFNSystems[i]->InputInfo, thisDevice->ShortName, inputs);
-
-			//Add all of the buttons as settings
-			for(int j = 0; j != inputs.size(); j ++)
-			{
-				//If SettingName is null, ignore it
-				if(inputs[j].Data->SettingName)
-				{
-					MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, "Input.", thisDevice->ShortName, MDFNST_UINT, "0"};
-
-					thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s", MDFNSystems[i]->shortname, thisDevice->ShortName, inputs[j].Data->SettingName);
-					aSettings.push_back(thisInput);
-
-					//Rapid button support
-					if(inputs[j].Data->Type == IDIT_BUTTON_CAN_RAPID)
-					{
-						thisInput.name = Utility::VAPrintD("%s.esinput.%s.%s_rapid", MDFNSystems[i]->shortname, thisDevice->ShortName, inputs[j].Data->SettingName);
-						aSettings.push_back(thisInput);
-					}
-				}
-			}
-		}
+		EnumerateInputs(MDFNSystems[i], &generator);
 	}
 }
 
@@ -272,61 +309,6 @@ MDFNSetting_EnumList*			InputHandler::BuildPortEnum				(const InputPortInfoStruc
 	memset(&results[aPort.NumTypes], 0, sizeof(MDFNSetting_EnumList));
 
 	return results;
-}
-
-
-void							InputHandler::GetGamepad				(const InputInfoStruct* aInfo, const char* aName, std::vector<InputInfo>& aInputs)
-{
-	const InputDeviceInputInfoStruct* inputinfo = 0;
-	uint32_t buttoncount = 0;
-
-	//Search the info for an entry with type aName and get some details
-	for(int i = 0; i != aInfo->Types[0].NumTypes; i ++)
-	{
-		if(strcmp(aInfo->Types[0].DeviceInfo[i].ShortName, aName) == 0)
-		{
-			buttoncount = aInfo->Types[0].DeviceInfo[i].NumInputs;
-			inputinfo = aInfo->Types[0].DeviceInfo[i].IDII;
-		}
-	}
-
-	//Clear the input vector
-	aInputs.clear();
-
-	//If we found a controller, get its details
-	if(inputinfo)
-	{
-		int byte = 0;
-		int bit = 0;
-		int found = 0;
-
-		//Get every button
-		for(int j = 0; j != buttoncount; j ++)
-		{
-			InputInfo ii;
-			memset(&ii, 0, sizeof(ii));
-
-			//Only support buttons and rapid buttons
-
-			//TODO: Support other types of inputs
-			if(inputinfo[j].Type == IDIT_BUTTON || inputinfo[j].Type == IDIT_BUTTON_CAN_RAPID)
-			{
-				//Mednafen has the most convoluted input scheme. 
-				ii.BitOffset = byte * 8 + bit;
-				if(++bit == 8)
-				{
-					bit = 0;
-					byte ++;
-				}
-			}
-
-			ii.Index = j;
-			ii.Data = &inputinfo[j];
-			aInputs.push_back(ii);
-		}
-
-		std::sort(aInputs.begin(), aInputs.end(), InputSortC);
-	}
 }
 
 int								InputHandler::GetButton					(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
