@@ -1,5 +1,15 @@
 #pragma once
 
+class												InputEnumerator
+{
+	public:
+		virtual void								System							(const MDFNGI* aDescription) = 0;
+		virtual bool								Port							(const InputPortInfoStruct* aDescription) = 0;
+		virtual bool								Device							(const InputDeviceInfoStruct* aDescription) = 0;
+		virtual void								Button							(const InputDeviceInputInfoStruct* aDescription) = 0;
+		virtual void								Finish							() {};
+};
+
 class												InputHandler
 {
 	typedef SummerfaceItemUser<std::string>			InputItem;
@@ -9,22 +19,22 @@ class												InputHandler
 													InputHandler					(MDFNGI* aGameInfo);
 		virtual										~InputHandler					() {};
 								
+		static void									EnumerateInputs					(const MDFNGI* aSystem, InputEnumerator* aEnumerator);
+
 		void										Process							();
 		
 		void										Configure						();
 		void										ReadSettings					();
+
 		static void									GenerateSettings				(std::vector<MDFNSetting>& aSettings);
 
 		//Doc Note: delete[] the result, not free!
 		static MDFNSetting_EnumList*				BuildPortEnum					(const InputPortInfoStruct& aPort);
+		static int									GetButton						(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton);	//For SummerfaceStaticInputConduit
 
-	public: //Inlines
-		//TODO: FIXME: These will crash if given bad values
-		uint32_t									GetPadCount						() const {return GameInfo->InputInfo->InputPorts;}
-		uint32_t									GetButtonCount					(uint32_t aPad) const {return Inputs.size();}
-		bool										GetButtonState					(uint32_t aPad, uint32_t aButton) const {return ControllerBits[aPad][Inputs[aButton].BitOffset / 8] & (1 << (Inputs[aButton].BitOffset % 8));}
-		const char*									GetButtonName					(uint32_t aPad, uint32_t aButton) const {return Inputs[aButton].Data->SettingName;}
+		uint8_t*									GetRawBits						(uint32_t aPort) {assert(aPort < 16); return ControllerBits[aPort];}
 
+	public:
 		struct										InputInfo
 		{
 			uint32_t								BitOffset;
@@ -34,19 +44,12 @@ class												InputHandler
 			const InputDeviceInputInfoStruct*		Data;
 		};
 
-	protected:
-		static void									GetGamepad						(const InputInfoStruct* aInfo, const char* aName, std::vector<InputInfo>& aInputs);
-
-	public:
-		static int									GetButton						(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton);	//For SummerfaceStaticInputConduit
-
-	protected:
+	private:
 		MDFNGI*										GameInfo;
-
-		std::string									PadType;
-		uint8_t										ControllerBits[16][256];
-		std::vector<InputInfo>						Inputs;
 		uint32_t									RapidCount;
+
+		std::vector<InputInfo>						Inputs;
+		uint8_t										ControllerBits[16][256];
 };
 
 

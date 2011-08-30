@@ -5,7 +5,7 @@
 
 #include "src/utility/Files/FileSelect.h"
 
-static bool						CompareItems									(SettingItem* a, SettingItem* b)
+/*static bool						CompareItems									(SettingItem* a, SettingItem* b)
 {
 	//
 	if(a->GetGroup() != b->GetGroup())
@@ -40,7 +40,7 @@ static bool						CompareItems									(SettingItem* a, SettingItem* b)
 
 	//Standard items at the bottom
 	return a->GetText() < b->GetText();
-}
+}*/
 
 std::string						SettingItem::GetText							()
 {
@@ -65,9 +65,6 @@ std::string						SettingItem::GetText							()
 	{
 		List.AddItem(new SettingItem(aSettings[i], TranslateGroup(*aSettings[i], aSystemName)));
 	}
-
-	//Sort the setting list
-	List.Sort(CompareItems);
 
 	//Setup interface
 	Interface.SetInputWait(false);
