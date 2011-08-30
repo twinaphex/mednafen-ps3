@@ -165,7 +165,7 @@ MDFNGI	NestInfo =
 
 extern "C" DLL_PUBLIC	uint32_t		VERSION_FUNC()
 {
-	return 0x916;
+	return 0x918;
 //	return MEDNAFEN_VERSION_NUMERIC;
 }
 
