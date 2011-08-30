@@ -3,7 +3,6 @@
 
 class MDFN_Surface;
 class Texture;
-class InputHandler;
 class Filter;
 class TextFileViewer;
 
@@ -87,7 +86,6 @@ class	MednafenEmu
 		static bool						SuspendDraw;		///<Used to disable the DummyFrame function during the save state menu.
 
 		static MDFNGI*					GameInfo;			///<Mednafen structure describing the loaded emulator module.
-		static InputHandler*			Inputs;				///<The InputHandler object that translates button presses for the mednafen core.
 		static FastCounter				Counter;			///<A FastCounter object used to handle fast forward and FPS counting.
 		static EmuRealSyncher			Syncher;			///<A structure used to sync emulator time with real time. (Used during netplay only).
 	

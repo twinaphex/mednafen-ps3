@@ -159,12 +159,11 @@ bool							SettingGroupMenu::HandleButton					(uint32_t aButton, const MDFNCS& a
 {
 	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
 	{
-		uint32_t buttonID;
-		Summerface sface("InputWindow", new SummerfaceLabel(Area(10, 30, 80, 10), "Press New Button"));
-		sface.AttachConduit(new SummerfaceStaticConduit(InputHandler::GetButton, &buttonID));
+		SummerfaceButton buttonGetter(Area(10, 30, 80, 10), aSetting.desc->description);
+		Summerface sface("InputWindow", &buttonGetter, false);
 		sface.SetInputWait(false);
 		sface.Do();
-		MDFNI_SetSettingUI(aSetting.name, buttonID);
+		MDFNI_SetSettingUI(aSetting.name, buttonGetter.GetButton());
 
 		MednafenEmu::ReadSettings();
 

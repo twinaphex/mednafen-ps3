@@ -194,7 +194,7 @@ bool						MednafenEmu::LoadGame			(const char* aFileName, void* aData, int aSize
 		}
 
 		//HACK: Put this before IsLoaded = true to prevent crash on PS3
-		Inputs = new InputHandler(GameInfo);
+		InputHandler::SetGameInfo(GameInfo);
 
 		//Reset states
 		MDFND_NetworkClose();
@@ -262,7 +262,6 @@ void						MednafenEmu::CloseGame			()
 		//Clean up
 		MDFND_Rumble(0, 0);
 	
-		delete Inputs; Inputs = 0;
 		delete Buffer; Buffer = 0;
 		delete Surface; Surface = 0;
 		delete TextFile; TextFile = 0;
@@ -282,7 +281,7 @@ bool						MednafenEmu::Frame				()
 	MDFNI_EnableStateRewind(RewindSetting);
 
 	//Pump the game's inputs
-	Inputs->Process();
+	InputHandler::Process();
 
 	//Sync time for netplay
 	if(NetplayOn)
@@ -378,7 +377,7 @@ void						MednafenEmu::Sync				(const EmulateSpecStruct* aSpec, bool aInputs)
 	//Input if needed
 	if(aInputs)
 	{
-		Inputs->Process();
+		InputHandler::Process();
 	}
 }
 
@@ -491,7 +490,7 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	if(0 == strcmp(command.c_str(), "DoLoadState"))			MDFNI_LoadState(0, 0);
 	if(0 == strcmp(command.c_str(), "DoSaveStateMenu"))		{SuspendDraw = true; StateMenu* menu = new StateMenu(false); menu->Do(); delete menu; SuspendDraw = false;}
 	if(0 == strcmp(command.c_str(), "DoLoadStateMenu"))		{SuspendDraw = true; StateMenu* menu = new StateMenu(true);  menu->Do(); delete menu; SuspendDraw = false;}
-	if(0 == strcmp(command.c_str(), "DoInputConfig"))		Inputs->Configure();
+	if(0 == strcmp(command.c_str(), "DoInputConfig"))		InputHandler::Configure();
 	if(0 == strcmp(command.c_str(), "DoExit"))				Exit();
 
 	if(0 == strcmp(command.c_str(), "DoTextFile"))
@@ -573,7 +572,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 
 	if(IsGameLoaded())
 	{
-		Inputs->ReadSettings();
+		InputHandler::ReadSettings();
 
 		RewindSetting = MDFN_GetSettingB(SETTINGNAME("speed.rewind"));;
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
@@ -669,7 +668,6 @@ MDFN_Surface*				MednafenEmu::Surface ;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;
-InputHandler*				MednafenEmu::Inputs;
 FastCounter					MednafenEmu::Counter;
 EmuRealSyncher				MednafenEmu::Syncher;
 
