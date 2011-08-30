@@ -218,3 +218,29 @@ void							SummerfaceNumber::DecPosition					(uint32_t aPosition)
 	}
 }
 
+//////////////////
+//SummerfaceButton
+//////////////////
+								SummerfaceButton::SummerfaceButton				(const Area& aRegion, const std::string& aButtonName) :
+		SummerfaceLabel(aRegion, "Press button for "),
+		LastButton(0xFFFFFFFF),
+		ButtonID(0xFFFFFFFF)
+	{
+		AppendMessage(aButtonName);
+	}
+
+bool							SummerfaceButton::Input							(uint32_t aButton)
+{
+	//Don't continue until all buttons are released
+	if(ButtonID != 0xFFFFFFFF && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
+	{
+		return false;
+	}
+
+	//Get a button from the input engine and store it
+	ButtonID = ESInput::GetAnyButton(0);
+
+	//Note wheather a button has beed pressed for next call
+	return ButtonID != 0xFFFFFFFF;
+}
+

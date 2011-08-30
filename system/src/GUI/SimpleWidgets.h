@@ -131,4 +131,30 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		bool											Hex;							///<True if the input is in hex.
 };
 
+//////////////////
+//SummerfaceButton
+//////////////////
+class													SummerfaceButton : public SummerfaceLabel
+{
+	public:
+		///Create a new SummerfaceButton.
+		///@param aRegion Screen Area in % for the widget.
+		///@param aButtonName Name of the button being processed.
+														SummerfaceButton				(const Area& aRegion, const std::string& aButtonName);
+
+		///Delete a SummerfaceLabel, does nothing.
+		virtual											~SummerfaceButton				() {}
+
+		///Process input of the widget.
+		///@return True to end processing of the interface, false to continue.
+		virtual bool									Input							(uint32_t aButton);
+
+		///Get the ID of the selected button, or 0xFFFFFFFF if none.
+		///@return The ID of the selected button.
+		virtual uint32_t								GetButton						() {return ButtonID;}
+
+	private:
+		uint32_t										LastButton;						///<Internal state value.
+		uint32_t										ButtonID;						///<The ID of the pressed button.
+};
 

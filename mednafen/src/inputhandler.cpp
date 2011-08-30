@@ -2,6 +2,23 @@
 #include "inputhandler.h"
 #include "SettingGroupMenu.h"
 
+namespace
+{
+	struct										InputInfo
+	{
+		uint32_t								BitOffset;
+		uint32_t								Button;
+		uint32_t								RapidButton;
+		const InputDeviceInputInfoStruct*		Data;
+	};
+
+	const MDFNGI*								GameInfo;
+	uint32_t									RapidCount;
+	std::vector<InputInfo>						Inputs;
+	uint8_t										ControllerBits[16][256];
+}
+
+
 class									InputEnumeratorBase : public InputEnumerator
 {
 	public:
@@ -18,6 +35,7 @@ class									InputEnumeratorBase : public InputEnumerator
 		char							StringBuffer[1024];
 };
 
+//Generate settings for each button to pass to the mednafen core
 class									SettingGenerator : public InputEnumeratorBase
 {
 	public:
@@ -27,8 +45,27 @@ class									SettingGenerator : public InputEnumeratorBase
 		{
 			InputEnumeratorBase::Port(aDescription);
 
+			//Build a list of devices (Never Deleted)
+			MDFNSetting_EnumList* devices = new MDFNSetting_EnumList[PortInfo->NumTypes + 1];
+			MDFNSetting_EnumList* thisDevice = devices;
+			InputDeviceInfoStruct* thatDevice = PortInfo->DeviceInfo;
+
+			for(int i = 0; i != PortInfo->NumTypes; i ++, thisDevice ++, thatDevice ++)
+			{
+				thisDevice->string = thatDevice->ShortName;
+				thisDevice->number = i;
+				thisDevice->description = thatDevice->FullName;
+				thisDevice->description_extra = "";
+			}
+
+			//Terminate device enumeration
+			memset(thisDevice, 0, sizeof(MDFNSetting_EnumList));
+
+			//Get the default plugged device
 			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
-			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port1", GameInfo->shortname), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, InputHandler::BuildPortEnum(*PortInfo)};
+
+			//Stash the setting
+			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port1", GameInfo->shortname), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, devices};
 			Settings.push_back(thisinput);
 
 			return true;
@@ -36,6 +73,7 @@ class									SettingGenerator : public InputEnumeratorBase
 
 		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
 		{
+			//Note that VAPrintD generates strings on the heap that will not be passed to free
 			if(aDescription->SettingName)
 			{
 				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "0"};
@@ -57,6 +95,7 @@ class									SettingGenerator : public InputEnumeratorBase
 
 };
 
+//Configure the input buttons for a given system
 class									ConfigurePrepper : public InputEnumeratorBase
 {
 	public:
@@ -107,10 +146,11 @@ class									ConfigurePrepper : public InputEnumeratorBase
 		std::vector<const MDFNCS*>		Settings;
 };
 
+//Read the settings for processing for the given system
 class									SettingReader : public InputEnumeratorBase
 {
 	public:
-										SettingReader					(InputHandler* aHandler, std::vector<InputHandler::InputInfo>& aInputs) : byte(0), bit(0), found(0), Handler(aHandler), Inputs(aInputs) {}
+										SettingReader					() : bit(0) {}
 
 		virtual bool					Device							(const InputDeviceInfoStruct* aDescription)
 		{
@@ -119,7 +159,7 @@ class									SettingReader : public InputEnumeratorBase
 			const char* type = MDFN_GetSettingS(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port1", GameInfo->shortname)).c_str();
 			if(strcmp(type, DeviceInfo->ShortName) == 0)
 			{
-				MDFNI_SetInput(0, type, Handler->GetRawBits(0), 2);
+				MDFNI_SetInput(0, type, &ControllerBits[0], 2);
 				return true;
 			}
 
@@ -128,67 +168,35 @@ class									SettingReader : public InputEnumeratorBase
 
 		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
 		{
-			InputHandler::InputInfo ii;
-			memset(&ii, 0, sizeof(ii));
-
-			//TODO: Support other types of inputs
 			if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID)
 			{
-				//Mednafen has the most convoluted input scheme. 
-				ii.BitOffset = byte * 8 + bit;
-				if(++bit == 8)
+				InputInfo ii;
+				memset(&ii, 0, sizeof(ii));
+
+				ii.BitOffset = bit ++;
+				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
 				{
-					bit = 0;
-					byte ++;
+					ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s_rapid", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
 				}
-			}
 
-			ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
-			if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
-			{
-				ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.%s.%s_rapid", GameInfo->shortname, DeviceInfo->ShortName, aDescription->SettingName));
+				ii.Data = aDescription;
+				Inputs.push_back(ii);
 			}
-
-			ii.Index = found ++;
-			ii.Data = aDescription;
-			Inputs.push_back(ii);
 		}
 
 
 	private:
-		InputHandler*									Handler;
-		std::vector<InputHandler::InputInfo>&			Inputs;
-
+		InputHandler*					Handler;
 
 		std::vector<const MDFNCS*>		Settings;
 
-		int								byte;
 		int								bit;
-		int								found;
 };
 
-namespace
+void							InputHandler::SetGameInfo						(const MDFNGI* aSystem)
 {
-	bool								InputSortC								(InputHandler::InputInfo a, InputHandler::InputInfo b)
-	{
-		//Sort first by the ConfigOrder hint
-		if(a.Data->ConfigOrder != b.Data->ConfigOrder)
-		{
-			return a.Data->ConfigOrder < b.Data->ConfigOrder;
-		}
-		//If equal use the overall index
-		else
-		{
-			return a.Index < b.Index;
-		}
-	}
-}
-
-								InputHandler::InputHandler				(MDFNGI* aGameInfo) :
-	GameInfo(aGameInfo),
-	RapidCount(0)
-{
-	memset(ControllerBits, 0, sizeof(ControllerBits));
+	GameInfo = aSystem;
 
 	ReadSettings();
 
@@ -204,7 +212,7 @@ namespace
 	Configure();
 }
 
-void							InputHandler::EnumerateInputs			(const MDFNGI* aSystem, InputEnumerator* aEnumerator)
+void							InputHandler::EnumerateInputs					(const MDFNGI* aSystem, InputEnumerator* aEnumerator)
 {
 	assert(aSystem && aEnumerator);
 
@@ -232,7 +240,7 @@ void							InputHandler::EnumerateInputs			(const MDFNGI* aSystem, InputEnumerat
 	aEnumerator->Finish();
 }
 
-void							InputHandler::Process					()
+void							InputHandler::Process							()
 {
 	//Update platform dependent input
 	ESInput::Refresh();
@@ -269,22 +277,22 @@ void							InputHandler::Process					()
 }
 
 
-void							InputHandler::Configure				()
+void							InputHandler::Configure							()
 {
 	ConfigurePrepper buttonList;
 	EnumerateInputs(GameInfo, &buttonList);
 	ReadSettings();
 }
 
-void							InputHandler::ReadSettings			()
+void							InputHandler::ReadSettings						()
 {
 	Inputs.clear();
 
-	SettingReader reader(this, Inputs);
+	SettingReader reader;
 	EnumerateInputs(GameInfo, &reader);
 }
 
-void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings)
+void							InputHandler::GenerateSettings					(std::vector<MDFNSetting>& aSettings)
 {
 	SettingGenerator generator(aSettings);
 
@@ -292,46 +300,6 @@ void							InputHandler::GenerateSettings			(std::vector<MDFNSetting>& aSettings
 	{
 		EnumerateInputs(MDFNSystems[i], &generator);
 	}
-}
-
-MDFNSetting_EnumList*			InputHandler::BuildPortEnum				(const InputPortInfoStruct& aPort)
-{
-	MDFNSetting_EnumList* results = new MDFNSetting_EnumList[aPort.NumTypes + 1];
-
-	for(int i = 0; i != aPort.NumTypes; i ++)
-	{
-		results[i].string = aPort.DeviceInfo[i].ShortName;
-		results[i].number = i;
-		results[i].description = aPort.DeviceInfo[i].FullName;
-		results[i].description_extra = "";
-	}
-
-	memset(&results[aPort.NumTypes], 0, sizeof(MDFNSetting_EnumList));
-
-	return results;
-}
-
-int								InputHandler::GetButton					(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
-{
-	//Conduit for config interface
-	static bool gotbutton = true;
-
-	//Don't continue until all buttons are released
-	if(gotbutton && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
-	{
-		return 0;
-	}
-
-	//Note that no buttons are pressed
-	gotbutton = false;
-
-	//Get a button from the input engine and store it at aUserData
-	uint32_t* button = (uint32_t*)aUserData;
-	button[0] = ESInput::GetAnyButton(0);
-
-	//Note wheather a button has beed pressed for next call
-	gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
-	return gotbutton ? -1 : 0;
 }
 
 
