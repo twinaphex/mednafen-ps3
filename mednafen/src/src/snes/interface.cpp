@@ -19,7 +19,9 @@
 #include "../md5.h"
 #include "../general.h"
 #include <../base.hpp>
+#include "../mempatcher.h"
 #include "Fir_Resampler.h"
+#include <vector>
 
 static Fir_Resampler<24> resampler;
 
@@ -52,7 +54,57 @@ static int16 MouseXLatch[2];
 static int16 MouseYLatch[2];
 static uint8 MouseBLatch[2];
 
+static uint8 *CustomColorMap = NULL;
 static uint32 ColorMap[32768];
+
+static bool LoadCPalette(const char *syspalname, uint8 **ptr, uint32 num_entries)
+{
+ std::string colormap_fn = MDFN_MakeFName(MDFNMKF_PALETTE, 0, syspalname).c_str();
+ FILE *fp;
+
+ MDFN_printf(_("Loading custom palette from \"%s\"...\n"),  colormap_fn.c_str());
+ MDFN_indent(1);
+
+ if(!(fp = fopen(colormap_fn.c_str(), "rb")))
+ {
+  ErrnoHolder ene(errno);
+
+  MDFN_printf(_("Error opening file: %s\n"), ene.StrError());
+
+  MDFN_indent(-1);
+
+  return(ene.Errno() == ENOENT);        // Return fatal error if it's an error other than the file not being found.
+ }
+
+ if(!(*ptr = (uint8 *)MDFN_malloc(num_entries * 3, _("custom color map"))))
+ {
+  MDFN_indent(-1);
+
+  fclose(fp);
+  return(false);
+ }
+
+ if(fread(*ptr, 1, num_entries * 3, fp) != (num_entries * 3))
+ {
+  ErrnoHolder ene(errno);
+
+  MDFN_printf(_("Error reading file: %s\n"), feof(fp) ? "EOF" : ene.StrError());
+  MDFN_indent(-1);
+
+  MDFN_free(*ptr);
+  *ptr = NULL;
+  fclose(fp);
+
+  return(false);
+ }
+
+ fclose(fp);
+
+ MDFN_indent(-1);
+
+ return(true);
+}
+
 
 static void BuildColorMap(MDFN_PixelFormat &format)
 {
@@ -63,6 +115,13 @@ static void BuildColorMap(MDFN_PixelFormat &format)
   r = (x & (0x1F <<  0)) << 3;
   g = (x & (0x1F <<  5)) >> (5 - 3);
   b = (x & (0x1F << 10)) >> (5 * 2 - 3);
+
+  if(CustomColorMap)
+  {
+   r = CustomColorMap[x * 3 + 0];
+   g = CustomColorMap[x * 3 + 1];
+   b = CustomColorMap[x * 3 + 2];
+  }
 
   ColorMap[x] = format.MakeColor(r, g, b);
  }
@@ -395,6 +454,8 @@ static int Load(const char *name, MDFNFILE *fp)
 
  SNES::system.power();
 
+ PAL = (SNES::system.region() == SNES::System::PAL);
+
  MDFNGameInfo->fps = PAL ? 838977920 : 1008307711;
  MDFNGameInfo->MasterClock = MDFN_MASTERCLOCK_FIXED(32040.40);	//MDFN_MASTERCLOCK_FIXED(21477272);	//PAL ? PAL_CPU : NTSC_CPU);
 
@@ -413,11 +474,24 @@ static int Load(const char *name, MDFNFILE *fp)
   return(0);	// FIXME: Cleanup(but don't try to save SRAM, duh :b)
 
  //printf(" %d %d\n", FSettings.SndRate, resampler.max_write());
+
+ MDFNMP_Init(1024, (1 << 24) / 1024);
+
+ MDFNMP_AddRAM(131072, 0x7E << 16, SNES::memory::wram.data());
+
+ if(!LoadCPalette(NULL, &CustomColorMap, 32768))
+  return(0);	// FIXME: cleanup
+
  return(1);
 }
 
 static void CloseGame(void)
 {
+ if(CustomColorMap)
+ {
+  MDFN_free(CustomColorMap);
+  CustomColorMap = NULL;
+ }
  SaveLoadMemory(false);
 }
 
@@ -438,6 +512,8 @@ static void Emulate(EmulateSpecStruct *espec)
   printf("%f, %f\n", ratio, resampler.ratio());
   SoundLastRate = espec->SoundRate;
  }
+
+ MDFNMP_ApplyPeriodicCheats();
 
  SoundOn = espec->SoundBuf ? true : false;
 

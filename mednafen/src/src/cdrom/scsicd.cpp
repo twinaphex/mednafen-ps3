@@ -178,7 +178,7 @@ scsicd_t cd;
 scsicd_bus_t cd_bus;
 static cdda_t cdda;
 
-static SimpleFIFO *din = NULL;
+static SimpleFIFO<uint8> *din = NULL;
 
 static CD_TOC toc;
 
@@ -1897,7 +1897,7 @@ static void DoREADBase(uint32 sa, uint32 sc)
  if(SCSILog)
  {
   int Track = CDIF_FindTrackByLBA(sa);
-  uint32 Offset = sa - CDIF_GetTrackStartPositionLBA(Track);
+  uint32 Offset = sa - toc.tracks[Track].lba; //CDIF_GetTrackStartPositionLBA(Track);
   SCSILog("SCSI", "Read: start=0x%08x(track=%d, offs=0x%08x), cnt=0x%08x", sa, Track, Offset, sc);
  }
 
@@ -2250,8 +2250,8 @@ static void DoNEC_SCAN(const uint8 *cdb)
    sector_tmp = msf2lba(BCD_TO_INT(cdb[2]), BCD_TO_INT(cdb[3]), BCD_TO_INT(cdb[4]));
    break;
 
-  case 0x80:
-   sector_tmp = CDIF_GetTrackStartPositionLBA(BCD_TO_INT(cdb[2]));
+  case 0x80:	// FIXME: error on invalid track number???
+   sector_tmp = toc.tracks[BCD_TO_INT(cdb[2])].lba; //CDIF_GetTrackStartPositionLBA(BCD_TO_INT(cdb[2]));
    break;
  }
 
@@ -2996,9 +2996,9 @@ void SCSICD_Init(int type, int cdda_time_div, Blip_Buffer *leftbuf, Blip_Buffer 
  SCSILog = NULL;
 
  if(type == SCSICD_PCFX)
-  din = new SimpleFIFO(65536);	//4096);
+  din = new SimpleFIFO<uint8>(65536);	//4096);
  else
-  din = new SimpleFIFO(2048); //8192); //1024); /2048);
+  din = new SimpleFIFO<uint8>(2048); //8192); //1024); /2048);
 
  WhichSystem = type;
  cdda.CDDATimeDiv = cdda_time_div;
@@ -3074,7 +3074,7 @@ int SCSICD_StateAction(StateMem * sm, int load, int data_only, const char *sname
   SFVARN(cd.command_size_left, "command_size_left"),
 
   // Don't save the FIFO's write position, it will be reconstructed from read_pos and in_count
-  SFARRAYN(din->ptr, din->size, "din_fifo"),
+  SFARRAYN(&din->data[0], din->data.size(), "din_fifo"),
   SFVARN(din->read_pos, "din_read_pos"),
   SFVARN(din->in_count, "din_in_count"),
   SFVARN(cd.data_transfer_done, "data_transfer_done"),

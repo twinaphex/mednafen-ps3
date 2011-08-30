@@ -2,7 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2004 Ki
- *  Copyright (C) 2007 Mednafen Team
+ *  Copyright (C) 2007-2011 Mednafen Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,6 @@
  */
 /*
  Stuff to test:
-	Does having D4 of $180D set during ADPCM playback suppress the setting of the halfpoint flag?
-
 	ADPCM playback rate relative to main PC Engine master clock rate.  (Might vary significantly from system-to-system
 	due to imperfections in the separate clocks)
 
@@ -45,6 +43,37 @@
 	OTHER STUFF.
 */
 
+/*
+ Notes:
+	Reading from $180A decrements length.  Appears to saturate at 0x0000.
+		Side effects include at least: half/end IRQ bit setting.  Oddly enough, when the end flags are set via read from $180A, the intermediate
+		flag appears to be cleared.  This wouldn't appear to occur in normal ADPCM playback, ie both end and intermediate flags are 1 by the end
+		of playback(though if D6 of $180D is cleared, the intermediate flag is apparently cleared on the next sample clock, either intentionally or due to
+		some kind of length underflow I don't know; but the mode of operation of having D6 cleared is buggy, and I doubt games rely on any of its
+		weirder nuances).
+
+	Writing to $180A increments length.  Appears to saturate at 0xFFFF.
+		Side effects include at least: half IRQ bit setting/clearing.
+
+	For $180A port read/write accesses at least, half_point = (bool)(length < 32768), evaluated before length is decremented or incremented.
+
+	ADPCM RAM reads due to playback apparently aren't reflected in $180A as ADPCM read busy state.  Unknown if it shares the same
+	buffer as $180A port reads though.
+
+	Having D4 of $180D set clears the end flags(and they will not be set as long as D4 is set).  It doesn't clear the intermediate/half flag though.
+	Short of resetting the ADPCM hardware by setting D7 of $180D, this was the only way I could find to clear the end flags via software.
+
+	Having D4 of $180D set does NOT prevent the half flag from being set(at least not during reads/writes to $180A).
+
+	ADPCM playback doesn't seem to start if the end flags are set and 0x60 is written to $180D, but starts(at least as can be determined from a program
+	monitoring the status bits) if 0x20 is written(IE D6 is clear).  More investigation is needed(unlikely to affect games though).
+
+	ADPCM playback starting is likely delayed(or at certain intervals) compared to writes to $180D.  Investigation is needed, but emulating a non-constant
+	granularity-related delay may be undesirable due to the potential of triggering race conditions in game code.
+
+	I say "end flags", but I'm assuming there's effectively one end flag, that's present in both $1803 and $180C reads(though in different positions).
+*/
+
 
 #include "../mednafen.h"
 #include "../cdrom/cdromif.h"
@@ -66,7 +95,7 @@ static bool	bBRAMEnabled;
 static uint8	_Port[15];
 static uint8 	ACKStatus;
 
-static SimpleFIFO SubChannelFIFO(16);
+static SimpleFIFO<uint8> SubChannelFIFO(16);
 
 static Blip_Buffer *sbuf[2];
 static int16 RawPCMVolumeCache[2];
@@ -76,11 +105,8 @@ static int32 ClearACKDelay;
 static int32 lastts;
 static int32 scsicd_ne = 0;
 
-
 // ADPCM variables and whatnot
-#define ADPCM_DEBUG(x, ...) { /* printf(x, ## __VA_ARGS__); */ }
-
-#define ADPCM_MAXVOLUME                 1024
+#define ADPCM_DEBUG(x, ...) {  /*printf("[Half=%d, End=%d, Playing=%d] "x, ADPCM.HalfReached, ADPCM.EndReached, ADPCM.Playing, ## __VA_ARGS__);*/  }
 
 typedef Blip_Synth<blip_good_quality, 4096> ADSynth;
 static ADSynth ADPCMSynth;
@@ -98,10 +124,12 @@ typedef struct
  bool HalfReached;
  bool EndReached;
  bool Playing;
+
  uint8 LastCmd;
  uint32 SampleFreq;
  uint32 LPF_SampleFreq;
 
+ uint8 PlayBuffer;
  uint8 ReadBuffer;
  int32 ReadPending;
  int32 WritePending;
@@ -574,10 +602,11 @@ uint8 PCECD_Read(uint32 timestamp, uint32 A, int32 &next_event, const bool PeekM
     break;
 
    case 0xa: 
-    ADPCM_DEBUG("ReadBuffer\n");
-
     if(!PeekMode)
+    {
+     ADPCM_DEBUG("ReadBuffer\n");
      ADPCM.ReadPending = 19 * 3; //24 * 3;
+    }
 
     ret = ADPCM.ReadBuffer;
 
@@ -776,17 +805,14 @@ int32 PCECD_Write(uint32 timestamp, uint32 physAddr, uint8 data)
 		         break;
 		        }
 
-			if(!(data & 0x20))
-			{
-			 ADPCM.HalfReached = false;
-			 ADPCM.EndReached = false;
+			if(ADPCM.Playing && !(data & 0x20))
 			 ADPCM.Playing = false;
-			}
 
-			if(!(ADPCM.LastCmd & 0x20) && (data & 0x20))
+			if(!ADPCM.Playing && (data & 0x20))
 			{
 			 ADPCM.bigdiv = ADPCM.bigdivacc * (16 - ADPCM.SampleFreq);
 			 ADPCM.Playing = true;
+			 ADPCM.HalfReached = false;	// Not sure about this.
 			 ADPCM.PlayNibble = 0;
                          MSM5205.SetSample(0x800);
                          MSM5205.SetSSI(0);
@@ -797,6 +823,7 @@ int32 PCECD_Write(uint32 timestamp, uint32 physAddr, uint8 data)
 		        {
 		         ADPCM_DEBUG("Set length: %04x\n", ADPCM.Addr);
 		         ADPCM.LengthCount = ADPCM.Addr;
+			 ADPCM.EndReached = false;
 		        }
 
 		        // D2 and D3 control read address
@@ -872,7 +899,7 @@ static INLINE void ADPCM_PB_Run(int32 basetime, int32 run_time)
  {
   ADPCM.bigdiv += ADPCM.bigdivacc * (16 - ADPCM.SampleFreq);
 
-  if(ADPCM.Playing)
+  if(ADPCM.Playing && !ADPCM.PlayNibble)	// Do playback sample buffer fetch.
   {
    ADPCM.HalfReached = (ADPCM.LengthCount < 32768);
    if(!ADPCM.LengthCount && !(ADPCM.LastCmd & 0x10))
@@ -881,9 +908,16 @@ static INLINE void ADPCM_PB_Run(int32 basetime, int32 run_time)
      ADPCM.HalfReached = false;
 
     ADPCM.EndReached = true;
+
     if(ADPCM.LastCmd & 0x40)
      ADPCM.Playing = false;
    }
+
+   ADPCM.PlayBuffer = ADPCM.RAM[ADPCM.ReadAddr];
+   ADPCM.ReadAddr = (ADPCM.ReadAddr + 1) & 0xFFFF;
+
+   if(ADPCM.LengthCount && !(ADPCM.LastCmd & 0x10))
+    ADPCM.LengthCount--;
   }
 
   if(ADPCM.Playing)
@@ -891,17 +925,10 @@ static INLINE void ADPCM_PB_Run(int32 basetime, int32 run_time)
    int32 pcm;
    uint8 nibble;
 
-   nibble = (ADPCM.RAM[ADPCM.ReadAddr] >> (ADPCM.PlayNibble ^ 4)) & 0x0F;
+   nibble = (ADPCM.PlayBuffer >> (ADPCM.PlayNibble ^ 4)) & 0x0F;
    pcm = (MSM5205.Decode(nibble) >> 2) - 512;
 
    ADPCM.PlayNibble ^= 4;
-   if(!ADPCM.PlayNibble)
-   {
-    ADPCM.ReadAddr = (ADPCM.ReadAddr + 1) & 0xFFFF;
-
-    if(ADPCM.LengthCount && !(ADPCM.LastCmd & 0x10))
-     ADPCM.LengthCount--;
-   }
 
    pcm = (pcm * ADPCMFadeVolume) >> 8;
    uint32 synthtime = ((basetime + (ADPCM.bigdiv >> 16))) / (3 * OC_Multiplier);
@@ -926,7 +953,8 @@ static INLINE void ADPCM_Run(const int32 clocks, const int32 timestamp)
   ADPCM.WritePending -= clocks;
   if(ADPCM.WritePending <= 0)
   {
-   if(ADPCM.Playing && !ADPCM.EndReached && !(ADPCM.LastCmd & 0x10))
+   ADPCM.HalfReached = (ADPCM.LengthCount < 32768);
+   if(!(ADPCM.LastCmd & 0x10) && ADPCM.LengthCount < 0xFFFF)
     ADPCM.LengthCount++;
 
    ADPCM.RAM[ADPCM.WriteAddr++] = ADPCM.WritePendingValue;
@@ -957,6 +985,21 @@ static INLINE void ADPCM_Run(const int32 clocks, const int32 timestamp)
    ADPCM.ReadBuffer = ADPCM.RAM[ADPCM.ReadAddr];
    ADPCM.ReadAddr = (ADPCM.ReadAddr + 1) & 0xFFFF;
    ADPCM.ReadPending = 0;
+
+   ADPCM.HalfReached = (ADPCM.LengthCount < 32768);
+   if(!(ADPCM.LastCmd & 0x10))
+   {
+    if(ADPCM.LengthCount)
+     ADPCM.LengthCount--;
+    else
+    {
+     ADPCM.EndReached = true;
+     ADPCM.HalfReached = false;
+
+     if(ADPCM.LastCmd & 0x40)
+      ADPCM.Playing = false;
+    }
+   }
   }
  }
 
@@ -1093,7 +1136,7 @@ int PCECD_StateAction(StateMem *sm, int load, int data_only)
 	 SFVAR(Fader.CountValue),
 	 SFVAR(Fader.Clocked),
 
-	 SFARRAY(SubChannelFIFO.ptr, SubChannelFIFO.size),
+	 SFARRAY(&SubChannelFIFO.data[0], SubChannelFIFO.data.size()),
 	 SFVAR(SubChannelFIFO.read_pos),
 	 SFVAR(SubChannelFIFO.write_pos),
 	 SFVAR(SubChannelFIFO.in_count),

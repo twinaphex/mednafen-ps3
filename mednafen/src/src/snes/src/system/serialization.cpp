@@ -1,5 +1,3 @@
-//ROBO: Comment out all references to supergameboy
-
 #ifdef SYSTEM_CPP
 
 serializer System::serialize() {
@@ -62,7 +60,7 @@ void System::serialize_all(serializer &s) {
   ppu.serialize(s);
   dsp.serialize(s);
 
-//  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.serialize(s);
+  if(cartridge.mode() == Cartridge::ModeSuperGameBoy) supergameboy.serialize(s);
 
   if(cartridge.has_superfx()) superfx.serialize(s);
   if(cartridge.has_sa1())     sa1.serialize(s);

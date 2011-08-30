@@ -22,6 +22,16 @@
 
 #include "asm_arm.h"
 #include <stdlib.h> /* for abs() */
+
+#ifdef MDFNPS3 //Byte ordering...
+# ifdef MSB_FIRST
+#  define BIG_ENDIAN 1010
+#  define BYTE_ORDER BIG_ENDIAN
+# else
+#  define LITTLE_ENDIAN 101
+#  define BYTE_ORDER LITTLE_ENDIAN
+# endif
+#endif
   
 #ifndef _V_WIDE_MATH
 #define _V_WIDE_MATH
@@ -33,9 +43,7 @@
 #include <sys/types.h>
 #endif
 
-//ROBO: Handle byte ordering
-//#if BYTE_ORDER==LITTLE_ENDIAN
-#ifdef LSB_FIRST
+#if BYTE_ORDER==LITTLE_ENDIAN
 union magic {
   struct {
     ogg_int32_t lo;
@@ -45,9 +53,7 @@ union magic {
 };
 #endif 
 
-//ROBO: Handle byte ordering
-//#if BYTE_ORDER==BIG_ENDIAN
-#ifdef MSB_FIRST
+#if BYTE_ORDER==BIG_ENDIAN
 union magic {
   struct {
     ogg_int32_t hi;

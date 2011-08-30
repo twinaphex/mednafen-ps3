@@ -28,6 +28,12 @@
 #include <math.h>
 #include <trio/trio.h>
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: PS3's math.h is stupid
+static inline double nClog(double v) {return log(v);};
+#define log nClog
+#endif
+
+
 #include "netplay.h"
 #include "netplay-driver.h"
 #include "general.h"
@@ -609,9 +615,7 @@ void NetplayUpdate(const char **PortDNames, void *PortData[], uint32 PortLen[], 
 
 			 if(neobuf[1]) // Player is merged?
 			 {
-//ROBO: Sony SDK can't do log either
-//			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log(neobuf[1]) / log(2));
-			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log((float)neobuf[1]) / log((float)2));
+			  mergedstr[strlen(mergedstr) - 1] = '1' + (int)rint(log(neobuf[1]) / log(2));
 			 }
 			 else
 			  mergedstr[0] = 0;

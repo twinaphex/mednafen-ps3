@@ -22,14 +22,14 @@
 #include "video-common.h"
 #include <math.h>
 
-#define INT(x) ((int)(x))
-
-//ROBO: SoDK
-#ifndef MDCELL
-#define FRACT(x) ((x) - floor(x))
-#else
-#define FRACT(x) (((float)x) - floor((float)x))
+#ifdef __CELLOS_LV2__ //MDFNPS3: PS3's math.h is stupid
+static inline double nCfloor(double v) {return floor(v);};
+#define floor nCfloor
 #endif
+
+
+#define INT(x) ((int)(x))
+#define FRACT(x) ((x) - floor(x))
 
 #define READ_PIXEL(src_x, src_y, components)	\
 {	\

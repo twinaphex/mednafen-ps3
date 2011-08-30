@@ -20,6 +20,7 @@
 #include "pce_psg/pce_psg.h"
 #include "input.h"
 #include "huc.h"
+#include "subhw.h"
 #include "../cdrom/pcecd.h"
 #include "hes.h"
 #include "debug.h"
@@ -32,7 +33,7 @@
 #include <zlib.h>
 #include <errno.h>
 
-#define PCE_DEBUG(x, ...) { /* printf(x, ## __VA_ARGS__); */ }
+#define PCE_DEBUG(x, ...) {  /* printf(x, ## __VA_ARGS__); */ }
 
 namespace MDFN_IEN_PCE
 {
@@ -179,6 +180,7 @@ static DECLFR(IORead)
 
   case 0x1C00: if(IsHES)
 		return(ReadIBP(A)); 
+	       return(SubHW_ReadIOPage(A));
 	       break; // Expansion
  }
 
@@ -241,13 +243,14 @@ static DECLFW(IOWrite)
 
 		vce->SetCDEvent(next_cd_event);
 	       }
-		
+
 	       break;
 
-  case 0x1C00:  if(!PCE_InDebug)
-		{
-		 PCE_DEBUG("I/O Unmapped Write: %04x %02x\n", A, V);
-		}
+  case 0x1C00:  //if(!PCE_InDebug)
+		//{
+		// PCE_DEBUG("I/O Unmapped Write: %04x %02x\n", A, V);
+		//}
+		SubHW_WriteIOPage(A, V);
 		break;
  }
 }
@@ -507,7 +510,34 @@ static int LoadCommon(void)
 
  PCEINPUT_Init();
 
+ //
+ //
+ //
+ SubHW_Init();
+ HuCPU->SetReadHandler(0xFE, SubHW_ReadFEPage);
+ HuCPU->SetWriteHandler(0xFE, SubHW_WriteFEPage);
+ //
+ //
+ //
+
  PCE_Power();
+
+ //
+ // REMOVE ME, debugging stuff
+ //
+ #if 0
+ {
+  uint8 er[8] = { 0x47, 0x6E, 0x31, 0x14, 0xB3, 0xEB, 0xEC, 0x2B };
+
+  for(int i = 0; i < 8; i++)
+   SubHW_WriteIOPage(0x1C00, er[i]);
+
+  SubHW_WriteIOPage(0x1FF7, 0x80);
+ }
+ #endif
+ //
+ //
+ //
 
  MDFNGameInfo->LayerNames = IsSGX ? "BG0\0SPR0\0BG1\0SPR1\0" : "Background\0Sprites\0";
  MDFNGameInfo->fps = (uint32)((double)7159090.90909090 / 455 / 263 * 65536 * 256);
@@ -535,6 +565,47 @@ static int LoadCommon(void)
  return(1);
 }
 
+static bool DetectGECD(void)	// Very half-assed detection until(if) we get ISO-9660 reading code.
+{
+ uint8 sector_buffer[2048];
+ CD_TOC toc;
+
+ CDIF_ReadTOC(&toc);
+
+ // Now, test for the Games Express CD games.  The GE BIOS seems to always look at sector 0x10, but only if the first track is a
+ // data track.
+ if(toc.first_track == 1 && (toc.tracks[1].control & 0x4))
+ {
+  if(CDIF_ReadSector(sector_buffer, 0x10, 1) == 0x1)
+  {
+   if(!memcmp((char *)sector_buffer + 0x8, "HACKER CD ROM SYSTEM", 0x14))
+    return(true);
+
+   if(!memcmp((char *)sector_buffer + 0x01, "CD001", 0x5))
+   {
+    if(CDIF_ReadSector(sector_buffer, 0x14, 1) == 0x1)
+    {
+     static const uint32 known_crcs[] =
+     {
+      0xd7b47c06,	// AV Tanjou
+      0x86aec522,	// Bishoujo Jyanshi [...]
+      0xc8d1b5ef,	// CD Bishoujo [...]
+      0x0bdbde64,	// CD Pachisuro [...]
+     };
+     uint32 zecrc = crc32(0, sector_buffer, 2048);
+
+     //printf("%04x\n", zecrc);
+     for(unsigned int i = 0; i < sizeof(known_crcs) / sizeof(uint32); i++)
+      if(known_crcs[i] == zecrc)
+       return(true);
+    }
+   }
+  }
+ }
+
+ return(false);
+}
+
 static bool TestMagicCD(void)
 {
  static const uint8 magic_test[0x20] = { 0x82, 0xB1, 0x82, 0xCC, 0x83, 0x76, 0x83, 0x8D, 0x83, 0x4F, 0x83, 0x89, 0x83, 0x80, 0x82, 0xCC,  
@@ -552,7 +623,8 @@ static bool TestMagicCD(void)
  {
   if(toc.tracks[track].control & 0x4)
   {
-   CDIF_ReadSector(sector_buffer, toc.tracks[track].lba, 1);
+   if(CDIF_ReadSector(sector_buffer, toc.tracks[track].lba, 1) != 0x1)
+    break;
 
    if(!memcmp((char*)sector_buffer, (char *)magic_test, 0x20))
     ret = TRUE;
@@ -576,19 +648,8 @@ static bool TestMagicCD(void)
   }
  }
 
-
- // Now, test for the Games Express CD games.  The GE BIOS seems to always look at sector 0x10, but only if the first track is a
- // data track.
- if(toc.first_track == 1 && (toc.tracks[1].control & 0x4))
- {
-  if(CDIF_ReadSector(sector_buffer, 0x10, 1))
-  {
-   if(!memcmp((char *)sector_buffer + 0x8, "HACKER CD ROM SYSTEM", 0x14))
-   {
-    ret = TRUE;
-   }
-  }
- }
+ if(DetectGECD())
+  ret = true;
 
  return(ret);
 }
@@ -612,7 +673,8 @@ static int LoadCD(void)
 
  LoadCommonPre();
 
- std::string bios_path = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("pce.cdbios").c_str() );
+ const char *bios_sname = DetectGECD() ? "pce.gecdbios" : "pce.cdbios";
+ std::string bios_path = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS(bios_sname).c_str() );
 
  if(!fp.Open(bios_path, KnownBIOSExtensions, _("CD BIOS")))
  {
@@ -716,6 +778,8 @@ static void Emulate(EmulateSpecStruct *espec)
 
   INPUT_FixTS(HuCPU->Timestamp());
 
+  SubHW_EndFrame(HuCPU->Timestamp());
+
   psg->EndFrame(HuCPU->Timestamp() / 3);
 
   //assert(!(HuCPU->Timestamp() % 3));
@@ -788,6 +852,8 @@ static int StateAction(StateMem *sm, int load, int data_only)
  ret &= psg->StateAction(sm, load, data_only);
  ret &= INPUT_StateAction(sm, load, data_only);
  ret &= HuC_StateAction(sm, load, data_only);
+ ret &= SubHW_StateAction(sm, load, data_only);
+
 
  if(load)
  {
@@ -814,6 +880,8 @@ void PCE_Power(void)
   HuC_Power();
 
  PCEINPUT_Power(timestamp);
+
+ SubHW_Power();
 
  if(PCE_IsCD)
  {
@@ -855,6 +923,7 @@ static MDFNSetting PCESettings[] =
 					 gettext_noop("WARNING: Enabling this option may cause undesirable graphics glitching on some games(such as \"Bloody Wolf\")."), MDFNST_BOOL, "0" },
 
   { "pce.cdbios", MDFNSF_EMU_STATE, gettext_noop("Path to the CD BIOS"), NULL, MDFNST_STRING, "syscard3.pce" },
+  { "pce.gecdbios", MDFNSF_EMU_STATE, gettext_noop("Path to the GE CD BIOS"), gettext_noop("Games Express CD Card BIOS (Unlicensed)"), MDFNST_STRING, "gecard.pce" },
 
   { "pce.adpcmlp", MDFNSF_NOFLAGS, gettext_noop("Enable lowpass filter with rolloff dependent on playback-frequency."), 
 	gettext_noop("This makes ADPCM voices sound less \"harsh\", however, the downside is that it will cause many ADPCM sound effects to sound a bit muffled."), MDFNST_BOOL, "0", NULL, NULL, NULL, CDSettingChanged },

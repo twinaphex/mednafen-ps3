@@ -71,14 +71,9 @@ int32 cdrfile_get_num_tracks (const CDRFile *p_cdrfile);
 
 CD_Track_Format_t cdrfile_get_track_format(const CDRFile *p_cdrfile, int32 i_track);
 
-uint32 cdrfile_get_track_sec_count(const CDRFile *p_cdrfile, int32 i_track);
-
-
 int32 cdrfile_get_first_track_num(const CDRFile *p_cdrfile);
 
 int cdrfile_read_raw_sector(CDRFile *p_cdrfile, uint8 *buf, int32 lba);
-
-uint32_t cdrfile_stat_size (const CDRFile *p_cdrfile);
 
 bool cdrfile_check_subq_checksum(uint8 *SubQBuf);
 

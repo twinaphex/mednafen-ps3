@@ -17,8 +17,9 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-//ROBO: Don't have config.h
-//#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <assert.h>
 #include <sys/types.h>

@@ -26,9 +26,7 @@
 
 /* Modified somewhat for usage in Mednafen */
 
-//ROBO: It's moved
-//#include "mednafen/mednafen.h"
-#include "src/mednafen.h"
+#include "mednafen/mednafen.h"
 
 #include "z80.h"
 
@@ -68,8 +66,7 @@ int z80_do_opcode( void )
 
     switch(opcode) 
     {
-//ROBO: .c=.inc
-     #include "opcodes_base.inc"
+     #include "opcodes_base.c"
     }
 
    int ret = z80_tstates - last_z80_tstates;

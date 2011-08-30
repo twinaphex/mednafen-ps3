@@ -191,6 +191,12 @@ typedef struct
 	// TODO
 	bool *IsFMV;
 
+	// Set(optionally) by emulation code.  If InterlaceOn is true, then assume field height is 1/2 DisplayRect.h, and
+	// only every other line in surface (with the start line defined by InterlacedField) has valid data
+	// (it's up to internal Mednafen code to deinterlace it).
+	bool InterlaceOn;
+	bool InterlaceField;
+
 	// Skip rendering this frame if true.  Set by the driver code.
 	int skip;
 
@@ -340,10 +346,6 @@ typedef struct
  int fb_height;		// Height of the framebuffer passed to the Emulate() function(not necessarily height of the image)
 
  int soundchan; 	// Number of output sound channels.
-
-//ROBO: Peek+poke
- uint8 (*Peek)(uint32 addr);
- void (*Poke)(uint32 addr, uint8_t value);
 
 
  int rotated;

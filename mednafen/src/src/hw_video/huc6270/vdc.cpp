@@ -17,13 +17,9 @@
 
 /* VDC emulation */
 
-//ROBO: They're moved
-//#include "mednafen/mednafen.h"
-//#include "mednafen/video.h"
-//#include "mednafen/lepacker.h"
-#include "src/mednafen.h"
-#include "src/video.h"
-#include "src/lepacker.h"
+#include "mednafen/mednafen.h"
+#include "mednafen/video.h"
+#include "mednafen/lepacker.h"
 
 #include <trio/trio.h>
 #include <math.h>
@@ -382,6 +378,15 @@ void VDC::RunDMA(int32 cycles, bool force_completion)
 
 void VDC::IncRCR(void)
 {
+ if(NeedBGYInc)
+ {
+  NeedBGYInc = false;
+  if(0 == RCRCount)
+   BG_YMoo = BYR;
+  else
+   BG_YMoo++;
+ }
+
  NeedBGYInc = true;
  RCRCount++;
 
@@ -485,15 +490,6 @@ void VDC::HDS_Start(void)
 {
  if(NeedRCRInc)
  {
-  if(NeedBGYInc)
-  {
-   NeedBGYInc = false;
-   if(0 == RCRCount)
-    BG_YMoo = BYR;
-   else
-    BG_YMoo++;
-  }
-
   IncRCR();
   NeedRCRInc = false;
  }
@@ -736,7 +732,7 @@ int32 VDC::Run(int32 clocks, uint16 *pixels, bool skip)
     case HPHASE_HDS_PART2:
                      HPhaseCounter = TimeFromBYRLatchToBXRLatch();	
 
-		     if(NeedBGYInc)
+		     if(NeedBGYInc && !in_exhsync)
 		     {
 		      NeedBGYInc = false;
 
@@ -1192,15 +1188,19 @@ void VDC::DrawSprites(uint16 *target, int enabled)
  active_sprites = 0;
 }
 
+/*
+ Caution: If we ever add something to Write() or Read() that will affect the timing of the next event, make sure
+ to set the passed-by-reference next_event BEFORE calling this function, or otherwise re-engineer this convoluted setup.
+*/
 void VDC::DoWaitStates(void)
 {
  //bool did_wait = VDC_IS_BSY;
 
  while(VDC_IS_BSY)
  {
-  int32 to_wait = CalcNextEvent();
-
-  if(!WSHook || !WSHook(to_wait))
+  //int32 to_wait = CalcNextEvent();
+  //if(!WSHook || !WSHook(to_wait))
+  if(!WSHook || !WSHook(-1))	// Event-counter-based wait-stating
   {
    if(DMARunning)
    {

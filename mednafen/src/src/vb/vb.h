@@ -1,11 +1,8 @@
 #ifndef __VB_VB_H
 #define __VB_VB_H
 
-//ROBO: They're moved
-//#include <mednafen/mednafen.h>
-//#include <mednafen/hw_cpu/v810/v810_cpu.h>
-#include <src/mednafen.h>
-#include <src/hw_cpu/v810/v810_cpu.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/hw_cpu/v810/v810_cpu.h>
 #include <trio/trio.h>
 
 namespace MDFN_IEN_VB

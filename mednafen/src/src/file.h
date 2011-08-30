@@ -11,10 +11,14 @@ class MDFNFILE
 	public:
 
 	MDFNFILE();
+	// WIP constructors:
+	MDFNFILE(const char *path, const FileExtensionSpecStruct *known_ext, const char *purpose = NULL);
+
 	~MDFNFILE();
 
-	//ROBO: Load from memory!
+#ifdef MDFNPS3 //Load from memory
 	bool Open(const char *path, const FileExtensionSpecStruct *known_ext, void* data, int size, const char *purpose = NULL, const bool suppress_notfound_pe = FALSE);
+#endif
 	bool Open(const char *path, const FileExtensionSpecStruct *known_ext, const char *purpose = NULL, const bool suppress_notfound_pe = FALSE);
 	INLINE bool Open(const std::string &path, const FileExtensionSpecStruct *known_ext, const char *purpose = NULL, const bool suppress_notfound_pe = FALSE)
 	{

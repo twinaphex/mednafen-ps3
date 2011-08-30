@@ -15,9 +15,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-//ROBO: It's moved
-//#include "mednafen/mednafen.h"
-#include "src/mednafen.h"
+#include "mednafen/mednafen.h"
 #include "pce_psg.h"
 
 #include <math.h>
@@ -122,7 +120,7 @@ void PCE_PSG::RecalcFreqCache(int chnum)
 {
  psg_channel *ch = &channel[chnum];
 
- if(chnum == 0 && !(lfoctrl & 0x80) && (lfoctrl & 0x03))	// Not sure if we should have !(lfoctrl & 0x80) here or not.
+ if(chnum == 0 && (lfoctrl & 0x03))
  {
   const uint32 shift = (((lfoctrl & 0x3) - 1) << 1);
   uint8 la = channel[1].dda;
@@ -693,11 +691,15 @@ void PCE_PSG::Update(int32 timestamp)
 
  bool lfo_on = (bool)(lfoctrl & 0x03);
 
- if(!(channel[1].control & 0x80))
-  lfo_on = 0;
-
- if(lfoctrl & 0x80)
-  lfo_on = 0;
+ if(lfo_on)
+ {
+  if(!(channel[1].control & 0x80) || (lfoctrl & 0x80))
+  {
+   lfo_on = 0;
+   RecalcFreqCache(0);
+   RecalcUOFunc(0);
+  }
+ }
 
  int32 clocks = run_time;
  int32 running_timestamp = lastts;
@@ -891,9 +893,9 @@ int PCE_PSG::StateAction(StateMem *sm, int load, int data_only)
     channel[ch].noisecount = 1;
    }
 
-   if(!channel[ch].counter)
+   if(channel[ch].counter <= 0)
    {
-    printf("ch=%d, counter == 0\n", ch);
+    printf("ch=%d, counter <= 0\n", ch);
     channel[ch].counter = 1;
    }
 

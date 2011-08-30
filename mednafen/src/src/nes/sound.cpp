@@ -776,7 +776,13 @@ int FlushEmulateSound(int reverse, int16 *SoundBuf, int32 MaxSoundFrames)
      *tmpo = wlookup2[(b >> TRINPCM_SHIFT) & 0xFF] + wlookup1[b >> SQ_SHIFT];
 
      #if 0
-     *tmpo = (rand() & 0x7FFF) * 28000 / 32768;
+     {
+      static uint32 meow = 0;
+      *tmpo = (((meow & 32) * 65535) / 32) - 32768; //(meow & 32) * 29200 / 32;
+      meow++;
+      // *tmpo = (rand() & 0x7FFF) * 28000 / 32768;
+      //*tmpo = (int16)(rand() & 0xFFFF); // * 28000 * 2 / 32768;
+     }
      #endif
      tmpo++;
      intmpo++;
@@ -1064,6 +1070,9 @@ int MDFNSND_StateAction(StateMem *sm, int load, int data_only)
   LoadDMCPeriod(DMCFormat&0xF);
   RawDALatch&=0x7F;
   DMCAddress&=0x7FFF;
+
+  if(DMCacc <= 0)
+   DMCacc = 1;
  }
  return(ret);
 }

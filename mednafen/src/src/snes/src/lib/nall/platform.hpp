@@ -23,8 +23,7 @@
   #undef interface
 #else
   #include <unistd.h>
-//ROBO: No pwd.h
-//  #include <pwd.h>
+  #include <pwd.h>
   #include <sys/stat.h>
 #endif
 

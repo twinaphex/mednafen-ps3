@@ -31,12 +31,16 @@
 
 #include "gfx.h"
 #include "memory.h"
-#include "start.h"
+#include "start.inc"
 #include "sound.h"
 #include "v30mz.h"
 #include "rtc.h"
 #include "eeprom.h"
 #include "debug.h"
+
+namespace MDFN_IEN_WSWAN
+{
+
 
 int 		wsc = 1;			/*color/mono*/
 uint32		rom_size;
@@ -219,7 +223,7 @@ static int Load(const char *name, MDFNFILE *fp)
   IsWSR = TRUE;
   WSRCurrentSong = wsr_footer[0x5];
 
-  Player_Init(256, NULL, NULL, NULL, NULL);
+  Player_Init(256, "", "", "");
  }
  else
   IsWSR = false;
@@ -309,6 +313,10 @@ static int Load(const char *name, MDFNFILE *fp)
  }
 
  MDFNMP_Init(16384, (1 << 20) / 1024);
+
+ #ifdef WANT_DEBUGGER
+ WSwanDBG_Init();
+ #endif
 
  v30mz_init(WSwan_readmem20, WSwan_writemem20, WSwan_readport, WSwan_writeport);
  WSwan_MemoryInit(wsc, SRAMSize, IsWSR); // EEPROM and SRAM are loaded in this func.
@@ -490,6 +498,10 @@ static const FileExtensionSpecStruct KnownExtensions[] =
  { ".wsr", gettext_noop("WonderSwan Music Rip") },
  { NULL, NULL }
 };
+
+}
+
+using namespace MDFN_IEN_WSWAN;
 
 MDFNGI EmulatedWSwan =
 {

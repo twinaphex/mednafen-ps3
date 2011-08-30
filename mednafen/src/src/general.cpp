@@ -20,9 +20,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-//ROBO: Need for gettimeofday
-#include <sys/time.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -83,6 +80,28 @@ static bool IsAbsolutePath(const std::string &path)
 {
  return(IsAbsolutePath(path.c_str()));
 }
+
+bool MDFN_IsFIROPSafe(const std::string &path)
+{
+ // We could make this more OS-specific, but it shouldn't hurt to try to weed out usage of characters that are path
+ // separators in one OS but not in another, and we'd also run more of a risk of missing a special path separator case
+ // in some OS.
+
+ if(!MDFN_GetSettingB("filesys.untrusted_fip_check"))
+  return(true);
+
+ if(path.find(':') != string::npos)
+  return(false);
+
+ if(path.find('\\') != string::npos)
+  return(false);
+
+ if(path.find('/') != string::npos)
+  return(false);
+
+ return(true);
+}
+
 
 typedef std::map<char, std::string> FSMap;
 
@@ -303,7 +322,10 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 		    }
                     break;
 
-  case MDFNMKF_AUX: trio_snprintf(tmp_path, 4096, "%s"PSS"%s", FileBaseDirectory.c_str(), (char *)cd1);
+  case MDFNMKF_AUX: if(IsAbsolutePath(cd1))
+		     trio_snprintf(tmp_path, 4096, "%s", (char *)cd1);
+		    else
+		     trio_snprintf(tmp_path, 4096, "%s"PSS"%s", FileBaseDirectory.c_str(), (char *)cd1);
 		    break;
 
   case MDFNMKF_IPS:  trio_snprintf(tmp_path, 4096, "%s"PSS"%s%s.ips", FileBaseDirectory.c_str(), FileBase.c_str(), FileExt.c_str());
@@ -353,7 +375,8 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
 		       }
 		      }
                       break;
-//ROBO: Extras for me, break em with no gettimeofday
+
+#ifdef MDFNPS3 //Video and Wave filenames
   case MDFNMKF_VIDEO:
 			{
 		     std::string overpath = MDFN_GetSettingS("filesys.path_video");
@@ -379,6 +402,7 @@ std::string MDFN_MakeFName(MakeFName_Type type, int id1, const char *cd1)
                        trio_snprintf(tmp_path, 4096, "%s"PSS"%s-%lld.wav", eff_dir.c_str(), FileBase.c_str(), (long long int)time(0));
 			break;
 			 }
+#endif
  }
  return(tmp_path);
 }

@@ -1,5 +1,4 @@
-//ROBO: Not without dynamic linking, or another workaround
-//#include "supergameboy/supergameboy.hpp"
+#include "supergameboy/supergameboy.hpp"
 #include "superfx/superfx.hpp"
 #include "sa1/sa1.hpp"
 #include "bsx/bsx.hpp"
