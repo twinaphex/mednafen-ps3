@@ -384,10 +384,18 @@ struct blip_buffer_state_t
 	blip_long buf [blip_buffer_extra_];
 };
 
+#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
+}
+#endif
+
 // End of public interface
 
 #ifndef assert
 	#include <assert.h>
+#endif
+
+#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
+namespace VBAMBLIP{
 #endif
 
 template<int quality,int range>

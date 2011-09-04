@@ -1,9 +1,5 @@
 // Blip_Buffer 0.4.1. http://www.slack.net/~ant/
 
-#ifdef __CELLOS_LV2__ //Fix _Assert is not a member of std errors, probably caused by the namespace VBAMBLIP hack
-#define assert(x)
-#endif
-
 #include "Blip_Buffer.h"
 
 #include <assert.h>
