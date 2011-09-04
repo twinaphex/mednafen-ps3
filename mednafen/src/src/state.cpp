@@ -1219,7 +1219,11 @@ int MDFN_StateEvil(int rewind)
    }
    else if(SRWCompressor == SRW_COMPRESSOR_MINILZO)
    {
+#ifndef MDFNPS3 //Make static to avoid potential stack overflow
     uint8 workmem[LZO1X_1_MEM_COMPRESS];
+#else
+    static uint8 workmem[LZO1X_1_MEM_COMPRESS];
+#endif
     uint8 * tmp_buf = (uint8 *)malloc((size_t)(1.10 * bcs[prev_bcspos].uncompressed_len));
     lzo_uint dst_len = (lzo_uint)(1.10 * bcs[prev_bcspos].uncompressed_len);
 

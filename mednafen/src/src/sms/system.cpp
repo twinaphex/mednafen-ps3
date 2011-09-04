@@ -175,7 +175,12 @@ static void Emulate(EmulateSpecStruct *espec)
  bitmap.data = (uint8*)espec->surface->pixels;
  bitmap.width = 256;
  bitmap.height = 240;
+
+#ifndef MDFNPS3 //Fix for pitch
  bitmap.pitch = 256 * sizeof(uint32);
+#else
+ bitmap.pitch = espec->surface->pitchinpix * sizeof(uint32);
+#endif
 
  system_frame(espec->skip);
 

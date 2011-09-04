@@ -277,8 +277,11 @@ bool						MednafenEmu::Frame				()
 	assert(IsGameLoaded());
 
 	//Update the rewind state
-	//TODO: I had to hack MDNFI_EnableStateRewind to do nothing if the value hasn't changed, should do it here instead!
-	MDFNI_EnableStateRewind(RewindSetting);
+	if(OldRewindSetting != RewindSetting)
+	{
+		MDFNI_EnableStateRewind(RewindSetting);
+		OldRewindSetting = RewindSetting;
+	}
 
 	//Pump the game's inputs
 	InputHandler::Process();
@@ -574,7 +577,9 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 	{
 		InputHandler::ReadSettings();
 
-		RewindSetting = MDFN_GetSettingB(SETTINGNAME("speed.rewind"));;
+		RewindSetting = MDFN_GetSettingB(SETTINGNAME("speed.rewind"));
+		OldRewindSetting = (aOnLoad ? (!RewindSetting) : OldRewindSetting);
+
 		DisplayFPSSetting = MDFN_GetSettingB(SETTINGNAME("display.fps"));
 
 		Counter.SetNormalSpeed(MDFN_GetSettingUI(SETTINGNAME("speed.normalrate")));
@@ -688,6 +693,7 @@ uint32_t					MednafenEmu::SkipCount = 0;
 TextFileViewer*				MednafenEmu::TextFile;
 
 bool						MednafenEmu::RewindSetting = false;
+bool						MednafenEmu::OldRewindSetting = false;
 bool						MednafenEmu::DisplayFPSSetting = false;
 std::string					MednafenEmu::ShaderSetting = "";
 std::string					MednafenEmu::BorderSetting = "";
