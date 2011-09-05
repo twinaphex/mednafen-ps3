@@ -18,10 +18,11 @@ namespace
 	}
 }
 
-void						ESAudio::Initialize				()
-{
-	SDL_InitSubSystem(SDL_INIT_AUDIO);
+#define Check(X)			if((X) != 0){printf("SDL_Audio Failed at %d\n", __LINE__); Shutdown(); return false;}
 
+bool						ESAudio::Initialize				()
+{
+	//Setup audio format
 	SDL_AudioSpec spec;
 	spec.freq = 48000;
 	spec.format = AUDIO_S16;
@@ -29,10 +30,14 @@ void						ESAudio::Initialize				()
 	spec.samples = 2048;
 	spec.callback = ProcessAudioCallback;
 
-	SDL_OpenAudio(&spec, &Format);
+	//Start SDL audio
+	Check(SDL_InitSubSystem(SDL_INIT_AUDIO));
+	Check(SDL_OpenAudio(&spec, &Format));
 	SDL_PauseAudio(0);
 
 	Semaphore = ESThreads::MakeSemaphore(1);
+
+	return true;
 }
 
 void						ESAudio::Shutdown				()

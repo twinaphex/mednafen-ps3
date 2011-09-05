@@ -97,10 +97,14 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
 	Colors::LoadColors();
 
+	bool result;
+
 	ESThreads::Initialize();
 	ESNetwork::Initialize();
 	ESVideo::Initialize();
-	ESAudio::Initialize();
+
+	result = ESAudio::Initialize();
+	assert(result);
 
 	FontManager::InitFonts();
 	ImageManager::SetDirectory(es_paths->Build("assets/png/"));
