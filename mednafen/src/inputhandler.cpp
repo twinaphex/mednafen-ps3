@@ -107,7 +107,7 @@ class									ConfigurePrepper : public InputEnumeratorBase
 			{
 				if(strcmp(iter->second.name, aName) == 0)
 				{
-					Settings.push_back(&iter->second);
+					Settings.push_back(new SettingItem(&iter->second, iter->second.desc->description_extra ? iter->second.desc->description_extra : ""));
 					return;
 				}
 			}
@@ -143,7 +143,7 @@ class									ConfigurePrepper : public InputEnumeratorBase
 		}
 
 	private:
-		std::vector<const MDFNCS*>		Settings;
+		SettingGroupMenu::SettingGroup	Settings;
 };
 
 //Read the settings for processing for the given system

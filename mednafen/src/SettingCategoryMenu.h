@@ -26,6 +26,11 @@ class								SettingCategoryMenu
 		///Translate a sparse category name to a friendly one.
 		std::string					TranslateCategory					(const char* aCategory);
 
+		///Translate a setting into a group name.
+		///@param aSyatem System name of the setting, or an empty string for a general setting.
+		///@return A group name.
+		std::string					TranslateGroup						(const MDFNCS* aSetting, const std::string& aSystem);
+
 	private:
 		ListType					List;								///<SummerfaceList used for displaying all categories.
 		Summerface					Interface;							///<Summerface object used for the List.
