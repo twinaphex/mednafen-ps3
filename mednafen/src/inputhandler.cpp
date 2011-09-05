@@ -156,10 +156,10 @@ class									SettingReader : public InputEnumeratorBase
 		{
 			InputEnumeratorBase::Device(aDescription);
 
-			const char* type = MDFN_GetSettingS(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port1", GameInfo->shortname)).c_str();
-			if(strcmp(type, DeviceInfo->ShortName) == 0)
+			std::string type = MDFN_GetSettingS(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port1", GameInfo->shortname));
+			if(type == DeviceInfo->ShortName)
 			{
-				MDFNI_SetInput(0, type, &ControllerBits[0], 2);
+				MDFNI_SetInput(0, type.c_str(), &ControllerBits[0], 2);
 				return true;
 			}
 
