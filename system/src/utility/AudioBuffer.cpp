@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SoundTouch.h>
 #include "AudioBuffer.h"
 
-#ifndef __CELLOS_LV2__
+#ifdef ES_USESOUNDTOUCH
+#include <SoundTouch.h>
+
 							SoundTouchAudioBuffer::SoundTouchAudioBuffer		() : PitchShifter(new soundtouch::SoundTouch())
 {
 	PitchShifter->setSampleRate(48000);
