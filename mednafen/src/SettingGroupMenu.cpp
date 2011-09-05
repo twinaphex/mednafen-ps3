@@ -5,43 +5,6 @@
 
 #include "src/utility/Files/FileSelect.h"
 
-/*static bool						CompareItems									(SettingItem* a, SettingItem* b)
-{
-	//
-	if(a->GetGroup() != b->GetGroup())
-	{
-		if(a->GetGroup() == "MODULE")												return true;
-		if(b->GetGroup() == "MODULE")												return false;
-
-		if(a->GetGroup() == "SYSTEM")												return true;
-		if(b->GetGroup() == "SYSTEM")												return false;
-
-		if(a->GetGroup() == "DISPLAY")												return true;
-		if(b->GetGroup() == "DISPLAY")												return false;
-
-		return a->GetGroup() < b->GetGroup();
-	}
-
-	//Keep enable at the top
-	if(a->GetText().find(".enable") != std::string::npos)												return true;
-	if(b->GetText().find(".enable") != std::string::npos)												return false;
-
-	//Tblus items at the bottom
-	if(a->GetText().find("tblur") != std::string::npos)													return false;
-	if(b->GetText().find("tblur") != std::string::npos)													return true;
-
-	//Force mono items at the bottom
-	if(a->GetText().find("forcemono") != std::string::npos)												return false;
-	if(b->GetText().find("forcemono") != std::string::npos)												return true;
-
-	//Keep es system settings above others
-	if(a->GetText().find(".es.") != std::string::npos)													return false;
-	if(b->GetText().find(".es.") != std::string::npos)													return true;
-
-	//Standard items at the bottom
-	return a->GetText() < b->GetText();
-}*/
-
 std::string						SettingItem::GetText							()
 {
 	if(Setting->desc->flags & MDFNSF_CAT_INPUT)
@@ -55,16 +18,18 @@ std::string						SettingItem::GetText							()
 }
 
 
-								SettingGroupMenu::SettingGroupMenu				(const std::vector<const MDFNCS*>& aSettings, const std::string& aSystemName) :
+								SettingGroupMenu::SettingGroupMenu				(SettingGroup& aSettings, const std::string& aSystemName) :
 	List(Area(10, 10, 80, 80)),
 	Interface("Settings", &List, false),
 	RefreshHeader(true)
 {
 	//Add all settings from the catagory
-	for(int i = 0; i != aSettings.size(); i ++)
+	for(SettingGroup::const_iterator i = aSettings.begin(); i != aSettings.end(); i ++)
 	{
-		List.AddItem(new SettingItem(aSettings[i], TranslateGroup(*aSettings[i], aSystemName)));
+		List.AddItem(*i);		
 	}
+
+	aSettings.clear();
 
 	//Setup interface
 	Interface.SetInputWait(false);
@@ -291,29 +256,4 @@ bool							SettingGroupMenu::HandleEnum					(uint32_t aButton, const MDFNCS& aSe
 	return aButton == ES_BUTTON_TAB;
 }
 
-std::string						SettingGroupMenu::TranslateGroup				(const MDFNCS& aSetting, const std::string& aSystem)
-{
-	std::string settingName = aSetting.name;
-
-	if(!aSystem.empty())
-	{
-		if(settingName.find(".display.") != std::string::npos)			return "DISPLAY";
-		if(settingName.find(".speed.") != std::string::npos)			return "SPEED";
-		if(settingName.find(".tblur") != std::string::npos)				return "TBLUR";
-		if(settingName.find(".shader") != std::string::npos)			return "SHADER";
-		if(settingName.find(".enable") != std::string::npos)			return "MODULE";
-		if(settingName.find(".forcemono") != std::string::npos)			return "MODULE";
-		if(settingName.find(".autosave") != std::string::npos)			return "MODULE";
-		return "SYSTEM";
-	}
-	else
-	{
-		if(aSetting.desc->flags & MDFNSF_CAT_INPUT)
-		{
-			return aSetting.desc->description_extra ? aSetting.desc->description_extra : "";
-		}
-
-		return "";
-	}
-}
 

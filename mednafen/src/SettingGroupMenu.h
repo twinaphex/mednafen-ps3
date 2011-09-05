@@ -39,10 +39,13 @@ class								SettingGroupMenu
 	typedef AnchoredListView<SummerfaceItem>					EnumListType;
 
 	public:
+		typedef std::list<SettingItem*>							SettingGroup;
+
+	public:
 		///Create a new SettingGroupMenu.
-		///@param aSettings List of settings for the menu to edit.
+		///@param aSettings List of settings for the menu to edit. The list is cleared by this function, and the items are passed to delete.
 		///@param aSystemName Name of the system, or empty if a general category.
-									SettingGroupMenu			(const std::vector<const MDFNCS*>& aSettings, const std::string& aSystemName);
+									SettingGroupMenu			(SettingGroup& aSettings, const std::string& aSystemName);
 
 		///Blank virtual destructor for SetttingMenu.
 		virtual						~SettingGroupMenu			() {}
@@ -74,12 +77,6 @@ class								SettingGroupMenu
 		///@param aSetting Setting to update.
 		///@return True if this function has eaten the input, false to continue processing.
 		bool						HandleEnum					(uint32_t aButton, const MDFNCS& aSetting);
-
-	private:
-		///Translate a setting into a group name.
-		///@param aSyatem System name of the setting, or an empty string for a general setting.
-		///@return A group name.
-		std::string					TranslateGroup				(const MDFNCS& aSetting, const std::string& aSystem);
 
 	private:
 		SettingListType				List;						///<SummerfaceList used for displaying a category of settings.

@@ -2,6 +2,42 @@
 #include "SettingCategoryMenu.h"
 #include "SettingGroupMenu.h"
 
+static bool						CompareItems									(SettingItem* a, SettingItem* b)
+{
+	//
+	if(a->GetGroup() != b->GetGroup())
+	{
+		if(a->GetGroup() == "MODULE")												return true;
+		if(b->GetGroup() == "MODULE")												return false;
+
+		if(a->GetGroup() == "SYSTEM")												return true;
+		if(b->GetGroup() == "SYSTEM")												return false;
+
+		if(a->GetGroup() == "DISPLAY")												return true;
+		if(b->GetGroup() == "DISPLAY")												return false;
+
+		return a->GetGroup() < b->GetGroup();
+	}
+
+	//Keep enable at the top
+	if(a->GetText().find(".enable") != std::string::npos)							return true;
+	if(b->GetText().find(".enable") != std::string::npos)							return false;
+
+	//Tblus items at the bottom
+	if(a->GetText().find("tblur") != std::string::npos)								return false;
+	if(b->GetText().find("tblur") != std::string::npos)								return true;
+
+	//Force mono items at the bottom
+	if(a->GetText().find("forcemono") != std::string::npos)							return false;
+	if(b->GetText().find("forcemono") != std::string::npos)							return true;
+
+	//Keep es system settings above others
+	if(a->GetText().find(".es.") != std::string::npos)								return false;
+	if(b->GetText().find(".es.") != std::string::npos)								return true;
+
+	//Standard items at the bottom
+	return a->GetText() < b->GetText();
+}
 
 								SettingCategoryMenu::SettingCategoryMenu		(const std::string& aDefaultCategory) :
 	List(Area(10, 10, 80, 80)),
@@ -34,7 +70,16 @@ void							SettingCategoryMenu::Do							()
 		//Leave if the category list is canceled and everything checks out
 		if(!List.WasCanceled())
 		{
-			SettingGroupMenu(Settings[List.GetSelected()->UserData], List.GetSelected()->UserData).Do();
+			SettingGroupMenu::SettingGroup settings;
+
+			for(std::vector<const MDFNCS*>::const_iterator i = Settings[List.GetSelected()->UserData].begin(); i != Settings[List.GetSelected()->UserData].end(); i ++)
+			{
+				settings.push_back(new SettingItem(*i, TranslateGroup(*i, List.GetSelected()->UserData)));
+			}
+
+			settings.sort(CompareItems);
+
+			SettingGroupMenu(settings, List.GetSelected()->UserData).Do();
 		}
 		else
 		{
@@ -114,5 +159,24 @@ std::string						SettingCategoryMenu::TranslateCategory			(const char* aCategory
 
 	//No translation, use the default
 	return aCategoryName;
+}
+
+std::string						SettingCategoryMenu::TranslateGroup				(const MDFNCS* aSetting, const std::string& aSystem)
+{
+	std::string settingName = aSetting->name;
+
+	if(!aSystem.empty())
+	{
+		if(settingName.find(".display.") != std::string::npos)			return "DISPLAY";
+		if(settingName.find(".speed.") != std::string::npos)			return "SPEED";
+		if(settingName.find(".tblur") != std::string::npos)				return "TBLUR";
+		if(settingName.find(".shader") != std::string::npos)			return "SHADER";
+		if(settingName.find(".enable") != std::string::npos)			return "MODULE";
+		if(settingName.find(".forcemono") != std::string::npos)			return "MODULE";
+		if(settingName.find(".autosave") != std::string::npos)			return "MODULE";
+		return "SYSTEM";
+	}
+
+	return "";
 }
 
