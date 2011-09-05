@@ -20,6 +20,8 @@ namespace
 
 void						ESAudio::Initialize				()
 {
+	SDL_InitSubSystem(SDL_INIT_AUDIO);
+
 	SDL_AudioSpec spec;
 	spec.freq = 48000;
 	spec.format = AUDIO_S16;
@@ -36,6 +38,8 @@ void						ESAudio::Initialize				()
 void						ESAudio::Shutdown				()
 {
 	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+
 	delete Semaphore;
 }
 
