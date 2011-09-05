@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
 
@@ -116,6 +117,7 @@ class								AudioBuffer
 		uint32_t					InputSpeed;
 };
 
+#ifdef ES_USESOUNDTOUCH
 namespace							soundtouch
 {
 	class							SoundTouch;
@@ -136,4 +138,7 @@ class								SoundTouchAudioBuffer : public AudioBuffer<8192>
 		uint32_t					AuxBuffer[48000];
 		uint32_t					Speed;
 };
+#else
+typedef								AudioBuffer<8192>				SoundTouchAudioBuffer;
+#endif
 
