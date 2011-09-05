@@ -30,19 +30,6 @@ namespace
 	ESSemaphore*			Semaphore;
 }
 
-static void					AssertError2					(int32_t line)
-{
-	int error = alGetError();
-
-	if(error != AL_NO_ERROR)
-	{
-		printf("AL_ERROR: %d: %X\n", line, error);
-		assert(false);
-	}		
-}
-
-#define						AssertError() AssertError2(__LINE__)
-
 static inline void			Stream							(uint32_t aBufferID)
 {
 	//Fetch data from audio buffer
@@ -50,8 +37,8 @@ static inline void			Stream							(uint32_t aBufferID)
 	Buffer.ReadDataSilentUnderrun(stream, SegmentSize);
 
 	//Send to OpenAL
-	alBufferData(aBufferID, AL_FORMAT_STEREO16, stream, SegmentSize * sizeof(uint32_t), 48000); AssertError();
-	alSourceQueueBuffers(SourceID, 1, &aBufferID); AssertError();
+	alBufferData(aBufferID, AL_FORMAT_STEREO16, stream, SegmentSize * sizeof(uint32_t), 48000);
+	alSourceQueueBuffers(SourceID, 1, &aBufferID);
 
 	//Start buffer if needed
     ALint playing;
@@ -67,18 +54,47 @@ static inline void			Stream							(uint32_t aBufferID)
 
 static int					AudioThread						(void* aData)
 {
+	//Add initial buffers
+	for(int i = 0; i != BufferCount; i ++)
+	{
+		Stream(Buffers[i]);
+	}
+
+	//Loop
+	while(!Done)
+	{
+		int processed;
+		alGetSourcei(SourceID, AL_BUFFERS_PROCESSED, &processed);
+
+		if(processed)
+		{
+			ALuint buffer;
+			alSourceUnqueueBuffers(SourceID, 1, &buffer);
+
+			Stream(buffer);
+		}
+
+		Utility::Sleep(1);
+	}
+}
+
+#define						Check(X)	if(!(X)){printf("OpenAL Error at %d\n", __LINE__); Shutdown(); return false;}
+#define						CheckAL(X)  X; if((AL_NO_ERROR != alGetError())){printf("OpenAL Error at %d\n", __LINE__); Shutdown(); return false;}
+
+bool						ESAudio::Initialize				()
+{
 	alGetError();
 
 	//Create context
-	Device = alcOpenDevice(0); assert(Device);
-	Context = alcCreateContext(Device, 0); assert(Context);
-	alcMakeContextCurrent(Context); AssertError();
+	Check(Device = alcOpenDevice(0));
+	Check(Context = alcCreateContext(Device, 0));
+	Check(ALC_TRUE == alcMakeContextCurrent(Context));
 
 	//Create source
-	alGenSources(1, &SourceID); AssertError();
+	CheckAL(alGenSources(1, &SourceID));
 
 	//Create buffers
-	alGenBuffers(BufferCount, Buffers); AssertError();
+	CheckAL(alGenBuffers(BufferCount, Buffers));
 
 	//Setup listener
 	alListener3f(AL_POSITION, 0.0, 0.0, 0.0);
@@ -86,45 +102,12 @@ static int					AudioThread						(void* aData)
 	ALfloat listener_orientation[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	alListenerfv(AL_ORIENTATION, listener_orientation);
 
-	//Loop
-	for(int i = 0; i != BufferCount; i ++)
-	{
-		Stream(Buffers[i]);
-	}
 
-	while(!Done)
-	{
-		int processed;
-		alGetSourcei(SourceID, AL_BUFFERS_PROCESSED, &processed); AssertError();
-
-		if(processed)
-		{
-			ALuint buffer;
-			alSourceUnqueueBuffers(SourceID, 1, &buffer); AssertError();
-
-			Stream(buffer);
-		}
-
-		Utility::Sleep(1);
-	}
-
-	//Kill source
-	alDeleteSources(1, &SourceID); AssertError();
-
-	//Kill buffers
-	alDeleteBuffers(BufferCount, Buffers); AssertError();
-
-	//Kill device and context
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(Context);
-	alcCloseDevice(Device);
-}
-
-void						ESAudio::Initialize				()
-{
 	Done = false;
 	Thread = ESThreads::MakeThread(AudioThread, 0);
 	Semaphore = ESThreads::MakeSemaphore(1);
+
+	return true;
 }
 
 void						ESAudio::Shutdown				()
@@ -132,6 +115,16 @@ void						ESAudio::Shutdown				()
 	Done = true;
 	delete Thread;
 	delete Semaphore;
+
+	//Kill source (ID = zero is OK)
+	alDeleteSources(1, &SourceID);
+	alDeleteBuffers(BufferCount, Buffers);
+
+	//Kill device and context (should fail trivially on error)
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(Context);
+	alcCloseDevice(Device);
+
 }
 
 void						ESAudio::AddSamples				(const uint32_t* aSamples, uint32_t aCount)

@@ -50,32 +50,46 @@ namespace
 	VoiceCallback					AudioCallbacks;
 }
 
-void								ESAudio::Initialize				()
+#define Check(X)					if(FAILED(X)){printf("XAudio Failed at %d\n", __LINE__); Shutdown(); return false;}
+
+bool								ESAudio::Initialize				()
 {
 	//Make thread objects
 	BufferReadyEvent = CreateEvent(0, 0, 0, 0);
+	if(BufferReadyEvent == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
 
 	//Setup XAudio2
 	WAVEFORMATEX waveFormat = {WAVE_FORMAT_PCM, 2, 48000, 48000 * 2, 4, 16, 0};
 
-	XAudio2Create(&Device);
-	Device->CreateMasteringVoice(&MasterVoice, 2, 48000);
-	Device->CreateSourceVoice(&Voice, &waveFormat, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &AudioCallbacks);
+	Check(XAudio2Create(&Device));
+	Check(Device->CreateMasteringVoice(&MasterVoice, 2, 48000));
+	Check(Device->CreateSourceVoice(&Voice, &waveFormat, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &AudioCallbacks));
 
 	//Setup voice
 	XAUDIO2_BUFFER buf = {0, 256 * 4, (BYTE*)Buffers[7], 0, 0, 0, 0, 0, 0};
-	Voice->SubmitSourceBuffer(&buf);
-	Voice->Start();
+	Check(Voice->SubmitSourceBuffer(&buf));
+	Check(Voice->Start());
+
+	return true;
 }
 
 void								ESAudio::Shutdown				()
 {
-	Device->Release();
-	Device = 0;
-	Voice = 0;
-	MasterVoice = 0;
+	if(Device)
+	{
+		Device->Release();
+		Device = 0;
+		Voice = 0;
+		MasterVoice = 0;
+	}
 
-	CloseHandle(BufferReadyEvent);
+	if(BufferReadyEvent != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(BufferReadyEvent);
+	}
 }
 
 

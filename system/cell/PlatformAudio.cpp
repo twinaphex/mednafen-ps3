@@ -65,7 +65,7 @@ namespace
 	}
 }
 
-void						ESAudio::Initialize				()
+bool						ESAudio::Initialize				()
 {
 	/* Init audio */
 	CellAudioPortParam portparam = {CELL_AUDIO_PORT_8CH, CELL_AUDIO_BLOCK_16, CELL_AUDIO_PORTATTR_BGM, 1};
@@ -116,6 +116,9 @@ void						ESAudio::Initialize				()
 
 	/* Custom sounds: thanks snes9x */
 	cellSysutilEnableBgmPlayback();
+
+	/* In what alternate dimension would this fail randomly? */
+	return true;
 }
 
 
