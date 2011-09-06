@@ -16,10 +16,15 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef MDFNPS3 //Mednafen save file names
+#if defined(MDFNPS3) && !defined(noMDFNPS3) //Mednafen save file names
 # include <src/mednafen.h>
 # include <src/general.h>
 # define SFORMAT dsSFORMAT
+#endif
+
+#ifdef MDFNPS3 //No movie support
+# define FCEUI_StopMovie()
+int currFrameCounter;
 #endif
 
 #include <string.h>
@@ -38,8 +43,10 @@
 #include "utils/decrypt/crc.h"
 #include "bios.h"
 #include "debug.h"
+#ifndef MDFNPS3 //No movie support, no cheat support
 #include "cheatSystem.h"
 #include "movie.h"
+#endif
 #include "Disassembler.h"
 #include "readwrite.h"
 #include "debug.h"
@@ -150,8 +157,10 @@ int NDS_Init( void) {
 	TSCal.scr.width = (TSCal.scr.x2 - TSCal.scr.x1);
 	TSCal.scr.height = (TSCal.scr.y2 - TSCal.scr.y1);
 
+#ifndef MDFNPS3 //No cheats
 	cheats = new CHEATS();
 	cheatSearch = new CHEATSEARCH();
+#endif
 
 	return 0;
 }
@@ -166,10 +175,12 @@ void NDS_DeInit(void) {
 	gpu3D->NDS_3D_Close();
 
 	WIFI_DeInit();
+#ifndef MDFNPS3 //No cheats
 	if (cheats)
 		delete cheats;
 	if (cheatSearch)
 		delete cheatSearch;
+#endif
 
 #ifdef LOG_ARM7
 	if (fp_dis7 != NULL) 
@@ -552,6 +563,7 @@ int NDS_LoadROM(const char *filename, const char *logicalFilename)
 		return ret;
 
 #else //MDFNPS3: Load ROM from memory
+#ifndef noMDFNPS3
 int NDS_LoadROM(const unsigned char* data, unsigned long length)
 {
 	int	ret;
@@ -562,7 +574,24 @@ int NDS_LoadROM(const unsigned char* data, unsigned long length)
 	gameInfo.fillGap();
 	ret = 1;
 	path.init("whatever.nds"); //HACK!
+#else
+int NDS_LoadROM(const char* filename)
+{
+	int	ret;
+	char	buf[MAX_PATH];
 
+	FILE* f = fopen(filename, "rb");
+	fseek(f, 0, SEEK_END);
+	uint32_t length = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	gameInfo.resize(length);
+	fread(gameInfo.romdata, 1, length, f);
+	gameInfo.fillGap();
+	fclose(f);
+	ret = 1;
+	path.init("whatever.nds"); //HACK!
+#endif
 #endif //MDFNPS3: Load ROM from memory
 
 	//decrypt if necessary..
@@ -576,8 +605,10 @@ int NDS_LoadROM(const unsigned char* data, unsigned long length)
 	}
 #endif
 
+#ifndef MDFNPS3 //No cheats
 	if (cheatSearch)
 		cheatSearch->close();
+#endif
 	FCEUI_StopMovie();
 
 	MMU_unsetRom();
@@ -603,17 +634,23 @@ int NDS_LoadROM(const unsigned char* data, unsigned long length)
 	
 	strcat(buf, ".dsv");							// DeSmuME memory card	:)
 #else
+#ifndef noMDFNPS3
 	strncpy(buf, MDFN_MakeFName(MDFNMKF_SAV, 0, "dsv").c_str(), MAX_PATH);
+#else
+	strncpy(buf, "/dev_hdd0/game/DESM90000/USRDIR/hack.dsv", MAX_PATH);
+#endif
 #endif
 
 	MMU_new.backupDevice.load_rom(buf);
 
 	memset(buf, 0, MAX_PATH);
 
+#ifndef MDFNPS3 //No cheats
 	path.getpathnoext(path.CHEATS, buf);
 	
 	strcat(buf, ".dct");							// DeSmuME cheat		:)
 	cheats->init(buf);
+#endif
 
 	return ret;
 }
@@ -2038,9 +2075,11 @@ void NDS_exec(s32 nb)
 		lagframecounter = 0;
 	}
 	currFrameCounter++;
+#ifndef MDFNPS3 //No debug, no cheats
 	DEBUG_Notify.NextFrame();
 	if (cheats)
 		cheats->process();
+#endif
 }
 
 template<int PROCNUM> static void execHardware_interrupts_core()
@@ -2080,7 +2119,9 @@ void NDS_Reset()
 	FILE* inf = NULL;
 	NDS_header * header = NDS_getROMHeader();
 
+#ifndef MDFNPS3 //No debug
 	DEBUG_reset();
+#endif
 
 	if (!header) return ;
 
@@ -2095,6 +2136,7 @@ void NDS_Reset()
 	nds_arm9_timer = 0;
 	nds_arm7_timer = 0;
 
+#ifndef MDFNPS3 //No movie support
 	if(movieMode != MOVIEMODE_INACTIVE && !_HACK_DONT_STOPMOVIE)
 		movie_reset_command = true;
 
@@ -2105,6 +2147,7 @@ void NDS_Reset()
 		lastLag = 0;
 		TotalLagFrames = 0;
 	}
+#endif
 
 	SPU_DeInit();
 
@@ -2646,12 +2689,14 @@ void NDS_setTouchPos(u16 x, u16 y)
 	rawUserInput.touch.touchY = NDS_getADCTouchPosY(y);
 	rawUserInput.touch.isTouch = true;
 
+#ifndef MDFNPS3 //No movie support
 	if(movieMode != MOVIEMODE_INACTIVE && movieMode != MOVIEMODE_FINISHED)
 	{
 		// just in case, since the movie only stores 8 bits per touch coord
 		rawUserInput.touch.touchX &= 0x0FF0;
 		rawUserInput.touch.touchY &= 0x0FF0;
 	}
+#endif
 }
 void NDS_releaseTouch(void)
 { 

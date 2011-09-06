@@ -246,7 +246,11 @@ struct VERT {
 	}
 };
 
+#ifndef noMDFNPS3	//HACK: Very bad memory hack
 #define VERTLIST_SIZE 400000
+#else
+#define VERTLIST_SIZE 10000
+#endif
 //#define VERTLIST_SIZE 10000
 struct VERTLIST {
 	VERT list[VERTLIST_SIZE];

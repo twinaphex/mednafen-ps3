@@ -320,12 +320,14 @@ FORCEINLINE u32 _MMU_accesstime(u32 addr, bool sequential)
 			c += 8 * M32*2;
 		}
 
+#ifndef MDFNPS3 //No debug support
 		if(CheckDebugEvent(DEBUG_EVENT_CACHE_MISS))
 		{
 			DebugEventData.addr = addr;
 			DebugEventData.size = READSIZE;
 			HandleDebugEvent(DEBUG_EVENT_CACHE_MISS);
 		}
+#endif
 
 		return c;
 #elif defined(ACCOUNT_FOR_NON_SEQUENTIAL_ACCESS)

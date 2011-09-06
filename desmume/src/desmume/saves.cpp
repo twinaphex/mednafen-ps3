@@ -38,7 +38,11 @@
 
 #include "readwrite.h"
 #include "gfx3d.h"
+#ifndef MDFNPS3 //No movie support
 #include "movie.h"
+#else
+extern int currFrameCounter;
+#endif
 #include "mic.h"
 #include "MMU_timing.h"
 
@@ -995,7 +999,9 @@ static void writechunks(EMUFILE* os) {
 	savestate_WriteChunk(os,90,SF_GFX3D);
 	savestate_WriteChunk(os,91,gfx3d_savestate);
 	savestate_WriteChunk(os,100,SF_MOVIE);
+#ifndef MDFNPS3 //No movie support
 	savestate_WriteChunk(os,101,mov_savestate);
+#endif
 	savestate_WriteChunk(os,110,SF_WIFI);
 	savestate_WriteChunk(os,120,SF_RTC);
 	savestate_WriteChunk(os,0xFFFFFFFF,(SFORMAT*)0);
@@ -1027,7 +1033,9 @@ static bool ReadStateChunks(EMUFILE* is, s32 totalsize)
 			case 90: if(!ReadStateChunk(is,SF_GFX3D,size)) ret=false; break;
 			case 91: if(!gfx3d_loadstate(is,size)) ret=false; break;
 			case 100: if(!ReadStateChunk(is,SF_MOVIE, size)) ret=false; break;
+#ifndef MDFNPS3 //No movie support
 			case 101: if(!mov_loadstate(is, size)) ret=false; break;
+#endif
 			case 110: if(!ReadStateChunk(is,SF_WIFI,size)) ret=false; break;
 			case 120: if(!ReadStateChunk(is,SF_RTC,size)) ret=false; break;
 			default:
@@ -1161,6 +1169,7 @@ bool savestate_load(const char *file_name)
 	return savestate_load(&f);
 }
 
+#ifndef MDFNPS3 //No rewind support
 static std::stack<EMUFILE_MEMORY*> rewindFreeList;
 static std::vector<EMUFILE_MEMORY*> rewindbuffer;
 
@@ -1226,3 +1235,4 @@ void dorewind()
 	}
 
 }
+#endif

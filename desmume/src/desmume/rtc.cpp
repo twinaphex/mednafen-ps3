@@ -28,7 +28,10 @@
 #if defined(WIN32) && !defined(MDFNPS3) //Never
 #include "windows/main.h"
 #endif
+
+#ifndef MDFNPS3 //No movie support
 #include "movie.h"
+#endif
 
 
 typedef struct
@@ -97,6 +100,7 @@ bool moviemode=false;
 DateTime rtcGetTime(void)
 {
 	DateTime tm;
+#ifndef MDFNPS3 //No movie support
 	if(movieMode == MOVIEMODE_INACTIVE) {
 		return DateTime::get_Now();
 	}
@@ -114,6 +118,9 @@ DateTime rtcGetTime(void)
 		DateTime timer = currMovieData.rtcStart;
 		return timer.AddSeconds(totalseconds);
 	}
+#else
+	return DateTime::get_Now();
+#endif
 }
 
 static void rtcRecv()
