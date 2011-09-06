@@ -10,12 +10,12 @@ CPPFLAGS	+=	-DSNDCoreList=dsSNDCoreList -DSNDDummy=dsSNDDummy -DInputDisplayStri
 
 CXXFILES	+=	src/mednafen.cpp																																											\
 				src/desmume/addons.cpp				src/desmume/cp15.cpp			src/desmume/FIFO.cpp				src/desmume/NDSSystem.cpp		src/desmume/slot1.cpp								\
-				src/desmume/firmware.cpp			src/desmume/matrix.cpp			src/desmume/armcpu.cpp				src/desmume/debug.cpp			src/desmume/mc.cpp									\
+				src/desmume/firmware.cpp			src/desmume/matrix.cpp			src/desmume/armcpu.cpp				src/desmume/mc.cpp									\
 				src/desmume/rasterize.cpp			src/desmume/SPU.cpp				src/desmume/arm_instructions.cpp	src/desmume/readwrite.cpp		src/desmume/texcache.cpp							\
 				src/desmume/bios.cpp				src/desmume/gfx3d.cpp			src/desmume/mic.cpp					src/desmume/render3D.cpp		src/desmume/thumb_instructions.cpp					\
-				src/desmume/cheatSystem.cpp			src/desmume/driver.cpp			src/desmume/GPU.cpp					src/desmume/version.cpp			src/desmume/MMU.cpp									\
+				src/desmume/driver.cpp				src/desmume/GPU.cpp				src/desmume/version.cpp				src/desmume/MMU.cpp									\
 				src/desmume/rtc.cpp					src/desmume/wifi.cpp			src/desmume/path.cpp				src/desmume/common.cpp			src/desmume/emufile.cpp								\
-				src/desmume/GPU_osd_stub.cpp		src/desmume/saves.cpp			src/desmume/movie.cpp				src/desmume/fs-linux.cpp															\
+				src/desmume/GPU_osd_stub.cpp		src/desmume/saves.cpp			src/desmume/fs-linux.cpp															\
 				\
 				src/desmume/sndmdfn.cpp																																										\
 				\

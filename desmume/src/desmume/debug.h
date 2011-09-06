@@ -21,6 +21,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#ifndef MDFNPS3 //No debug support
+
 #ifdef MDFNPS3 //libes 'Logger' token collision
 #define Logger dsLogger
 #endif
@@ -220,5 +222,36 @@ inline void HandleDebugEvent(EDEBUG_EVENT event)
 	}
 }
 
+#else
+
+#define IdeasLog(x)
+#define NocashMessage(x)
+#define CheckDebugEvent(x) false
+#define HandleDebugEvent(x)
+
+#define LOGC(...) {}
+#define LOG(...) {}
+#define GPULOG(...) {}
+#define DIVLOG(...) {}
+#define SQRTLOG(...) {}
+#define DMALOG(...) {}
+#define CFLASHLOG(...) {}
+#define UNTESTEDOPCODELOG(...) {}
+#define PROGINFO(...) {}
+#define INFO(...) 0==0
+
+class DebugNotify
+{
+public:
+	void NextFrame() {};
+	void ReadBeyondEndOfCart(unsigned long addr, unsigned long romsize) {};
+};
+
+static DebugNotify DEBUG_Notify;
 
 #endif
+
+
+#endif
+
+

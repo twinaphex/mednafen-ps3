@@ -612,7 +612,7 @@ inline void SetupMMU(BOOL debugConsole) {
 	_MMU_MAIN_MEM_MASK32 = _MMU_MAIN_MEM_MASK & ~3;
 }
 
-
+#ifndef MDFNPS3 //No debug support
 FORCEINLINE void CheckMemoryDebugEvent(EDEBUG_EVENT event, const MMU_ACCESS_TYPE type, const u32 procnum, const u32 addr, const u32 size, const u32 val)
 {
 	//TODO - ugh work out a better prefetch event system
@@ -628,7 +628,9 @@ FORCEINLINE void CheckMemoryDebugEvent(EDEBUG_EVENT event, const MMU_ACCESS_TYPE
 		HandleDebugEvent(event);
 	}
 }
-
+#else
+#define CheckMemoryDebugEvent(...)
+#endif
 
 //ALERT!!!!!!!!!!!!!!
 //the following inline functions dont do the 0x0FFFFFFF mask.

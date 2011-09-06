@@ -432,7 +432,11 @@ void NDS_suspendProcessingInput(bool suspend);
 #ifndef MDFNPS3 //Load ROM from memory
 int NDS_LoadROM(const char *filename, const char* logicalFilename=0);
 #else
+#ifndef noMDFNPS3
 int NDS_LoadROM(const unsigned char* data, unsigned long length);
+#else
+int NDS_LoadROM(const char* filename);
+#endif
 #endif
 
 void NDS_FreeROM(void);
