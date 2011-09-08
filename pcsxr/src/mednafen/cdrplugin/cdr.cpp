@@ -189,9 +189,10 @@ long			pkCDRgetTD				(unsigned char aTrack, unsigned char* aBuffer)
 {
 	//TODO: Special case track zero to return size of disc?
 
-//TODO: Fix for mednafen 0.9.18 ditching CDIF_GetTrackSectorCount
-//	uint32_t sectors = CDIF_GetTrackSectorCount(aTrack);
-	uint32_t sectors = 10101;
+	CD_TOC toc;
+	CDIF_ReadTOC(&toc);
+
+	uint32_t sectors = toc.tracks[aTrack + 1].lba - toc.tracks[aTrack].lba;
 
 	aBuffer[2] = sectors / 75 / 60;
 	sectors -= aBuffer[2] * 75 * 60;
@@ -205,11 +206,12 @@ long			pkCDRgetTD				(unsigned char aTrack, unsigned char* aBuffer)
 long			pkCDRreadTrack			(unsigned char* aPosition)
 {
 	//TODO: Fix
+	CD_TOC toc;
+	CDIF_ReadTOC(&toc);
 
-//TODO: Fix for mednafen 0.9.18 ditching CDIF_GetTrackStartPosition
-//	int sector = MSF2SECT(btoi(aPosition[0]), btoi(aPosition[1]), btoi(aPosition[2]));
-//	sector += CDIF_GetTrackStartPositionLBA(1);
-//	CDIF_ReadRawSector(Buffer, sector);
+	int sector = MSF2SECT(btoi(aPosition[0]), btoi(aPosition[1]), btoi(aPosition[2]));
+	sector += toc.tracks[1].lba;
+	CDIF_ReadRawSector(Buffer, sector);
 
 #if 0
     if (subChanMixed) {
