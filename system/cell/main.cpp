@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <sysutil/sysutil_msgdialog.h>
 
 SYS_PROCESS_PARAM(1001, 1024 * 1024);
 
@@ -6,6 +7,7 @@ namespace
 {
 	volatile bool	want_to_die = false;
 	volatile bool	want_to_sleep = false;
+	uint32_t		sleep_counter = 10;
 
 	void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
 	{
@@ -13,7 +15,7 @@ namespace
 		{
 			case CELL_SYSUTIL_REQUEST_EXITGAME:	want_to_die = true; break;
 			case CELL_SYSUTIL_SYSTEM_MENU_OPEN:	want_to_sleep = true; break; 
-			case CELL_SYSUTIL_SYSTEM_MENU_CLOSE:want_to_sleep = false; break;
+			case CELL_SYSUTIL_SYSTEM_MENU_CLOSE:want_to_sleep = false; sleep_counter = 180; break;
 		}
 
 		return;
@@ -50,6 +52,56 @@ void				ESSUB_Quit				()
 	cellSysutilUnregisterCallback(0);
 }
 
+struct				ErrorData
+{
+	bool			Accept;
+	bool			Cancel;
+};
+
+static void			ErrorCallback			(int32_t aButton, void* aUserData)
+{
+	want_to_sleep = false;
+	sleep_counter = 180;
+
+	if(aUserData)
+	{
+		ErrorData* data = (ErrorData*)aUserData;
+		data->Accept = (aButton == CELL_MSGDIALOG_BUTTON_YES);
+		data->Cancel = (aButton == CELL_MSGDIALOG_BUTTON_ESCAPE);
+	}
+}
+
+void				ESSUB_Error				(const char* aMessage)
+{
+	want_to_sleep = true;
+	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK, aMessage, ErrorCallback, 0, 0);
+
+	while(WantToSleep() && !WantToDie())
+	{
+		ESVideo::Flip();
+	}
+}
+
+bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
+{
+	ErrorData result;
+
+	want_to_sleep = true;
+	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO, aMessage, ErrorCallback, &result, 0);
+
+	while(WantToSleep() && !WantToDie())
+	{
+		ESVideo::Flip();
+	}
+
+	if(aCancel)
+	{
+		*aCancel = result.Cancel;
+	}
+
+	return result.Accept;
+}
+
 bool				ESSUB_WantToDie			()
 {
 	cellSysutilCheckCallback();
@@ -59,7 +111,13 @@ bool				ESSUB_WantToDie			()
 bool				ESSUB_WantToSleep		()
 {
 	cellSysutilCheckCallback();
-	return want_to_sleep;
+
+	if(sleep_counter)
+	{
+		sleep_counter --;
+	}
+
+	return want_to_sleep || (sleep_counter != 0);
 }
 
 std::string			ESSUB_GetBaseDirectory	()
