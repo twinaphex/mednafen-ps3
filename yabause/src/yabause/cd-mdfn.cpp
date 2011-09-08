@@ -21,8 +21,8 @@
 
 #ifdef MDFNPS3
 
-#include "src/mednafen.h"
-#include "src/cdrom/cdromif.h"
+#include <mednafen/mednafen.h>
+#include <mednafen/cdrom/cdromif.h>
 
 #include <string.h>
 #include <stdlib.h>

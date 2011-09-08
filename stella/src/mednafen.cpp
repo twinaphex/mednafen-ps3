@@ -1,6 +1,6 @@
-#include <src/mednafen.h>
-#include <src/mempatcher.h>
-#include <src/git.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/mempatcher.h>
+#include <mednafen/git.h>
 
 #define MODULENAMESPACE	Stella
 #include <module_helper.h>

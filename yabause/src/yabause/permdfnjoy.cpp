@@ -20,7 +20,7 @@
 */
 
 #ifdef MDFNPS3
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 #define MODULENAMESPACE Yabause
 #define SECONDARYINCLUDE
 #include <module_helper.h>

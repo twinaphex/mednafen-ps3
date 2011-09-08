@@ -1,4 +1,4 @@
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 #include "settings.h"
 
 #include "core/api/NstApiMachine.hpp"

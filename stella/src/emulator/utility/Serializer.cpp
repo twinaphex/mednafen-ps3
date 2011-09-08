@@ -19,7 +19,7 @@
 
 //ROBO: Entire file is modified, diff with original for details...
 //ROBO: Use StateMem as stream backend
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 
 #include <fstream>
 #include <sstream>

@@ -17,8 +17,8 @@
 */
 
 #if defined(MDFNPS3) && !defined(noMDFNPS3) //Mednafen save file names
-# include <src/mednafen.h>
-# include <src/general.h>
+# include <mednafen/mednafen.h>
+# include <mednafen/general.h>
 # define SFORMAT dsSFORMAT
 #endif
 

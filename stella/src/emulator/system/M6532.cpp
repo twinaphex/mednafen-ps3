@@ -18,8 +18,8 @@
 //============================================================================
 
 //ROBO: For cheats
-#include <src/mednafen.h>
-#include <src/mempatcher.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/mempatcher.h>
 
 #include <cassert>
 #include <iostream>

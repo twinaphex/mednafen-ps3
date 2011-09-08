@@ -1,9 +1,10 @@
 //Includes from mednafen
-#include <src/mednafen.h>
-#include <src/cdrom/cdromif.h>
-#include <src/mednafen-driver.h>
-#include <src/git.h>
-#include <src/general.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/cdrom/cdromif.h>
+#include <mednafen/mednafen-driver.h>
+#include <mednafen/git.h>
+#include <mednafen/general.h>
+#include <mednafen/mempatcher.h>
 #include <stdarg.h>
 
 #ifdef __CELLOS_LV2__ //math.h must NOT be included in an 'extern "C"' block.
@@ -14,7 +15,6 @@
 #include <module_helper.h>
 using namespace pcsxr;
 
-#include "src/mempatcher.h"
 
 
 //Pair of functions to export timing to C files.

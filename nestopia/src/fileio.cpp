@@ -1,5 +1,5 @@
-#include <src/mednafen.h>
-#include <src/general.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/general.h>
 
 #include <fstream>
 #include "core/api/NstApiEmulator.hpp"

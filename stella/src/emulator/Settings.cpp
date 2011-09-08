@@ -19,8 +19,8 @@
 
 //ROBO: Totally convert this to use mednafen for settings backend, diff with orig for details
 //ROBO: For mednafen settings
-#include "src/mednafen.h"
-#include "src/settings-driver.h"
+#include <mednafen/mednafen.h>
+#include <mednafen/settings-driver.h>
 
 #include <cassert>
 #include <sstream>
