@@ -1,11 +1,11 @@
 //Includes from mednafen
-#include <src/mednafen.h>
-#include <src/cdrom/cdromif.h>
-#include <src/mednafen-driver.h>
-#include <src/git.h>
-#include <src/general.h>
-#include <src/md5.h>
-#include <src/driver.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/cdrom/cdromif.h>
+#include <mednafen/mednafen-driver.h>
+#include <mednafen/git.h>
+#include <mednafen/general.h>
+#include <mednafen/md5.h>
+#include <mednafen/driver.h>
 
 #include <stdarg.h>
 #include <algorithm>

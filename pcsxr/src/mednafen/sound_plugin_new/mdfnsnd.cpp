@@ -1,5 +1,5 @@
 //Base includes
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 #define MODULENAMESPACE pcsxr
 #define SECONDARYINCLUDE
 #include <module_helper.h>

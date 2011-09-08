@@ -19,7 +19,7 @@
 
 #ifdef MDFNPS3 //ROBO: Only for medanfen
 
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 #define MODULENAMESPACE desmume
 #define SECONDARYINCLUDE
 #include <module_helper.h>

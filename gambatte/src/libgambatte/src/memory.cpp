@@ -17,9 +17,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 //ROBO: Mednafen MDFN_MakeFName
-#include <src/mednafen.h>
-#include <src/mednafen-driver.h>
-#include <src/general.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/mednafen-driver.h>
+#include <mednafen/general.h>
  
 #include "memory.h"
 #include "video.h"

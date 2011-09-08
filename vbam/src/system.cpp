@@ -1,7 +1,7 @@
-#include <src/mednafen.h>
-#include <src/git.h>
-#include <src/driver.h>
-#include <src/general.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/git.h>
+#include <mednafen/driver.h>
+#include <mednafen/general.h>
 
 #define MODULENAMESPACE vbam
 #define SECONDARYINCLUDE

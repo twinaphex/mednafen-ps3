@@ -2,10 +2,10 @@
 #define	MEDNAFEN_INCLUDES_H 
 
 //Main Mednafen includes, relativly static
-#include "src/mednafen.h"
-#include "src/driver.h"
-#include "src/general.h"
-#include "src/mempatcher-driver.h"
+#include "mednafen/mednafen.h"
+#include "mednafen/driver.h"
+#include "mednafen/general.h"
+#include "mednafen/mempatcher-driver.h"
 
 #include <es_system.h>
 

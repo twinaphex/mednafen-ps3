@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "src/mednafen.h"
-#include "src/cdrom/cdromif.h"
+#include <mednafen/mednafen.h>
+#include <mednafen/cdrom/cdromif.h>
 
 struct CdrStat {
     uint32_t Type;

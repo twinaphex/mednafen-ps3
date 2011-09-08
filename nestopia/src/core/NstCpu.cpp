@@ -23,8 +23,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 //ROBO: Cheats
-#include <src/mednafen.h>
-#include <src/mempatcher.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/mempatcher.h>
 
 #include <cstring>
 #include "NstCpu.hpp"

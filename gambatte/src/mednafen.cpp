@@ -1,5 +1,5 @@
-#include <src/mednafen.h>
-#include <src/git.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/git.h>
 
 #include <sstream>
 

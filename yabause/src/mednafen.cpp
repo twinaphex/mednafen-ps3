@@ -1,10 +1,10 @@
-#include <src/mednafen.h>
-#include <src/git.h>
-#include <src/driver.h>
-#include <src/general.h>
-#include <src/mempatcher.h>
-#include <src/md5.h>
-#include <src/cdrom/cdromif.h>
+#include <mednafen/mednafen.h>
+#include <mednafen/git.h>
+#include <mednafen/driver.h>
+#include <mednafen/general.h>
+#include <mednafen/mempatcher.h>
+#include <mednafen/md5.h>
+#include <mednafen/cdrom/cdromif.h>
 
 #define MODULENAMESPACE Yabause
 #include <module_helper.h>

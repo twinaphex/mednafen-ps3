@@ -1,4 +1,4 @@
-#include <src/mednafen.h>
+#include <mednafen/mednafen.h>
 
 #include "core/api/NstApiEmulator.hpp"
 #include "core/api/NstApiFds.hpp"
