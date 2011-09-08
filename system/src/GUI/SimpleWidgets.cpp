@@ -132,7 +132,7 @@ bool							SummerfaceImage::Draw							()
 
 bool							SummerfaceNumber::Draw							()
 {
-	for(int i = i; i != Digits; i ++)
+	for(int i = 0; i != Digits; i ++)
 	{
 		std::string chara = std::string(1, Value[(32 - Digits) + i]);
 		FontManager::GetFixedFont()->PutString(chara.c_str(), 2 + i * FontManager::GetFixedFont()->GetWidth(), 2, ((32 - Digits) + i == SelectedIndex) ? Colors::HighLight : Colors::Normal, true);
