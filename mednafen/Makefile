@@ -11,16 +11,47 @@ CONTENTID			:=	UP0001-$(APPID)_00-0000000000000000
 PACKAGE				:=	mednafen.pkg
 
 ##Main Files
+CXXFILES			+=	src/cheatsearcher.cpp src/ers.cpp src/FastCounter.cpp src/inputhandler.cpp src/main.cpp src/mednafen_help.cpp \
+						src/mednafen_implement.cpp src/savestates.cpp src/SettingCategoryMenu.cpp src/SettingGroupMenu.cpp src/textviewer.cpp
+
 CXXFILES			+=	src/mednafen/cdplay.cpp src/mednafen/dis6502.cpp src/mednafen/file.cpp src/mednafen/math_ops.cpp src/mednafen/memory.cpp src/mednafen/netplay.cpp src/mednafen/player.cpp src/mednafen/settings.cpp \
 						src/mednafen/debug.cpp src/mednafen/endian.cpp src/mednafen/FileWrapper.cpp src/mednafen/md5.cpp src/mednafen/mempatcher.cpp src/mednafen/okiadpcm.cpp src/mednafen/PSFLoader.cpp src/mednafen/state.cpp \
 						src/mednafen/dis6280.cpp src/mednafen/error.cpp src/mednafen/general.cpp src/mednafen/mednafen.cpp src/mednafen/movie.cpp src/mednafen/qtrecord.cpp src/mednafen/tests.cpp
 
 CFILES				+=	src/mednafen/resampler/resample.c
 
-##Tremor (vorbis decoder)
+CXXFILES			+=	src/mednafen/sound/Blip_Buffer.cpp src/mednafen/sound/Fir_Resampler.cpp src/mednafen/sound/sound.cpp \
+						src/mednafen/sound/Stereo_Buffer.cpp src/mednafen/sound/WAVRecord.cpp
+
+CXXFILES			+=	src/mednafen/string/ConvertUTF.cpp src/mednafen/string/escape.cpp
+CFILES				+=	src/mednafen/string/world_strtod.c
+
+CFILES				+=	src/mednafen/trio/trio.c src/mednafen/trio/trionan.c src/mednafen/trio/triostr.c
+
+CXXFILES			+=	src/mednafen/video/Deinterlacer.cpp src/mednafen/video/font-data.cpp src/mednafen/video/png.cpp src/mednafen/video/primitives.cpp \
+						src/mednafen/video/resize.cpp src/mednafen/video/selblur.cpp src/mednafen/video/surface.cpp src/mednafen/video/tblur.cpp \
+						src/mednafen/video/text.cpp src/mednafen/video/video.cpp
+CFILES				+=	src/mednafen/video/font-data-12x13.c src/mednafen/video/font-data-18x18.c
+
+##Compression support
+CFILES				+=	src/mednafen/compress/blz.c src/mednafen/compress/ioapi.c src/mednafen/compress/minilzo.c src/mednafen/compress/quicklz.c src/mednafen/compress/unzip.c
+
+##CD-ROM handler
+CXXFILES			+=	src/mednafen/cdrom/audioreader.cpp src/mednafen/cdrom/cdromfile.cpp src/mednafen/cdrom/cdromif.cpp src/mednafen/cdrom/crc32.cpp \
+						src/mednafen/cdrom/galois.cpp src/mednafen/cdrom/l-ec.cpp src/mednafen/cdrom/lec.cpp src/mednafen/cdrom/pcecd.cpp \
+						src/mednafen/cdrom/recover-raw.cpp src/mednafen/cdrom/scsicd.cpp src/mednafen/cdrom/SimpleFIFO.cpp
+
+##CD Audio Support
+#OGG
 CFILES				+=	src/mednafen/tremor/bitwise.c src/mednafen/tremor/block.c src/mednafen/tremor/codebook.c src/mednafen/tremor/floor0.c src/mednafen/tremor/floor1.c src/mednafen/tremor/framing.c \
 						src/mednafen/tremor/info.c src/mednafen/tremor/mapping0.c src/mednafen/tremor/mdct.c src/mednafen/tremor/registry.c src/mednafen/tremor/res012.c src/mednafen/tremor/sharedbook.c \
 						src/mednafen/tremor/synthesis.c 	src/mednafen/tremor/vorbisfile.c src/mednafen/tremor/window.c
+
+#Musepak
+CFILES				+=	src/mednafen/mpcdec/huffsv46.c src/mednafen/mpcdec/huffsv7.c src/mednafen/mpcdec/idtag.c src/mednafen/mpcdec/mpc_decoder.c src/mednafen/mpcdec/mpc_reader.c \
+						src/mednafen/mpcdec/requant.c src/mednafen/mpcdec/streaminfo.c src/mednafen/mpcdec/synth_filter.c
+
+CPPFLAGS			+=	-DMPC_FIXED_POINT
 
 ###HW Modules
 ##CPU
@@ -129,14 +160,8 @@ CXXFILES			+=	src/mednafen/ngp/bios.cpp src/mednafen/ngp/biosHLE.cpp src/mednafe
 						src/mednafen/ngp/TLCS-900h/TLCS900h_interpret_reg.cpp src/mednafen/ngp/TLCS-900h/TLCS900h_interpret_single.cpp src/mednafen/ngp/TLCS-900h/TLCS900h_interpret_src.cpp \
 						src/mednafen/ngp/TLCS-900h/TLCS900h_registers.cpp
 
-MAINSRC				:=	src/filters src/mednafen/cdrom src/mednafen/compress src/mednafen/mpcdec src/mednafen/sound src/mednafen/string src/mednafen/trio src/mednafen/video
-MAINCPP				:=	-DNETWORK -DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.18\" -DMEDNAFEN_VERSION_NUMERIC=0x918 -DSIZEOF_DOUBLE=8
-
-FRONTENDSRC			:=	src
-
 ##Mednafen config
-CPPFLAGS			+=	-DMDFNPS3 -DMPC_FIXED_POINT $(MAINCPP)
-SOURCE				+=	$(FRONTENDSRC) $(MAINSRC)
+CPPFLAGS			+=	-DMDFNPS3 -DNETWORK -DPSS_STYLE=1 -DHAVE_MKDIR -DMEDNAFEN_VERSION=\"0.9.18\" -DMEDNAFEN_VERSION_NUMERIC=0x918 -DSIZEOF_DOUBLE=8
 INCLUDE				:=	. src ../system ../system/$(PLATFORM) src/mednafen/hw_misc src/mednafen/hw_video src/include src/mednafen/hw_cpu src/mednafen/sms src/mednafen/hw_sound src/include/blip src/mednafen/ngp src/mednafen/ngp/TLCS-900h src/mednafen/snes/src/lib
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella ../yabause
 LDFLAGS				+=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella -lyabause
