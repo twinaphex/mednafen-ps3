@@ -32,6 +32,10 @@
 #include <time.h>
 #include <trio/trio.h>
 
+#ifdef MDFNPS3 //Needed for lseek on windows
+#include <unistd.h>
+#endif
+
 #include "../general.h"
 #include "../endian.h"
 

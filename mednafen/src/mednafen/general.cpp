@@ -28,6 +28,10 @@
 #include <map>
 #include <trio/trio.h>
 
+#ifdef MDFNPS3 //time.h needed for MakeFName patches
+#include <time.h>
+#endif
+
 #include "general.h"
 #include "state.h"
 #include "movie.h"
