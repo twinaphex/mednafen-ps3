@@ -6,7 +6,10 @@ namespace
 	const char*		Chars[2][5] = {{"`1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "}, {"!@#$%^&*()_+", "QWERTYUIOP{}|", "ASDFGHJKL:\"", "ZXCVBNM<>?", " "}};
 }
 
-							Keyboard::Keyboard								(const Area& aRegion, const std::string& aHeader, const std::string& aText) : SummerfaceWindow(aRegion)
+							Keyboard::Keyboard								(const Area& aRegion, const std::string& aHeader, const std::string& aText) :
+	SummerfaceWindow(aRegion),
+	TextColor("text", Colors::black),
+	SelectedColor("selectedtext", Colors::red)
 {
 	Text.reserve(256);
 
@@ -21,7 +24,7 @@ namespace
 
 bool						Keyboard::Draw									()
 {
-	FontManager::GetBigFont()->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, Colors::HighLight);
+	FontManager::GetBigFont()->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, TextColor);
 	
 	uint32_t startX = 0;
 	
@@ -30,11 +33,11 @@ bool						Keyboard::Draw									()
 		for(int j = 0; j != strlen(Chars[Shift][i]); j ++)
 		{
 			char charr[2] = {Chars[Shift][i][j], 0};
-			FontManager::GetBigFont()->PutString(charr, startX + (j * 2) * FontManager::GetBigFont()->GetWidth(), (i + 4) * FontManager::GetBigFont()->GetHeight(), (i == Row && j == Column) ? Colors::HighLight : Colors::Normal);
+			FontManager::GetBigFont()->PutString(charr, startX + (j * 2) * FontManager::GetBigFont()->GetWidth(), (i + 4) * FontManager::GetBigFont()->GetHeight(), (i == Row && j == Column) ? SelectedColor : TextColor);
 		}
 	}
 
-	FontManager::GetBigFont()->PutString("     [SPACE]", startX, (4 + 4) * FontManager::GetBigFont()->GetHeight(), (Row == 4) ? Colors::HighLight : Colors::Normal);			
+	FontManager::GetBigFont()->PutString("     [SPACE]", startX, (4 + 4) * FontManager::GetBigFont()->GetHeight(), (Row == 4) ? SelectedColor : TextColor);			
 
 	return false;	
 }

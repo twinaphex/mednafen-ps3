@@ -1,28 +1,5 @@
 #pragma once
 
-
-class				Colors
-{
-	public:
-		static void						LoadColors					();
-		static void						FillAreas					(const Area& aSource, Area aDest[9]);
-
-		static uint32_t					BackGround;
-		static uint32_t					Border;
-		static uint32_t					Normal;
-		static uint32_t					HighLight;
-		static uint32_t					SpecialNormal;
-		static uint32_t					SpecialHighLight;
-		static uint32_t					SpecialBackGround;
-
-		static bool						WindowImageValid;
-		static Texture*					WindowImage;
-		static uint32_t					TopChop;
-		static uint32_t					BottomChop;
-		static uint32_t					LeftChop;
-		static uint32_t					RightChop;
-};
-
 class				Utility
 {
 	public:

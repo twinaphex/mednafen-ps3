@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Colors.h"
+
 ///Abstract class for displaying a list of items. Not complete until inherited by a view.
 ///@tparam T Type of item stored in the list.
 template <typename T>
@@ -200,6 +202,8 @@ class													GridListView : public ListView<T>
 		bool											DrawHeader;
 		bool											RefreshHeader;
 		bool											DrawLabels;
+
+		Color											SelectedBackColor;
 };
 
 template <typename T>
@@ -218,6 +222,7 @@ class													GroupListView : public AnchoredListView<T>
 
 	protected:
 		uint32_t										LinesDrawn;
+		Color											HeaderColor;
 };
 
 
@@ -229,7 +234,8 @@ template <typename T>
 	Height(aHeight),
 	DrawHeader(aHeader),
 	RefreshHeader(true),
-	DrawLabels(aLabels)
+	DrawLabels(aLabels),
+	SelectedBackColor("selectedbackgroud", Colors::Alpha(Colors::gray, 0x40))
 {
 	assert(Width != 0 && Height != 0 && Width <= 16 && Height <= 16);
 }
@@ -288,7 +294,7 @@ bool										GridListView<T>::DrawItem							(Item_Ptr aItem, uint32_t aX, uint
 
 	if(aSelected)
 	{
-		ESVideo::FillRectangle(Area(aX, aY, aWidth - 2, aHeight - 2), Colors::SpecialBackGround);
+		ESVideo::FillRectangle(Area(aX, aY, aWidth - 2, aHeight - 2), SelectedBackColor);
 	}
 
 	return false;
@@ -424,7 +430,8 @@ bool										AnchoredListView<T>::Input							(uint32_t aButton)
 
 template <typename T>
 											GroupListView<T>::GroupListView				(const Area& aRegion) :
-	AnchoredListView<T>(aRegion, true, false)
+	AnchoredListView<T>(aRegion, true, false),
+	HeaderColor("text", Colors::black)
 {
 }
 
@@ -432,7 +439,7 @@ template <typename T>
 uint32_t									GroupListView<T>::DrawHeader				(const std::string& aHeader, uint32_t aX, uint32_t aY)
 {
 	//TODO: Make and use color
-	this->GetFont()->PutString(aHeader.c_str(), aX, aY, Colors::Normal, true);
+	this->GetFont()->PutString(aHeader.c_str(), aX, aY, HeaderColor, true);
 	ESVideo::FillRectangle(Area(aX, aY + this->GetFont()->GetHeight() + 2, ESVideo::GetClip().Width - (aX * 2), 1), 0xFFFFFFFF);
 
 	return this->GetFont()->GetHeight() + 3;

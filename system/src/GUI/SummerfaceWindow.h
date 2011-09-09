@@ -91,5 +91,10 @@ class													SummerfaceWindow
 		Area											Region;							///<The area the window occupies, in percent.
 
 		bool											UseBorder;						///<True if the border should be drawn by prepare draw.
+
+		Color											BackgroundColor;				///<Color used to draw the Window's background.
+		Color											TextColor;						///<Color used to draw the Windows's header.
+		Color											HeaderColor;					///<Color used to draw the Windows's header.
+		Color											BorderColor;					///<Color used to draw the Windows's border.
 };
 

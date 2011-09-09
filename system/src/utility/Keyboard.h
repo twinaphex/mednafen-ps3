@@ -18,6 +18,9 @@ class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 		int32_t								Column;
 		int32_t								Row;
 		uint32_t							Shift;
+
+		Color								TextColor;
+		Color								SelectedColor;
 };
 
 

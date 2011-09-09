@@ -41,6 +41,8 @@ class							TextViewer : public SummerfaceWindow
 		int32_t					Left;						///<The first character to be drawn at the left of the widget.
 		uint32_t				LongestLine;				///<Length of the longest line in the widget.
 		uint32_t				LinesDrawn;					///<Total number of lines drawn by the last call to Draw, used for paging.
+
+		Color					TextColor;					///<Color of the text.
 };
 
 

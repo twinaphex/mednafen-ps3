@@ -2,14 +2,16 @@
 
 								SummerfaceLabel::SummerfaceLabel				(const Area& aRegion, const std::string& aMessage) :
 	SummerfaceWindow(aRegion),
-	Wrap(false)
+	Wrap(false),
+	TextColor("text", Colors::black)
 {
 	SetMessage(aMessage);
 }
 
 								SummerfaceLabel::SummerfaceLabel				(const Area& aRegion, const char* aFormat, ...) :
 	SummerfaceWindow(aRegion),
-	Wrap(false)
+	Wrap(false),
+	TextColor("text", Colors::black)
 {
 	char array[2048];
 
@@ -26,7 +28,7 @@ bool							SummerfaceLabel::Draw							()
 	//If it fits, just print
 	if(!Wrap || FontManager::GetBigFont()->MeasureString(GetMessage().c_str()) < ESVideo::GetClip().Width)
 	{
-		FontManager::GetBigFont()->PutString(GetMessage().c_str(), 2, 2, Colors::Normal, true);	
+		FontManager::GetBigFont()->PutString(GetMessage().c_str(), 2, 2, TextColor, true);	
 	}
 	else
 	{
@@ -49,12 +51,12 @@ bool							SummerfaceLabel::Draw							()
 				//Handle the case where one word would excede the total length
 				if(line.str().empty())
 				{
-					FontManager::GetBigFont()->PutString(word.c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, Colors::Normal, true);
+					FontManager::GetBigFont()->PutString(word.c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);
 					word = "";
 				}
 				else
 				{
-					FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, Colors::Normal, true);
+					FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);
 					line.str("");
 				}
 				online ++;
@@ -73,7 +75,7 @@ bool							SummerfaceLabel::Draw							()
 		//Print the last line if needed
 		if(!line.str().empty())
 		{
-			FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, Colors::Normal, true);				
+			FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);				
 		}
 	}
 
@@ -124,7 +126,9 @@ bool							SummerfaceImage::Draw							()
 	SummerfaceWindow(aRegion),
 	SelectedIndex(31),
 	Digits(aDigits),
-	Hex(aHex)
+	Hex(aHex),
+	TextColor("text", Colors::black),
+	SelectedColor("selectedtext", Colors::red)
 {
 	SetValue(aValue);
 }
@@ -135,7 +139,7 @@ bool							SummerfaceNumber::Draw							()
 	for(int i = 0; i != Digits; i ++)
 	{
 		std::string chara = std::string(1, Value[(32 - Digits) + i]);
-		FontManager::GetFixedFont()->PutString(chara.c_str(), 2 + i * FontManager::GetFixedFont()->GetWidth(), 2, ((32 - Digits) + i == SelectedIndex) ? Colors::HighLight : Colors::Normal, true);
+		FontManager::GetFixedFont()->PutString(chara.c_str(), 2 + i * FontManager::GetFixedFont()->GetWidth(), 2, ((32 - Digits) + i == SelectedIndex) ? SelectedColor : TextColor, true);
 	}
 
 	return false;
