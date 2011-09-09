@@ -1,7 +1,9 @@
 #include <es_system.h>
 #include "TextViewer.h"
 
-						TextViewer::TextViewer					(const Area& aRegion, const char* aFileName, bool aFile) : SummerfaceWindow(aRegion)
+						TextViewer::TextViewer					(const Area& aRegion, const char* aFileName, bool aFile) :
+	SummerfaceWindow(aRegion),
+	TextColor("text", Colors::black)
 {
 	SetHeader("[Text Viewer]");
 	Reload(aFileName, aFile);
@@ -58,7 +60,7 @@ bool					TextViewer::Draw						()
 	{
 		if(Lines[Top + i].length() > Left)
 		{
-			FontManager::GetFixedFont()->PutString(Lines[Top + i].substr(Left).c_str(), 2, i * lineheight, Colors::Normal);
+			FontManager::GetFixedFont()->PutString(Lines[Top + i].substr(Left).c_str(), 2, i * lineheight, TextColor);
 		}
 	}
 	

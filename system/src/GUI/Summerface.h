@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Colors.h"
+
 ///Class defining a GUI view.
 class													Summerface : public Menu
 {
@@ -81,6 +83,9 @@ class													Summerface : public Menu
 
 		WindowMap										Windows;						///<List of windows in the interface.
 		std::string										ActiveWindow;					///<Name of the interface's active window.
+
+		Color											BorderColor;					///<Color used to fill the screen.
+		Color											BorderShadeColor;				///<Color used to fill the screen.
 
 		static bool										(*BackgroundCallback)			();///<Callback function for drawing the background.
 };

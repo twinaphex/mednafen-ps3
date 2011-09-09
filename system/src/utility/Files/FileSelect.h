@@ -11,8 +11,8 @@ class												FileSelect
 			std::string								GetText						() {return Name;}
 			std::string								GetImage					() {return Image;}
 
-			uint32_t								GetNormalColor				() {return IsBookMark ? Colors::SpecialNormal : Colors::Normal;}
-			uint32_t								GetHighLightColor			() {return IsBookMark ? Colors::SpecialHighLight : Colors::HighLight;}
+			uint32_t								GetNormalColor				() {return IsBookMark ? Colors::GetColor("bookmark", Colors::green) : Colors::GetColor("text", Colors::black);}
+			uint32_t								GetHighLightColor			() {return IsBookMark ? Colors::GetColor("selectedbookmark", Colors::darkgreen) : Colors::GetColor("selectedtext", Colors::red);}
 
 			std::string								Name;
 			std::string								Extension;

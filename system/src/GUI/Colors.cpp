@@ -1,40 +1,57 @@
 #include <es_system.h>
+#include <map>
 #include "src/thirdparty/simpleini/SimpleIni.h"
 
-static uint32_t				GetInty								(const char* aValue)
+namespace
+{
+	bool								Inited;
+	CSimpleIniA							INI;
+}
+
+static uint32_t							GetInty								(const char* aValue)
 {
 	assert(aValue);
 	return strtoll(aValue, 0, 16);
 }
 
-void						Colors::LoadColors					()
+										Color::Color						() :
+	Value(0)
 {
-	CSimpleIniA ini;
-	ini.LoadFile(es_paths->Build(std::string("assets/colors.ini")).c_str());
 
-	BackGround = GetInty(ini.GetValue("uicolors", "BackGround", "D0D0D0C0"));
-	SpecialBackGround = GetInty(ini.GetValue("uicolors", "SpecialBackGround", "40404040"));
-	Border = GetInty(ini.GetValue("uicolors", "Border", "604040FF"));
-	Normal = GetInty(ini.GetValue("uicolors", "Normal", "202020FF"));
-	HighLight = GetInty(ini.GetValue("uicolors", "HighLight", "A02020FF"));
-	SpecialNormal = GetInty(ini.GetValue("uicolors", "SpecialNormal", "206020FF"));
-	SpecialHighLight = GetInty(ini.GetValue("uicolors", "SpecialHighLight", "20A020FF"));
-
-/*
-	BackGround				= 0xD0D0D0C0;
-	Border					= 0x604040FF;
-	Normal 					= 0x202020FF;
-	HighLight				= 0xA02020FF;
-	SpecialNormal 			= 0x206020FF;
-	SpecialHighLight		= 0x20A020FF;
-	SpecialBackGround		= 0x40404040;*/
 }
 
-uint32_t					Colors::BackGround;
-uint32_t					Colors::Border;
-uint32_t					Colors::Normal;
-uint32_t					Colors::HighLight;
-uint32_t					Colors::SpecialNormal;
-uint32_t					Colors::SpecialHighLight;
-uint32_t					Colors::SpecialBackGround;
+										Color::Color						(uint32_t aColor) :
+	Value(aColor)
+{
+
+}
+
+										Color::Color						(const char* aName, uint32_t aDefault) :
+	Value(Colors::GetColor(aName, aDefault))
+{
+
+}
+
+
+
+void									Colors::Initialize					()
+{
+	if(!Inited)
+	{
+		Inited = true;
+		INI.LoadFile(es_paths->Build(std::string("assets/colors.ini")).c_str());
+	}
+}
+
+uint32_t								Colors::GetColor					(const char* aName, uint32_t aDefaultValue)
+{
+	Initialize();
+
+	char defaultValue[10];
+	snprintf(defaultValue, 9, "%0X8", aDefaultValue);
+
+	uint32_t color = GetInty(INI.GetValue("uicolors", aName, defaultValue));
+
+	return color ? color : 0x01000000;
+}
 

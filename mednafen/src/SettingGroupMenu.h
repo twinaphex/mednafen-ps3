@@ -1,11 +1,19 @@
 #pragma once
 
+#include <src/GUI/Colors.h>
+
 ///ListItem class for settings.
 struct								SettingItem
 {
 	///Create a new SettingItem.
 	///@param aSetting Pointer to setting data. May not be NULL.
-									SettingItem							(const MDFNCS* aSetting, const std::string& aGroup) : Setting(aSetting), Group(aGroup) {assert(aSetting);}
+									SettingItem							(const MDFNCS* aSetting, const std::string& aGroup) :
+		Setting(aSetting), Group(aGroup),
+		TextColor("text", Colors::black),
+		SelectedColor("selectedtext", Colors::red)
+	{
+		assert(aSetting);
+	}
 
 	///Return a string containing the settings name and value.
 	///@return The settings name and value, separated by a tab character.
@@ -21,14 +29,17 @@ struct								SettingItem
 
 	///Retruns Colors::Normal.
 	///@return Colors::Normal.
-	uint32_t						GetNormalColor						() {return Colors::Normal;}
+	uint32_t						GetNormalColor						() {return TextColor;}
 
 	///Retruns Colors::HighLight.
 	///@return Colors::HighLight.
-	uint32_t						GetHighLightColor					() {return Colors::HighLight;}
+	uint32_t						GetHighLightColor					() {return SelectedColor;}
 
 	const MDFNCS*					Setting;							///<A pointer to the managed setting.
 	std::string						Group;								///<The group name for GroupListView.
+
+	Color							TextColor;							///<The text color.
+	Color							SelectedColor;						///<The selected text color.
 };
 
 

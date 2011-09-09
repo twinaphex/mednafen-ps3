@@ -1,17 +1,19 @@
 #pragma once
 
+#include "Colors.h"
+
 template <typename T>
 class													SummerfaceItemUser
 {
 	public:
-														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight)
+														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, uint32_t aNormalColor = 0, uint32_t aHighLightColor = 0)
 		{
 			SetText(aText);
 			SetImage(aImage);
 			SetColors(aNormalColor, aHighLightColor);
 		}
 
-														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, const T& aValue, uint32_t aNormalColor = Colors::Normal, uint32_t aHighLightColor = Colors::HighLight)
+														SummerfaceItemUser				(const std::string& aText, const std::string& aImage, const T& aValue, uint32_t aNormalColor = 0, uint32_t aHighLightColor = 0)
 		{
 			SetText(aText);
 			SetImage(aImage);
@@ -27,7 +29,11 @@ class													SummerfaceItemUser
 		virtual std::string								GetText							() {return Text;}
 		virtual std::string								GetImage						() {return Image;}
 
-		virtual void									SetColors						(uint32_t aNormalColor, uint32_t aSpecialColor) {NormalColor = aNormalColor; SpecialColor = aSpecialColor;}
+		virtual void									SetColors						(uint32_t aNormalColor, uint32_t aSpecialColor)
+		{
+			NormalColor = aNormalColor ? aNormalColor : Colors::GetColor("text", Colors::black);
+			SpecialColor = aSpecialColor ? aSpecialColor : Colors::GetColor("selectedtext", Colors::red);
+		}
 
 		virtual uint32_t								GetNormalColor					() {return NormalColor;}
 		virtual uint32_t								GetHighLightColor				() {return SpecialColor;}
@@ -38,8 +44,8 @@ class													SummerfaceItemUser
 		std::string										Text;
 		std::string										Image;
 
-		uint32_t										NormalColor;
-		uint32_t										SpecialColor;
+		Color											NormalColor;
+		Color											SpecialColor;
 };
 
 typedef SummerfaceItemUser<int>							SummerfaceItem;

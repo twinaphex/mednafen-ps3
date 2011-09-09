@@ -1,5 +1,6 @@
 #pragma once
 #include "SummerfaceWindow.h"
+#include "Colors.h"
 
 class													Area;
 
@@ -52,6 +53,7 @@ class													SummerfaceLabel : public SummerfaceWindow
 	private:
 		std::string										Message;						///<The displayed message.
 		bool											Wrap;							///<True to wrap the message when drawing.
+		Color											TextColor;						///<Color used to draw the text.
 };
 
 /////////////////
@@ -129,6 +131,8 @@ class													SummerfaceNumber : public SummerfaceWindow, public SummerfaceC
 		int32_t											SelectedIndex;					///<The currently selected digit in the widget.
 		uint32_t										Digits;							///<The total number of digits in the widget.
 		bool											Hex;							///<True if the input is in hex.
+		Color											TextColor;						///<Color used to draw the text.
+		Color											SelectedColor;					///<Color used to draw the selected number.
 };
 
 //////////////////

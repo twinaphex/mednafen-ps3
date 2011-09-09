@@ -95,7 +95,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	ESSUB_Init();
 
 	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
-	Colors::LoadColors();
+	Colors::Initialize();
 
 	bool result;
 

@@ -1,7 +1,9 @@
 #include <es_system.h>
 #include "Summerface.h"
 
-											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership)
+											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership) :
+	BorderColor("border", Colors::darkred),
+	BorderShadeColor("border", 0x80)
 {
 	if(aWindow)
 	{
@@ -40,7 +42,7 @@ bool										Summerface::Draw									()
 	//No backgound image, use a solid color
 	if(!tex)
 	{
-		ESVideo::FillRectangle(Area(0, 0, screenW, screenH), used_background ? 0x00000080 : Colors::Border);
+		ESVideo::FillRectangle(Area(0, 0, screenW, screenH), used_background ? BorderShadeColor : BorderColor);
 	}
 	//Draw the backgound image
 	else
