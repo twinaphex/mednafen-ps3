@@ -150,6 +150,10 @@ class				ESInput
 		{
 			const char* const esNames[] = {"UP", "DOWN", "LEFT", "RIGHT", "ACCEPT", "CANCEL", "SHIFT", "TAB", "L1", "R1", "L2", "R2", "L3", "R3"};
 
+			if(aButton > ES_BUTTON_AUXRIGHT3)
+			{
+				return "NONE";
+			}
 			if(aButton >= ES_BUTTON_UP && aButton <= ES_BUTTON_AUXRIGHT3)
 			{
 				return esNames[aButton - ES_BUTTON_UP];

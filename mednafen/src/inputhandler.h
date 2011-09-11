@@ -4,10 +4,15 @@ class												InputEnumerator
 {
 	public:
 		virtual void								System							(const MDFNGI* aDescription) = 0;
+		virtual void								FinishSystem					() {};
+
 		virtual bool								Port							(const InputPortInfoStruct* aDescription) = 0;
+		virtual void								FinishPort						() {};
+
 		virtual bool								Device							(const InputDeviceInfoStruct* aDescription) = 0;
+		virtual void								FinishDevice					() {};
+
 		virtual void								Button							(const InputDeviceInputInfoStruct* aDescription) = 0;
-		virtual void								Finish							() {};
 };
 
 class												InputHandler
