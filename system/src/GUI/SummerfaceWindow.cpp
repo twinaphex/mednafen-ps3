@@ -37,32 +37,42 @@ bool										SummerfaceWindow::PrepareDraw						()
 	{
 		ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
 
-		ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Y, pixRegion.Width, BorderWidth), BorderColor);
-		ESVideo::FillRectangle(Area(pixRegion.X + BorderWidth, pixRegion.Bottom(), pixRegion.Width, BorderWidth), 0x00000080);
-		ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Bottom() - BorderWidth, pixRegion.Width, BorderWidth), BorderColor);
+		Area borders[6] =
+		{
+			Area(pixRegion.X, 						pixRegion.Y,						pixRegion.Width,	BorderWidth),
+			Area(pixRegion.X, 						pixRegion.Bottom() - BorderWidth,	pixRegion.Width,	BorderWidth),
+			Area(pixRegion.X, 						pixRegion.Y, 						BorderWidth,		pixRegion.Height),
+			Area(pixRegion.Right() - BorderWidth, 	pixRegion.Y, 						BorderWidth,		pixRegion.Height),
+			Area(pixRegion.X + BorderWidth * 3,		pixRegion.Bottom(),					pixRegion.Width,	BorderWidth * 3),
+			Area(pixRegion.Right(), 				pixRegion.Y + BorderWidth,			BorderWidth * 3,	pixRegion.Height - BorderWidth),
+		};
 
-		ESVideo::FillRectangle(Area(pixRegion.X, pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth * 2), BorderColor);
-		ESVideo::FillRectangle(Area(pixRegion.Right(), pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth), 0x00000080);
-		ESVideo::FillRectangle(Area(pixRegion.Right() - BorderWidth, pixRegion.Y + BorderWidth, BorderWidth, pixRegion.Height - BorderWidth * 2), BorderColor);
+		for(int i = 0; i != 6; i ++)
+		{
+			ESVideo::FillRectangle(borders[i], (i < 4) ? (uint32_t)BorderColor : 0x80);
+		}
 
-		//Remove border pixels from region
+		//Remove border pixels from region and fill the inside of the window
 		pixRegion.Inflate(-BorderWidth);
 		ESVideo::FillRectangle(pixRegion, BackgroundColor);
 		ESVideo::SetClip(pixRegion);
 
+		//Draw the header
 		std::string header = GetHeader();
 		if(!header.empty())
 		{
-			ESVideo::FillRectangle(Area(0, 0, pixRegion.Width, FontManager::GetBigFont()->GetHeight() + 4), HeaderColor);
-			FontManager::GetBigFont()->PutString(header.c_str(), 1, 0, TextColor, true);
-			ESVideo::FillRectangle(Area(0, FontManager::GetBigFont()->GetHeight() + 4, pixRegion.Width, 1), 0xFFFFFFFF);
-			ESVideo::SetClip(Area(pixRegion.X, pixRegion.Y + FontManager::GetBigFont()->GetHeight() + 4, pixRegion.Width, pixRegion.Height - (FontManager::GetBigFont()->GetHeight() + 4)));
+			uint32_t headerHeight = FontManager::GetBigFont()->GetHeight();
+
+			ESVideo::FillRectangle(Area(0, 0, pixRegion.Width, headerHeight), HeaderColor);
+			FontManager::GetBigFont()->PutString(header.c_str(), MarginSize, 0, TextColor, true);
+
+			pixRegion.Y += headerHeight;
+			pixRegion.Height -= headerHeight;
 		}
 	}
-	else
-	{
-		ESVideo::SetClip(pixRegion);
-	}
+
+	pixRegion.Inflate(-MarginSize);
+	ESVideo::SetClip(pixRegion);
 
 	return Draw();
 }

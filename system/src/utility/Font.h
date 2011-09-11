@@ -2,22 +2,9 @@
 #define FONT_H_
 
 //Freetype declarations
-struct										FT_LibraryRec_;
-typedef struct FT_LibraryRec_*				FT_Library;
 struct										FT_FaceRec_;
 typedef struct FT_FaceRec_*					FT_Face;
-
-class										FontCharacter
-{
-	public:
-		Texture*							CharTexture;
-		Area								TextureArea;
-		uint32_t							Width;
-		uint32_t							Height;
-		uint32_t							Advance;
-		uint32_t							BaseX;
-		uint32_t							BaseY;
-};
+class										FontCharacter;
 
 class										Font
 {
@@ -25,6 +12,7 @@ class										Font
 											Font						(uint32_t aPixelSize, bool aFixed);
 											~Font						();
 
+		void								ClearCache					();
 		void								Resize						(uint32_t aPixelSize);
 								
 		uint32_t							PutString					(const char* aString, uint32_t aX, uint32_t aY, uint32_t aColor, bool aDropShadow = false, uint32_t aShadowColor = 0x00000080, int32_t aShadowXOffset = 1, int32_t aShadowYOffset = 1);
@@ -45,24 +33,14 @@ class										Font
 		std::map<uint32_t, FontCharacter*>	Cache;
 };
 
-class										FontManager
+namespace									FontManager
 {
-	friend class							Font;
-
-	public:
-		static void							InitFonts					();
-		static void							QuitFonts					();
+	void									InitFonts					();
+	void									QuitFonts					();
 	
-		static Font*						GetBigFont					();
-		static Font*						GetSmallFont				();
-		static Font*						GetFixedFont				();
-	
-		static FT_Library					FreeType;	
-	
-		static bool							FontsOpen;
-		static Font*						SmallFont;
-		static Font*						FixedFont;
-		static Font*						BigFont;
+	Font*									GetBigFont					();
+	Font*									GetSmallFont				();
+	Font*									GetFixedFont				();
 };
 
 #endif

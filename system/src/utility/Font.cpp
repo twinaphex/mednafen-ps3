@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "src/thirdparty/simpleini/SimpleIni.h"
 
 extern "C"
 {
@@ -11,36 +12,49 @@ extern "C"
 	#include FT_GLYPH_H
 }
 
+namespace
+{
+	FT_Library			FreeType;	
+
+	Font*				BigFont;
+	uint32_t			BigFontSize;
+
+	Font*				SmallFont;
+	uint32_t			SmallFontSize;
+
+	Font*				FixedFont;
+	uint32_t			FixedFontSize;
+}
+
+struct					FontCharacter
+{
+	Texture*			CharTexture;
+	Area				TextureArea;
+	int32_t				Width;
+	int32_t				Height;
+	int32_t				Advance;
+	int32_t				BaseX;
+	int32_t				BaseY;
+};
+
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
-	if(0 != FT_New_Face(FontManager::FreeType, aFixed ? es_paths->Build("assets/font/fixed.ttf").c_str() : es_paths->Build("assets/font/prop.ttf").c_str(), 0, &FontFace))
+	if(0 != FT_New_Face(FreeType, aFixed ? es_paths->Build("assets/font/fixed.ttf").c_str() : es_paths->Build("assets/font/prop.ttf").c_str(), 0, &FontFace))
 	{
 		Abort("Font::Font: FT_New_Face failed");
 	}
-	
-	if(0 != FT_Set_Pixel_Sizes(FontFace, 0, aPixelSize))
-	{
-		Abort("Font::Font: FT_Set_Pixel_Sizes failed");
-	}
 
-	Width = FontFace->size->metrics.max_advance / 64;
-	Height = FontFace->size->metrics.height / 64;
+	Resize(aPixelSize);
 }
 
 						Font::~Font					()
 {
-	for(std::map<uint32_t, FontCharacter*>::iterator i = Cache.begin(); i != Cache.end(); i ++)
-	{
-		delete i->second->CharTexture;
-		delete i->second;
-	}
-		
+	ClearCache();
 	FT_Done_Face(FontFace);
 }
 
-void					Font::Resize				(uint32_t aPixelSize)
+void					Font::ClearCache			()
 {
-	//Delete cached glyphs
 	for(std::map<uint32_t, FontCharacter*>::iterator i = Cache.begin(); i != Cache.end(); i ++)
 	{
 		delete i->second->CharTexture;
@@ -48,10 +62,15 @@ void					Font::Resize				(uint32_t aPixelSize)
 	}
 
 	Cache.clear();
+}
+
+void					Font::Resize				(uint32_t aPixelSize)
+{
+	ClearCache();
 
 	//Calculate new size
 	FT_Set_Pixel_Sizes(FontFace, 0, aPixelSize);
-	Width = FontFace->size->metrics.max_advance / 64;
+	Width = FontFace->max_advance_width / 64;
 	Height = FontFace->size->metrics.height / 64;
 }
 
@@ -83,7 +102,7 @@ uint32_t				Font::PutString				(const char* aString, uint32_t aMaxCharacters, ui
 			
 			if(chara && chara->CharTexture)
 			{
-				ESVideo::PlaceTexture(chara->CharTexture, Area(aX + chara->BaseX, aY + (Height + (FontFace->descender / 64)) - chara->BaseY, chara->Width, chara->Height), chara->TextureArea, aColor);
+				ESVideo::PlaceTexture(chara->CharTexture, Area(aX + chara->BaseX, aY + (Height + FontFace->size->metrics.descender / 64) - chara->BaseY, chara->Width, chara->Height), chara->TextureArea, aColor);
 			}
 			
 			if(chara)
@@ -144,7 +163,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 		character->Height = FontFace->glyph->bitmap.rows;
 		character->BaseX = FontFace->glyph->bitmap_left;
 		character->BaseY = FontFace->glyph->bitmap_top;
-		
+
 		if(character->Width != 0 && character->Height != 0)
 		{
 			character->CharTexture = ESVideo::CreateTexture(FontFace->glyph->bitmap.width, FontFace->glyph->bitmap.rows, true);
@@ -177,43 +196,27 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 	return Cache[aCharacter];
 }
 
-Font*					FontManager::GetBigFont		()
-{
-	if(!FontsOpen)
-	{
-		Abort("FontManager: Attempt to use before initialization");
-	}
-	
-	return BigFont;
-}
-
-Font*					FontManager::GetSmallFont	()
-{
-	if(!FontsOpen)
-	{
-		Abort("FontManager: Attempt to use before initialization");
-	}
-
-	return SmallFont;
-}
-
-Font*					FontManager::GetFixedFont	()
-{
-	if(!FontsOpen)
-	{
-		Abort("FontManager: Attempt to use before initialization");
-	}
-
-	return FixedFont;
-}
+/////////////////////
 
 void					FontManager::InitFonts		()
 {
-	if(FontsOpen)
+	if((BigFontSize == 0) || (SmallFontSize == 0) || (FixedFontSize == 0))
 	{
-		BigFont->Resize(ESVideo::GetScreenHeight() / 25);
-		SmallFont->Resize(ESVideo::GetScreenHeight() / 40);
-		FixedFont->Resize(ESVideo::GetScreenHeight() / 36);
+		CSimpleIniA INI;
+		INI.LoadFile(es_paths->Build(std::string("assets/colors.ini")).c_str());
+
+		BigFontSize = Utility::Clamp(INI.GetLongValue("bigfont", "size", 30), 10, 100);
+		SmallFontSize = Utility::Clamp(INI.GetLongValue("smallfont", "size", 40), 10, 100);
+		FixedFontSize = Utility::Clamp(INI.GetLongValue("fixedfont", "size", 36), 10, 100);
+	}
+
+	assert(BigFontSize && SmallFontSize && FixedFontSize);
+
+	if(FreeType)
+	{
+		BigFont->Resize(ESVideo::GetScreenHeight() / BigFontSize);
+		SmallFont->Resize(ESVideo::GetScreenHeight() / SmallFontSize);
+		FixedFont->Resize(ESVideo::GetScreenHeight() / FixedFontSize);
 	}
 	else
 	{
@@ -222,32 +225,39 @@ void					FontManager::InitFonts		()
 			Abort("FontManager::Init: Failed to initialize freetype");
 		}
 
-		BigFont = new Font(ESVideo::GetScreenHeight() / 25);
-		SmallFont = new Font(ESVideo::GetScreenHeight() / 40);
-		FixedFont = new Font(ESVideo::GetScreenHeight() / 36, true);
+		BigFont = new Font(ESVideo::GetScreenHeight() / BigFontSize);
+		SmallFont = new Font(ESVideo::GetScreenHeight() / SmallFontSize);
+		FixedFont = new Font(ESVideo::GetScreenHeight() / FixedFontSize, true);
 	}
-
-	FontsOpen = true;
 }
 
 void					FontManager::QuitFonts		()
 {
-	if(FontsOpen)
-	{
-		delete BigFont;
-		delete SmallFont;
-		delete FixedFont;
-		
+	delete BigFont; BigFont = 0;
+	delete SmallFont; SmallFont = 0;
+	delete FixedFont; FixedFont = 0;
+
+	if(FreeType)
+	{		
 		FT_Done_FreeType(FreeType);
 	}
-	
-	FontsOpen = false;
 }
 
-FT_Library				FontManager::FreeType = 0;
+Font*					FontManager::GetBigFont		()
+{
+	assert(BigFont);
+	return BigFont;
+}
 
-bool					FontManager::FontsOpen = false;
-Font*					FontManager::BigFont = 0;
-Font*					FontManager::SmallFont = 0;
-Font*					FontManager::FixedFont = 0;
+Font*					FontManager::GetSmallFont	()
+{
+	assert(SmallFont);
+	return SmallFont;
+}
+
+Font*					FontManager::GetFixedFont	()
+{
+	assert(FixedFont);
+	return FixedFont;
+}
 
