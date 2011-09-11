@@ -77,7 +77,7 @@ class									SettingGenerator : public InputEnumeratorBase
 			//Note that VAPrintD generates strings on the heap that will not be passed to free
 			if(aDescription->SettingName)
 			{
-				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "0"};
+				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "4294967294"};
 
 				thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
 				Settings.push_back(thisInput);
@@ -99,6 +99,13 @@ class									SettingGenerator : public InputEnumeratorBase
 class									ConfigurePrepper : public InputEnumeratorBase
 {
 	public:
+		struct							ButtonInfo
+		{
+			uint32_t					Index;
+			const InputDeviceInputInfoStruct*	Data;
+		};
+
+	public:
 		void							AddSetting						(const char* aName)
 		{
 			const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
@@ -113,6 +120,11 @@ class									ConfigurePrepper : public InputEnumeratorBase
 			}
 		}
 
+		virtual void					FinishSystem					()
+		{
+			SettingGroupMenu(Settings, "").Do();
+		}
+
 		virtual bool					Port							(const InputPortInfoStruct* aDescription)
 		{
 			InputEnumeratorBase::Port(aDescription);
@@ -123,26 +135,56 @@ class									ConfigurePrepper : public InputEnumeratorBase
 			return true;
 		}
 
-		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
+		virtual bool					Device							(const InputDeviceInfoStruct* aDescription)
 		{
-			if(aDescription->SettingName)
-			{
-				AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+			InputEnumeratorBase::Device(aDescription);
 
-				//Rapid button support
-				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+			ButtonList.clear();
+			ButtonIndex = 0;
+		}
+
+		static bool						ButtonSort						(const ButtonInfo& aLeft, const ButtonInfo& aRight)
+		{
+			if(aLeft.Data->ConfigOrder == aRight.Data->ConfigOrder)
+			{
+				return aLeft.Index < aRight.Index;
+			}
+
+			return aLeft.Data->ConfigOrder < aRight.Data->ConfigOrder;
+		}
+
+		virtual void					FinishDevice					()
+		{
+			ButtonList.sort(ButtonSort);
+
+			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
+			{	
+				if(i->Data->SettingName)
 				{
-					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
+				}
+			}
+
+			//Rapid buttons forced to the end of the list
+			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
+			{	
+				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON_CAN_RAPID))
+				{
+					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
 				}
 			}
 		}
 
-		virtual void					Finish							()
+
+		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
 		{
-			SettingGroupMenu(Settings, "").Do();
+			ButtonInfo bi = {ButtonIndex ++, aDescription};
+			ButtonList.push_back(bi);
 		}
 
 	private:
+		uint32_t						ButtonIndex;
+		std::list<ButtonInfo>			ButtonList;
 		SettingGroupMenu::SettingGroup	Settings;
 };
 
@@ -207,7 +249,7 @@ void							InputHandler::SetGameInfo						(const MDFNGI* aSystem)
 	//Run configure if all input values are zero
 	for(int i = 0; i != Inputs[0].size(); i ++)
 	{
-		if(Inputs[0][i].Button != 0)
+		if(Inputs[0][i].Button != 0xFFFFFFFE)
 		{
 			return;
 		}
@@ -242,12 +284,16 @@ void							InputHandler::EnumerateInputs					(const MDFNGI* aSystem, InputEnumer
 
 						aEnumerator->Button(thisButton);
 					}
+
+					aEnumerator->FinishDevice();
 				}
 			}
+
+			aEnumerator->FinishPort();
 		}
 	}
 
-	aEnumerator->Finish();
+	aEnumerator->FinishSystem();
 }
 
 void							InputHandler::Process							()
