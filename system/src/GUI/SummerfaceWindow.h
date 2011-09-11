@@ -83,6 +83,7 @@ class													SummerfaceWindow
 
 	private:
 		static const uint32_t							BorderWidth = 4;				///<Width of a window border.
+		static const uint32_t							MarginSize = 4;					///<Amount of blank space inside the window border.
 
 		Summerface*										Interface;						///<Parent interface.
 
