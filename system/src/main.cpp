@@ -20,10 +20,11 @@ bool				ESSUB_WantToSleep		();
 std::string			ESSUB_GetBaseDirectory	();
 
 #ifndef	HAVE_ESSUB_ERROR
-void				ESSUB_Error				(const char* aMessage)
+void				ESSUB_Error				(const char* aMessage, const char* aHeader)
 {
-	SummerfaceLabel text(Area(10, 10, 80, 20), aMessage);
+	SummerfaceLabel text(Area(20, 35, 60, 30), aMessage);
 	text.SetWordWrap(true);
+	text.SetHeader(aHeader ? aHeader : "Message");
 	Summerface("Error", &text, false).Do();
 }
 #endif
