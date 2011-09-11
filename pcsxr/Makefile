@@ -2,6 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
+include $(CURDIR)/../Makefile-$(PLATFORM).config
+
 TARGET		:=	libpcsxr
 TYPE		:=	lib
 INCLUDE		:=	.. src src/libpcsxcore ../mednafen/src ../system

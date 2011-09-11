@@ -2,7 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
-include Makefile-$(PLATFORM).config
+include $(CURDIR)/Makefile-$(PLATFORM).config
+include $(CURDIR)/../Makefile-$(PLATFORM).config
 
 TARGET			:=	libemusys
 TYPE			:=	lib

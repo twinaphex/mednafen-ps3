@@ -2,6 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
+include $(CURDIR)/../Makefile-$(PLATFORM).config
+
 TARGET		:=	libnestopia
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src
