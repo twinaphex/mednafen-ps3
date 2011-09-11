@@ -10,7 +10,7 @@ namespace
 	int						ProcessAudioThread		(void* aAudio);
 	void					MultiStreamCallback		(int streamNumber, void* userData, int cType, void * pWriteBuffer, int nBufferSize);
 
-	AudioBuffer<8192>		RingBuffer;
+	SoundTouchAudioBuffer	RingBuffer;
 
 	//Theads
 	ESThread*				Thread;
