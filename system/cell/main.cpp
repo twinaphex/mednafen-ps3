@@ -71,7 +71,7 @@ static void			ErrorCallback			(int32_t aButton, void* aUserData)
 	}
 }
 
-void				ESSUB_Error				(const char* aMessage)
+void				ESSUB_Error				(const char* aMessage, const char* aHeader)
 {
 	want_to_sleep = true;
 	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK, aMessage, ErrorCallback, 0, 0);
