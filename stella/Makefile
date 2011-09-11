@@ -2,6 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
+include $(CURDIR)/../Makefile-$(PLATFORM).config
+
 TARGET		:=	libstella
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/emulator src/emulator/cart src/emulator/input src/emulator/system src/emulator/utility src/emulator/properties 

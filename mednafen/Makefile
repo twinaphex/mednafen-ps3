@@ -2,6 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
+include $(CURDIR)/../Makefile-$(PLATFORM).config
+
 ##Package Details
 SFOXML				:=	package/sfo.xml
 ICON0				:=	package/ICON0.png

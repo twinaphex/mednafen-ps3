@@ -2,6 +2,8 @@ ifeq ($(strip $(PLATFORM)),)
 	PLATFORM = cell
 endif
 
+include $(CURDIR)/../Makefile-$(PLATFORM).config
+
 TARGET		:=	libgambatte
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/libgambatte/include src/common src/libgambatte/src ../system

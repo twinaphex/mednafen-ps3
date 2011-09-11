@@ -35,6 +35,15 @@ ASFLAGS		+= $(DEPSOPTIONS)
 CPPFLAGS	+= $(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir))
 LDFLAGS		+= $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
+#Debug/Release
+ifeq ($(strip $(BUILDTYPE)),debug)
+	CPPFLAGS			+=	$(DEBUG_CPPFLAGS)
+	LDFLAGS				+=	$(DEBUG_LDFLAGS)
+else
+	CPPFLAGS			+=	$(RELEASE_CPPFLAGS)
+	LDFLAGS				+=	$(RELEASE_LDFLAGS)
+endif
+
 #Determine output file type
 ifeq ($(strip $(TARGETPLATFORM)),windows)
  OUTTYPE				:=	exe
