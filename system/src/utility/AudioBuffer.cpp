@@ -41,12 +41,12 @@ uint32_t					SoundTouchAudioBuffer::WriteData					(const uint32_t* aData, uint32
 		if(sampleCount)
 		{
 			sampleCount = PitchShifter->receiveSamples((int16_t*)AuxBuffer, std::min(2048, sampleCount));
-			AudioBuffer::WriteData((uint32_t*)AuxBuffer, sampleCount);
+			AudioBuffer<8192>::WriteData((uint32_t*)AuxBuffer, sampleCount);
 		}
 	}
 	else
 	{
-		AudioBuffer::WriteData(aData, aLength);
+		AudioBuffer<8192>::WriteData(aData, aLength);
 	}
 }
 #endif
