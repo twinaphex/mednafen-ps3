@@ -25,7 +25,7 @@ void							MDFND_NetStart				()
 	catch(ESException& except)
 	{
 		char buffer[2048];
-		snprintf(buffer, 2048, "Failed to start netplay: %s", except.what());
+		snprintf(buffer, 2048, _("Failed to start netplay: %s"), except.what());
 		ESSUB_Error(buffer);
 		return;
 	}
@@ -48,7 +48,7 @@ void							MDFND_NetworkClose			()
 {
 	if(NetplayOn)
 	{
-		MednafenEmu::DisplayMessage("Network disconnected");
+		MednafenEmu::DisplayMessage(_("Network disconnected"));
 
 		NetplayOn = false;
 		MDFNI_NetplayStop();
@@ -84,12 +84,12 @@ bool							MDFND_ExitBlockingLoop		()
 
 void							MDFND_PrintError			(const char *s)
 {
-	es_log->AppendLine("ERROR: %s", s);
+	es_log->AppendLine(_("ERROR: %s"), s);
 }
 
 void							MDFND_Message				(const char *s)
 {
-	es_log->AppendLine(" INFO: %s", s);
+	es_log->AppendLine(_(" INFO: %s"), s);
 }
 
 void							MDFND_DispMessage			(UTF8 *text)

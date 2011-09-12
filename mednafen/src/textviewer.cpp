@@ -1,14 +1,16 @@
 #include <es_system.h>
+#include <libintl.h>
 #include "textviewer.h"
 
 #include "src/utility/TextViewer.h"
 #include "src/utility/Files/FileSelect.h"
 
+#define _(S) gettext(S)
 
 					TextFileViewer::TextFileViewer				() :
-	Viewer(new TextViewer(Area(10, 10, 80, 80), "NO FILE", false)),
+	Viewer(new TextViewer(Area(10, 10, 80, 80), _("NO FILE"), false)),
 	Interface(new Summerface("TextViewer", Viewer)),
-	Browser(new FileSelect("Select Text File", "", "")),
+	Browser(new FileSelect(_("Select Text File"), "", "")),
 	Loaded(false)
 {
 	Interface->AttachConduit(new SummerfaceTemplateConduit<TextFileViewer>(this));

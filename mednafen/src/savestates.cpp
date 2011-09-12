@@ -6,7 +6,7 @@
 extern StateStatusStruct*	StateStatusInfo;
 
 							StateLabel::StateLabel					(bool aLoad) :
-	SummerfaceLabel(Area(10, 85, 25, 6), "Slot 1"),
+	SummerfaceLabel(Area(10, 85, 25, 6), ""),
 	Slot(1),
 	Load(aLoad)
 {
@@ -22,7 +22,7 @@ void						StateLabel::SetSlot						(uint32_t aSlot)
 	assert(aSlot >= 1 && aSlot <= 9);
 
 	MDFNI_SelectState(Slot);
-	SetMessage("Slot %d", Slot);
+	SetMessage(_("Slot %d"), Slot);
 	FillScratch();
 }
 

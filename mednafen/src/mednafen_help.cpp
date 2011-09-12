@@ -26,10 +26,10 @@ namespace
 
 	const MDFNSetting_EnumList	AspectEnumList[] =
 	{
-		{"auto", 0, "Autodetect (Broken)", ""},
-		{"pillarbox", -1, "Pillarbox", ""},
-		{"fullframe", 1, "Fill Screen", ""},
-		{"1to1", 2, "Scale image with no correction", ""},
+		{"auto", 0, gettext_noop("Autodetect."), ""},
+		{"pillarbox", -1, gettext_noop("Pillarbox."), ""},
+		{"fullframe", 1, gettext_noop("Fill Screen."), ""},
+		{"1to1", 2, gettext_noop("Scale image with no correction."), ""},
 		{0, 0, 0, 0}
 	};
 
@@ -83,27 +83,27 @@ namespace
 
 	MDFNSetting SystemSettings[] = 
 	{
-		{"%s.es.display.fps", MDFNSF_NOFLAGS, "Display frames per second in corner of screen", NULL, MDFNST_BOOL, "0" },
-		{"%s.es.display.aspect", MDFNSF_NOFLAGS, "Override screen aspect correction", NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
-		{"%s.es.display.underscanadjust", MDFNSF_NOFLAGS, "Value to add to underscan from General Settings.", NULL, MDFNST_INT, "0", "-50", "50" },
-		{"%s.es.autosave", MDFNSF_NOFLAGS, "Save state at exit", NULL, MDFNST_BOOL, "0"},
-		{"%s.es.speed.rewind", MDFNSF_NOFLAGS, "Enable Rewind Support", NULL, MDFNST_BOOL, "0"},
-		{"%s.es.speed.normalrate", MDFNSF_NOFLAGS, "Set speed multiplier for non fast forward mode.", NULL, MDFNST_UINT, "1", "1", "16" },
-		{"%s.es.speed.fastrate", MDFNSF_NOFLAGS, "Set speed multiplier for fast forward mode.", NULL, MDFNST_UINT, "4", "1", "16" },
-		{"%s.es.speed.toggle", MDFNSF_NOFLAGS, "Make the fast forward button a toggle.", NULL, MDFNST_BOOL, "0" },
+		{"%s.es.display.fps", MDFNSF_NOFLAGS, gettext_noop("Display frames per second in corner of screen"), NULL, MDFNST_BOOL, "0" },
+		{"%s.es.display.aspect", MDFNSF_NOFLAGS, gettext_noop("Override screen aspect correction"), NULL, MDFNST_ENUM, "auto", NULL, NULL, NULL, NULL, AspectEnumList },
+		{"%s.es.display.underscanadjust", MDFNSF_NOFLAGS, gettext_noop("Value to add to underscan from General Settings."), NULL, MDFNST_INT, "0", "-50", "50" },
+		{"%s.es.autosave", MDFNSF_NOFLAGS, gettext_noop("Save state at exit"), NULL, MDFNST_BOOL, "0"},
+		{"%s.es.speed.rewind", MDFNSF_NOFLAGS, gettext_noop("Enable Rewind Support"), NULL, MDFNST_BOOL, "0"},
+		{"%s.es.speed.normalrate", MDFNSF_NOFLAGS, gettext_noop("Set speed multiplier for non fast forward mode."), NULL, MDFNST_UINT, "1", "1", "16" },
+		{"%s.es.speed.fastrate", MDFNSF_NOFLAGS, gettext_noop("Set speed multiplier for fast forward mode."), NULL, MDFNST_UINT, "4", "1", "16" },
+		{"%s.es.speed.toggle", MDFNSF_NOFLAGS, gettext_noop("Make the fast forward button a toggle."), NULL, MDFNST_BOOL, "0" },
 		//HACK: 4294967051 = ES_BUTTON_AUXRIGHT2
-		{"%s.es.speed.button", MDFNSF_CAT_INPUT, "Button used for fast forward.", NULL, MDFNST_UINT, "4294967051" }
+		{"%s.es.speed.button", MDFNSF_CAT_INPUT, gettext_noop("Button used for fast forward."), NULL, MDFNST_UINT, "4294967051" }
 	};
 
 	MDFNSetting ESSettings[] =
 	{
-		{"underscan", MDFNSF_NOFLAGS, "Reduce size of screen to compensate for display overscan.", NULL, MDFNST_INT, "5", "-50", "50" },
-		{"es.bookmarks", MDFNSF_NOFLAGS, "Bookmarks for the file browser.", NULL, MDFNST_STRING, "" },
-		{"net.es.username", MDFNSF_NOFLAGS, "User name for netplay.", NULL, MDFNST_STRING, "Me" },		
-		{"net.es.password", MDFNSF_NOFLAGS, "Password for the netplay Server.", NULL, MDFNST_STRING, "sexybeef" },
-		{"net.es.host", MDFNSF_NOFLAGS, "Hostname for netplay Server.", NULL, MDFNST_STRING, "192.168.0.115" },
-		{"net.es.port", MDFNSF_NOFLAGS, "Port for netplay Server.", NULL, MDFNST_UINT, "4046" },
-		{"net.es.gameid", MDFNSF_NOFLAGS, "Game ID for netplay Server.", NULL, MDFNST_STRING, "doing" },
+		{"underscan", MDFNSF_NOFLAGS, gettext_noop("Reduce size of screen to compensate for display overscan."), NULL, MDFNST_INT, "5", "-50", "50" },
+		{"es.bookmarks", MDFNSF_NOFLAGS, gettext_noop("Bookmarks for the file browser."), NULL, MDFNST_STRING, "" },
+		{"net.es.username", MDFNSF_NOFLAGS, gettext_noop("User name for netplay."), NULL, MDFNST_STRING, "Me" },		
+		{"net.es.password", MDFNSF_NOFLAGS, gettext_noop("Password for the netplay Server."), NULL, MDFNST_STRING, "sexybeef" },
+		{"net.es.host", MDFNSF_NOFLAGS, gettext_noop("Hostname for netplay Server."), NULL, MDFNST_STRING, "192.168.0.115" },
+		{"net.es.port", MDFNSF_NOFLAGS, gettext_noop("Port for netplay Server."), NULL, MDFNST_UINT, "4046" },
+		{"net.es.gameid", MDFNSF_NOFLAGS, gettext_noop("Game ID for netplay Server."), NULL, MDFNST_STRING, "doing" },
 	};
 }
 
@@ -426,22 +426,22 @@ void						MednafenEmu::DoCommands			()
 	//List of commands for the menu
 	const char*const commands[] =
 	{
-		//Display name,			Image name,			Command name
-		"Change Game",			"DoReload",			"DoReload",
-		"Reset Game",			"DoReset",			"DoReset",
-		"Show Text File",		"DoTextFile",		"DoTextFile",
-		"Connect Netplay",		"DoNetplay",		"DoNetplay",
-		"Change Disk Side",		"DoDiskSide", 		"DoDiskSide",
-		"Save State",			"DoSaveState",		"DoSaveStateMenu",
-		"Load State",			"DoLoadState",		"DoLoadStateMenu",
-		"Take Screen Shot",		"DoScreenShot",		"DoScreenShot",
-		"Settings",				"DoSettings",		"DoSettings",
-		"Configure Controls",	"DoInputConfig",	"DoInputConfig",
-		"Record Video",			"DoRecordVideo",	"DoToggleRecordVideo",
-		"Record Audio",			"DoRecordAudio",	"DoToggleRecordWave",
-		"Cheat Search",			"DoCheatSearch",	"DoCheatSearch",
-		"Cheat Menu",			"DoCheatMenu",		"DoCheatMenu",
-		"Exit Mednafen",		"ErrorIMAGE",		"DoExit",
+		//Display name,				Image name,			Command name
+		_("Change Game"),			"DoReload",			"DoReload",
+		_("Reset Game"),			"DoReset",			"DoReset",
+		_("Show Text File"),		"DoTextFile",		"DoTextFile",
+		_("Connect Netplay"),		"DoNetplay",		"DoNetplay",
+		_("Change Disk Side"),		"DoDiskSide", 		"DoDiskSide",
+		_("Save State"),			"DoSaveState",		"DoSaveStateMenu",
+		_("Load State"),			"DoLoadState",		"DoLoadStateMenu",
+		_("Take Screen Shot"),		"DoScreenShot",		"DoScreenShot",
+		_("Settings"),				"DoSettings",		"DoSettings",
+		_("Configure Controls"),	"DoInputConfig",	"DoInputConfig",
+		_("Record Video"),			"DoRecordVideo",	"DoToggleRecordVideo",
+		_("Record Audio"),			"DoRecordAudio",	"DoToggleRecordWave",
+		_("Cheat Search"),			"DoCheatSearch",	"DoCheatSearch",
+		_("Cheat Menu"),			"DoCheatMenu",		"DoCheatMenu",
+		_("Exit Mednafen"),			"ErrorIMAGE",		"DoExit",
 	};
 
 	//Setup the menu
@@ -510,13 +510,13 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	{
 		if(RecordingWave)
 		{
-			DisplayMessage("Can't record video and audio simultaneously.");		
+			DisplayMessage(_("Can't record video and audio simultaneously."));
 		}
 		else
 		{
 			if(RecordingVideo)
 			{
-				DisplayMessage("Finished recording video.");
+				DisplayMessage(_("Finished recording video."));
 				MDFNI_StopAVRecord();
 				RecordingVideo = false;
 			}
@@ -524,12 +524,12 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 			{
 				if(MDFNI_StartAVRecord(MDFN_MakeFName(MDFNMKF_VIDEO, 0, 0).c_str(), 48000))
 				{
-					DisplayMessage("Begin recording video.");
+					DisplayMessage(_("Begin recording video."));
 					RecordingVideo = true;
 				}
 				else
 				{
-					DisplayMessage("Failed to begin recording video.");
+					DisplayMessage(_("Failed to begin recording video."));
 				}
 			}
 		}
@@ -539,13 +539,13 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 	{
 		if(RecordingVideo)
 		{
-			DisplayMessage("Can't record video and audio simultaneously.");
+			DisplayMessage(_("Can't record video and audio simultaneously."));
 		}
 		else
 		{
 			if(RecordingWave)
 			{
-				DisplayMessage("Finished recording audio.");
+				DisplayMessage(_("Finished recording audio."));
 				MDFNI_StopWAVRecord();
 
 				RecordingWave = false;
@@ -555,12 +555,12 @@ int							MednafenEmu::DoCommand			(void* aUserData, Summerface* aInterface, con
 
 				if(MDFNI_StartWAVRecord(MDFN_MakeFName(MDFNMKF_AUDIO, 0, 0).c_str(), 48000))
 				{
-					DisplayMessage("Begin recording audio.");
+					DisplayMessage(_("Begin recording audio."));
 					RecordingWave = true;
 				}
 				else
 				{
-					DisplayMessage("Failed to begin recording audio.");
+					DisplayMessage(_("Failed to begin recording audio."));
 				}
 			}
 		}
@@ -625,9 +625,9 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 	//TODO: Lots of strdup's called in this function will never have their memory free'd, shouldn't matter as the OS will clean up and this is never called more than once.
 
 	//Some platform specific settings
-	static const MDFNSetting VSync	= {"%s.es.display.vsync", MDFNSF_NOFLAGS, "Enable vsync to prevent screen tearing.", NULL, MDFNST_BOOL, "1" };
-	static const MDFNSetting Shader	= {"%s.es.shader.preset", MDFNSF_NOFLAGS, "Shader preset for presenting the display", NULL, MDFNST_ENUM, "Standard", 0, 0, 0, 0, 0 };
-	static const MDFNSetting Border	= {"%s.es.shader.border", MDFNSF_NOFLAGS, "Path to Border to use with appropriate shaders.", NULL, MDFNST_STRING, "" };
+	static const MDFNSetting VSync	= {"%s.es.display.vsync", MDFNSF_NOFLAGS, gettext_noop("Enable vsync to prevent screen tearing."), NULL, MDFNST_BOOL, "1" };
+	static const MDFNSetting Shader	= {"%s.es.shader.preset", MDFNSF_NOFLAGS, gettext_noop("Shader preset for presenting the display"), NULL, MDFNST_ENUM, gettext_noop("Standard"), 0, 0, 0, 0, 0 };
+	static const MDFNSetting Border	= {"%s.es.shader.border", MDFNSF_NOFLAGS, gettext_noop("Path to Border to use with appropriate shaders."), NULL, MDFNST_STRING, "" };
 
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
