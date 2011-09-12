@@ -5,7 +5,11 @@
 #include "src/utility/TextViewer.h"
 #include "src/utility/Files/FileSelect.h"
 
+#if ENABLE_NLS
 #define _(S) gettext(S)
+#else
+#define _(S) S
+#endif
 
 					TextFileViewer::TextFileViewer				() :
 	Viewer(new TextViewer(Area(10, 10, 80, 80), _("NO FILE"), false)),
