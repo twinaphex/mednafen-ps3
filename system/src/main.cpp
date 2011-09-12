@@ -3,7 +3,6 @@
 #include "src/utility/Keyboard.h"
 
 TextViewer*			es_log;
-PathBuild*			es_paths = 0;
 
 namespace
 {
@@ -17,7 +16,6 @@ void				ESSUB_Init				();
 void				ESSUB_Quit				();
 bool				ESSUB_WantToDie			();
 bool				ESSUB_WantToSleep		();
-std::string			ESSUB_GetBaseDirectory	();
 
 #ifndef	HAVE_ESSUB_ERROR
 void				ESSUB_Error				(const char* aMessage, const char* aHeader)
@@ -95,7 +93,6 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 
 	ESSUB_Init();
 
-	es_paths = new PathBuild(ESSUB_GetBaseDirectory());
 	Colors::Initialize();
 
 	bool result;
@@ -108,7 +105,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	assert(result);
 
 	FontManager::InitFonts();
-	ImageManager::SetDirectory(es_paths->Build("assets/png/"));
+	ImageManager::SetDirectory(ESSUB_BuildPath("assets/png/"));
 
 	ESInput::Initialize();
 
@@ -127,8 +124,6 @@ void				QuitES					()
 	ESVideo::Shutdown();
 	ESNetwork::Shutdown();
 	ESThreads::Shutdown();
-
-	delete es_paths;
 
 	ESSUB_Quit();
 

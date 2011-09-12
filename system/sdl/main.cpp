@@ -30,7 +30,7 @@ volatile bool		ESSUB_WantToSleep		()
 	return false;
 }
 
-std::string			ESSUB_GetBaseDirectory	()
+std::string			ESSUB_BuildPath			(const std::string& aPath)
 {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -40,11 +40,11 @@ std::string			ESSUB_GetBaseDirectory	()
 #define ES_DIR TOSTRING(ES_HOME_PATH)
 
 #ifndef __WIN32__
-	return std::string(getenv("HOME")) + "/." ES_DIR "/";
+	return std::string(getenv("HOME")) + "/." ES_DIR "/" + aPath;
 #else
 	char path[MAX_PATH];
 	SHGetFolderPathA(0, CSIDL_APPDATA, 0, 0, path);
-	return std::string(path) + "/" ES_DIR "/";
+	return std::string(path) + "/" ES_DIR "/" + aPath;
 #endif
 }
 
