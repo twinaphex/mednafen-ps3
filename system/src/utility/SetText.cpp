@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+
 #include <map>
+#include <string>
 
 #include "SetText.h"
 
@@ -21,15 +23,34 @@ namespace
 			}
 	};
 
+	struct									FileData
+	{
+		char*								Data;
+		uint32_t							Length;
+		bool								BigEndian;
+	};
+
+	uint32_t								Read32						(const char* aSource, bool aBigEndian)
+	{
+		const uint8_t* data = (const uint8_t*)aSource;
+
+		if(aBigEndian)
+		{
+			return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | (data[3]);
+		}
+		else
+		{
+			return (data[0]) | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+		}
+	} 
+
+	std::map<std::string, FileData>						FileCache;
 	std::map<const char*, const char*, Compare>			Messages;
 };
 
 void										SETTEXT_CleanUp				()
 {
 	Messages.clear();
-
-	delete MOData;
-	MOData = 0;
 }
 
 void										SETTEXT_SetMessageFile		(const char* aFileName)
@@ -38,46 +59,69 @@ void										SETTEXT_SetMessageFile		(const char* aFileName)
 
 	SETTEXT_CleanUp();
 
-	FILE* moFile = fopen(aFileName, "r");
-	if(!moFile)
+	if(FileCache.find(aFileName) == FileCache.end())
 	{
-		return;
-	}
+		FILE* moFile = fopen(aFileName, "r");
+		if(!moFile)
+		{
+			return;
+		}
 
-	//Get file size
-	fseek(moFile, 0, SEEK_END);
-	uint32_t len = ftell(moFile);
-	fseek(moFile, 0, SEEK_SET);
+		FileData fileInfo;
+
+		//Get file size
+		fseek(moFile, 0, SEEK_END);
+		fileInfo.Length = ftell(moFile);
+		fseek(moFile, 0, SEEK_SET);
 	
-	//Read file, leave a zero byte at the end for some false security
-	MOData = new char[len + 1];
-	uint32_t* data32 = (uint32_t*)MOData;
-	fread(MOData, len, 1, moFile);
-	fclose(moFile);
-	MOData[len] = 0;
+		//Read file, leave a zero byte at the end for some false security
+		fileInfo.Data = new char[fileInfo.Length + 1];
+		fread(fileInfo.Data, fileInfo.Length, 1, moFile);
+		fclose(moFile);
+		fileInfo.Data[fileInfo.Length] = 0;
 
-	//Test file
-	if(!(data32[0] == 0x950412DE || data32[0] == 0xDE120495))
-	{
-		SETTEXT_CleanUp();
-		return;
+		//Test file
+		uint32_t magic = Read32(fileInfo.Data, false);
+		if(magic == 0xDE120495)
+		{
+			fileInfo.BigEndian = true;
+		}
+		else if(magic == 0x950412DE)
+		{
+			fileInfo.BigEndian = false;
+		}
+		else
+		{
+			delete[] fileInfo.Data;
+			SETTEXT_CleanUp();
+			return;
+		}
+
+		//Map it
+		FileCache[aFileName] = fileInfo;
 	}
+
+	FileData* file = &FileCache[aFileName];
 
 	//Read strings
-	uint32_t* origStrings = (uint32_t*)&MOData[data32[3]];
-	uint32_t* tranStrings = (uint32_t*)&MOData[data32[4]];
+	char* origStrings = &file->Data[Read32(&file->Data[3 * 4], file->BigEndian)];
+	char* tranStrings = &file->Data[Read32(&file->Data[4 * 4], file->BigEndian)];
 
-	for(int i = 0; i != data32[2]; i ++)
+	for(int i = 0; i != Read32(&file->Data[2 * 4], file->BigEndian); i ++)
 	{
+		uint32_t source = Read32(&origStrings[(i * 2 + 1) * 4], file->BigEndian);
+		uint32_t target = Read32(&tranStrings[(i * 2 + 1) * 4], file->BigEndian);
+
+
 		//No strings past the end of the file OK
 		//TODO: Test that a string doesn't start in the file then terminate after the end!
-		if(origStrings[i * 2 + 1] > len || tranStrings[i * 2 + 1] > len)
+		if(source >= file->Length || target >= file->Length)
 		{
 			SETTEXT_CleanUp();
 			return;
 		}
 
-		Messages[&MOData[origStrings[i * 2 + 1]]] = &MOData[tranStrings[i * 2 + 1]];
+		Messages[&file->Data[source]] = &file->Data[target];
 	}
 }
 
