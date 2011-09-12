@@ -120,8 +120,8 @@ void										ESVideoPlatform::SetMode				(uint32_t aIndex)
 
 		params.enable = PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_WIDTH_HEIGHT;
 		params.depthFormat = GL_NONE;
-		params.width = aIndex == 0 ? DefaultWidth : width[aIndex];
-		params.height = aIndex == 0 ? DefaultHeight : height[aIndex];
+		params.width = (aIndex == 0) ? DefaultWidth : width[aIndex];
+		params.height = (aIndex == 0) ? DefaultHeight : height[aIndex];
 
 		Device = psglCreateDeviceExtended(&params);
 
