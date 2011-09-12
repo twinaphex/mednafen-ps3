@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include <map>
 
 #include "SetText.h"

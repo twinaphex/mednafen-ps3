@@ -8,7 +8,6 @@ class										FrameBuffer;
 class										ESVideoPlatform
 {
 	public:
-		//Doc Note: Set Name to zero to terminate the list.
 		struct								Mode
 		{
 			const char*						Name;
@@ -55,7 +54,7 @@ class										ESVideoPlatform
 		//Doc Note: All of these must assert if not supported
 		static void							SetVSync				(bool aOn);
 		static void							SetMode					(uint32_t aIndex);
-		static ModeList::const_iterator		GetModes				();
+		static const ModeList&				GetModes				();
 		static void							MakePrimaryActive		();
 		static void							MakeSecondaryActive		();
 };

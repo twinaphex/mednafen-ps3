@@ -6,6 +6,7 @@ namespace
 	PSGLdevice*								Device;
 	PSGLcontext*							Context;
 	bool									VSyncOn;
+	uint32_t								VideoMode;
 }
 
 void										ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeight)
@@ -48,22 +49,22 @@ void										ESVideoPlatform::Flip					()
 }
 
 //PRESENTER
-bool											ESVideoPlatform::SupportsShaders		()
+bool										ESVideoPlatform::SupportsShaders		()
 {
 	return true;
 }
 
-void											ESVideoPlatform::AttachBorder			(Texture* aTexture)
+void										ESVideoPlatform::AttachBorder			(Texture* aTexture)
 {
 	CgPresenter::AttachBorder(aTexture);
 }
 
-void											ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t aPrescale)
+void										ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t aPrescale)
 {
 	CgPresenter::SetFilter(aName, aPrescale);
 }
 
-void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
+void										ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
 {
 	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput);
 }
@@ -78,6 +79,7 @@ bool										ESVideoPlatform::SupportsVSyncSelect	()
 bool										ESVideoPlatform::SupportsModeSwitch		()
 {
 	return false;
+//	return true;
 }
 
 void										ESVideoPlatform::SetVSync				(bool aOn)
@@ -97,6 +99,33 @@ void										ESVideoPlatform::SetVSync				(bool aOn)
 	}
 }
 
-void										ESVideoPlatform::SetMode				(uint32_t aIndex) {assert(false);}
-ESVideoPlatform::ModeList::const_iterator	ESVideoPlatform::GetModes				() {assert(false);}
+void										ESVideoPlatform::SetMode				(uint32_t aIndex)
+{
+/*	if(VideoMode != aIndex)
+	{
+	}
+
+	VideoMode = aIndex;
+	assert(false);*/
+}
+
+const ESVideoPlatform::ModeList&			ESVideoPlatform::GetModes				()
+{
+/*	static ModeList modes;
+
+	if(modes.size() == 0)
+	{
+		const char* modeListNames = {"NTSC", "PAL", "480p", "720p", "1080i", "1080p"};
+		Mode thisMode;
+
+		for(int i = 0; i != 6; i ++)
+		{
+			thisMode.Name = modeListNames[i];
+			thisMode.ID = i + 1;
+			modes.push_back(thisMode);
+		}
+	}
+
+	return modes;*/
+}
 
