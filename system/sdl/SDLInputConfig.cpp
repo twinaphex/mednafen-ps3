@@ -7,7 +7,7 @@ namespace SDLInputConfig
 
 	void					Load				(uint32_t* aData)
 	{
-		std::string output = es_paths->Build("inputconfig");
+		std::string output = ESSUB_BuildPath("inputconfig");
 		FILE* configFile = fopen(output.c_str(), "r");
 
 		if(!configFile)
@@ -27,7 +27,7 @@ namespace SDLInputConfig
 
 	void					Dump				(uint32_t* aData)
 	{
-		std::string output = es_paths->Build("inputconfig");
+		std::string output = ESSUB_BuildPath("inputconfig");
 		FILE* configFile = fopen(output.c_str(), "w");
 
 		for(int i = 0; i != 14; i ++)

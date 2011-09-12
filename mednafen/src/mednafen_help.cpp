@@ -70,7 +70,7 @@ namespace
 		if(results == 0)
 		{
 			std::vector<std::string> shaders;
-			if(ESVideo::SupportsShaders() && Utility::ListDirectory(es_paths->Build("assets/presets"), shaders))
+			if(ESVideo::SupportsShaders() && Utility::ListDirectory(ESSUB_BuildPath("assets/presets"), shaders))
 			{
 				std::sort(shaders.begin(), shaders.end());
 
@@ -172,7 +172,7 @@ void						MednafenEmu::Init				()
 		InputHandler::GenerateSettings(Settings);
 
 		//Initialize mednafen and go
-		MDFNI_Initialize(es_paths->Build("mednafen").c_str(), Settings);
+		MDFNI_Initialize(ESSUB_BuildPath("mednafen").c_str(), Settings);
 		IsInitialized = true;
 	}
 }
@@ -233,6 +233,7 @@ bool						MednafenEmu::LoadGame			(const char* aFileName, void* aData, int aSize
 		SuspendDraw = false;
 		RecordingVideo = false;
 		RecordingWave = false;
+
 
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
@@ -640,7 +641,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
 			{
 				ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
-				ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
+				ESVideo::SetFilter(ESSUB_BuildPath(std::string("assets/presets/") + ShaderSetting), 1);
 			}
 		}
 

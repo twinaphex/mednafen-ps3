@@ -39,7 +39,7 @@ void									Colors::Initialize					()
 	if(!Inited)
 	{
 		Inited = true;
-		INI.LoadFile(es_paths->Build(std::string("assets/colors.ini")).c_str());
+		INI.LoadFile(ESSUB_BuildPath(std::string("assets/colors.ini")).c_str());
 	}
 }
 

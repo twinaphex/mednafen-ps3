@@ -120,16 +120,16 @@ bool				ESSUB_WantToSleep		()
 	return want_to_sleep || (sleep_counter != 0);
 }
 
-std::string			ESSUB_GetBaseDirectory	()
+std::string			ESSUB_BuildPath			(const std::string& aPath)
 {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #ifndef ES_HOME_PATH
-#define ES_HOME_PATH /dev_hdd0/game/MDFN90002/USRDIR/
+#define ES_HOME_PATH /dev_hdd0/game/MDFN90002/USRDIR
 #endif
 #define ES_DIR TOSTRING(ES_HOME_PATH)
 
-	return ES_DIR;
+	return ES_DIR + "/" aPath;
 }
 
 
