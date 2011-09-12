@@ -35,6 +35,11 @@ ASFLAGS		+= $(DEPSOPTIONS)
 CPPFLAGS	+= $(foreach dir,$(INCLUDE),-I$(CURDIR)/$(dir))
 LDFLAGS		+= $(foreach dir,$(LIBDIRS),-L$(CURDIR)/$(dir))
 
+#SetText (translation support)
+ifeq ($(strip $(USE_SETTEXT)),yes)
+	CPPFLAGS			+=	-DENABLE_NLS=1 -I$(TOP)system/libintl-hack
+endif
+
 #Debug/Release
 ifeq ($(strip $(BUILDTYPE)),debug)
 	CPPFLAGS			+=	$(DEBUG_CPPFLAGS)
