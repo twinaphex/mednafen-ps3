@@ -13,7 +13,7 @@ class							CheatMenu
 			public:
 				///Create an empty cheat item with text indicating that no cheats are available.
 								Cheat					() :
-					SummerfaceItem("No Cheats Found", ""),
+					SummerfaceItem(_("No Cheats Found"), ""),
 					Name(""),
 					Address(0),
 					Value(0),
@@ -98,7 +98,7 @@ class							CheatMenu
 		{
 			//Setup the gui
 			Interface.AttachConduit(new SummerfaceTemplateConduit<CheatMenu>(this));
-			CheatList.SetHeader("Available Cheats");
+			CheatList.SetHeader(_("Available Cheats"));
 
 			//Insert all of the cheats
 			//NOTE: These MUST NOT be sorted, their index in the list is passed to mednafen
@@ -140,7 +140,7 @@ class							CheatMenu
 			{
 				//Get a new value for the cheat and tell mednafen about it
 				int64_t value = cheat->Value;
-				if(ESSUB_GetNumber(value, "Input new value for cheat.", 10, false))
+				if(ESSUB_GetNumber(value, _("Input new value for cheat."), 10, false))
 				{
 					cheat->Value = value;
 					cheat->Insert(CheatList.GetSelection());
@@ -153,7 +153,7 @@ class							CheatMenu
 			{
 				//Ask for confirmation
 				std::stringstream str;
-				str << "Really delete cheat: " << cheat->GetText();
+				str << _("Really delete cheat: ") << cheat->GetText();
 
 				//Is accepted, delete the cheat and exit
 				if(ESSUB_Confirm(str.str().c_str()))
@@ -168,20 +168,20 @@ class							CheatMenu
 			{
 				//Get the address to patch
 				int64_t address = 0;
-				while(ESSUB_GetNumber(address, "Enter address to patch (in hex)", 8, true))
+				while(ESSUB_GetNumber(address, _("Enter address to patch (in hex)"), 8, true))
 				{
 					//Get the new value
 					int64_t value = 0;
-					while(ESSUB_GetNumber(value, "Enter value to patch to (in decimal)", 10, false))
+					while(ESSUB_GetNumber(value, _("Enter value to patch to (in decimal)"), 10, false))
 					{
 						//Get the number of bytes
 						int64_t bytes = 1;
-						while(ESSUB_GetNumber(bytes, "Enter number of bytes to patch", 1, false))
+						while(ESSUB_GetNumber(bytes, _("Enter number of bytes to patch"), 1, false))
 						{
 							//Handle case where bytes is invalid
 							if(bytes == 0 || bytes > 8)
 							{
-								ESSUB_Error("Bytes value must be between 1 and 8 inclusive.");
+								ESSUB_Error(_("Bytes value must be between 1 and 8 inclusive."));
 							}
 							else
 							{
@@ -189,7 +189,7 @@ class							CheatMenu
 								bool bigendian = false, canceled = false;
 								if(bytes != 1)
 								{
-									bigendian = ESSUB_Confirm("Is memory big-endian?", &canceled);
+									bigendian = ESSUB_Confirm(_("Is memory big-endian?"), &canceled);
 									if(canceled)
 									{
 										continue;
@@ -197,7 +197,7 @@ class							CheatMenu
 								}
 
 								//Get name and add it
-								std::string name = ESSUB_GetString("Enter name for the cheat", "");
+								std::string name = ESSUB_GetString(_("Enter name for the cheat"), "");
 								if(!name.empty())
 								{
 									MDFNI_AddCheat(name.c_str(), address, value, 0, 'R', bytes, bigendian);

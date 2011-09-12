@@ -7,14 +7,14 @@ static bool						CompareItems									(SettingItem* a, SettingItem* b)
 	//
 	if(a->GetGroup() != b->GetGroup())
 	{
-		if(a->GetGroup() == "MODULE")												return true;
-		if(b->GetGroup() == "MODULE")												return false;
+		if(a->GetGroup() == _("MODULE"))											return true;
+		if(b->GetGroup() == _("MODULE"))											return false;
 
-		if(a->GetGroup() == "SYSTEM")												return true;
-		if(b->GetGroup() == "SYSTEM")												return false;
+		if(a->GetGroup() == _("SYSTEM"))											return true;
+		if(b->GetGroup() == _("SYSTEM"))											return false;
 
-		if(a->GetGroup() == "DISPLAY")												return true;
-		if(b->GetGroup() == "DISPLAY")												return false;
+		if(a->GetGroup() == _("DISPLAY"))											return true;
+		if(b->GetGroup() == _("DISPLAY"))											return false;
 
 		return a->GetGroup() < b->GetGroup();
 	}
@@ -47,7 +47,7 @@ static bool						CompareItems									(SettingItem* a, SettingItem* b)
 	LoadSettings();
 
 	//Setup the category list
-	List.SetHeader("Choose Setting Category");
+	List.SetHeader(_("Choose Setting Category"));
 
 	//Stuff the category list
 	for(SettingCollection::iterator i = Settings.begin(); i != Settings.end(); i ++)
@@ -141,12 +141,12 @@ std::string						SettingCategoryMenu::TranslateCategory			(const char* aCategory
 	//NOTE: A space is added to ensure they bubble to the top of sorting
 	const char* settingscats[] = 
 	{
-		"qtrecord", " Video Recording",
-		"net", " Netplay",
-		"general", " General Settings",
-		"ftp", " FTP Client",
-		"filesys", " File System",
-		"cdrom", " CDROM Settings"
+		"qtrecord", _(" Video Recording"),
+		"net", _(" Netplay"),
+		"general", _(" General Settings"),
+		"ftp", _(" FTP Client"),
+		"filesys", _(" File System"),
+		"cdrom", _(" CDROM Settings")
 	};
 
 	for(int i = 0; i != 6; i ++)
@@ -167,14 +167,14 @@ std::string						SettingCategoryMenu::TranslateGroup				(const MDFNCS* aSetting,
 
 	if(!aSystem.empty())
 	{
-		if(settingName.find(".display.") != std::string::npos)			return "DISPLAY";
-		if(settingName.find(".speed.") != std::string::npos)			return "SPEED";
-		if(settingName.find(".tblur") != std::string::npos)				return "TBLUR";
-		if(settingName.find(".shader") != std::string::npos)			return "SHADER";
-		if(settingName.find(".enable") != std::string::npos)			return "MODULE";
-		if(settingName.find(".forcemono") != std::string::npos)			return "MODULE";
-		if(settingName.find(".autosave") != std::string::npos)			return "MODULE";
-		return "SYSTEM";
+		if(settingName.find(".display.") != std::string::npos)			return _("DISPLAY");
+		if(settingName.find(".speed.") != std::string::npos)			return _("SPEED");
+		if(settingName.find(".tblur") != std::string::npos)				return _("TBLUR");
+		if(settingName.find(".shader") != std::string::npos)			return _("SHADER");
+		if(settingName.find(".enable") != std::string::npos)			return _("MODULE");
+		if(settingName.find(".forcemono") != std::string::npos)			return _("MODULE");
+		if(settingName.find(".autosave") != std::string::npos)			return _("MODULE");
+		return _("SYSTEM");
 	}
 
 	return "";

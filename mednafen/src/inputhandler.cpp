@@ -66,7 +66,7 @@ class									SettingGenerator : public InputEnumeratorBase
 			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
 
 			//Stash the setting
-			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port%d", GameInfo->shortname, PortIndex), MDFNSF_NOFLAGS, "Input.", NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, devices};
+			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port%d", GameInfo->shortname, PortIndex), MDFNSF_NOFLAGS, _("Input."), NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, devices};
 			Settings.push_back(thisinput);
 
 			return true;

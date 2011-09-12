@@ -94,7 +94,7 @@ int								SettingGroupMenu::HandleInput					(Summerface* aInterface, const std:
 	//Browse for a file and use its path as the setting value (may be canceled by setting handlers)
 	else if(aButton == ES_BUTTON_TAB)
 	{
-		FileSelect browse("Select File", "", "");
+		FileSelect browse(_("Select File"), "", "");
 		
 		std::string result = browse.GetFile();
 		if(result.length() != 0)
@@ -227,7 +227,7 @@ bool							SettingGroupMenu::HandleEnum					(uint32_t aButton, const MDFNCS& aSe
 	{
 		//Create the list
 		EnumListType list(Area(10, 10, 80, 80));
-		list.SetHeader(std::string("Choose ") + aSetting.name + "'s new value:");
+		list.SetHeader(_("Choose %s's new value:"), aSetting.name);
 
 		//Place all settings into the list
 		while(values && values->string)

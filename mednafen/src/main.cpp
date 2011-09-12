@@ -43,7 +43,7 @@ static std::string			GetFile					()
 {
 	if(FileChooser == 0)
 	{
-		FileChooser = new FileSelect("Select ROM", MDFN_GetSettingS("es.bookmarks"), "", new SummerfaceStaticConduit(FileBrowserHook, (void*)0));
+		FileChooser = new FileSelect(_("Select ROM"), MDFN_GetSettingS("es.bookmarks"), "", new SummerfaceStaticConduit(FileBrowserHook, (void*)0));
 	}
 
 	std::string result = FileChooser->GetFile();
@@ -114,28 +114,28 @@ void						ReloadEmulator			(const std::string& aFileName)
 					{
 						free(data);
 
-						ESSUB_Error("Could not read file. [Failed to extract]");
+						ESSUB_Error(_("Could not read file. [Failed to extract]"));
 						ReloadEmulator("");
 						return;
 					}
 				}
 				else
 				{
-					ESSUB_Error("Could not allocate enough memory to load file. All CD games must be loaded through cue files. [File size too large]");
+					ESSUB_Error(_("Could not allocate enough memory to load file. All CD games must be loaded through cue files. [File size too large]"));
 					ReloadEmulator("");
 					return;
 				}
 			}
 			else
 			{
-				ESSUB_Error("Could not read file. [File empty]");
+				ESSUB_Error(_("Could not read file. [File empty]"));
 				ReloadEmulator("");
 				return;
 			}
 		}
 		else
 		{
-			ESSUB_Error("Could not read file. [File not accessible]");
+			ESSUB_Error(_("Could not read file. [File not accessible]"));
 			ReloadEmulator("");
 			return;
 		}
