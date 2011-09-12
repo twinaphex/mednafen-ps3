@@ -116,7 +116,7 @@ void							SettingGroupMenu::DoHeaderRefresh				()
 	if(RefreshHeader)
 	{
 		//Set the header
-		List.SetHeader(List.GetSelected()->Setting->desc->description);
+		List.SetHeader(_(List.GetSelected()->Setting->desc->description));
 	}
 }
 

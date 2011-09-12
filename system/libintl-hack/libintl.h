@@ -23,7 +23,7 @@
 #ifndef _LIBINTL_H
 #define _LIBINTL_H	1
 
-#include "src/utility/SetText.h"
+#include "../src/utility/SetText.h"
 #define gettext(a) SETTEXT_GetText(a)
 
 #endif /* libintl.h */

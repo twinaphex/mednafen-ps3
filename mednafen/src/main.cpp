@@ -148,6 +148,8 @@ void						ReloadEmulator			(const std::string& aFileName)
 
 int					main					(int argc, char* argv[])
 {
+//	SETTEXT_SetMessageFile("messages.mo");
+
 	try
 	{
 		//Init the system and the emulator

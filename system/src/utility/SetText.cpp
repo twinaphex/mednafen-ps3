@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <map>
-#include <string>
 
 #include "SetText.h"
 
@@ -10,7 +10,17 @@
 namespace
 {
 	char*									MOData;
-	std::map<std::string, char*>			Messages;
+
+	class									Compare
+	{
+		public:
+			bool							operator()					(const char* aA, const char* aB)
+			{
+				return strcmp(aA, aB) < 0;
+			}
+	};
+
+	std::map<const char*, const char*, Compare>			Messages;
 };
 
 void										SETTEXT_CleanUp				()
@@ -23,6 +33,8 @@ void										SETTEXT_CleanUp				()
 
 void										SETTEXT_SetMessageFile		(const char* aFileName)
 {
+	assert(aFileName);
+
 	SETTEXT_CleanUp();
 
 	FILE* moFile = fopen(aFileName, "r");
@@ -70,11 +82,14 @@ void										SETTEXT_SetMessageFile		(const char* aFileName)
 
 char*										SETTEXT_GetText				(const char* aString)
 {
-	std::map<std::string, char*>::const_iterator msg = Messages.find(aString);
-
-	if(msg != Messages.end())
+	if(aString)
 	{
-		return msg->second;
+		std::map<const char*, const char*, Compare>::const_iterator msg = Messages.find(aString);
+
+		if(msg != Messages.end())
+		{
+			return (char*)msg->second;
+		}
 	}
 
 	return (char*)aString;
