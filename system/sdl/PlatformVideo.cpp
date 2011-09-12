@@ -94,5 +94,6 @@ bool											ESVideoPlatform::SupportsModeSwitch		()
 
 void											ESVideoPlatform::SetVSync				(bool aOn) {assert(false);}
 void											ESVideoPlatform::SetMode				(uint32_t aIndex) {assert(false);}
-ESVideoPlatform::ModeList::const_iterator		ESVideoPlatform::GetModes				() {assert(false);}
+const ESVideoPlatform::ModeList&				ESVideoPlatform::GetModes				() {assert(false);}
+
 

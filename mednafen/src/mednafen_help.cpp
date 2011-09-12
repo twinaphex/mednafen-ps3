@@ -33,6 +33,35 @@ namespace
 		{0, 0, 0, 0}
 	};
 
+	MDFNSetting_EnumList*		BuildModeEnum					()
+	{
+		static MDFNSetting_EnumList* results = 0;
+		int onresult = 1;
+
+		if(results == 0)
+		{
+			const ESVideoPlatform::ModeList& modes = ESVideoPlatform::GetModes();
+
+			results = new MDFNSetting_EnumList[modes.size() + 2];
+			results[0].string = "Default";
+			results[0].number = 0;
+			results[0].description = "Default";
+			results[0].description_extra = "";
+
+			for(ESVideoPlatform::ModeList::const_iterator i = modes.begin(); i != modes.end(); i ++)
+			{
+				results[onresult].string = strdup(i->Name);
+				results[onresult].number = i->ID;
+				results[onresult].description = results[onresult].string;
+				results[onresult++].description_extra = 0;
+			}
+
+			memset(&results[onresult], 0, sizeof(results[0]));
+		}
+
+		return results;
+	}
+
 	MDFNSetting_EnumList*		BuildShaderEnum					()
 	{
 		static MDFNSetting_EnumList* results = 0;
@@ -587,9 +616,6 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 		Counter.SetToggle(MDFN_GetSettingUI(SETTINGNAME("speed.toggle")));
 		Counter.SetButton(MDFN_GetSettingUI(SETTINGNAME("speed.button")));
 
-		//Update Video Area
-		ESVideo::UpdatePresentArea(MDFN_GetSettingI(SETTINGNAME("display.aspect")), MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("display.underscanadjust")), Area(0, 0, 0, 0));
-
 		//Update vsync
 		if(ESVideo::SupportsVSyncSelect())
 		{
@@ -617,6 +643,15 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 				ESVideo::SetFilter(es_paths->Build(std::string("assets/presets/") + ShaderSetting), 1);
 			}
 		}
+
+		//Screen mode
+		if(aOnLoad && ESVideo::SupportsModeSwitch())
+		{
+			ESVideo::SetMode(MDFN_GetSettingUI(SETTINGNAME("display.mode")));
+		}
+
+		//Update Video Area
+		ESVideo::UpdatePresentArea(MDFN_GetSettingI(SETTINGNAME("display.aspect")), MDFN_GetSettingI("underscan") + MDFN_GetSettingI(SETTINGNAME("display.underscanadjust")), Area(0, 0, 0, 0));
 	}
 }
 
@@ -626,40 +661,47 @@ void						MednafenEmu::GenerateSettings	(std::vector<MDFNSetting>& aSettings)
 
 	//Some platform specific settings
 	static const MDFNSetting VSync	= {"%s.es.display.vsync", MDFNSF_NOFLAGS, gettext_noop("Enable vsync to prevent screen tearing."), NULL, MDFNST_BOOL, "1" };
+	static const MDFNSetting VMode	= {"%s.es.display.mode",  MDFNSF_NOFLAGS, gettext_noop("Screen mode."), NULL, MDFNST_ENUM, gettext_noop("Default"), 0, 0, 0, 0, 0 };
 	static const MDFNSetting Shader	= {"%s.es.shader.preset", MDFNSF_NOFLAGS, gettext_noop("Shader preset for presenting the display"), NULL, MDFNST_ENUM, gettext_noop("Standard"), 0, 0, 0, 0, 0 };
 	static const MDFNSetting Border	= {"%s.es.shader.border", MDFNSF_NOFLAGS, gettext_noop("Path to Border to use with appropriate shaders."), NULL, MDFNST_STRING, "" };
 
 	for(int i = 0; i != MDFNSystems.size(); i ++)
 	{
-		char nameBuffer[1024];
-		const char* sysName = MDFNSystems[i]->shortname;
 		MDFNSetting thisSetting;
 
 		//Attach settings
 		for(int j = 0; j != sizeof(SystemSettings) / sizeof(MDFNSetting); j++)
 		{
 			thisSetting = SystemSettings[j];
-			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			thisSetting.name = Utility::VAPrintD(thisSetting.name, MDFNSystems[i]->shortname);
 			aSettings.push_back(thisSetting);
 		}
 
 		//Attach port specific settings
+		if(ESVideo::SupportsModeSwitch())
+		{
+			thisSetting = VMode;
+			thisSetting.name = Utility::VAPrintD(thisSetting.name, MDFNSystems[i]->shortname);
+			thisSetting.enum_list = BuildModeEnum();
+			aSettings.push_back(thisSetting);
+		}
+
 		if(ESVideo::SupportsVSyncSelect())
 		{
 			thisSetting = VSync;
-			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			thisSetting.name = Utility::VAPrintD(thisSetting.name, MDFNSystems[i]->shortname);
 			aSettings.push_back(thisSetting);
 		}
 
 		if(ESVideo::SupportsShaders())
 		{
 			thisSetting = Shader;
-			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			thisSetting.name = Utility::VAPrintD(thisSetting.name, MDFNSystems[i]->shortname);
 			thisSetting.enum_list = BuildShaderEnum();
 			aSettings.push_back(thisSetting);
 
 			thisSetting = Border;
-			thisSetting.name = strdup(Utility::VAPrint(nameBuffer, 1023, thisSetting.name, sysName));
+			thisSetting.name = Utility::VAPrintD(thisSetting.name, MDFNSystems[i]->shortname);
 			aSettings.push_back(thisSetting);
 		}
 	}
