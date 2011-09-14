@@ -32,7 +32,7 @@
 
 #include <string>
 
-#if defined(_WINDOWS) && !defined(WXPORT) && !defined(MDFNPS3) //Never
+#if defined(_WINDOWS) && !defined(WXPORT)
 #include "pathsettings.h"
 #endif
 
@@ -429,6 +429,7 @@ void NDS_endProcessingInput();
 void NDS_suspendProcessingInput(bool suspend);
 
 
+
 #ifndef MDFNPS3 //Load ROM from memory
 int NDS_LoadROM(const char *filename, const char* logicalFilename=0);
 #else
@@ -438,7 +439,6 @@ int NDS_LoadROM(const unsigned char* data, unsigned long length);
 int NDS_LoadROM(const char* filename);
 #endif
 #endif
-
 void NDS_FreeROM(void);
 void NDS_Reset();
 int NDS_ImportSave(const char *filename);
@@ -497,6 +497,7 @@ extern struct TCommonSettings {
 		, micMode(InternalNoise)
 		, spuInterpolationMode(SPUInterpolation_Linear)
 		, manualBackupType(0)
+		, autodetectBackupMethod(0)
 		, spu_captureMuted(false)
 		, spu_advanced(false)
 		, StylusPressure(50)
@@ -571,6 +572,7 @@ extern struct TCommonSettings {
 	//this is a temporary hack until we straighten out the flushing logic and/or gxfifo
 	//int gfx3d_flushMode;
 
+	int autodetectBackupMethod;
 	//this is the user's choice of manual backup type, for cases when the autodetection can't be trusted
 	int manualBackupType;
 
@@ -611,6 +613,8 @@ void MovieSRAM();
 void ClearAutoHold(void);
 
 bool ValidateSlot2Access(u32 procnum, u32 demandSRAMSpeed, u32 demand1stROMSpeed, u32 demand2ndROMSpeed, int clockbits);
+
+extern ADVANsCEne	advsc;
 
 #endif
 

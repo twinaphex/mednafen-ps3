@@ -101,8 +101,7 @@ public:
 };
 extern BaseDriver* driver;
 
-//#ifndef _WINDOWS
-#if !defined(_WINDOWS) || defined(MDFNPS3)	//Always on mednafen-ps3
+#ifndef _WINDOWS
 class UnixDriver : public BaseDriver
 {
 #ifdef EXPERIMENTAL_WIFI_COMM

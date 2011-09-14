@@ -18,8 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-//#ifndef WIN32
-#if !defined(WIN32) || defined(MDFNPS3) //Always
+#ifndef WIN32
 
 #include "types.h"
 #include "mic.h"

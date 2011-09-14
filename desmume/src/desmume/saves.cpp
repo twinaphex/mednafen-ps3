@@ -48,8 +48,7 @@ extern int currFrameCounter;
 
 #include "path.h"
 
-//#ifdef _WINDOWS
-#if defined(_WINDOWS) && !defined(MDFNPS3) //Never
+#ifdef _WINDOWS
 #include "windows/main.h"
 #endif
 
@@ -1144,8 +1143,7 @@ bool savestate_load(EMUFILE* is)
 	if(!x && !SAV_silent_fail_flag)
 	{
 		printf("Error loading savestate. It failed halfway through;\nSince there is no savestate backup system, your current game session is wrecked");
-//#ifdef _WINDOWS
-#if defined(_WINDOWS) && !defined(MDFNPS3) //Never
+#ifdef _WINDOWS
 		//HACK! we really need a better way to handle this kind of feedback
 		MessageBox(0,"Error loading savestate. It failed halfway through;\nSince there is no savestate backup system, your current game session is wrecked",0,0);
 #endif

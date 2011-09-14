@@ -23,10 +23,6 @@
 
 #ifndef MDFNPS3 //No debug support
 
-#ifdef MDFNPS3 //libes 'Logger' token collision
-#define Logger dsLogger
-#endif
-
 #include <vector>
 #include <iostream>
 #include <cstdarg>
@@ -224,6 +220,13 @@ inline void HandleDebugEvent(EDEBUG_EVENT event)
 
 #else
 
+#include "types.h"
+#include "mem.h"
+#include "emufile.h"
+struct armcpu_t;
+
+#define DEBUG_reset()
+
 #define IdeasLog(x)
 #define NocashMessage(x)
 #define CheckDebugEvent(x) false
@@ -240,6 +243,13 @@ inline void HandleDebugEvent(EDEBUG_EVENT event)
 #define PROGINFO(...) {}
 #define INFO(...) 0==0
 
+struct TDebugEventData
+{
+	MMU_ACCESS_TYPE memAccessType;
+	u32 procnum, addr, size, val;
+	armcpu_t* cpu();
+};
+
 class DebugNotify
 {
 public:
@@ -247,6 +257,8 @@ public:
 	void ReadBeyondEndOfCart(unsigned long addr, unsigned long romsize) {};
 };
 
+//:)
+static TDebugEventData DebugEventData;
 static DebugNotify DEBUG_Notify;
 
 #endif
