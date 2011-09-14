@@ -1,11 +1,11 @@
 #include <es_system.h>
-#include <libintl.h>
 #include "textviewer.h"
 
 #include "src/utility/TextViewer.h"
 #include "src/utility/Files/FileSelect.h"
 
 #if ENABLE_NLS
+#include <libintl.h>
 #define _(S) gettext(S)
 #else
 #define _(S) S
