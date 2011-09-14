@@ -129,7 +129,7 @@ std::string			ESSUB_BuildPath			(const std::string& aPath)
 #endif
 #define ES_DIR TOSTRING(ES_HOME_PATH)
 
-	return ES_DIR + "/" aPath;
+	return std::string(ES_DIR"/") + aPath;
 }
 
 
