@@ -25,7 +25,7 @@
 
 extern const u8	logo_data[156];
 
-#if defined(WIN32) && !defined(MDFNPS3) //Never for mednafen-ps3, even on windows
+#if defined(WIN32)
 
 	#include <winsock2.h>
 	#include <windows.h>

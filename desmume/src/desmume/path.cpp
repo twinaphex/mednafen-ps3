@@ -120,8 +120,7 @@ std::string Path::GetFileExt(std::string fileName)
 }
 
 //-----------------------------------
-//#ifdef _WINDOWS
-#if defined(_WINDOWS) && !defined(MDFNPS3) //Never
+#ifdef _WINDOWS
 void FCEUD_MakePathDirs(const char *fname)
 {
 	char path[MAX_PATH];

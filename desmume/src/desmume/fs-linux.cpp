@@ -17,11 +17,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __CELLOS_LV2__ //S_ISDIR
-#include <unistd.h>
-# define S_ISDIR(x) ((x) & S_IFDIR)
-#endif
-
 #include "fs.h"
 
 #include <sys/types.h>

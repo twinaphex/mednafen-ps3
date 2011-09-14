@@ -21,7 +21,7 @@
 #include "task.h"
 #include <stdio.h>
 
-#if defined(WIN32) && defined(MDFNPS3) //TODO: Convert this to use mednafen's thread interface!
+#ifdef MDWINDOWS //MDFNPS3 TODO: Convert this to use mednafen's thread interface!
 # define _MSC_VER 1
 # define _WINDOWS
 #endif
