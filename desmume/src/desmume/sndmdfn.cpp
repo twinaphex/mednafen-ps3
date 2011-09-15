@@ -32,8 +32,8 @@ using namespace desmume;
 
 static int	SNDMDFNInit			(int buffersize)				{return 0;}
 static void SNDMDFNDeInit		()								{}
-static void SNDMDFNUpdateAudio	(s16 *buffer, u32 num_samples)	{Resampler::Fill(buffer, num_samples);}
-static u32	SNDMDFNGetAudioSpace()								{return (Resampler::Written() > 1000) ? 0 : 735 * 2;}
+static void SNDMDFNUpdateAudio	(s16 *buffer, u32 num_samples)	{Resampler::Fill(buffer, num_samples * 2);}
+static u32	SNDMDFNGetAudioSpace()								{return (735 * 2) - Resampler::Written();}
 static void SNDMDFNMuteAudio	()								{}
 static void SNDMDFNUnMuteAudio	()								{}
 static void SNDMDFNSetVolume	(int volume)					{}

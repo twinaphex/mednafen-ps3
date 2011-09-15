@@ -224,6 +224,9 @@ namespace MODULENAMESPACE
 	static void								ModuleCloseGame			()
 	{
 		NDS_DeInit();
+
+		//Clean up
+		Resampler::Kill();
 	}
 
 
