@@ -7,7 +7,7 @@
 
 std::string						SettingItem::GetText							()
 {
-	if(Setting->desc->flags & MDFNSF_CAT_INPUT)
+	if(Setting->desc->flags & MDFNSF_CAT_INPUT && Setting->desc->type != MDFNST_ENUM)
 	{
 		return std::string(Setting->name) +  "\t" + ESInput::ButtonName(MDFN_GetSettingUI(Setting->name));
 	}
@@ -122,21 +122,37 @@ void							SettingGroupMenu::DoHeaderRefresh				()
 
 bool							SettingGroupMenu::HandleButton					(uint32_t aButton, const MDFNCS& aSetting)
 {
-	if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
+	if(aSetting.desc->type == MDFNST_ENUM)
 	{
-		SummerfaceButton buttonGetter(Area(10, 30, 80, 10), aSetting.desc->description);
-		Summerface sface("InputWindow", &buttonGetter, false);
-		sface.SetInputWait(false);
-		sface.Do();
-		MDFNI_SetSettingUI(aSetting.name, buttonGetter.GetButton());
-
-		MednafenEmu::ReadSettings();
-
-		return true;
+		if(aButton == ES_BUTTON_TAB)
+		{
+			//HACK
+			int portNumber = aSetting.name[strlen(aSetting.name) - 1] - '1';
+			InputHandler::ConfigureDevice(portNumber, MDFN_GetSettingS(aSetting.name).c_str());
+		}
+		else
+		{
+			return HandleEnum(aButton, aSetting);
+		}
 	}
+	else
+	{
+		if(aButton == ES_BUTTON_LEFT || aButton == ES_BUTTON_RIGHT || aButton == ES_BUTTON_ACCEPT)
+		{
+			SummerfaceButton buttonGetter(Area(10, 30, 80, 10), aSetting.desc->description);
+			Summerface sface("InputWindow", &buttonGetter, false);
+			sface.SetInputWait(false);
+			sface.Do();
+			MDFNI_SetSettingUI(aSetting.name, buttonGetter.GetButton());
 
-	//Block using the file browser and keyboard to set an input value
-	return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
+			MednafenEmu::ReadSettings();
+
+			return true;
+		}
+
+		//Block using the file browser and keyboard to set an input value
+		return aButton == ES_BUTTON_TAB || aButton == ES_BUTTON_ACCEPT;
+	}
 }
 
 bool							SettingGroupMenu::HandleBool					(uint32_t aButton, const MDFNCS& aSetting)

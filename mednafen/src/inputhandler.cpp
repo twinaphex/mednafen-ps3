@@ -66,7 +66,7 @@ class									SettingGenerator : public InputEnumeratorBase
 			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
 
 			//Stash the setting
-			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port%d", GameInfo->shortname, PortIndex), MDFNSF_NOFLAGS, _("Input."), NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, devices};
+			MDFNSetting thisinput = {Utility::VAPrintD("%s.esinput.port%d", GameInfo->shortname, PortIndex), MDFNSF_CAT_INPUT, _("Input."), NULL, MDFNST_ENUM, defaultDeviceName, 0, 0, 0, 0, devices};
 			Settings.push_back(thisinput);
 
 			return true;
@@ -128,10 +128,7 @@ class									ConfigurePrepper : public InputEnumeratorBase
 		virtual bool					Port							(const InputPortInfoStruct* aDescription)
 		{
 			InputEnumeratorBase::Port(aDescription);
-
-			const char* defaultDeviceName = PortInfo->DefaultDevice ? PortInfo->DefaultDevice : PortInfo->DeviceInfo[0].ShortName;
 			AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d", GameInfo->shortname, PortIndex));
-
 			return true;
 		}
 
@@ -187,6 +184,94 @@ class									ConfigurePrepper : public InputEnumeratorBase
 		std::list<ButtonInfo>			ButtonList;
 		SettingGroupMenu::SettingGroup	Settings;
 };
+
+//Configure the input buttons for a given system
+class									ConfigureImmediate : public InputEnumeratorBase
+{
+	public:
+		struct							ButtonInfo
+		{
+			uint32_t					Index;
+			const InputDeviceInputInfoStruct*	Data;
+		};
+
+	public:
+										ConfigureImmediate				(uint32_t aPort, const char* aDevice) :
+			PortID(aPort + 1),
+			DeviceName(aDevice)
+		{
+			
+		}
+
+		void							DoSetting						(const char* aName)
+		{
+			const std::multimap<uint32_t, MDFNCS>* settings = MDFNI_GetSettings();
+
+			for(std::multimap<uint32, MDFNCS>::const_iterator iter = settings->begin(); iter != settings->end(); iter++)
+			{
+				if(strcmp(iter->second.name, aName) == 0)
+				{
+					SummerfaceButton buttonGetter(Area(10, 30, 80, 10), iter->second.desc->description);
+					Summerface sface("InputWindow", &buttonGetter, false);
+					sface.SetInputWait(false);
+					sface.Do();
+					MDFNI_SetSettingUI(aName, buttonGetter.GetButton());
+					return;
+				}
+			}
+		}
+
+		virtual bool					Port							(const InputPortInfoStruct* aDescription)
+		{
+			InputEnumeratorBase::Port(aDescription);
+			return (PortIndex == PortID);
+		}
+
+		virtual bool					Device							(const InputDeviceInfoStruct* aDescription)
+		{
+			InputEnumeratorBase::Device(aDescription);
+			return DeviceName == aDescription->ShortName;
+		}
+
+		static bool						ButtonSort						(const ButtonInfo& aLeft, const ButtonInfo& aRight)
+		{
+			if(aLeft.Data->ConfigOrder == aRight.Data->ConfigOrder)
+			{
+				return aLeft.Index < aRight.Index;
+			}
+
+			return aLeft.Data->ConfigOrder < aRight.Data->ConfigOrder;
+		}
+
+		virtual void					FinishDevice					()
+		{
+			char StringBuffer[1024];
+
+			ButtonList.sort(ButtonSort);
+
+			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
+			{	
+				if(i->Data->SettingName)
+				{
+					DoSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
+				}
+			}
+		}
+
+		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
+		{
+			ButtonInfo bi = {ButtonIndex ++, aDescription};
+			ButtonList.push_back(bi);
+		}
+
+	private:
+		std::string						DeviceName;
+		uint32_t						PortID;
+
+		uint32_t						ButtonIndex;
+		std::list<ButtonInfo>			ButtonList;
+};
+
 
 //Read the settings for processing for the given system
 class									SettingReader : public InputEnumeratorBase
@@ -336,6 +421,13 @@ void							InputHandler::Process							()
 void							InputHandler::Configure							()
 {
 	ConfigurePrepper buttonList;
+	EnumerateInputs(GameInfo, &buttonList);
+	ReadSettings();
+}
+
+void							InputHandler::ConfigureDevice					(uint32_t aPort, const char* aDeviceName)
+{
+	ConfigureImmediate buttonList(aPort, aDeviceName);
 	EnumerateInputs(GameInfo, &buttonList);
 	ReadSettings();
 }
