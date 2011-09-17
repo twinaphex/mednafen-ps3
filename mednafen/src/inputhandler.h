@@ -24,6 +24,7 @@ class												InputHandler
 		static void									Process							();
 		
 		static void									Configure						();
+		static void									ConfigureDevice					(uint32_t aPort, const char* aDeviceName);
 		static void									ReadSettings					();
 
 		static void									GenerateSettings				(std::vector<MDFNSetting>& aSettings);
