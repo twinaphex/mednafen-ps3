@@ -42,7 +42,7 @@ namespace SDLInputConfig
 	{
 		static bool gotbutton = true;
 
-		if(gotbutton && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
+		if(gotbutton && ESInput::GetAnyButton() != 0xFFFFFFFF)
 		{
 			return 0;
 		}
@@ -50,7 +50,7 @@ namespace SDLInputConfig
 		gotbutton = false;
 
 		uint32_t* button = (uint32_t*)aUserData;
-		button[0] = ESInput::GetAnyButton(0);
+		button[0] = ESInput::GetAnyButton();
 		gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
 		return gotbutton ? -1 : 0;
 	}

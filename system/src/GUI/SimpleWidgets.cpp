@@ -236,13 +236,13 @@ void							SummerfaceNumber::DecPosition					(uint32_t aPosition)
 bool							SummerfaceButton::Input							(uint32_t aButton)
 {
 	//Don't continue until all buttons are released
-	if(ButtonID != 0xFFFFFFFF && ESInput::GetAnyButton(0) != 0xFFFFFFFF)
+	if(ButtonID != 0xFFFFFFFF && ESInput::GetAnyButton() != 0xFFFFFFFF)
 	{
 		return false;
 	}
 
 	//Get a button from the input engine and store it
-	ButtonID = ESInput::GetAnyButton(0);
+	ButtonID = ESInput::GetAnyButton();
 
 	//Note wheather a button has beed pressed for next call
 	return ButtonID != 0xFFFFFFFF;

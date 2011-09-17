@@ -36,7 +36,7 @@ class								Menu
 			while(!WantToDie())
 			{
 				//Input
-				if(!WantToSleep() && Input(ESInput::WaitForESKey(0, InputWait)))
+				if(!WantToSleep() && Input(ESInput::WaitForESKey(InputWait)))
 				{
 					break;
 				}
