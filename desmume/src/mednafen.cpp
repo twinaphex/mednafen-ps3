@@ -330,13 +330,13 @@ namespace MODULENAMESPACE
 		//Top screen
 		if(TopScreenLine >= 0)
 		{
-			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, TopScreenLine);
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0, -1>(espec, (const uint16_t*)GPU_screen, 256, 192, 256, 0, TopScreenLine);
 		}
 
 		//Bottom screen
 		if(BottomScreenLine >= 0)
 		{
-			Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, BottomScreenLine);
+			Video::BlitRGB15<0, 1, 2, 2, 1, 0, -1>(espec, (const uint16_t*)GPU_screen + (256 * 192), 256, 192, 256, 0, BottomScreenLine);
 
 			//Draw cursor
 			if(((MaxCursorTime >= 0 && (CursorFrames >= 0)) || MaxCursorTime == 0))

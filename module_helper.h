@@ -112,7 +112,36 @@ namespace	MODULENAMESPACE
 			aSpec->DisplayRect.h = aHeight;
 		}
 
-		template<int rS, int gS, int bS, int rD, int gD, int bD, int sMul, int sMask, int dMul, int dAdd, typename sType>
+		template<typename sType, int sForceEndian>
+		inline sType __attribute((always_inline))		FetchPixel					(const void* aMemory)
+		{
+			assert(aMemory);
+			assert(sizeof(sType) == 1 || sizeof(sType) == 2 || sizeof(sType) == 4);
+
+#ifdef WORDS_BIGENDIAN
+			static const int endian = 1;
+#else
+			static const int endian = -1;
+#endif
+
+			if(sizeof(sType) == 1 || sForceEndian == 0 || sForceEndian == endian)
+			{
+				return *(sType*)aMemory;
+			}
+
+			if(sizeof(sType) == 2)
+			{
+				uint16_t data = *(uint16_t*)aMemory;
+				return (sType)(((data & 0xFF) << 8) | ((data & 0xFF00) >> 8));
+			}
+			else if(sizeof(sType) == 4)
+			{
+				uint32_t data = *(uint32_t*)aMemory;
+				return (sType)(((data & 0xFF) << 24) | ((data & 0xFF00) << 8) | ((data & 0xFF0000) >> 8 ) | ((data & 0xFF000000) >> 24));
+			}
+		}
+
+		template<int rS, int gS, int bS, int rD, int gD, int bD, int sMul, int sMask, int dMul, int dAdd, typename sType, int sForceEndian>
 		inline void __attribute((always_inline))		BlitSwiz					(EmulateSpecStruct* aSpec, const sType* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch, uint32_t aXOffset = 0, uint32_t aYOffset = 0)
 		{
 			uint32_t* target = aSpec->surface->pixels + (aXOffset) + (aYOffset * aPixelPitch);
@@ -121,7 +150,7 @@ namespace	MODULENAMESPACE
 			{
 				for(int j = 0; j != aWidth; j ++)
 				{
-					sType source = aSource[i * aPixelPitch + j];
+					sType source = FetchPixel<sType, sForceEndian>(&aSource[i * aPixelPitch + j]);
 
 					uint32_t r = ((source >> (rS * sMul)) & sMask) << (rD * dMul + dAdd);
 					uint32_t g = ((source >> (gS * sMul)) & sMask) << (gD * dMul + dAdd);
@@ -132,16 +161,16 @@ namespace	MODULENAMESPACE
 		}
 
 
-		template<int rS, int gS, int bS, int rD, int gD, int bD>
+		template<int rS, int gS, int bS, int rD, int gD, int bD, int sForceEndian>
 		inline void __attribute((always_inline))		BlitRGB15					(EmulateSpecStruct* aSpec, const uint16_t* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch, uint32_t aXOffset = 0, uint32_t aYOffset = 0)
 		{
-			BlitSwiz<rS, gS, bS, rD, gD, bD, 5, 0x1F, 8, 3, uint16_t>(aSpec, aSource, aWidth, aHeight, aPixelPitch, aXOffset, aYOffset);
+			BlitSwiz<rS, gS, bS, rD, gD, bD, 5, 0x1F, 8, 3, uint16_t, sForceEndian>(aSpec, aSource, aWidth, aHeight, aPixelPitch, aXOffset, aYOffset);
 		}
 
-		template<int rS, int gS, int bS, int rD, int gD, int bD>
+		template<int rS, int gS, int bS, int rD, int gD, int bD, int sForceEndian>
 		inline void __attribute((always_inline))		BlitRGB32					(EmulateSpecStruct* aSpec, const uint32_t* aSource, uint32_t aWidth, uint32_t aHeight, uint32_t aPixelPitch, uint32_t aXOffset = 0, uint32_t aYOffset = 0)
 		{
-			BlitSwiz<rS, gS, bS, rD, gD, bD, 8, 0xFF, 8, 0, uint32_t>(aSpec, aSource, aWidth, aHeight, aPixelPitch, aXOffset, aYOffset);
+			BlitSwiz<rS, gS, bS, rD, gD, bD, 8, 0xFF, 8, 0, uint32_t, sForceEndian>(aSpec, aSource, aWidth, aHeight, aPixelPitch, aXOffset, aYOffset);
 		}
 
 		template<typename pixelType>
