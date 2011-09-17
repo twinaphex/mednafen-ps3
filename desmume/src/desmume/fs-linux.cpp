@@ -26,6 +26,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: need unistd.h for stat
+#include <unistd.h>
+#define S_ISDIR(x) ((x) & S_IFDIR)
+#endif
+
 typedef struct {
 	DIR * dir;
 	char * path;

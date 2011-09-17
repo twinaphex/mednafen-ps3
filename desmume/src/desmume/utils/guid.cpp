@@ -23,6 +23,11 @@
 #include "guid.h"
 #include "../types.h"
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: Need stdio.h for sprintf
+#include <stdio.h>
+#include <ctype.h>
+#endif
+
 void Desmume_Guid::newGuid()
 {
 	for(int i=0;i<size;i++)
