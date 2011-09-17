@@ -45,7 +45,7 @@ void							ESInput::Shutdown				()
 	Inputs.clear();
 }
 
-uint32_t						ESInput::WaitForESKey			(uint32_t aPad, bool aGuarantee)
+uint32_t						ESInput::WaitForESKey			(bool aGuarantee)
 {
 	do
 	{
@@ -55,7 +55,7 @@ uint32_t						ESInput::WaitForESKey			(uint32_t aPad, bool aGuarantee)
 		//Look for a press
 		for(uint32_t i = 0; i != 14; i ++)
 		{
-			Button* button = GetButton(aPad, ES_BUTTON_UP + i);
+			Button* button = GetButton(ES_BUTTON_UP + i);
 			if(button && button->GetStateRepeat())
 			{
 				return ES_BUTTON_UP + i;
@@ -112,18 +112,18 @@ void							ESInput::Refresh				()
 	}
 }
 
-uint32_t						ESInput::GetAnyButton			(uint32_t aPad)
+uint32_t						ESInput::GetAnyButton			()
 {
 	Refresh();
 
 	//Check main devices
-	if(aPad < Inputs.size())
+	for(int i = 0; i != Inputs.size(); i ++)
 	{
-		for(int i = 0; i != Inputs[aPad].size(); i ++)
+		for(int j = 0; j != Inputs[i].size(); j ++)
 		{
-			if(Inputs[aPad][i].GetState())
+			if(Inputs[i][j].GetState())
 			{
-				return i;
+				return (i * 1024) + j;
 			}
 		}
 	}

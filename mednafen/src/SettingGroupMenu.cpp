@@ -9,7 +9,7 @@ std::string						SettingItem::GetText							()
 {
 	if(Setting->desc->flags & MDFNSF_CAT_INPUT)
 	{
-		return std::string(Setting->name) +  "\t" + ESInput::ButtonName(0, MDFN_GetSettingUI(Setting->name));
+		return std::string(Setting->name) +  "\t" + ESInput::ButtonName(MDFN_GetSettingUI(Setting->name));
 	}
 	else
 	{

@@ -235,6 +235,7 @@ bool						MednafenEmu::LoadGame			(const char* aFileName, void* aData, int aSize
 		RecordingWave = false;
 
 
+
 		Syncher.SetEmuClock(GameInfo->MasterClock >> 32);
 
 		ReadSettings(true);
@@ -334,7 +335,7 @@ bool						MednafenEmu::Frame				()
 	EmulatorSpec.SoundBuf = Samples;
 	EmulatorSpec.SoundBufMaxSize = 24000;
 	EmulatorSpec.SoundVolume = 1;
-	EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(0, ES_BUTTON_AUXLEFT2);
+	EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(ES_BUTTON_AUXLEFT2);
 	EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < (Counter.GetMaxSpeed() + 1)));
 	MDFNI_Emulate(&EmulatorSpec);
 
@@ -342,11 +343,11 @@ bool						MednafenEmu::Frame				()
 	Counter.Tick(EmulatorSpec.skip);
 
 	//Handle inputs
-	if(NetplayOn && ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(0, ES_BUTTON_AUXRIGHT2))
+	if(NetplayOn && ESInput::ButtonDown(ES_BUTTON_AUXRIGHT3) && ESInput::ButtonPressed(ES_BUTTON_AUXRIGHT2))
 	{
 		MDFND_NetworkClose();
 	}
-	else if(ESInput::ButtonDown(0, ES_BUTTON_AUXRIGHT3))
+	else if(ESInput::ButtonDown(ES_BUTTON_AUXRIGHT3))
 	{
 		DoCommands();
 		return false;

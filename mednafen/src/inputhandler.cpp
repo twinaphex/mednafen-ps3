@@ -315,13 +315,13 @@ void							InputHandler::Process							()
 			int bit = Inputs[p][i].BitOffset & 7;
 
 			//Get any non rapid press
-			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(p, Inputs[p][i].Button)))
+			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(Inputs[p][i].Button)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
 
 			//Get any rapid press
-			if((Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(p, Inputs[p][i].RapidButton) && (RapidCount == 0)))
+			if((Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(Inputs[p][i].RapidButton) && (RapidCount == 0)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}

@@ -110,10 +110,9 @@ class				ESInput
 		static void							Shutdown				();
 
 		///Wait for a system key to be pressed.
-		///@param aPad Input port to wait for.
 		///@param aGuarantee If true the routine will loop until a key is pressed.
 		///@return An ES_BUTTON constant if a key was found, 0xFFFFFFFF otherwise.
-		static uint32_t						WaitForESKey			(uint32_t aPad, bool aGuarantee);
+		static uint32_t						WaitForESKey			(bool aGuarantee);
 					
 		///Get the number of available input devices.
 		///@return The number of available input devices.
@@ -127,26 +126,24 @@ class				ESInput
 		static void							Refresh					();
 
 		///Determine if a button is being held down.
-		///@param aPad Input device to check.
 		///@param aButton Button to check on device.
 		///@return True if the button is held down.
-		static inline bool					ButtonPressed			(uint32_t aPad, uint32_t aButton)
+		static inline bool					ButtonPressed			(uint32_t aButton)
 		{
-			Button* button = GetButton(aPad, aButton);
+			Button* button = GetButton(aButton);
 			return button && button->GetState();
 		}
 
 		///Determine if a button was pressed. This function returns true only once for every time the button is pressed.
-		///@param aPad Input device to check.
-		///@param aButton Button to check on device.
+		///@param aButton Button ID to check.
 		///@return True if the button was pressed.
-		static inline bool					ButtonDown				(uint32_t aPad, uint32_t aButton)
+		static inline bool					ButtonDown				(uint32_t aButton)
 		{
-			Button* button = GetButton(aPad, aButton);
+			Button* button = GetButton(aButton);
 			return button && button->GetStateInspected();
 		}
 
-		static std::string					ButtonName				(uint32_t aPad, uint32_t aButton)
+		static std::string					ButtonName				(uint32_t aButton)
 		{
 			const char* const esNames[] = {"UP", "DOWN", "LEFT", "RIGHT", "ACCEPT", "CANCEL", "SHIFT", "TAB", "L1", "R1", "L2", "R2", "L3", "R3"};
 
@@ -160,25 +157,23 @@ class				ESInput
 			}
 			else
 			{
-				Button* button = GetButton(aPad, aButton);
+				Button* button = GetButton(aButton);
 				return button ? button->GetName() : "INVALID BUTTON";
 			}
 		}
 
 		///Scan a device and determine if any button, system or otherwise, is pressed.
-		///@param aPad Input device to scan.
 		///@return A button ID or 0xFFFFFFFF if no buttons were pressed.
-		static uint32_t						GetAnyButton			(uint32_t aPad);
+		static uint32_t						GetAnyButton			();
 
 		///Unused
 		static void							RumbleOn				(uint32_t aBig, uint32_t aSmall) {};
 
 	private:
 		///Get a pointer to a Button on an input device.
-		///@param aPad Input device to scan.
 		///@param aButton Button index to retrieve.
 		///@return A pointer to a Button structure, or NULL if parameters are invalid.
-		static Button*						GetButton				(uint32_t aPad, uint32_t aButton)
+		static Button*						GetButton				(uint32_t aButton)
 		{
 			//Translate ES keys
 			if(aButton >= ES_BUTTON_UP && aButton <= ES_BUTTON_AUXRIGHT3)
@@ -187,9 +182,15 @@ class				ESInput
 			}
 
 			//Fetch from main device
-			if(aButton < 0x10000 && aPad < Inputs.size() && aButton < Inputs[aPad].size())
+			if(aButton < 0x10000)
 			{
-				return &Inputs[aPad][aButton];
+				uint32_t pad = (aButton >> 10) & 0x3F;
+				uint32_t button = aButton & 0x3FF;
+
+				if(pad < Inputs.size() && button < Inputs[pad].size())
+				{
+					return &Inputs[pad][button];
+				}
 			}
 			//Fetch from sub device
 			else if(aButton >= 0x10000)

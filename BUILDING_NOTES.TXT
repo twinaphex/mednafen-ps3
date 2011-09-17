@@ -1,15 +1,2 @@
-Building requires a working PSL1GHT build environment with ps3libraries installed
-Please run make in system, nestopia, vbam, gambatte, and pcsxr directories before mednafen or use the rebuild-l1ght.sh shell script
+See http://code.google.com/p/mednafen-ps3/wiki/Building
 
-Making package with signed EBOOT.BIN:
-	Need make_self_npdrm and package_finalize in path (I stashed it in $PS3DEV/bin)
-	Build mednafen with the command 'make signpkg'
-	This is the default with the rebuild-light.sh script
-
-Environment varibles for controlling build:
-	PSL1GHT: Set to the base directory of your psl1ght install.
-	PLATFORM: Set to 'l1ght' for PS3, 'sdl' for SDL, or 'dll' for building individual shared objects. Default: l1ght.
-	FREETYPECONFIG: Set to the path to the proper 'freetype-config' script. Default: `which freetype-config`
-	SDLCONFIG: Set to the path to the proper 'sdl-config' script. Default: `which sdl-config`
-	TARGETPLATFORM: Set to 'windows' when building SDL for windows.
-	PREFIX: Set the prefix for gcc binaries, defaults to 'ppu-' for l1ght and none otherwise

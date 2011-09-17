@@ -5,11 +5,11 @@ bool						FastCounter::Fast					()
 {
 	if(!IsToggle)
 	{
-		return ESInput::ButtonPressed(0, Button);
+		return ESInput::ButtonPressed(Button);
 	}
 	else
 	{
-		bool buttonDown = ESInput::ButtonPressed(0, Button);
+		bool buttonDown = ESInput::ButtonPressed(Button);
 
 		if(WasButtonDown)
 		{
