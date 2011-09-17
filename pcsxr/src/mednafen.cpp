@@ -352,7 +352,7 @@ namespace MODULENAMESPACE
 			}
 			else
 			{
-				Video::BlitRGB15<0, 1, 2, 2, 1, 0>(espec, &g_gpu.psx_vram.u16[1024 * g_gpu.dsp.position.y + g_gpu.dsp.position.x], espec->DisplayRect.w, espec->DisplayRect.h, 1024);
+				Video::BlitRGB15<0, 1, 2, 2, 1, 0, -1>(espec, &g_gpu.psx_vram.u16[1024 * g_gpu.dsp.position.y + g_gpu.dsp.position.x], espec->DisplayRect.w, espec->DisplayRect.h, 1024);
 			}
 		}
 		else if(g_gpu.status_reg & STATUS_DISPLAYDISABLED)

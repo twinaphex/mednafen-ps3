@@ -39,7 +39,7 @@ namespace lsnes
 		assert(ESpec && ESpec->surface && ESpec->surface->pixels);
 
 		//Blit screen
-		Video::BlitRGB15<0, 1, 2, 0, 1, 2>(ESpec, data, width, height, 1024); //TODO: Is it always 1024?
+		Video::BlitRGB15<0, 1, 2, 0, 1, 2>(ESpec, data, width, height, 1024, -1); //TODO: Is it always 1024 and little endian?
 
 		//Set the output rectangle
 		Video::SetDisplayRect(ESpec, 0, 0, width, height);

@@ -197,7 +197,7 @@ namespace MODULENAMESPACE
 		VIDSoftGetScreenSize(&width, &height);
 
 		Video::SetDisplayRect(espec, 0, 0, width, height);
-		Video::BlitRGB32<0, 1, 2, 2, 1, 0>(espec, dispbuffer, width, height, width);
+		Video::BlitRGB32<0, 1, 2, 2, 1, 0, -1>(espec, dispbuffer, width, height, width);
 
 		//AUDIO
 		Resampler::Fetch(espec);
