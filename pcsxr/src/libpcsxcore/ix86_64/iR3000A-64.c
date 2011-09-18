@@ -27,10 +27,15 @@
 #include "../r3000a.h"
 #include "../psxhle.h"
 
+#ifndef MDFNPS3 //Memory allocation
 #include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
+#endif
+#else
+void* MDFNDC_AllocateExec(uint32_t aSize);
+void MDFNDC_FreeExec(void* aData, uint32_t aSize);
 #endif
 
 uptr* psxRecLUT;
@@ -410,6 +415,7 @@ static int recInit() {
 
 	psxRecLUT = (uptr*) malloc(0x010000 * sizeof(uptr));
 
+#ifndef MDFNPS3 //Memory allocation
 	recMem = mmap(0,
 		RECMEM_SIZE + PTRMULT*0x1000,
 		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -417,6 +423,11 @@ static int recInit() {
 	recRAM = mmap(0,
 		0x280000*PTRMULT,
 		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#else
+	recMem = MDFNDC_AllocateExec(RECMEM_SIZE + PTRMULT*0x1000);
+	recRAM = malloc(0x2x0000*PTRMULT);
+#endif
+
 	recROM = &recRAM[0x200000*PTRMULT];
 
 	if (recRAM == NULL || recROM == NULL || recMem == NULL || psxRecLUT == NULL) {
@@ -452,8 +463,13 @@ static void recReset() {
 static void recShutdown() {
 	if (recMem == NULL) return;
 	free(psxRecLUT);
+#ifndef MDNFPS3 //Memory Allocation
 	munmap(recMem, RECMEM_SIZE + PTRMULT*0x1000);
 	munmap(recRAM, 0x280000*PTRMULT);
+#else
+	MDFNDC_ExecFree(recMem, RECMEM_SIZE + PTRMULT*0x1000);
+	free(recRAM);
+#endif
 	x86Shutdown();
 }
 
@@ -484,13 +500,17 @@ static void recError() {
 	(*recFunc)();
 }
 
-//ROBO: Leave on command
+#ifndef MDFNPS3 //Leave on command
+static void recExecute() {
+	for (;;) execute();
+}
+#else
 extern int wanna_leave;
 static void recExecute() {
 	wanna_leave = 0;
 	while(!wanna_leave) execute();
-//	for (;;) execute();
 }
+#endif
 
 static void recExecuteBlock() {
 	execute();
@@ -748,6 +768,7 @@ REC_FUNC(OR);
 REC_FUNC(XOR);
 REC_FUNC(NOR);
 REC_FUNC(SLT);
+
 REC_FUNC(SLTU);
 #endif
 

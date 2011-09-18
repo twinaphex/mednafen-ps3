@@ -24,22 +24,15 @@
 #ifdef __i386__
 
 #include "ix86.h"
-//ROBO: Determine how to allocate executable pages
-//#include <sys/mman.h>
-//#ifndef MAP_ANONYMOUS
-//#define MAP_ANONYMOUS MAP_ANON
-//#endif
-#ifdef __WIN32__			//ROBO: VirtualAlloc on windows!
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-# define exec_alloc(size) VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)
-# define exec_free(addr, size) VirtualFree(addr, size, MEM_RELEASE)
-#else						//ROBO: mman
-# include <sys/mman.h>
-# define exec_alloc(size) mmap(0, size, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)
-# define exec_free(addr, size) munmap(addr, size)
+#ifndef MDFNPS3 //Memory allocation
+#include <sys/mman.h>
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
 #endif
-
+#else
+void* MDFNDC_AllocateExec(uint32_t aSize);
+void MDFNDC_FreeExec(void* aData, uint32_t aSize);
+#endif
 
 u32 *psxRecLUT;
 
@@ -410,10 +403,12 @@ static int recInit() {
 
 	psxRecLUT = (u32 *)malloc(0x010000 * 4);
 
-//ROBO: Allocate executable pages in platform specific manner
-//	recMem = mmap(0, RECMEM_SIZE + 0x1000,
-//		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	recMem = exec_alloc(RECMEM_SIZE + 0x1000);
+#ifndef MDFNPS3 //Memory allocation
+	recMem = mmap(0, RECMEM_SIZE + 0x1000,
+		PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#else
+	recMem = MDFNDC_AllocateExec(RECMEM_SIZE + 0x1000);
+#endif
 
 	recRAM = (char *)malloc(0x200000);
 	recROM = (char *)malloc(0x080000);
@@ -447,9 +442,11 @@ static void recReset() {
 static void recShutdown() {
 	if (recMem == NULL) return;
 	free(psxRecLUT);
-//ROBO: Free executable pages in platform specific manner
-//	munmap(recMem, RECMEM_SIZE + 0x1000);
-	exec_free(recMem, RECMEM_SIZE + 0x1000);
+#ifndef MDFNPS3 //Memory allocation
+	munmap(recMem, RECMEM_SIZE + 0x1000);
+#else
+	MDFNDC_FreeExec(recMem, RECMEM_SIZE + 0x1000);
+#endif
 	free(recRAM);
 	free(recROM);
 	x86Shutdown();
@@ -476,13 +473,17 @@ __inline static void execute() {
 	(*recFunc)();
 }
 
-//ROBO: Leave on command
+#ifndef MDFNPS3 //Leave on command
+static void recExecute() {
+	for (;;) execute();
+}
+#else
 extern int wanna_leave;
 static void recExecute() {
 	wanna_leave = 0;
 	while(!wanna_leave) execute();
-//	for (;;) execute();
 }
+#endif
 
 static void recExecuteBlock() {
 	execute();

@@ -26,10 +26,16 @@
 #include <string.h>
 #include <time.h>
 #include <sys/types.h>
+
+#ifndef MDFNPS3 //Memory allocation
 #include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
+#endif
+#else
+void* MDFNDC_AllocateExec(uint32_t aSize);
+void MDFNDC_FreeExec(void* aData, uint32_t aSize);
 #endif
 
 #include "../psxcommon.h"
@@ -1059,7 +1065,11 @@ static void rec##f() { \
 
 static void freeMem(int all)
 {
+#ifndef MDFNPS3 //Memory allocation
     if (recMem) free(recMem);
+#else
+	MDFNDC_FreeExec(recMem, RECMEM_SIZE);
+#endif
     if (recRAM) free(recRAM);
     if (recROM) free(recROM);
     recMem = recRAM = recROM = 0;
@@ -1077,7 +1087,11 @@ static int allocMem() {
 	if (psxRecLUT==NULL)
 		psxRecLUT = (u32*) malloc(0x010000 * 4);
 
+#ifndef MDFNPS3 //Memory allocation
 	recMem = (char*) malloc(RECMEM_SIZE);
+#else
+	recMem = MDFNDC_AllocateExec(RECMEM_SIZE);
+#endif
         //recMem = mmap(NULL, RECMEM_SIZE, PROT_EXEC|PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1,  0);
 	recRAM = (char*) malloc(0x200000);
 	recROM = (char*) malloc(0x080000);
@@ -1138,9 +1152,17 @@ __inline static void execute() {
 	recRun(*recFunc, (u32)&psxRegs, (u32)&psxM);
 }
 
+#ifndef MDFNPS3 //Leave on command
 static void recExecute() {
 	for (;;) execute();
 }
+#else
+extern int wanna_leave;
+static void recExecute() {
+	wanna_leave = 0;
+	while(!wanna_leave) execute();
+}
+#endif
 
 static void recExecuteBlock() {
 	execute();
@@ -2256,6 +2278,7 @@ static void recLWBlock(int count) {
 	resp+= 4;
 
 	respsave = resp; resp = 0;
+
 	TEST32RtoR(EAX, EAX);
 	j32Ptr[4] = JZ32(0);
 	XOR32RtoR(ECX, ECX);

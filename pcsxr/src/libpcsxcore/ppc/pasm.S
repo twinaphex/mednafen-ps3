@@ -1,7 +1,7 @@
 
 #if defined (__ppc__) || defined (__ppc64__) || defined (__powerpc__) || (__powerpc64__) || defined __POWERPC__
 
-#if defined (ELF) || defined (__linux__)
+#if defined (ELF) || defined (__linux__) || defined(MDFNPS3) //Token decoration
 #define C(label) label
 #else
 #define C(label) _##label
@@ -13,18 +13,23 @@
 /*asm void recRun(register void (*func)(), register u32 hw1, register u32 hw2)*/
         .text
         .align  4
+#ifndef MDFNPS3 //Token decoration
         .globl  C(recRun)
 C(recRun):
+#else
+        .globl  C(.recRun)
+C(.recRun):
+#endif
 	/* prologue code */
-	mflr	r0
-	stmw	r13, -(32-13)*4(r1)
-	stw		r0, 4(r1)
-	stwu	r1, -((32-13)*4+8)(r1)
+	mflr	0
+	stmw	13, -(32-13)*4(1)
+	stw		0, 4(1)
+	stwu	1, -((32-13)*4+8)(1)
 	
 	/* execute code */
-	mtctr	r3
-	mr	r31, r4
-	mr	r30, r5
+	mtctr	3
+	mr	31, 4
+	mr	30, 5
 	bctrl
 /*
 }
@@ -35,10 +40,10 @@ asm void returnPC()
         .globl  C(returnPC)
 C(returnPC):
 	// end code
-	lwz		r0, (32-13)*4+8+4(r1)
-	addi	r1, r1, (32-13)*4+8
-	mtlr	r0
-	lmw		r13, -(32-13)*4(r1)
+	lwz		0, (32-13)*4+8+4(1)
+	addi	1, 1, (32-13)*4+8
+	mtlr	0
+	lmw		13, -(32-13)*4(1)
 	blr
 //}*/
 
@@ -49,15 +54,15 @@ C(returnPC):
         .globl  C(dynMemRead8)
 C(dynMemRead8):
 // assumes that memory pointer is in r30
-	addis    r2,r3,-0x1f80
-	srwi.     r4,r2,16
+	addis    2,3,-0x1f80
+	srwi.     4,2,16
 	bne+     .norm8
-	cmplwi   r2,0x1000
+	cmplwi   2,0x1000
 	blt-     .norm8
 	b        C(psxHwRead8)
 .norm8:
-	clrlwi   r5,r3,3
-	lbzx     r3,r5,r30
+	clrlwi   5,3,3
+	lbzx     3,5,30
 	blr
 
         .text
@@ -65,15 +70,15 @@ C(dynMemRead8):
         .globl  C(dynMemRead16)
 C(dynMemRead16):
 // assumes that memory pointer is in r30
-	addis    r2,r3,-0x1f80
-	srwi.     r4,r2,16
+	addis    2,3,-0x1f80
+	srwi.     4,2,16
 	bne+     .norm16
-	cmplwi   r2,0x1000
+	cmplwi   2,0x1000
 	blt-     .norm16
 	b        C(psxHwRead16)
 .norm16:
-	clrlwi   r5,r3,3
-	lhbrx    r3,r5,r30
+	clrlwi   5,3,3
+	lhbrx    3,5,30
 	blr
 
         .text
@@ -81,15 +86,15 @@ C(dynMemRead16):
         .globl  C(dynMemRead32)
 C(dynMemRead32):
 // assumes that memory pointer is in r30
-	addis    r2,r3,-0x1f80
-	srwi.     r4,r2,16
+	addis    2,3,-0x1f80
+	srwi.     4,2,16
 	bne+     .norm32
-	cmplwi   r2,0x1000
+	cmplwi   2,0x1000
 	blt-     .norm32
 	b        C(psxHwRead32)
 .norm32:
-	clrlwi   r5,r3,3
-	lwbrx    r3,r5,r30
+	clrlwi   5,3,3
+	lwbrx    3,5,30
 	blr
 
 /*
@@ -108,25 +113,25 @@ P | !(N | !Z)
         .globl  C(dynMemWrite32)
 C(dynMemWrite32):
 // assumes that memory pointer is in r30
-	addis    r2,r3,-0x1f80
-	srwi.    r5,r2,16
+	addis    2,3,-0x1f80
+	srwi.    5,2,16
 	bne+     .normw32
-	cmplwi   r2,0x1000
+	cmplwi   2,0x1000
 	blt      .normw32
 	b        C(psxHwWrite32)
 .normw32:
-	mtcrf    0xFF, r3
-	clrlwi   r5,r3,3
+	mtcrf    0xFF, 3
+	clrlwi   5,3,3
 	crandc   0, 2, 0
 	cror     2, 1, 0
 	bne+     .okw32
 	// write test
-	li			r2,0x0130
-	addis    r2,r2,0xfffe
-	cmplw    r3,r2
+	li			2,0x0130
+	addis    2,2,0xfffe
+	cmplw    3,2
 	bnelr
 .okw32:
-	stwbrx   r4,r5,r30
+	stwbrx   4,5,30
 	blr
 
 #endif
