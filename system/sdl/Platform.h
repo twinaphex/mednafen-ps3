@@ -1,56 +1,20 @@
 #pragma once
 
-#include <unistd.h>
-#include <assert.h>
-#include <dirent.h>
-#include <sys/stat.h>
-
 #ifdef __WIN32__
-#include <GL/glew.h>
-#include <GL/gl.h>
-#endif
-
-#include <SDL/SDL.h>
-#ifndef __WIN32__
-#include <SDL/SDL_opengl.h>
-#endif
-
-#ifdef __WIN32__
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <shlobj.h>
-#define NO_READDIR
-#define COMPLEX_VOLUMES
-#endif
-
-#ifndef __WIN32__
-#include <sys/mman.h>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <shlobj.h>
 #endif
 
 class				PlatformHelpers
 {
 	public:
-		static uint32_t					GetTicks					()
-		{
-			return SDL_GetTicks();
-		}
-
-		static void						Sleep						(uint32_t aMilliseconds)
-		{
-			SDL_Delay(aMilliseconds);
-		}
+		static uint32_t					GetTicks					();
+		static void						Sleep						(uint32_t aMilliseconds);
+		static void*					AllocateExecutable			(uint32_t aSize);
+		static void						FreeExecutable				(void* aData, uint32_t aSize);
 
 #ifdef __WIN32__
-		static void*					AllocateExecutable			(uint32_t aSize)
-		{
-			return VirtualAlloc(0, aSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-		}
-
-		static void						FreeExecutable				(void* aData, uint32_t aSize)
-		{
-			VirtualFree(aData, aSize);
-		}
-
 		template<typename T>
 		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
 		{
@@ -88,16 +52,6 @@ class				PlatformHelpers
 			}
 
 			return true;
-		}
-#else
-		static void*					AllocateExecutable			(uint32_t aSize)
-		{
-			return mmap(0, aSize, PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-		}
-
-		static void						FreeExecutable				(void* aData, uint32_t aSize)
-		{
-			munmap(aData, aSize);
 		}
 #endif
 };

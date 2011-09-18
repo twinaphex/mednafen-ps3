@@ -1,5 +1,15 @@
 #pragma once
 
+//HACK
+#if defined(__CELLOS_LV2__)
+# include <PSGL/psgl.h>
+#elif defined(__WIN32__)
+# include <GL/glew.h>
+# include <GL/gl.h>
+#else
+# include <GL/gl.h>
+#endif
+
 #include "utility/Area.h"
 
 class										FrameBuffer;

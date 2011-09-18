@@ -146,6 +146,10 @@ void						ReloadEmulator			(const std::string& aFileName)
 	}
 }
 
+#ifdef MDSDL //HACK 'SDL_main'
+# include <SDL.h>
+#endif
+
 int					main					(int argc, char* argv[])
 {
 //	SETTEXT_SetMessageFile("messages.mo");

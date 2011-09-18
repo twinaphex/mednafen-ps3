@@ -21,7 +21,7 @@ DEPSOPTIONS	=  -MMD -MP
 
 #Determine how to link opengl
 ifeq ($(strip $(TARGETPLATFORM)),windows)
-	LDFLAGS		+= -lopengl32 -lglew32
+	LDFLAGS		+= -lopengl32 -lglew32 -lpthread
 else
 	LDFLAGS		+= -lGL
 endif

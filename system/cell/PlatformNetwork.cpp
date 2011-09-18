@@ -1,4 +1,8 @@
 #include <es_system.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+
 
 struct						ESPlatformSocketPrivate
 {
