@@ -23,6 +23,10 @@
 #define COMPLEX_VOLUMES
 #endif
 
+#ifndef __WIN32__
+#include <sys/mman.h>
+#endif
+
 class				PlatformHelpers
 {
 	public:
@@ -37,6 +41,16 @@ class				PlatformHelpers
 		}
 
 #ifdef __WIN32__
+		static void*					AllocateExecutable			(uint32_t aSize)
+		{
+			return VirtualAlloc(0, aSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+		}
+
+		static void						FreeExecutable				(void* aData, uint32_t aSize)
+		{
+			VirtualFree(aData, aSize);
+		}
+
 		template<typename T>
 		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
 		{
@@ -74,6 +88,16 @@ class				PlatformHelpers
 			}
 
 			return true;
+		}
+#else
+		static void*					AllocateExecutable			(uint32_t aSize)
+		{
+			return mmap(0, aSize, PROT_EXEC | PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		}
+
+		static void						FreeExecutable				(void* aData, uint32_t aSize)
+		{
+			munmap(aData, aSize);
 		}
 #endif
 };

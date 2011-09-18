@@ -17,6 +17,8 @@ void MDFN_printf(const char *format, ...) throw() MDFN_FORMATSTR(printf, 1, 2);
 
 #ifdef MDFNPS3 //Add MDFND_Rumble
 void MDFND_Rumble(int s, int l);
+void* MDFND_AllocateExec(uint32_t size);
+void MDFND_FreeExec(void* aData, uint32_t aSize);
 #endif
 
 /* Displays an error.  Can block or not. */
