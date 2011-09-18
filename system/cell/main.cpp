@@ -1,5 +1,9 @@
 #include <es_system.h>
 #include <sysutil/sysutil_msgdialog.h>
+#include <cell/sysmodule.h>
+#include <sys/spu_initialize.h>
+#include <sysutil/sysutil_sysparam.h>
+#include <sys/process.h>
 
 SYS_PROCESS_PARAM(1001, 1024 * 1024);
 

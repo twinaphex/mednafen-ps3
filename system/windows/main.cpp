@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <mmsystem.h>
 #include <gdiplus.h>
 
 using namespace		Gdiplus;

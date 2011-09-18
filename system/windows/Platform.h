@@ -1,10 +1,6 @@
 #pragma once
 
-#include <assert.h>
-#include <sys/stat.h>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <stdint.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -16,15 +12,10 @@
 class				PlatformHelpers
 {
 	public:
-		static uint32_t					GetTicks					()
-		{
-			return timeGetTime();
-		}
-
-		static void						Sleep						(uint32_t aMilliseconds)
-		{
-			::Sleep(aMilliseconds);
-		}
+		static uint32_t					GetTicks					();
+		static void						Sleep						(uint32_t aMilliseconds);
+		static void*					AllocateExecutable			(uint32_t aSize);
+		static void						FreeExecutable				(void* aData, uint32_t aSize);
 
 		template<typename T>
 		static bool						ListDirectory				(const std::string& aPath, T& aOutput)

@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include <SDL.h>
 #include "src/utility/AudioBuffer.h"
 
 namespace

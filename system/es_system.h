@@ -24,11 +24,10 @@ inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
 #include "src/ESNetwork.h"
 #include "src/main.h"
 
-#include "Platform.h"
 #include "opengl_common/Texture.h"
 #include "src/ESVideo.h"
 
-#include "src/Helpers.h"
+#include "src/Utility.h"
 #include "src/utility/Font.h"
 #include "src/utility/ImageManager.h"
 #include "src/GUI/Menu.h"
