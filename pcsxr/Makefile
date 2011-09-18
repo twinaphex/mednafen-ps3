@@ -6,9 +6,9 @@ include $(CURDIR)/../Makefile-$(PLATFORM).config
 
 TARGET		:=	libpcsxr
 TYPE		:=	lib
-INCLUDE		:=	.. src src/libpcsxcore ../mednafen/src ../system
+INCLUDE		:=	.. src src/libpcsxcore ../mednafen/src
 
-CPPFLAGS	+= -DMDFNPS3 -DPACKAGE_VERSION=\"0.9.16\"
+CPPFLAGS	+= -DMDFNPS3 -DPACKAGE_VERSION=\"0.9.18\"
 
 CXXFILES	+=	src/mednafen.cpp
 
@@ -54,11 +54,7 @@ CFILES		+=	src/mednafen/input_plugin/analog.c						\
 
 CXXFILES	+=	src/mednafen/cdrplugin/cdr.cpp
 
-#ifeq ($(strip $(PLATFORM)),cell)
-CPPFLAGS	+=	-DNOPSXREC
-#else
-#	SOURCE	+= 	src/libpcsxcore/ix86_64 src/libpcsxcore/ix86
-#endif
+SOURCE		+= 	src/libpcsxcore/ix86_64 src/libpcsxcore/ix86 src/libpcsxcore/ppc
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
