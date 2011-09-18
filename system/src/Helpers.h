@@ -221,7 +221,24 @@ class				Utility
 			if(aValue > aMax)		return aMax;
 			return aValue;
 		}
-		
+
+		static void*					AllocateExecutable			(uint32_t aSize)
+		{
+#ifndef NXSUPPORT
+			return malloc(aSize);
+#else
+			return PlatformHelpers::AllocateExecutable(aSize);
+#endif
+		}
+
+		static void						FreeExecutable				(void* aData, uint32_t aSize)
+		{
+#ifndef NXSUPPORT
+			free(aData);
+#else
+			PlatformHelpers::FreeExecutable(aData, aSize);
+#endif
+		}
 };
 
 

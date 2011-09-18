@@ -203,3 +203,15 @@ void							MDFND_Rumble				(int s, int l)
 	ESInput::RumbleOn(s, l);
 }
 
+
+void*							MDFND_AllocateExec			(uint32_t size)
+{
+	return Utility::AllocateExecutable(size);
+}
+
+void							MDFND_FreeExec				(void* aData, uint32_t aSize)
+{
+	Utility::FreeExecutable(aData, aSize);
+}
+
+
