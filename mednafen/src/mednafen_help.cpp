@@ -69,10 +69,10 @@ namespace
 
 		if(results == 0)
 		{
-			std::vector<std::string> shaders;
+			std::list<std::string> shaders;
 			if(ESVideo::SupportsShaders() && Utility::ListDirectory(ESSUB_BuildPath("assets/presets"), shaders))
 			{
-				std::sort(shaders.begin(), shaders.end());
+				shaders.sort();
 
 				results = new MDFNSetting_EnumList[shaders.size() + 2];
 				results[0].string = "Standard";
@@ -80,7 +80,7 @@ namespace
 				results[0].description = "Standard";
 				results[0].description_extra = "";
 
-				for(std::vector<std::string>::iterator i = shaders.begin(); i != shaders.end(); i ++)
+				for(std::list<std::string>::iterator i = shaders.begin(); i != shaders.end(); i ++)
 				{
 					if((*i) != "." && (*i) != "..")
 					{
@@ -233,6 +233,7 @@ bool						MednafenEmu::LoadGame			(const char* aFileName, void* aData, int aSize
 		SuspendDraw = false;
 		RecordingVideo = false;
 		RecordingWave = false;
+
 
 
 

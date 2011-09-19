@@ -1,12 +1,9 @@
 #pragma once
 
-#include <assert.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <list>
 #include "Platform.h"
 
 class				Utility
@@ -35,55 +32,8 @@ class				Utility
 		static bool						DirectoryExists				(const std::string& aPath);
 		static uint32_t					FileSize					(const std::string& aPath);
 
-		template<typename T>
-		static bool						ListVolumes					(T& aOutput)
-		{
-#ifndef COMPLEX_VOLUMES
-			aOutput.push_back("/");
-			return true;
-#else
-			return PlatformHelpers::ListVolumes<T>(aOutput);			
-#endif
-		}
-
-
-		template<typename T>
-		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
-		{
-#ifndef NO_READDIR
-#ifndef S_ISDIR
-#define S_ISDIR(a) ((a & S_IFMT) == S_IFDIR)
-#endif
-			DIR* dirhandle;
-			struct dirent* item;
-			
-			if((dirhandle = opendir(aPath.c_str())))
-			{
-				while((item = readdir(dirhandle)))
-				{
-					struct stat statbuf;
-					stat((aPath + item->d_name).c_str(), &statbuf);
-				
-					if(S_ISDIR(statbuf.st_mode) && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
-					{
-						continue;
-					}
-
-					aOutput.push_back(std::string(item->d_name) + (S_ISDIR(statbuf.st_mode) ? "/" : ""));
-				}
-
-				closedir(dirhandle);				
-				
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-#else
-			return PlatformHelpers::ListDirectory<T>(aPath, aOutput);
-#endif
-		}
+		static bool						ListVolumes					(std::list<std::string>& aOutput);
+		static bool						ListDirectory				(const std::string& aPath, std::list<std::string>& aOutput);
 };
 
 

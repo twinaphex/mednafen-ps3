@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef __WIN32__
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-# include <shlobj.h>
-#endif
-
 class				PlatformHelpers
 {
 	public:
@@ -15,44 +9,8 @@ class				PlatformHelpers
 		static void						FreeExecutable				(void* aData, uint32_t aSize);
 
 #ifdef __WIN32__
-		template<typename T>
-		static bool						ListDirectory				(const std::string& aPath, T& aOutput)
-		{
-			WIN32_FIND_DATA fileData;
-			HANDLE findHandle = FindFirstFile((aPath + "\\*").c_str(), &fileData);
-
-			if(findHandle != INVALID_HANDLE_VALUE)
-			{
-				do
-				{
-					if(strcmp(fileData.cFileName, ".") && strcmp(fileData.cFileName, ".."))
-					{
-						aOutput.push_back(std::string(fileData.cFileName) + ((fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? "/" : ""));
-					}
-				}	while(FindNextFile(findHandle, &fileData));
-
-				FindClose(findHandle);
-				return true;
-			}
-
-			return false;
-		}
-
-		template<typename T>
-		static bool						ListVolumes					(T& aOutput)
-		{
-			DWORD drives = GetLogicalDrives();
-
-			for(int i = 0; i != 26; i ++)
-			{
-				if(drives & (1 << i))
-				{
-					aOutput.push_back(std::string(1, 'A' + i) + ":\\");
-				}
-			}
-
-			return true;
-		}
+		static bool						ListDirectory				(const std::string& aPath, std::list<std::string>& aOutput);
+		static bool						ListVolumes					(std::list<std::string>& aOutput);
 #endif
 };
 
