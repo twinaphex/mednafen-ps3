@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "Colors.h"
 
 ///Class defining a GUI view.

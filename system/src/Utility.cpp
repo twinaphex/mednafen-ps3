@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #include "Utility.h"
 
@@ -165,6 +169,54 @@ uint32_t					Utility::FileSize					(const std::string& aPath)
 	return ((0 == stat(aPath.c_str(), &statbuf)) && (statbuf.st_mode & S_IFREG)) ? statbuf.st_size : 0;
 #else
 	return PlatformHelpers::FileSize(aPath);
+#endif
+}
+
+bool						Utility::ListVolumes				(std::list<std::string>& aOutput)
+{
+#ifndef COMPLEX_VOLUMES
+	aOutput.push_back("/");
+	return true;
+#else
+	return PlatformHelpers::ListVolumes<T>(aOutput);			
+#endif
+}
+
+
+bool						Utility::ListDirectory				(const std::string& aPath, std::list<std::string>& aOutput)
+{
+#ifndef NO_READDIR
+#ifndef S_ISDIR
+#define S_ISDIR(a) ((a & S_IFMT) == S_IFDIR)
+#endif
+	DIR* dirhandle;
+	struct dirent* item;
+	
+	if((dirhandle = opendir(aPath.c_str())))
+	{
+		while((item = readdir(dirhandle)))
+		{
+			struct stat statbuf;
+			stat((aPath + item->d_name).c_str(), &statbuf);
+		
+			if(S_ISDIR(statbuf.st_mode) && (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0))
+			{
+				continue;
+			}
+
+			aOutput.push_back(std::string(item->d_name) + (S_ISDIR(statbuf.st_mode) ? "/" : ""));
+		}
+
+		closedir(dirhandle);				
+		
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+#else
+	return PlatformHelpers::ListDirectory<T>(aPath, aOutput);
 #endif
 }
 
