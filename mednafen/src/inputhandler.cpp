@@ -15,7 +15,7 @@ namespace
 	const MDFNGI*								GameInfo;
 	uint32_t									RapidCount;
 	std::vector<InputInfo>						Inputs[16];
-	uint8_t										ControllerBits[16][256];
+	uint8_t										ControllerBits[16][256*4];
 }
 
 
@@ -79,14 +79,17 @@ class									SettingGenerator : public InputEnumeratorBase
 			{
 				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "4294967294"};
 
-				thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
-				Settings.push_back(thisInput);
-
-				//Rapid button support
-				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+				if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID || aDescription->Type == IDIT_BUTTON_BYTE)
 				{
-					thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
+					thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
 					Settings.push_back(thisInput);
+
+					//Rapid button support
+					if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
+					{
+						thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
+						Settings.push_back(thisInput);
+					}
 				}
 			}
 		}
@@ -156,7 +159,7 @@ class									ConfigurePrepper : public InputEnumeratorBase
 
 			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
 			{	
-				if(i->Data->SettingName)
+				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE))
 				{
 					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
 				}
@@ -251,7 +254,7 @@ class									ConfigureImmediate : public InputEnumeratorBase
 
 			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
 			{	
-				if(i->Data->SettingName)
+				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE))
 				{
 					DoSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
 				}
@@ -279,6 +282,10 @@ class									SettingReader : public InputEnumeratorBase
 	public:
 										SettingReader					() : BitIndex(0) {}
 
+		uint32_t						DataSize						()
+		{
+			return ((BitIndex + 7) & ~7) / 4;
+		}
 
 		virtual bool					Port							(const InputPortInfoStruct* aDescription)
 		{
@@ -291,38 +298,66 @@ class									SettingReader : public InputEnumeratorBase
 		{
 			InputEnumeratorBase::Device(aDescription);
 
+			BitIndex = 0;
+
 			std::string type = MDFN_GetSettingS(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d", GameInfo->shortname, PortIndex));
 			if(type == DeviceInfo->ShortName)
 			{
-				MDFNI_SetInput(PortIndex - 1, type.c_str(), &ControllerBits[PortIndex - 1], 2);
 				return true;
 			}
 
 			return false;
 		}
 
+		virtual void					FinishDevice					()
+		{
+			MDFNI_SetInput(PortIndex - 1, DeviceInfo->ShortName, &ControllerBits[PortIndex - 1], DataSize());
+		}
+
 		virtual void					Button							(const InputDeviceInputInfoStruct* aDescription)
 		{
-			if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID)
-			{
-				InputInfo ii;
-				memset(&ii, 0, sizeof(ii));
+			InputInfo ii;
+			memset(&ii, 0, sizeof(ii));
 
+			ii.Data = aDescription;
+
+			if(aDescription->Type == IDIT_BUTTON) //Button = 1 packed bit
+			{
+				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				ii.BitOffset = BitIndex ++;
+			}
+			else if(aDescription->Type == IDIT_BUTTON_CAN_RAPID) //Rapid Button = 1 packed bit + secondary rapid setting
+			{
 				ii.BitOffset = BitIndex ++;
 				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
-				if(aDescription->Type == IDIT_BUTTON_CAN_RAPID)
-				{
-					ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
-				}
+				ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+			}
+			else if(aDescription->Type == IDIT_BUTTON_BYTE) //Byte = 8 bits aligned to 8 bit boundary
+			{
+				ii.BitOffset = ((BitIndex + 7) & ~7);
+				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				BitIndex = ii.BitOffset + 8;
+			}
+			else if(aDescription->Type == IDIT_BYTE_SPECIAL) //Byte Special = 8 packed bits? (Famicom barcode reader type device?)
+			{
+				ii.BitOffset += 8;
+				ii.Data = 0;
+			}
+			else //Axis = 32 bits aligned to 32 bit boundary (only used for pointer support?)
+			{
+				ii.BitOffset = ((BitIndex + 31) & ~31);
+				BitIndex = ii.BitOffset + 32;
+			}
 
-				ii.Data = aDescription;
+			if(ii.Data) //Only supported controls, Kay
+			{
 				Inputs[PortIndex -1].push_back(ii);
 			}
 		}
 
 
 	private:
-		int								BitIndex;
+		uint32_t						BitIndex;
 };
 
 void							InputHandler::SetGameInfo						(const MDFNGI* aSystem)
@@ -331,7 +366,7 @@ void							InputHandler::SetGameInfo						(const MDFNGI* aSystem)
 
 	ReadSettings();
 
-	//Run configure if all input values are zero
+	//Run configure if all input values are unset
 	for(int i = 0; i != Inputs[0].size(); i ++)
 	{
 		if(Inputs[0][i].Button != 0xFFFFFFFE)
@@ -400,7 +435,7 @@ void							InputHandler::Process							()
 			int bit = Inputs[p][i].BitOffset & 7;
 
 			//Get any non rapid press
-			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(Inputs[p][i].Button)))
+			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID || Inputs[p][i].Data->Type == IDIT_BUTTON_BYTE) && (ESInput::ButtonPressed(Inputs[p][i].Button)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
@@ -410,6 +445,27 @@ void							InputHandler::Process							()
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
+
+#if 0 //Something like this for mouse support
+			static int32_t x = 0;
+			static int32_t y = 0;
+
+			if(Inputs[p][i].Data->Type == IDIT_X_AXIS)
+			{
+				if(ESInput::ButtonPressed(ES_BUTTON_LEFT))	x --;
+				if(ESInput::ButtonPressed(ES_BUTTON_RIGHT)) x ++;
+				x = Utility::Clamp(x, 0, 256);
+				*(uint32_t*)&ControllerBits[p][byte] = x;
+			}
+
+			if(Inputs[p][i].Data->Type == IDIT_Y_AXIS)
+			{
+				if(ESInput::ButtonPressed(ES_BUTTON_UP))	y --;
+				if(ESInput::ButtonPressed(ES_BUTTON_DOWN))	y ++;
+				y = Utility::Clamp(y, 0, 256);
+				*(uint32_t*)&ControllerBits[p][byte] = y;
+			}
+#endif
 		}
 	}
 
