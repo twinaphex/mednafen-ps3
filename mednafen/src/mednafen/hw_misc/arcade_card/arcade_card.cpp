@@ -179,6 +179,12 @@ void ArcadeCard::Write(uint32 A, uint8 V)
 
    case 0x05: port->offset &= ~0xFF;
               port->offset |= V << 0;
+              if((port->control & 0x60) == 0x20)
+              {
+               port->base = (port->base + port->offset) & 0xFFFFFF;
+               if(port->control & 0x08)
+                port->base += 0xFF0000;
+              }
               break;
 
    case 0x06: port->offset &= ~0xFF00;
