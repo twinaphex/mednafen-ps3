@@ -4,35 +4,28 @@
 #include <mednafen/general.h>
 #include <mednafen/mempatcher.h>
 #include <mednafen/md5.h>
-#include <stdio.h>
-
 #include <mednafen/snes/src/lib/libco/libco.h>
 
 #define MODULENAMESPACE		mupen64plus
 #include <module_helper.h>
 using namespace mupen64plus;
 
-#define M64P_CORE_PROTOTYPES
-#include "api/m64p_frontend.h"
-#include "api/m64p_types.h"
+//SYSTEM
 extern "C"
 {
+	#define M64P_CORE_PROTOTYPES
+	#include "api/m64p_frontend.h"
+	#include "api/m64p_types.h"
 	#include "r4300/r4300.h"
-}
+	#include "main/version.h"
 
-#include "plugin/plugin.h"
-#include "main/version.h"
+	cothread_t								n64MainThread;
+	cothread_t								n64EmuThread;
+}
 
 //Video plugin hack
 #include "video/vi_MDFN.h"
 extern VI_MDFN *vi;
-
-//SYSTEM
-extern "C"
-{
-	cothread_t								n64MainThread;
-	cothread_t								n64EmuThread;
-}
 
 namespace mupen64plus
 {
@@ -41,6 +34,7 @@ namespace mupen64plus
 		CoreDoCommand(M64CMD_EXECUTE, 0, NULL);
 		co_switch(n64MainThread);
 
+		//NEVER RETURN! That's how libco rolls
 		while(1)
 		{
 			MDFND_DispMessage((UTF8*)strdup("Running Dead N64 Emulator"));
@@ -134,14 +128,10 @@ namespace MODULENAMESPACE
 			return 0;
 		}
 
-		plugin_connect(M64PLUGIN_GFX, 0);
-		plugin_connect(M64PLUGIN_AUDIO, 0);
-		plugin_connect(M64PLUGIN_INPUT, 0);
-		plugin_connect(M64PLUGIN_RSP, 0);
-		plugin_start(M64PLUGIN_GFX);
-		plugin_start(M64PLUGIN_AUDIO);
-		plugin_start(M64PLUGIN_INPUT);
-		plugin_start(M64PLUGIN_RSP);
+		CoreAttachPlugin(M64PLUGIN_GFX, 0);
+		CoreAttachPlugin(M64PLUGIN_AUDIO, 0);
+		CoreAttachPlugin(M64PLUGIN_INPUT, 0);
+		CoreAttachPlugin(M64PLUGIN_RSP, 0);
 
 		n64MainThread = co_active();
 		n64EmuThread = co_create(65536 * sizeof(void*), EmuThreadFunction);
