@@ -111,7 +111,7 @@ CXXFILES			+=	src/mednafen/nes/cart.cpp src/mednafen/nes/fds.cpp src/mednafen/ne
 						src/mednafen/nes/input/toprider.cpp src/mednafen/nes/input/zapper.cpp src/mednafen/nes/ntsc/nes_ntsc.cpp src/mednafen/nes/ppu/palette.cpp \
 						src/mednafen/nes/ppu/ppu.cpp
 
-#CXXFILES			:=	src/mednafen/snes/interface.cpp src/mednafen/snes/src/cartridge/cartridge.cpp src/mednafen/snes/src/cheat/cheat.cpp src/mednafen/snes/src/memory/memory.cpp \
+#CXXFILES			+=	src/mednafen/snes/interface.cpp src/mednafen/snes/src/cartridge/cartridge.cpp src/mednafen/snes/src/cheat/cheat.cpp src/mednafen/snes/src/memory/memory.cpp \
 #						src/mednafen/snes/src/memory/smemory/smemory.cpp src/mednafen/snes/src/cpu/cpu.cpp src/mednafen/snes/src/cpu/core/core.cpp src/mednafen/snes/src/cpu/scpu/scpu.cpp \
 #						src/mednafen/snes/src/smp/smp.cpp src/mednafen/snes/src/smp/core/core.cpp src/mednafen/snes/src/smp/ssmp/ssmp.cpp src/mednafen/snes/src/dsp/sdsp/sdsp.cpp \
 #						src/mednafen/snes/src/ppu/ppu.cpp src/mednafen/snes/src/ppu/bppu/bppu.cpp src/mednafen/snes/src/system/system.cpp src/mednafen/snes/src/chip/sa1/sa1.cpp \
@@ -119,7 +119,7 @@ CXXFILES			+=	src/mednafen/nes/cart.cpp src/mednafen/nes/fds.cpp src/mednafen/ne
 #						src/mednafen/snes/src/chip/cx4/cx4.cpp src/mednafen/snes/src/chip/dsp1/dsp1.cpp src/mednafen/snes/src/chip/dsp2/dsp2.cpp src/mednafen/snes/src/chip/dsp3/dsp3.cpp \
 #						src/mednafen/snes/src/chip/dsp4/dsp4.cpp src/mednafen/snes/src/chip/obc1/obc1.cpp src/mednafen/snes/src/chip/st010/st010.cpp src/mednafen/snes/src/chip/st011/st011.cpp \
 #						src/mednafen/snes/src/chip/st018/st018.cpp src/mednafen/snes/src/chip/superfx/superfx.cpp src/mednafen/snes/src/chip/21fx/21fx.cpp
-#CFILES				:=	src/mednafen/snes/src/lib/libco/libco.c
+#CFILES				+=	src/mednafen/snes/src/lib/libco/libco.c
 
 
 #CXXFILES			+=	src/mednafen/gb/gb.cpp src/mednafen/gb/gbGlobals.cpp src/mednafen/gb/gfx.cpp src/mednafen/gb/memory.cpp src/mednafen/gb/sound.cpp src/mednafen/gb/z80.cpp
@@ -168,8 +168,8 @@ INCLUDE				:=	. src ../system ../system/$(PLATFORM) src/mednafen/hw_misc src/med
 LIBDIRS				:=	../system ../nestopia ../gambatte ../vbam ../pcsxr ../stella ../yabause
 LDFLAGS				+=	-lemusys -lnestopia -lgambatte -lpcsxr -lvbam -lstella -lyabause
 
-#LIBDIRS			+=	../lsnes ../desmume
-#LDFLAGS			+=	-llsnes -lsnes -ldesmume
+#LIBDIRS			+=	../lsnes ../desmume ../mupen64plus
+#LDFLAGS			+=	-llsnes -lsnes -ldesmume -lmupen64plus
 
 ##Build info
 TARGET				:=	mednafen
