@@ -22,6 +22,7 @@ namespace
 	extern "C" MDFNGI*				yabauseGetEmulator		(uint32_t aIndex);
 	extern "C" MDFNGI*				desmumeGetEmulator		(uint32_t aIndex);		//Disabled because it uses too much bss for PS3 (TODO: Enable conditionally on non-ps3 builds)
 	extern "C" MDFNGI*				lsnesGetEmulator		(uint32_t aIndex);		//Disabled because it requires a user provided build of libsnes and conflicts with the build in snes emulator
+	extern "C" MDFNGI*				mupen64plusGetEmulator	(uint32_t aIndex);		//Disabled because it doesn't work, duh
 
 
 	const MDFNSetting_EnumList	AspectEnumList[] =
@@ -158,6 +159,7 @@ void						MednafenEmu::Init				()
 #ifdef TEST_MODULES
 		externalSystems.push_back(desmumeGetEmulator(0));
 		externalSystems.push_back(lsnesGetEmulator(0));
+		externalSystems.push_back(mupen64plusGetEmulator(0));
 #endif
 		MDFNI_InitializeModules(externalSystems);
 
