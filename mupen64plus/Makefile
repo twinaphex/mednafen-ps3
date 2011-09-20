@@ -15,6 +15,10 @@ CXXFILES	+=	src/mednafen.cpp
 #Audio plugin
 CXXFILES	+=	src/audio/src/main-mdfn.cpp
 
+#Input plugin
+CXXFILES	+=	src/input/src/plugin-mdfn.cpp
+
+
 #RSP Plugin
 CXXFILES	+=	src/rsp-hle/src/ucode1.cpp \
 				src/rsp-hle/src/ucode2.cpp \
@@ -63,11 +67,11 @@ CFILES		+=	src/core/src/osal/dynamiclib_unix.c \
 #				src/core/src/osd/osd.cpp \
 #				src/core/src/osd/screenshot.cpp
 
-CFILES		+=	src/core/src/plugin/dummy_audio.c \
-				src/core/src/plugin/dummy_input.c \
-				src/core/src/plugin/dummy_rsp.c \
-				src/core/src/plugin/dummy_video.c \
+CFILES		+=	src/core/src/plugin/dummy_video.c \
 				src/core/src/plugin/plugin.c
+#				src/core/src/plugin/dummy_audio.c
+#				src/core/src/plugin/dummy_rsp.c
+#				src/core/src/plugin/dummy_input.c
 
 CFILES		+=	src/core/src/r4300/bc.c \
 				src/core/src/r4300/cop0.c \

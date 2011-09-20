@@ -24,6 +24,7 @@
 
 #include "api/m64p_plugin.h"
 
+#ifndef MDFNPS3 //Input plugin
 extern void dummyinput_InitiateControllers (CONTROL_INFO ControlInfo);
 extern void dummyinput_GetKeys(int Control, BUTTONS * Keys );
 extern void dummyinput_ControllerCommand(int Control, unsigned char *Command);
@@ -34,6 +35,31 @@ extern int  dummyinput_RomOpen(void);
 extern void dummyinput_RomClosed(void);
 extern void dummyinput_SDL_KeyDown(int keymod, int keysym);
 extern void dummyinput_SDL_KeyUp(int keymod, int keysym);
+#else
+extern void inputInitiateControllers (CONTROL_INFO ControlInfo);
+extern void inputGetKeys(int Control, BUTTONS * Keys );
+extern void inputControllerCommand(int Control, unsigned char *Command);
+extern void inputGetKeys(int Control, BUTTONS * Keys);
+extern void inputInitiateControllers(CONTROL_INFO ControlInfo);
+extern void inputReadController(int Control, unsigned char *Command);
+extern int  inputRomOpen(void);
+extern void inputRomClosed(void);
+extern void inputSDL_KeyDown(int keymod, int keysym);
+extern void inputSDL_KeyUp(int keymod, int keysym);
+
+#define dummyinput_InitiateControllers inputInitiateControllers
+#define dummyinput_GetKeys inputGetKeys
+#define dummyinput_ControllerCommand inputControllerCommand
+#define dummyinput_GetKeys inputGetKeys
+#define dummyinput_InitiateControllers inputInitiateControllers
+#define dummyinput_ReadController inputReadController
+#define dummyinput_RomOpen inputRomOpen
+#define dummyinput_RomClosed inputRomClosed
+#define dummyinput_SDL_KeyDown inputSDL_KeyDown
+#define dummyinput_SDL_KeyUp inputSDL_KeyUp
+
+
+#endif
 
 #endif /* DUMMY_INPUT_H */
 

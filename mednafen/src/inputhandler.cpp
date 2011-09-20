@@ -323,19 +323,28 @@ class									SettingReader : public InputEnumeratorBase
 
 			if(aDescription->Type == IDIT_BUTTON) //Button = 1 packed bit
 			{
-				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				if(aDescription->SettingName)
+				{
+					ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				}
 				ii.BitOffset = BitIndex ++;
 			}
 			else if(aDescription->Type == IDIT_BUTTON_CAN_RAPID) //Rapid Button = 1 packed bit + secondary rapid setting
 			{
 				ii.BitOffset = BitIndex ++;
-				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
-				ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				if(aDescription->SettingName)
+				{
+					ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+					ii.RapidButton = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s_rapid", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				}
 			}
 			else if(aDescription->Type == IDIT_BUTTON_BYTE) //Byte = 8 bits aligned to 8 bit boundary
 			{
 				ii.BitOffset = ((BitIndex + 7) & ~7);
-				ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				if(aDescription->SettingName)
+				{
+					ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				}
 				BitIndex = ii.BitOffset + 8;
 			}
 			else if(aDescription->Type == IDIT_BYTE_SPECIAL) //Byte Special = 8 packed bits? (Famicom barcode reader type device?)

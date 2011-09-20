@@ -39,33 +39,33 @@ extern void dummyaudio_VolumeSetLevel(int level);
 extern void dummyaudio_VolumeMute(void);
 extern const char * dummyaudio_VolumeGetString(void);
 #else
-extern void AiDacrateChanged(int SystemType);
-extern void AiLenChanged(void);
-extern int  InitiateAudio(AUDIO_INFO Audio_Info);
-extern void ProcessAList(void);
-extern int  RomOpen(void);
-extern void RomClosed(void);
-extern void SetSpeedFactor(int percent);
-extern void VolumeUp(void);
-extern void VolumeDown(void);
-extern int VolumeGetLevel(void);
-extern void VolumeSetLevel(int level);
-extern void VolumeMute(void);
-extern const char * VolumeGetString(void);
+extern void audioAiDacrateChanged(int SystemType);
+extern void audioAiLenChanged(void);
+extern int  audioInitiateAudio(AUDIO_INFO Audio_Info);
+extern void audioProcessAList(void);
+extern int  audioRomOpen(void);
+extern void audioRomClosed(void);
+extern void audioSetSpeedFactor(int percent);
+extern void audioVolumeUp(void);
+extern void audioVolumeDown(void);
+extern int audioVolumeGetLevel(void);
+extern void audioVolumeSetLevel(int level);
+extern void audioVolumeMute(void);
+extern const char * audioVolumeGetString(void);
 
-#define dummyaudio_AiDacrateChanged AiDacrateChanged
-#define dummyaudio_AiLenChanged AiLenChanged
-#define dummyaudio_InitiateAudio InitiateAudio
-#define dummyaudio_ProcessAList ProcessAList
-#define dummyaudio_RomOpen RomOpen
-#define dummyaudio_RomClosed RomClosed
-#define dummyaudio_SetSpeedFactor SetSpeedFactor
-#define dummyaudio_VolumeUp VolumeUp
-#define dummyaudio_VolumeDown VolumeDown
-#define dummyaudio_VolumeGetLevel VolumeGetLevel
-#define dummyaudio_VolumeSetLevel VolumeSetLevel
-#define dummyaudio_VolumeMute VolumeMute
-#define dummyaudio_VolumeGetString VolumeGetString
+#define dummyaudio_AiDacrateChanged audioAiDacrateChanged
+#define dummyaudio_AiLenChanged audioAiLenChanged
+#define dummyaudio_InitiateAudio audioInitiateAudio
+#define dummyaudio_ProcessAList audioProcessAList
+#define dummyaudio_RomOpen audioRomOpen
+#define dummyaudio_RomClosed audioRomClosed
+#define dummyaudio_SetSpeedFactor audioSetSpeedFactor
+#define dummyaudio_VolumeUp audioVolumeUp
+#define dummyaudio_VolumeDown audioVolumeDown
+#define dummyaudio_VolumeGetLevel audioVolumeGetLevel
+#define dummyaudio_VolumeSetLevel audioVolumeSetLevel
+#define dummyaudio_VolumeMute audioVolumeMute
+#define dummyaudio_VolumeGetString audioVolumeGetString
 #endif
 
 #endif /* DUMMY_AUDIO_H */
