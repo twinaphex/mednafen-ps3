@@ -23,6 +23,10 @@ extern "C"
 #include "plugin/plugin.h"
 #include "main/version.h"
 
+//Video plugin hack
+#include "video/vi_MDFN.h"
+extern VI_MDFN *vi;
+
 //SYSTEM
 extern "C"
 {
@@ -130,9 +134,11 @@ namespace MODULENAMESPACE
 			return 0;
 		}
 
+		plugin_connect(M64PLUGIN_GFX, 0);
 		plugin_connect(M64PLUGIN_AUDIO, 0);
 		plugin_connect(M64PLUGIN_INPUT, 0);
 		plugin_connect(M64PLUGIN_RSP, 0);
+		plugin_start(M64PLUGIN_GFX);
 		plugin_start(M64PLUGIN_AUDIO);
 		plugin_start(M64PLUGIN_INPUT);
 		plugin_start(M64PLUGIN_RSP);
@@ -162,6 +168,7 @@ namespace MODULENAMESPACE
 		stop = 1;
 		co_switch(n64EmuThread);
 
+		CoreDetachPlugin(M64PLUGIN_GFX);
 		CoreDetachPlugin(M64PLUGIN_AUDIO);
 		CoreDetachPlugin(M64PLUGIN_INPUT);
 		CoreDetachPlugin(M64PLUGIN_RSP);
@@ -187,6 +194,10 @@ namespace MODULENAMESPACE
 
 		//EMULATE
 		co_switch(n64EmuThread);
+
+		//VIDEO
+		Video::SetDisplayRect(espec, 0, 0, vi->width, vi->height);
+		Video::BlitRGB15<0, 1, 2, 0, 1, 2, -1>(espec, (const uint16_t*)vi->screen, vi->width, vi->height, vi->width);
 
 		//AUDIO
 		Resampler::Fetch(espec);

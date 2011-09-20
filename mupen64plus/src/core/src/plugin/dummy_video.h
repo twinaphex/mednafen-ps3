@@ -24,6 +24,7 @@
 
 #include "api/m64p_plugin.h"
 
+#ifndef MDFNPS3 //Video Plugin
 extern void dummyvideo_ChangeWindow(void);
 extern int dummyvideo_InitiateGFX(GFX_INFO Gfx_Info);
 extern void dummyvideo_MoveScreen(int xpos, int ypos);
@@ -41,6 +42,44 @@ extern void dummyvideo_SetRenderingCallback(void (*callback)(void));
 extern void dummyvideo_FBRead(unsigned int addr);
 extern void dummyvideo_FBWrite(unsigned int addr, unsigned int size);
 extern void dummyvideo_FBGetFrameBufferInfo(void *p);
+#else
+extern void videoChangeWindow(void);
+extern int videoInitiateGFX(GFX_INFO Gfx_Info);
+extern void videoMoveScreen(int xpos, int ypos);
+extern void videoProcessDList(void);
+extern void videoProcessRDPList(void);
+extern void videoRomClosed(void);
+extern int  videoRomOpen(void);
+extern void videoShowCFB(void);
+extern void videoUpdateScreen(void);
+extern void videoViStatusChanged(void);
+extern void videoViWidthChanged(void);
+extern void videoReadScreen2(void *dest, int *width, int *height, int front);
+extern void videoSetRenderingCallback(void (*callback)(void));
+
+extern void videoFBRead(unsigned int addr);
+extern void videoFBWrite(unsigned int addr, unsigned int size);
+extern void videoFBGetFrameBufferInfo(void *p);
+
+#define dummyvideo_ChangeWindow videoChangeWindow
+#define dummyvideo_InitiateGFX videoInitiateGFX
+#define dummyvideo_MoveScreen videoMoveScreen
+#define dummyvideo_ProcessDList videoProcessDList
+#define dummyvideo_ProcessRDPList videoProcessRDPList
+#define dummyvideo_RomClosed videoRomClosed
+#define dummyvideo_RomOpen videoRomOpen
+#define dummyvideo_ShowCFB videoShowCFB
+#define dummyvideo_UpdateScreen videoUpdateScreen
+#define dummyvideo_ViStatusChanged videoViStatusChanged
+#define dummyvideo_ViWidthChanged videoViWidthChanged
+#define dummyvideo_ReadScreen2 videoReadScreen2
+#define dummyvideo_SetRenderingCallback videoSetRenderingCallback
+
+#define dummyvideo_FBRead videoFBRead
+#define dummyvideo_FBWrite videoFBWrite
+#define dummyvideo_FBGetFrameBufferInfo videoFBGetFrameBufferInfo
+
+#endif
 
 #endif /* DUMMY_VIDEO_H */
 
