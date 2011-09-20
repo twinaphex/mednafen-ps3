@@ -45,7 +45,22 @@ namespace MODULENAMESPACE
 {
 	static const InputDeviceInputInfoStruct	GamepadIDII[] =
 	{
-		{ "b",		"B (center, lower)",	7,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "right",		"RIGHT →",		3,	IDIT_BUTTON,			NULL	},
+		{ "left",		"LEFT ←",		2,	IDIT_BUTTON,			NULL	},
+		{ "down",		"DOWN ↓",		1,	IDIT_BUTTON,			NULL	},
+		{ "up",			"UP ↑",			0,	IDIT_BUTTON,			NULL	},
+		{ "start",		"START",		9,	IDIT_BUTTON,			NULL	},
+		{ "z_trigger",	"Z Trigger",	8,	IDIT_BUTTON,			NULL	},
+		{ "b",			"B",			4,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "a",			"A",			5,	IDIT_BUTTON_CAN_RAPID,	NULL	},
+		{ "c_right",	"C RIGHT →",	13,	IDIT_BUTTON,			NULL	},
+		{ "c_left",		"C LEFT ←",		12,	IDIT_BUTTON,			NULL	},
+		{ "c_down",		"C DOWN ↓",		11,	IDIT_BUTTON,			NULL	},
+		{ "c_up",		"C UP ↑",		10,	IDIT_BUTTON,			NULL	},
+		{ "r_trigger",	"R Trigger",	7,	IDIT_BUTTON,			NULL	},
+		{ "l_trigger",	"L Trigger",	6,	IDIT_BUTTON,			NULL	},
+		{ 0,			"",				0,	IDIT_BUTTON,			NULL	},
+		{ 0,			"",				0,	IDIT_BUTTON,			NULL	},
 	};
 
 	static InputDeviceInfoStruct 			InputDeviceInfo[] =
@@ -58,6 +73,8 @@ namespace MODULENAMESPACE
 	{
 		{0, "port1", "Port 1", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
 		{0, "port2", "Port 2", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+		{0, "port3", "Port 3", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
+		{0, "port4", "Port 4", sizeof(InputDeviceInfo) / sizeof(InputDeviceInfoStruct), InputDeviceInfo, "gamepad" },
 	};
 
 	static InputInfoStruct 					ModuleInput =
@@ -98,8 +115,10 @@ namespace MODULENAMESPACE
 		}
 
 		plugin_connect(M64PLUGIN_AUDIO, 0);
+		plugin_connect(M64PLUGIN_INPUT, 0);
 		plugin_connect(M64PLUGIN_RSP, 0);
 		plugin_start(M64PLUGIN_AUDIO);
+		plugin_start(M64PLUGIN_INPUT);
 		plugin_start(M64PLUGIN_RSP);
 
 		n64MainThread = co_active();
@@ -135,7 +154,6 @@ namespace MODULENAMESPACE
 		co_switch(n64EmuThread);
 
 		//AUDIO
-		printf("%d\n", Resampler::Written());
 		Resampler::Fetch(espec);
 
 		//TODO: Real timing

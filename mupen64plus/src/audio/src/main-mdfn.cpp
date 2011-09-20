@@ -34,6 +34,9 @@ using namespace mupen64plus;
 #include <string.h>
 #include <stdarg.h>
 
+extern "C"
+{
+
 #define M64P_PLUGIN_PROTOTYPES 1
 #include "api/m64p_types.h"
 #include "api/m64p_plugin.h"
@@ -42,42 +45,12 @@ using namespace mupen64plus;
 
 #include "main.h"
 
-/* local variables */
-static void (*l_DebugCallback)(void *, int, const char *) = NULL;
-static void *l_DebugCallContext = NULL;
-
 /* Read header for type definition */
 static AUDIO_INFO AudioInfo;
 static int GameFreq = 33600;
 
-/* Global functions */
-static void DebugMessage(int level, const char *message, ...)
-{
-  char msgbuf[1024];
-  va_list args;
-
-  if (l_DebugCallback == NULL)
-      return;
-
-  va_start(args, message);
-  vsprintf(msgbuf, message, args);
-
-  (*l_DebugCallback)(l_DebugCallContext, level, msgbuf);
-
-  va_end(args);
-}
-
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)(void *, int, const char *))
-{
-    l_DebugCallback = DebugCallback;
-    l_DebugCallContext = Context;
-    return M64ERR_SUCCESS;
-}
-
-EXPORT m64p_error CALL PluginShutdown(void){l_DebugCallback = NULL;l_DebugCallContext = NULL;return M64ERR_SUCCESS;}
-
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+EXPORT m64p_error CALL audioPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     if (PluginType != NULL)		*PluginType = M64PLUGIN_AUDIO;
     if (PluginVersion != NULL)	*PluginVersion = SDL_AUDIO_PLUGIN_VERSION;
@@ -88,7 +61,7 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
 }
 
 /* ----------- Audio Functions ------------- */
-EXPORT void CALL AiDacrateChanged( int SystemType )
+EXPORT void CALL audioAiDacrateChanged( int SystemType )
 {
     switch (SystemType)
     {
@@ -99,7 +72,7 @@ EXPORT void CALL AiDacrateChanged( int SystemType )
 }
 
 
-EXPORT void CALL AiLenChanged(void)
+EXPORT void CALL audioAiLenChanged(void)
 {
 	uint32_t len = *AudioInfo.AI_LEN_REG;
 	uint8_t* tar = (uint8_t*)Resampler::Buffer(len / 2);
@@ -116,15 +89,18 @@ EXPORT void CALL AiLenChanged(void)
 	}
 }
 
-EXPORT int CALL InitiateAudio(AUDIO_INFO Audio_Info){ AudioInfo = Audio_Info; return 1;}
-EXPORT int CALL RomOpen(void){return 1;}
-EXPORT void CALL RomClosed(void){}
-EXPORT void CALL ProcessAList(void){}
-EXPORT void CALL SetSpeedFactor(int percentage){}
-EXPORT void CALL VolumeMute(void){}
-EXPORT void CALL VolumeUp(void){}
-EXPORT void CALL VolumeDown(void){}
-EXPORT int CALL VolumeGetLevel(void){return 100;}
-EXPORT void CALL VolumeSetLevel(int level){}
-EXPORT const char * CALL VolumeGetString(void){return "Not Supported";}
+EXPORT m64p_error CALL audioPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)(void *, int, const char *)){return M64ERR_SUCCESS;}
+EXPORT m64p_error CALL audioPluginShutdown(void){return M64ERR_SUCCESS;}
+EXPORT int CALL audioInitiateAudio(AUDIO_INFO Audio_Info){ AudioInfo = Audio_Info; return 1;}
+EXPORT int CALL audioRomOpen(void){return 1;}
+EXPORT void CALL audioRomClosed(void){}
+EXPORT void CALL audioProcessAList(void){}
+EXPORT void CALL audioSetSpeedFactor(int percentage){}
+EXPORT void CALL audioVolumeMute(void){}
+EXPORT void CALL audioVolumeUp(void){}
+EXPORT void CALL audioVolumeDown(void){}
+EXPORT int CALL audioVolumeGetLevel(void){return 100;}
+EXPORT void CALL audioVolumeSetLevel(int level){}
+EXPORT const char * CALL audioVolumeGetString(void){return "Not Supported";}
 
+}
