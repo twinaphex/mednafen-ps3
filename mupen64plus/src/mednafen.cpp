@@ -46,7 +46,9 @@ namespace mupen64plus
 
 	void									mdfnDebugCallback		(void* aContext, int aLevel, const char* aMessage)
 	{
-		printf("mupen: %s\n", aMessage);
+		char buffer[1024];
+		snprintf(buffer, 1024, "mupen64plus: %s\n", aMessage);
+		MDFND_Message(buffer);
 	}
 
 	EmulateSpecStruct*						ESpec;
@@ -97,6 +99,8 @@ namespace MODULENAMESPACE
 	static FileExtensionSpecStruct			ModuleExtensions[] =
 	{
 		{".n64",	"Nintendo 64 ROM Image"				},
+		{".z64",	"Nintendo 64 ROM Image"				},
+		{".v64",	"Nintendo 64 ROM Image"				},
 		{NULL, NULL}
 	};
 
@@ -141,7 +145,15 @@ namespace MODULENAMESPACE
 
 	static bool								ModuleTestMagic			(const char *name, MDFNFILE *fp)
 	{
-		return true;
+		for(int i = 0; i != 3; i ++)
+		{
+			if(strcasecmp(fp->ext, &ModuleExtensions[i].extension[1]) == 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	static void								ModuleCloseGame			()
