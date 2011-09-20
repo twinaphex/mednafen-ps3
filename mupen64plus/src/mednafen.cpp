@@ -15,6 +15,11 @@ using namespace mupen64plus;
 #define M64P_CORE_PROTOTYPES
 #include "api/m64p_frontend.h"
 #include "api/m64p_types.h"
+extern "C"
+{
+	#include "r4300/r4300.h"
+}
+
 #include "plugin/plugin.h"
 #include "main/version.h"
 
@@ -29,7 +34,14 @@ namespace mupen64plus
 {
 	void									EmuThreadFunction		()
 	{
-		CoreDoCommand(M64CMD_EXECUTE, 0, NULL);	
+		CoreDoCommand(M64CMD_EXECUTE, 0, NULL);
+		co_switch(n64MainThread);
+
+		while(1)
+		{
+			MDFND_DispMessage((UTF8*)strdup("Running Dead N64 Emulator"));
+			co_switch(n64MainThread);
+		}
 	}
 
 	void									mdfnDebugCallback		(void* aContext, int aLevel, const char* aMessage)
@@ -134,6 +146,17 @@ namespace MODULENAMESPACE
 
 	static void								ModuleCloseGame			()
 	{
+		//Kill the emulator
+		stop = 1;
+		co_switch(n64EmuThread);
+
+		CoreDetachPlugin(M64PLUGIN_AUDIO);
+		CoreDetachPlugin(M64PLUGIN_INPUT);
+		CoreDetachPlugin(M64PLUGIN_RSP);
+
+		CoreDoCommand(M64CMD_ROM_CLOSE, 0, NULL);
+		CoreShutdown();
+
 		//Clean up
 		Resampler::Kill();
 	}
@@ -167,6 +190,22 @@ namespace MODULENAMESPACE
 
 	static void								ModuleDoSimpleCommand	(int cmd)
 	{
+		if(cmd == MDFN_MSC_RESET)
+		{
+			stop = 1;
+			co_switch(n64EmuThread);
+			co_delete(n64EmuThread);
+			r4300_reset_soft();
+			n64EmuThread = co_create(65536 * sizeof(void*), EmuThreadFunction);
+		}
+		else if(cmd == MDFN_MSC_POWER)
+		{
+			stop = 1;
+			co_switch(n64EmuThread);
+			co_delete(n64EmuThread);
+			r4300_reset_hard();
+			n64EmuThread = co_create(65536 * sizeof(void*), EmuThreadFunction);
+		}
 	}
 
 	MDFNGI									ModuleInfo =
