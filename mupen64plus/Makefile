@@ -12,6 +12,18 @@ CPPFLAGS	+=	-DMDFNPS3 -Dtrim=n64trim -Drom=n64rom
 
 CXXFILES	+=	src/mednafen.cpp
 
+#Video Plugin
+CXXFILES	+=	src/video/bl.cpp \
+				src/video/main-mdfn.cpp \
+				src/video/rs.cpp \
+				src/video/tf.cpp \
+				src/video/vi.cpp \
+				src/video/cc.cpp \
+				src/video/rdp.cpp \
+				src/video/rsp.cpp \
+				src/video/tx.cpp \
+				src/video/vi_MDFN.cpp
+
 #Audio plugin
 CXXFILES	+=	src/audio/src/main-mdfn.cpp
 
@@ -67,8 +79,8 @@ CFILES		+=	src/core/src/osal/dynamiclib_unix.c \
 #				src/core/src/osd/osd.cpp \
 #				src/core/src/osd/screenshot.cpp
 
-CFILES		+=	src/core/src/plugin/dummy_video.c \
-				src/core/src/plugin/plugin.c
+CFILES		+=	src/core/src/plugin/plugin.c
+#				src/core/src/plugin/dummy_video.c
 #				src/core/src/plugin/dummy_audio.c
 #				src/core/src/plugin/dummy_rsp.c
 #				src/core/src/plugin/dummy_input.c
@@ -92,4 +104,5 @@ CFILES		+=	src/core/src/r4300/bc.c \
 				src/core/src/r4300/tlb.c
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
+
 
