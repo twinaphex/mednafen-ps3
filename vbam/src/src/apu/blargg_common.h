@@ -16,10 +16,6 @@
 #ifndef BLARGG_COMMON_H
 #define BLARGG_COMMON_H
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 // BLARGG_RESTRICT: equivalent to restrict, where supported
 #if __GNUC__ >= 3 || _MSC_VER >= 1100
 	#define BLARGG_RESTRICT __restrict
@@ -204,10 +200,6 @@ public:
 // virtual int func() BLARGG_PURE( { return 0; } )
 #ifndef BLARGG_PURE
 	#define BLARGG_PURE( def ) def
-#endif
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
 #endif
 
 #endif

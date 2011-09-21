@@ -9,7 +9,8 @@ TYPE			:=	lib
 INCLUDE			:=	.. ../mednafen/src src/src
 
 CPPFLAGS		+=	-DFINAL_VERSION -DSDL -DNO_PNG -DNO_DEBUGGER -DC_CORE -DMDFNPS3 -DNO_LINK
-CPPFLAGS		+=	-DsystemDebug=systemDebugVBAM	#Cell token collision
+CPPFLAGS		+=	-DsystemDebug=systemDebugVBAM -DStereo_Buffer=Stereo_BufferVBAM -DBlip_Buffer=Blip_BufferVBAM -DBlip_Synth_Fast_=Blip_Synth_Fast_VBAM
+CPPFLAGS		+=	-DBlip_Synth_=Blip_Synth_VBAM -DSilent_Blip_Buffer=Silent_Blip_BufferVBAM -Dblip_eq_t=blip_eq_tVBAM
 
 CXXFILES		+=	src/mednafen.cpp									\
 					src/system.cpp
@@ -57,10 +58,10 @@ CXXFILES		+=	src/src/gba/agbprint.cpp							\
 					src/src/gba/Mode3.cpp								\
 					src/src/gba/Mode4.cpp								\
 					src/src/gba/Mode5.cpp								\
-					src/src/gba/remote.cpp								\
 					src/src/gba/RTC.cpp									\
 					src/src/gba/Sound.cpp								\
 					src/src/gba/Sram.cpp
+#					src/src/gba/remote.cpp
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 

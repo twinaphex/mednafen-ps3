@@ -12,11 +12,6 @@
 
 #include "../common/SoundDriver.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-using namespace VBAMBLIP;
-#endif
-
-
 #define NR10 0x60
 #define NR11 0x62
 #define NR12 0x63

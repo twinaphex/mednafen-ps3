@@ -17,10 +17,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 #if GB_APU_CUSTOM_STATE
 	#define REFLECT( x, y ) (save ?       (io->y) = (x) :         (x) = (io->y)          )
 #else
@@ -120,7 +116,4 @@ blargg_err_t Gb_Apu::load_state( gb_apu_state_t const& in )
 
 	return 0;
 }
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
 

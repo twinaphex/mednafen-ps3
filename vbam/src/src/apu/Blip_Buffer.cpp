@@ -21,10 +21,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 // TODO: use scoped for variables in treble_eq()
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 #ifdef BLARGG_ENABLE_OPTIMIZER
 	#include BLARGG_ENABLE_OPTIMIZER
 #endif
@@ -467,8 +463,3 @@ void Blip_Buffer::load_state( blip_buffer_state_t const& in )
 	reader_accum_ = in.reader_accum_;
 	memcpy( buffer_, in.buf, sizeof in.buf );
 }
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-

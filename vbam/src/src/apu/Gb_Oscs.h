@@ -7,10 +7,6 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 #ifndef GB_APU_OVERCLOCK
 	#define GB_APU_OVERCLOCK 1
 #endif
@@ -191,10 +187,5 @@ inline void Gb_Wave::write( unsigned addr, int data )
 	if ( index >= 0 )
 		wave_bank() [index] = data;;
 }
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-
 
 #endif

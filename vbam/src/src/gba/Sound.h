@@ -77,15 +77,7 @@ extern int soundTicks;          // Number of 16.8 MHz clocks until soundTick() w
 void soundSaveGame( gzFile );
 void soundReadGame( gzFile, int version );
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
 class Multi_Buffer;
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-using namespace VBAMBLIP;
-#endif
-
 
 void flush_samples(Multi_Buffer * buffer);
 

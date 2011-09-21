@@ -18,9 +18,9 @@ extern "C" {
 #include "gba/RTC.h"
 #include "common/Port.h"
 
-#ifndef MDFNPS3 //ROBO: No FEX
+#ifndef MDFNPS3 //No FEX Support
 #include "fex/fex.h"
-#endif //ROBO: No FEX
+#endif
 
 
 extern "C" {
@@ -390,8 +390,7 @@ void utilStripDoubleExtension(const char *file, char *buffer)
   }
 }
 
-//ROBO: No FEX
-#ifndef MDFNPS3
+#ifndef MDFNPS3 //No FEX support
 // Opens and scans archive using accept(). Returns fex_t if found.
 // If error or not found, displays message and returns NULL.
 static fex_t* scan_arc(const char *file, bool (*accept)(const char *),
@@ -556,7 +555,7 @@ u8 *utilLoad(const char *file,
 
 	return image;
 }
-#else //ROBO: No FEX
+#else //MDFNPS3: No Fex support
 static int utilGetSize(int size)
 {
   int res = 1;

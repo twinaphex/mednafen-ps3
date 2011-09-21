@@ -1,5 +1,3 @@
-#ifndef MDFNPS3 //ROBO: Don't compile remote.cpp
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -721,5 +719,3 @@ void remoteCleanUp()
   if(remoteCleanUpFnc)
     remoteCleanUpFnc();
 }
-
-#endif

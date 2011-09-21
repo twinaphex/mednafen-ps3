@@ -19,10 +19,6 @@ unprefixed names. */
 // void assert( bool expr );
 #include <assert.h>
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 // If expr is false, prints file and line number, then aborts program. Meant for
 // checking caller-supplied parameters and operations that are outside the control
 // of the module. A failed requirement probably indicates a bug in YOUR code.
@@ -92,10 +88,5 @@ typedef unsigned char blargg_byte;
 #ifdef BLARGG_SOURCE_BEGIN
 	#include BLARGG_SOURCE_BEGIN
 #endif
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-
 
 #endif
