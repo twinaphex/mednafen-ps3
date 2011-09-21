@@ -22,6 +22,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __CELLOS_LV2__ //Memory hack
+#undef __GNUC__
+#endif
+
 #if defined(__GNUC__)
 #include <unistd.h>
 #include <sys/mman.h>
@@ -2632,6 +2636,7 @@ void prefetch_opcode(unsigned int op)
  **********************************************************************/
 void *malloc_exec(size_t size)
 {
+#ifndef MDFNPS3 //nx memory hack
 #if defined(WIN32)
 	return VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 #elif defined(__GNUC__)
@@ -2649,6 +2654,9 @@ void *malloc_exec(size_t size)
    return block;
 #else
    return malloc(size);
+#endif
+#else
+	return malloc(size);
 #endif
 }
 
@@ -2676,9 +2684,13 @@ void *realloc_exec(void *ptr, size_t oldsize, size_t newsize)
  **********************************************************************/
 void free_exec(void *ptr, size_t length)
 {
+#ifndef MDFNPS3 //nx memory hack
 #if defined(WIN32)
 	VirtualFree(ptr, 0, MEM_RELEASE);
 #else
 	munmap(ptr, length);
+#endif
+#else
+	free(ptr);
 #endif
 }

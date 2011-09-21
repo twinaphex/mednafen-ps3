@@ -170,6 +170,8 @@ static void EepromCommand(unsigned char *Command)
 			      time(&curtime_time);
 #if defined(WIN32)
 			      localtime_s(&curtime, &curtime_time);
+#elif defined(__CELLOS_LV2__) //MDFNPS3: localtime hack
+                  memcpy(&curtime, localtime(&curtime_time), sizeof(curtime));
 #else
 			      localtime_r(&curtime_time, &curtime);
 #endif

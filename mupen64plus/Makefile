@@ -8,7 +8,12 @@ TARGET		:=	libmupen64plus
 TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/core/src src/core/src/api
 
-CPPFLAGS	+=	-DMDFNPS3 -Dtrim=n64trim -Drom=n64rom
+CPPFLAGS	+=	-DMDFNPS3 -Dtrim=n64trim -Drom=n64rom -DMTC0=n64MTC0
+
+ifeq ($(strip $(PLATFORM)),cell)
+	CPPFLAGS+=	-DM64P_BIG_ENDIAN
+endif
+
 
 CXXFILES	+=	src/mednafen.cpp
 
@@ -70,10 +75,11 @@ CFILES		+=	src/core/src/memory/dma.c \
 				src/core/src/memory/pif.c \
 				src/core/src/memory/tlb.c
 
-CFILES		+=	src/core/src/osal/dynamiclib_unix.c \
-				src/core/src/osal/files_unix.c
+CFILES		+=	src/core/src/osal/files_unix.c \
+				src/core/src/osal/dynamiclib_mdfn.c
 #				src/core/src/osal/dynamiclib_win32.c
 #				src/core/src/osal/files_win32.c
+#				src/core/src/osal/dynamiclib_unix.c
 
 #CXXFILES	+=	src/core/src/osd/OGLFT.cpp \
 #				src/core/src/osd/osd.cpp \
@@ -102,6 +108,7 @@ CFILES		+=	src/core/src/r4300/bc.c \
 				src/core/src/r4300/regimm.c \
 				src/core/src/r4300/special.c \
 				src/core/src/r4300/tlb.c
+
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
