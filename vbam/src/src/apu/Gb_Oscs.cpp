@@ -15,10 +15,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 bool const cgb_02 = false; // enables bug in early CGB units that causes problems in some games
 bool const cgb_05 = false; // enables CGB-05 zombie behavior
 
@@ -667,8 +663,3 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 	}
 	delay = time - end_time;
 }
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-

@@ -93,7 +93,7 @@ extern int systemSpeed;
 #define SYSTEM_SAVE_UPDATED 30
 #define SYSTEM_SAVE_NOT_UPDATED 0
 
-#ifdef MDFNPS3 //ROBO: For rumble
+#ifdef MDFNPS3 //For rumble
 void systemCartridgeRumble(bool);
 extern bool rtcWarioRumbleEnabled;
 #endif

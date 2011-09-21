@@ -15,11 +15,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
-
 unsigned const vol_reg    = 0xFF24;
 unsigned const stereo_reg = 0xFF25;
 unsigned const status_reg = 0xFF26;
@@ -397,8 +392,3 @@ int Gb_Apu::read_register( blip_time_t time, unsigned addr )
 
 	return data;
 }
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-

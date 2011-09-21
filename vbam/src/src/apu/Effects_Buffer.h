@@ -6,10 +6,6 @@
 
 #include "Multi_Buffer.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 // See Simple_Effects_Buffer (below) for a simpler interface
 
 class Effects_Buffer : public Multi_Buffer {
@@ -143,10 +139,5 @@ private:
 	config_t config_;
 	void chan_config(); // hide
 };
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-
 
 #endif

@@ -9,11 +9,6 @@
 #include "../apu/Gb_Apu.h"
 #include "../apu/Effects_Buffer.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-using namespace VBAMBLIP;
-#endif
-
-
 extern long soundSampleRate; // current sound quality
 
 gb_effects_config_t gb_effects_config = { false, 0.20f, 0.15f, false };

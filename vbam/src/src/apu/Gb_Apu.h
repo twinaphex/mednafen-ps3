@@ -6,10 +6,6 @@
 
 #include "Gb_Oscs.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 struct gb_apu_state_t;
 
 class Gb_Apu {
@@ -182,10 +178,5 @@ struct gb_apu_state_t
 
 	val_t unused  [13]; // for future expansion
 };
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
-
 
 #endif

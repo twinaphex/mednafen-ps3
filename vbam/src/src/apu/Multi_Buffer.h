@@ -7,10 +7,6 @@
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-namespace VBAMBLIP{
-#endif
-
 // Interface to one or more Blip_Buffers mapped to one or more channels
 // consisting of left, center, and right buffers.
 class Multi_Buffer {
@@ -205,9 +201,5 @@ inline blargg_err_t Multi_Buffer::set_channel_count( int n, int const* types )
 	channel_types_ = types;
 	return 0;
 }
-
-#ifdef MDFNPS3 //ROBO: Prevent token collision with mednafen's blip buffer
-}
-#endif
 
 #endif
