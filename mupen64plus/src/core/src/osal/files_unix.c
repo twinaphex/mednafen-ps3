@@ -34,6 +34,12 @@
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 
+#ifdef __CELLOS_LV2__ //MDFNPS3: Some patches, but really the whole file needs replaced!
+# define S_ISDIR(x) (x & S_IFDIR)
+# define S_ISREG(x) (x & S_IFREG)
+# define getenv(x) 0
+#endif
+
 #ifdef __APPLE__
 /* OS X code for app bundle handling */
 #include <CoreFoundation/CoreFoundation.h>
