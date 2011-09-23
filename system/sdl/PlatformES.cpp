@@ -6,32 +6,32 @@ namespace
 	bool			want_to_die = false;
 };
 
-void				SetExit					()
+void				SetExit							()
 {
 	want_to_die = true;
 }
 
-void				ESSUB_Init				()
+void				LibESPlatform::Initialize		()
 {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER);
 }
 
-void				ESSUB_Quit				()
+void				LibESPlatform::Shutdown			()
 {
 	SDL_Quit();
 }
 
-bool				ESSUB_WantToDie			()
+volatile bool		LibESPlatform::WantToDie		()
 {
 	return want_to_die;
 }
 
-volatile bool		ESSUB_WantToSleep		()
+volatile bool		LibESPlatform::WantToSleep		()
 {
 	return false;
 }
 
-std::string			ESSUB_BuildPath			(const std::string& aPath)
+std::string			LibESPlatform::BuildPath		(const std::string& aPath)
 {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)

@@ -177,8 +177,8 @@ GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::
 		CSimpleIniA ini;
 		ini.LoadFile(aFile.c_str());
 
-		std::string shader1 = ESSUB_BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader", ""));
-		std::string shader2 = ESSUB_BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader2", ""));
+		std::string shader1 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader", ""));
+		std::string shader2 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader2", ""));
 
 		GLShader* output = new GLShader(aContext, shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
 		output->AttachNext(new GLShader(aContext, shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));

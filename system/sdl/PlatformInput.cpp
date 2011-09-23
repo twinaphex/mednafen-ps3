@@ -56,21 +56,21 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 
 		for(int j = 0; j != SDL_JoystickNumAxes(Joysticks[i]); j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0, vaprint("Joy %d Axis %d Low", i, j)));
-			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0, vaprint("Joy %d Axis %d High", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchAxisLow, i, j, 0, vaprint("Joy %d Axis %d Low", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchAxisHigh, i, j, 0, vaprint("Joy %d Axis %d High", i, j)));
 		}
 
 		for(int j = 0; j != SDL_JoystickNumHats(Joysticks[i]); j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_UP, vaprint("Joy %d Hat %d Up", i, j)));
-			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_DOWN, vaprint("Joy %d Hat %d Down", i, j)));
-			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_LEFT, vaprint("Joy %d Hat %d Left", i, j)));
-			aDevices[i].push_back(ESInput::Button(FetchHat, i, j, SDL_HAT_RIGHT, vaprint("Joy %d Hat %d Right", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchHat, i, j, SDL_HAT_UP, vaprint("Joy %d Hat %d Up", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchHat, i, j, SDL_HAT_DOWN, vaprint("Joy %d Hat %d Down", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchHat, i, j, SDL_HAT_LEFT, vaprint("Joy %d Hat %d Left", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchHat, i, j, SDL_HAT_RIGHT, vaprint("Joy %d Hat %d Right", i, j)));
 		}
 
 		for(int j = 0; j != SDL_JoystickNumButtons(Joysticks[i]); j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0, vaprint("Joy %d Button %d", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchButton, i, j, 0, vaprint("Joy %d Button %d", i, j)));
 		}
 	}
 
@@ -81,7 +81,7 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 	SDL_GetKeyState(&numkeys);
 	for(int j = 0; j != numkeys; j ++)
 	{
-		aSubDevices[0].push_back(ESInput::Button(FetchKey, j, 0, 0, vaprint("KEY %s", SDL_GetKeyName((SDLKey)j))));
+		aSubDevices[0].push_back(ESInput_Button(FetchKey, j, 0, 0, vaprint("KEY %s", SDL_GetKeyName((SDLKey)j))));
 	}
 
 	//Load ES Keys

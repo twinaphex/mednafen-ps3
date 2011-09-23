@@ -4,74 +4,56 @@
 namespace
 {
 	const char*		Chars[2][5] = {{"`1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "}, {"!@#$%^&*()_+", "QWERTYUIOP{}|", "ASDFGHJKL:\"", "ZXCVBNM<>?", " "}};
+	const uint32_t	TotalRows = 5;
+	const uint32_t	RowLengths[TotalRows] = {13, 13, 11, 10, 1};
 }
 
 							Keyboard::Keyboard								(const Area& aRegion, const std::string& aHeader, const std::string& aText) :
 	SummerfaceWindow(aRegion),
+	Text(aText),
+	Column(0, ES_BUTTON_LEFT, ES_BUTTON_RIGHT),
+	Row(0, ES_BUTTON_UP, ES_BUTTON_DOWN),
+	Shift(0),
 	TextColor("text", Colors::black),
 	SelectedColor("selectedtext", Colors::red)
 {
-	Text.reserve(256);
-
-	Text = aText;
 	SetHeader(aHeader);
-
-	Column = 0;
-	Row = 0;
-	Shift = 0;
-	Canceled = false;
 }
 
 bool						Keyboard::Draw									()
 {
-	FontManager::GetBigFont()->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, TextColor);
+	Font* font = FontManager::GetBigFont();
+
+	font->PutString(Text.c_str(), 8, FontManager::GetBigFont()->GetHeight() + 2, TextColor);
 	
-	uint32_t startX = 0;
-	
-	for(int i = 0; i != 4; i ++)
+	for(int i = 0; i != TotalRows; i ++)
 	{
-		for(int j = 0; j != strlen(Chars[Shift][i]); j ++)
+		for(int j = 0; j != RowLengths[i]; j ++)
 		{
-			char charr[2] = {Chars[Shift][i][j], 0};
-			FontManager::GetBigFont()->PutString(charr, startX + (j * 2) * FontManager::GetBigFont()->GetWidth(), (i + 4) * FontManager::GetBigFont()->GetHeight(), (i == Row && j == Column) ? SelectedColor : TextColor);
+			font->PutString(&Chars[Shift ? 1 : 0][i][j], 1, j * font->GetWidth(), (i + 4) * font->GetHeight(), (i == Row && j == Column) ? SelectedColor : TextColor);
 		}
 	}
 
-	FontManager::GetBigFont()->PutString("     [SPACE]", startX, (4 + 4) * FontManager::GetBigFont()->GetHeight(), (Row == 4) ? SelectedColor : TextColor);			
+	font->PutString("     [SPACE]", 0, 8 * font->GetHeight(), (Row == 4) ? SelectedColor : TextColor);
 
-	return false;	
+	return false;
 }
 
 bool						Keyboard::Input									(uint32_t aButton)
 {
-	Row += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
-	Row -= (aButton == ES_BUTTON_UP) ? 1 : 0;
-	Row = Utility::Clamp(Row, 0, 4);
-	
-	Column += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
-	Column -= (aButton == ES_BUTTON_LEFT) ? 1 : 0;
-	Column = Utility::Clamp(Column, 0, strlen(Chars[0][Row]) - 1);
+	Row.Scroll(aButton, TotalRows);
+	Column.Scroll(aButton, RowLengths[Row]);
+	Shift = (aButton == ES_BUTTON_SHIFT) ? !Shift : Shift;
 
 	if(aButton == ES_BUTTON_ACCEPT)
 	{
-		Text.push_back(Chars[Shift][Row][Column]);
+		Text.push_back(Chars[Shift ? 1 : 0][Row][Column]);
 	}
-	else if(aButton == ES_BUTTON_SHIFT)
+	else if(aButton == ES_BUTTON_TAB && !Text.empty())
 	{
-		Shift = Shift == 0 ? 1 : 0;
+		Text.erase(Text.length() - 1);
 	}
-	else if(aButton == ES_BUTTON_TAB)
-	{
-		if(!Text.empty())
-		{
-			Text.erase(Text.length() - 1);
-		}
-	}
-	else if(aButton == ES_BUTTON_CANCEL)
-	{
-		return true;
-	}
-		
-	return false;
+
+	return (aButton == ES_BUTTON_CANCEL);
 }
 

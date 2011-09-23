@@ -20,7 +20,7 @@ void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeig
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
-	if(ESHasArgument("-window"))
+	if(LibES::HasArgument("-window"))
 	{
 		Screen = SDL_SetVideoMode(1280, 720, 32, SDL_OPENGL);
 	}

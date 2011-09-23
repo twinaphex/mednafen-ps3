@@ -33,10 +33,10 @@ class								Menu
 			Draw();
 			ESVideo::Flip();
 
-			while(!WantToDie())
+			while(!LibES::WantToDie())
 			{
 				//Input
-				if(!WantToSleep() && Input(ESInput::WaitForESKey(InputWait)))
+				if(!LibES::WantToSleep() && Input(ESInput::WaitForESKey(InputWait)))
 				{
 					break;
 				}

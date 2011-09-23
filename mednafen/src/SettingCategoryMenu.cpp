@@ -62,7 +62,7 @@ static bool						CompareItems									(SettingItem* a, SettingItem* b)
 
 void							SettingCategoryMenu::Do							()
 {
-	while(!WantToDie())
+	while(!LibES::WantToDie())
 	{
 		//Run the category list
 		Interface.Do();

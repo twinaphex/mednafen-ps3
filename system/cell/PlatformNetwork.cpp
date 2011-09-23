@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "src/ESException.h"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -14,14 +15,14 @@ struct						ESPlatformSocketPrivate
 							ESSocket::ESSocket				(const char* aHost, uint32_t aPort) : Data(new ESPlatformSocketPrivate)
 {
 	Data->Socket = socket(AF_INET, SOCK_STREAM, 0);
-	ErrorCheck(Data->Socket != -1, "CellNetwork: Could not open socket");
+	ESException::ErrorCheck(Data->Socket != -1, "CellNetwork: Could not open socket");
 
 	//TODO: gethostby name is appently evil?
 	struct hostent* server = gethostbyname(aHost);
 	if(server == 0)
 	{
 		close(Data->Socket);
-		ErrorCheck(0, "CellNetwork: Host look up failed");
+		ESException::ErrorCheck(0, "CellNetwork: Host look up failed");
 	}
 
 	struct sockaddr_in serv_addr;
@@ -33,7 +34,7 @@ struct						ESPlatformSocketPrivate
 	if(-1 != connect(Data->Socket, (sockaddr*)&serv_addr, sizeof(serv_addr)))
 	{
 		close(Data->Socket);
-		ErrorCheck(0, "CellNetwork: connect() failed");
+		ESException::ErrorCheck(0, "CellNetwork: connect() failed");
 	}
 }
 
@@ -57,7 +58,7 @@ uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
 			return i;
 		}
 
-		ErrorCheck(count >= 0, "CellNetwork: failed to read socket");
+		ESException::ErrorCheck(count >= 0, "CellNetwork: failed to read socket");
 	}
 
 	return aLength;
@@ -69,14 +70,14 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 
 	int count = recv(Data->Socket, aBuffer, aLength, 0);
 
-	ErrorCheck(count >= 0, "CellNetwork: failed to read socket");
+	ESException::ErrorCheck(count >= 0, "CellNetwork: failed to read socket");
 
 	return count;
 }
 
 void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
-	ErrorCheck(aLength == send(Data->Socket, aBuffer, aLength, 0), "CellNetwork: failed to write socket");
+	ESException::ErrorCheck(aLength == send(Data->Socket, aBuffer, aLength, 0), "CellNetwork: failed to write socket");
 }
 
 void						ESNetwork::Initialize			()

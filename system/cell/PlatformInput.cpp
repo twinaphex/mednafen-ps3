@@ -59,14 +59,14 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 		//Axis
 		for(int j = 0; j != 4; j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0, vaprint("Pad %d %s Axis Low", i, AxisNames[j])));
-			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0, vaprint("Pad %d %s Axis High", i, AxisNames[j])));
+			aDevices[i].push_back(ESInput_Button(FetchAxisLow, i, j, 0, vaprint("Pad %d %s Axis Low", i, AxisNames[j])));
+			aDevices[i].push_back(ESInput_Button(FetchAxisHigh, i, j, 0, vaprint("Pad %d %s Axis High", i, AxisNames[j])));
 		}
 
 		//Buttons
 		for(int j = 0; j != 16; j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchButton, i, j, 0, vaprint("Pad %d %s", i, ButtonNames[j])));
+			aDevices[i].push_back(ESInput_Button(FetchButton, i, j, 0, vaprint("Pad %d %s", i, ButtonNames[j])));
 		}
 	}
 }

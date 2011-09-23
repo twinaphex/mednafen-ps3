@@ -76,7 +76,7 @@ class													Summerface : public Menu
 
 		///Static function to set the callback for drawing the backgroun.
 		///@param aCallback Function called to draw the background.
-		static void										SetDrawBackground				(bool (*aCallback)()) {BackgroundCallback = aCallback;};
+		static void										SetDrawBackground				(bool (*aCallback)());
 
 	private:
 		ConduitSet										Handlers;						///<Objects in the interface's input chain.
@@ -87,7 +87,5 @@ class													Summerface : public Menu
 
 		Color											BorderColor;					///<Color used to fill the screen.
 		Color											BorderShadeColor;				///<Color used to fill the screen.
-
-		static bool										(*BackgroundCallback)			();///<Callback function for drawing the background.
 };
 

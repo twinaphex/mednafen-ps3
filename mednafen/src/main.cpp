@@ -19,7 +19,7 @@ namespace
 
 		if(aButton == ES_BUTTON_AUXLEFT3)
 		{
-			Summerface("Text", new TextViewer(Area(10, 10, 80, 80), ESSUB_BuildPath("mednafen/Readme.txt").c_str())).Do();
+			Summerface("Text", new TextViewer(Area(10, 10, 80, 80), LibES::BuildPath("mednafen/Readme.txt").c_str())).Do();
 			return 1;
 		}
 
@@ -35,7 +35,7 @@ void						Exit					()
 
 	delete FileChooser;
 
-	QuitES();
+	LibES::Shutdown();
 	exit(0);
 }
 
@@ -114,28 +114,28 @@ void						ReloadEmulator			(const std::string& aFileName)
 					{
 						free(data);
 
-						ESSUB_Error(_("Could not read file. [Failed to extract]"));
+						LibES::Error(_("Could not read file. [Failed to extract]"));
 						ReloadEmulator("");
 						return;
 					}
 				}
 				else
 				{
-					ESSUB_Error(_("Could not allocate enough memory to load file. All CD games must be loaded through cue files. [File size too large]"));
+					LibES::Error(_("Could not allocate enough memory to load file. All CD games must be loaded through cue files. [File size too large]"));
 					ReloadEmulator("");
 					return;
 				}
 			}
 			else
 			{
-				ESSUB_Error(_("Could not read file. [File empty]"));
+				LibES::Error(_("Could not read file. [File empty]"));
 				ReloadEmulator("");
 				return;
 			}
 		}
 		else
 		{
-			ESSUB_Error(_("Could not read file. [File not accessible]"));
+			LibES::Error(_("Could not read file. [File not accessible]"));
 			ReloadEmulator("");
 			return;
 		}
@@ -154,53 +154,32 @@ int					main					(int argc, char* argv[])
 {
 //	SETTEXT_SetMessageFile("messages.mo");
 
-	try
+	//Init the system and the emulator
+	LibES::Initialize(Exit, argc, argv);
+
+	MednafenEmu::Init();
+
+	//Set the Summerface background
+	Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
+
+	//Run the menu
+	ReloadEmulator((argc > 1 && argv[1][0] != '-') ? argv[1] : "");
+
+	//Loop
+	while(!LibES::WantToDie())
 	{
-		//Init the system and the emulator
-		InitES(Exit, argc, argv);
-
-		MednafenEmu::Init();
-
-		//Set the Summerface background
-		Summerface::SetDrawBackground(MednafenEmu::DummyFrame);
-
-		//Run the menu
-		ReloadEmulator((argc > 1 && argv[1][0] != '-') ? argv[1] : "");
-
-		//Loop
-		while(!WantToDie())
+		while(LibES::WantToSleep() && !LibES::WantToDie())
 		{
-			while(WantToSleep() && !WantToDie())
-			{
-				MednafenEmu::DummyFrame();
-				ESVideo::Flip();
-			}
-
-			if(MednafenEmu::Frame())
-			{
-				ESVideo::Flip();
-			}
+			MednafenEmu::DummyFrame();
+			ESVideo::Flip();
 		}
-	
-		Exit();
+
+		if(MednafenEmu::Frame())
+		{
+			ESVideo::Flip();
+		}
 	}
-	catch(const char* s)
-	{
-		printf("%s\n", s);
-		Exit();
-		abort();
-	}
-	catch(ESException& s)
-	{
-		printf("EXCEPTION: %s\n\n", s.what());
-		Exit();
-		abort();
-	}
-	catch(std::exception& s)
-	{
-		printf("EXCEPTION: %s\n\n", s.what());
-		Exit();
-		abort();
-	}
+
+	Exit();
 }
 

@@ -17,7 +17,6 @@ namespace
 
 
 											SummerfaceWindow::SummerfaceWindow					(const Area& aRegion, bool aBorder) :
-	Interface(0),
 	Region(aRegion),
 	UseBorder(aBorder),
 	BackgroundColor("windowbackground", Colors::white),
@@ -37,6 +36,7 @@ bool										SummerfaceWindow::PrepareDraw						()
 	{
 		ESVideo::SetClip(Area(0, 0, ESVideo::GetScreenWidth(), ESVideo::GetScreenHeight()));
 
+		//Four edges + two shadows, ugly
 		Area borders[6] =
 		{
 			Area(pixRegion.X, 						pixRegion.Y,						pixRegion.Width,	BorderWidth),
@@ -58,16 +58,20 @@ bool										SummerfaceWindow::PrepareDraw						()
 		ESVideo::SetClip(pixRegion);
 
 		//Draw the header
-		std::string header = GetHeader();
-		if(!header.empty())
+		if(!Header.empty())
 		{
 			uint32_t headerHeight = FontManager::GetBigFont()->GetHeight();
 
+			//Draw the text with background
 			ESVideo::FillRectangle(Area(0, 0, pixRegion.Width, headerHeight), HeaderColor);
-			FontManager::GetBigFont()->PutString(header.c_str(), MarginSize, 0, TextColor, true);
+			FontManager::GetBigFont()->PutString(Header.c_str(), MarginSize, 0, TextColor, true);
 
-			pixRegion.Y += headerHeight;
-			pixRegion.Height -= headerHeight;
+			//Draw a line separating the header from the window
+			ESVideo::FillRectangle(Area(0, 0, headerHeight + 1, 1), BorderColor);
+
+			//Adjust window size accordingly
+			pixRegion.Y += headerHeight + 2;
+			pixRegion.Height -= headerHeight + 2;
 		}
 	}
 

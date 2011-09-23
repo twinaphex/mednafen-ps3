@@ -1,9 +1,14 @@
 #include <es_system.h>
 #include "Summerface.h"
 
+namespace
+{
+	bool									(*BackgroundCallback)								();
+}
+
 											Summerface::Summerface								(const std::string& aName, SummerfaceWindow* aWindow, bool aAssumeOwnership) :
 	BorderColor("border", Colors::darkred),
-	BorderShadeColor("border", 0x80)
+	BorderShadeColor("bordershade", 0x80)
 {
 	if(aWindow)
 	{
@@ -13,17 +18,8 @@
 
 											Summerface::~Summerface								()
 {
-	//Kill InputConduits
-	for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
-	{
-		delete *i;
-	}
-
-	//Kill Windows
-	for(WindowSet::iterator i = OwnedWindows.begin(); i != OwnedWindows.end(); i ++)
-	{
-		delete *i;
-	}
+	Utility::DeleteContainer(Handlers);
+	Utility::DeleteContainer(OwnedWindows);
 }
 
 bool										Summerface::Draw									()
@@ -71,14 +67,11 @@ bool										Summerface::Input									(uint32_t aButton)
 	//Check for conduits
 	for(ConduitSet::iterator i = Handlers.begin(); i != Handlers.end(); i ++)
 	{
-		if(*i)
-		{
-			int result = (*i)->HandleInput(this, ActiveWindow, aButton);
+		int result = (*i)->HandleInput(this, ActiveWindow, aButton);
 
-			if(result)
-			{
-				return (result > 0) ? false : true;
-			}
+		if(result)
+		{
+			return (result > 0) ? false : true;
 		}
 	}
 
@@ -90,7 +83,8 @@ void										Summerface::AddWindow								(const std::string& aName, Summerface
 	assert(Windows.find(aName) == Windows.end());
 	assert(aWindow);
 
-	Windows[aName] = aWindow; ActiveWindow = aName;
+	Windows[aName] = aWindow;
+	ActiveWindow = aName;
 
 	if(aAssumeOwnership)
 	{
@@ -98,8 +92,6 @@ void										Summerface::AddWindow								(const std::string& aName, Summerface
 	}
 }
 
-///Remove a SummerfaceWindow from the interface.
-///@param aName Name of the window. It is an error if a matching window is not found.
 void										Summerface::RemoveWindow							(const std::string& aName)
 {
 	assert(Windows.find(aName) != Windows.end());
@@ -114,6 +106,8 @@ void										Summerface::RemoveWindow							(const std::string& aName)
 	Windows.erase(aName);
 }
 
-
-bool										(*Summerface::BackgroundCallback)					() = 0;
+void										Summerface::SetDrawBackground						(bool (*aCallback)())
+{
+	BackgroundCallback = aCallback;
+}
 

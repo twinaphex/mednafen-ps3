@@ -2,21 +2,6 @@
 #define PS3_SYSTEM_H____
 
 #include "src/stdheaders.h"
-#include "src/ESException.h"
-inline void				ErrorCheck					(bool aCondition, const char* aMessage, ...)
-{
-	if(!aCondition)
-	{
-		char buffer[2048];
-
-		va_list args;
-		va_start (args, aMessage);
-		vsnprintf(buffer, 2048, aMessage, args);
-		va_end (args);
-
-		throw ESException(buffer);
-	}
-}
 
 #include "src/ESThreads.h"
 #include "src/ESInput.h"

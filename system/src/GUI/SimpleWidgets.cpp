@@ -1,98 +1,5 @@
 #include <es_system.h>
 
-								SummerfaceLabel::SummerfaceLabel				(const Area& aRegion, const std::string& aMessage) :
-	SummerfaceWindow(aRegion),
-	Wrap(false),
-	TextColor("text", Colors::black)
-{
-	SetMessage(aMessage);
-}
-
-								SummerfaceLabel::SummerfaceLabel				(const Area& aRegion, const char* aFormat, ...) :
-	SummerfaceWindow(aRegion),
-	Wrap(false),
-	TextColor("text", Colors::black)
-{
-	char array[2048];
-
-	va_list args;
-	va_start (args, aFormat);
-	vsnprintf(array, 2048, aFormat, args);
-	va_end(args);
-
-	SetMessage(array);
-}
-
-bool							SummerfaceLabel::Draw							()
-{
-	//If it fits, just print
-	if(!Wrap || FontManager::GetBigFont()->MeasureString(GetMessage().c_str()) < ESVideo::GetClip().Width)
-	{
-		FontManager::GetBigFont()->PutString(GetMessage().c_str(), 2, 2, TextColor, true);	
-	}
-	else
-	{
-		//Some state variables
-		size_t position = 0;
-		const std::string message = GetMessage();
-		std::stringstream line;
-		int online = 0;
-
-		//Scan the message
-		do
-		{
-			//Find the next word
-			size_t wordpos = message.find_first_of(' ', position);
-			std::string word = message.substr(position, wordpos - position);
-
-			//If this word would put the line over the size, print and goto the next line
-			if(FontManager::GetBigFont()->MeasureString((line.str() + word).c_str()) > ESVideo::GetClip().Width)
-			{
-				//Handle the case where one word would excede the total length
-				if(line.str().empty())
-				{
-					FontManager::GetBigFont()->PutString(word.c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);
-					word = "";
-				}
-				else
-				{
-					FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);
-					line.str("");
-				}
-				online ++;
-			}
-
-			//Add the word to the line cache
-			if(!word.empty())
-			{
-				line << word << " ";
-			}
-
-			//Get the position of the next word
-			position = (wordpos == std::string::npos) ? wordpos : wordpos + 1;
-		}	while(position != std::string::npos);
-
-		//Print the last line if needed
-		if(!line.str().empty())
-		{
-			FontManager::GetBigFont()->PutString(line.str().c_str(), 2, 2 + FontManager::GetBigFont()->GetHeight() * online, TextColor, true);				
-		}
-	}
-
-	return false;
-}
-
-void							SummerfaceLabel::SetMessage						(const char* aFormat, ...)
-{
-	char array[2048];
-
-	va_list args;
-	va_start (args, aFormat);
-	vsnprintf(array, 2048, aFormat, args);
-	va_end(args);
-
-	Message = array;
-}
 
 /////////////////
 //SummerfaceImage
@@ -106,10 +13,10 @@ void							SummerfaceLabel::SetMessage						(const char* aFormat, ...)
 
 bool							SummerfaceImage::Draw							()
 {
+	Texture* tex = ImageManager::GetImage(Image);
+
 	if(ImageManager::GetImage(Image))
 	{
-		Texture* tex = ImageManager::GetImage(Image);
-
 		uint32_t x = 1, y = 1, w = ESVideo::GetClip().Width - 2, h = ESVideo::GetClip().Height - 2;
 		Utility::CenterAndScale(x, y, w, h, tex->GetWidth(), tex->GetHeight());
 
@@ -124,7 +31,7 @@ bool							SummerfaceImage::Draw							()
 //////////////////
 								SummerfaceNumber::SummerfaceNumber				(const Area& aRegion, int64_t aValue, uint32_t aDigits, bool aHex) :
 	SummerfaceWindow(aRegion),
-	SelectedIndex(31),
+	SelectedIndex(0, ES_BUTTON_RIGHT, ES_BUTTON_LEFT),
 	Digits(aDigits),
 	Hex(aHex),
 	TextColor("text", Colors::black),
@@ -138,8 +45,7 @@ bool							SummerfaceNumber::Draw							()
 {
 	for(int i = 0; i != Digits; i ++)
 	{
-		std::string chara = std::string(1, Value[(32 - Digits) + i]);
-		FontManager::GetFixedFont()->PutString(chara.c_str(), 2 + i * FontManager::GetFixedFont()->GetWidth(), 2, ((32 - Digits) + i == SelectedIndex) ? SelectedColor : TextColor, true);
+		FontManager::GetFixedFont()->PutString(&Value[(32 - Digits) + i], 1, i * FontManager::GetFixedFont()->GetWidth(), 0, ((32 - Digits + i) == (31 - SelectedIndex)) ? SelectedColor : TextColor, true);
 	}
 
 	return false;
@@ -147,12 +53,10 @@ bool							SummerfaceNumber::Draw							()
 
 bool							SummerfaceNumber::Input							(uint32_t aButton)
 {
-	SelectedIndex += (aButton == ES_BUTTON_LEFT) ? -1 : 0;
-	SelectedIndex += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
-	SelectedIndex = Utility::Clamp(SelectedIndex, 32 - Digits, 31);
+	SelectedIndex.Scroll(aButton, Digits);
 
-	if(aButton == ES_BUTTON_UP) IncPosition(SelectedIndex);
-	if(aButton == ES_BUTTON_DOWN) DecPosition(SelectedIndex);
+	if(aButton == ES_BUTTON_UP) IncPosition(31 - SelectedIndex);
+	if(aButton == ES_BUTTON_DOWN) DecPosition(31 - SelectedIndex);
 
 	Canceled = (aButton == ES_BUTTON_CANCEL);
 	return aButton == ES_BUTTON_ACCEPT || aButton == ES_BUTTON_CANCEL;
