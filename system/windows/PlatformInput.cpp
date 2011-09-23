@@ -90,17 +90,17 @@ void							ESInputPlatform::Initialize				(ESInput::InputDeviceList& aDevices, E
 
 		for(int j = 0; j != 14; j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchButton, i, XIButtons[j].Mask, 0, vaprint("Joy %d %s", i, XIButtons[j].Name)));
+			aDevices[i].push_back(ESInput_Button(FetchButton, i, XIButtons[j].Mask, 0, vaprint("Joy %d %s", i, XIButtons[j].Name)));
 		}
 
 		for(int j = 0; j != 4; j ++)
 		{
-			aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, j, 0, vaprint("Joy %d Axis %d High", i, j)));
-			aDevices[i].push_back(ESInput::Button(FetchAxisLow, i, j, 0, vaprint("Joy %d Axis %d Low", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchAxisHigh, i, j, 0, vaprint("Joy %d Axis %d High", i, j)));
+			aDevices[i].push_back(ESInput_Button(FetchAxisLow, i, j, 0, vaprint("Joy %d Axis %d Low", i, j)));
 		}
 
-		aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, 4, 0, vaprint("Joy %d Left Trigger", i)));
-		aDevices[i].push_back(ESInput::Button(FetchAxisHigh, i, 5, 0, vaprint("Joy %d Right Trigger", i)));
+		aDevices[i].push_back(ESInput_Button(FetchAxisHigh, i, 4, 0, vaprint("Joy %d Left Trigger", i)));
+		aDevices[i].push_back(ESInput_Button(FetchAxisHigh, i, 5, 0, vaprint("Joy %d Right Trigger", i)));
 	}
 }
 

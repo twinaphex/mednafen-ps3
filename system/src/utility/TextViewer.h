@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Scroller.h"
+
 ///Summerface widget that displays multiple lines of text with support for scrolling.
 class							TextViewer : public SummerfaceWindow
 {
@@ -12,6 +14,9 @@ class							TextViewer : public SummerfaceWindow
 
 		///Virtual destructor for TextViewer.
 		virtual					~TextViewer					() {};
+
+		///Clear the content from the widget.
+		void					Clear						();
 
 		///Clear and load new content into the TextViewer widget.
 		///@param aFileName Either the name of a file, or a raw string, to display.
@@ -37,8 +42,9 @@ class							TextViewer : public SummerfaceWindow
 	
 		std::vector<std::string>Lines;						///<List of lines in the widget.
 
-		int32_t					Top;						///<The line of text to be drawn at the top of the widget.
-		int32_t					Left;						///<The first character to be drawn at the left of the widget.
+		Scroller				Top;						///<The index of the first line to be drawn.
+		Scroller				Left;						///<The index of the first column to be drawn
+
 		uint32_t				LongestLine;				///<Length of the longest line in the widget.
 		uint32_t				LinesDrawn;					///<Total number of lines drawn by the last call to Draw, used for paging.
 

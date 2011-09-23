@@ -13,7 +13,7 @@ namespace
 	volatile bool	want_to_sleep = false;
 	uint32_t		sleep_counter = 10;
 
-	void			sysutil_callback		(uint64_t status, uint64_t param, void *userdata)
+	void			sysutil_callback					(uint64_t status, uint64_t param, void *userdata)
 	{
 		switch (status)
 		{
@@ -24,9 +24,29 @@ namespace
 
 		return;
 	}
+
+	struct			ErrorData
+	{
+		bool		Accept;
+		bool		Cancel;
+	};
+
+	void			ErrorCallback						(int32_t aButton, void* aUserData)
+	{
+		want_to_sleep = false;
+		sleep_counter = 180;
+
+		if(aUserData)
+		{
+			ErrorData* data = (ErrorData*)aUserData;
+			data->Accept = (aButton == CELL_MSGDIALOG_BUTTON_YES);
+			data->Cancel = (aButton == CELL_MSGDIALOG_BUTTON_ESCAPE);
+		}
+	}
+
 };
 
-void				ESSUB_Init				()
+void				LibESPlatform::Initialize			()
 {
 	sys_spu_initialize(6, 1);
 	cellSysutilRegisterCallback(0, (CellSysutilCallback)sysutil_callback, NULL);
@@ -44,56 +64,53 @@ void				ESSUB_Init				()
 
 	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);
 	cellSysmoduleLoadModule(CELL_SYSMODULE_NET);
-	cellSysmoduleLoadModule(CELL_SYSMODULE_PNGDEC);
 }
 
-void				ESSUB_Quit				()
+void				LibESPlatform::Shutdown				()
 {
-	cellSysmoduleUnloadModule(CELL_SYSMODULE_PNGDEC);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);	
 
 	cellSysutilUnregisterCallback(0);
 }
 
-struct				ErrorData
+volatile bool		LibESPlatform::WantToDie			()
 {
-	bool			Accept;
-	bool			Cancel;
-};
-
-static void			ErrorCallback			(int32_t aButton, void* aUserData)
-{
-	want_to_sleep = false;
-	sleep_counter = 180;
-
-	if(aUserData)
-	{
-		ErrorData* data = (ErrorData*)aUserData;
-		data->Accept = (aButton == CELL_MSGDIALOG_BUTTON_YES);
-		data->Cancel = (aButton == CELL_MSGDIALOG_BUTTON_ESCAPE);
-	}
+	cellSysutilCheckCallback();
+	return want_to_die;
 }
 
-void				ESSUB_Error				(const char* aMessage, const char* aHeader)
+volatile bool		LibESPlatform::WantToSleep			()
+{
+	cellSysutilCheckCallback();
+
+	if(sleep_counter)
+	{
+		sleep_counter --;
+	}
+
+	return want_to_sleep || (sleep_counter != 0);
+}
+
+void				LibESPlatform::Error				(const std::string& aMessage, const std::string& aHeader)
 {
 	want_to_sleep = true;
-	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK, aMessage, ErrorCallback, 0, 0);
+	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK, aMessage.c_str(), ErrorCallback, 0, 0);
 
-	while(WantToSleep() && !WantToDie())
+	while(LibES::WantToSleep() && !LibES::WantToDie())
 	{
 		ESVideo::Flip();
 	}
 }
 
-bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
+bool				LibESPlatform::Confirm				(const std::string& aMessage, bool* aCancel)
 {
 	ErrorData result;
 
 	want_to_sleep = true;
-	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO, aMessage, ErrorCallback, &result, 0);
+	cellMsgDialogOpen2(CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO, aMessage.c_str(), ErrorCallback, &result, 0);
 
-	while(WantToSleep() && !WantToDie())
+	while(LibES::WantToSleep() && !LibES::WantToDie())
 	{
 		ESVideo::Flip();
 	}
@@ -106,25 +123,7 @@ bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
 	return result.Accept;
 }
 
-bool				ESSUB_WantToDie			()
-{
-	cellSysutilCheckCallback();
-	return want_to_die;
-}
-
-bool				ESSUB_WantToSleep		()
-{
-	cellSysutilCheckCallback();
-
-	if(sleep_counter)
-	{
-		sleep_counter --;
-	}
-
-	return want_to_sleep || (sleep_counter != 0);
-}
-
-std::string			ESSUB_BuildPath			(const std::string& aPath)
+std::string			LibESPlatform::BuildPath			(const std::string& aPath)
 {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)

@@ -39,9 +39,9 @@ struct					FontCharacter
 
 						Font::Font					(uint32_t aPixelSize, bool aFixed = false)
 {
-	if(0 != FT_New_Face(FreeType, aFixed ? ESSUB_BuildPath("assets/font/fixed.ttf").c_str() : ESSUB_BuildPath("assets/font/prop.ttf").c_str(), 0, &FontFace))
+	if(0 != FT_New_Face(FreeType, aFixed ? LibES::BuildPath("assets/font/fixed.ttf").c_str() : LibES::BuildPath("assets/font/prop.ttf").c_str(), 0, &FontFace))
 	{
-		Abort("Font::Font: FT_New_Face failed");
+		LibES::Abort("Font::Font: FT_New_Face failed");
 	}
 
 	Resize(aPixelSize);
@@ -155,7 +155,7 @@ FontCharacter*			Font::CacheCharacter		(uint32_t aCharacter)
 
 		if(0 != FT_Load_Glyph(FontFace, glyph_index, FT_LOAD_RENDER))
 		{
-			Abort("Font::CacheCharacter: FT_Load_Glyph failed");
+			LibES::Abort("Font::CacheCharacter: FT_Load_Glyph failed");
 		}
 
 		character->Advance = FontFace->glyph->advance.x >> 6;
@@ -203,7 +203,7 @@ void					FontManager::InitFonts		()
 	if((BigFontSize == 0) || (SmallFontSize == 0) || (FixedFontSize == 0))
 	{
 		CSimpleIniA INI;
-		INI.LoadFile(ESSUB_BuildPath(std::string("assets/colors.ini")).c_str());
+		INI.LoadFile(LibES::BuildPath(std::string("assets/colors.ini")).c_str());
 
 		BigFontSize = Utility::Clamp(INI.GetLongValue("bigfont", "size", 30), 10, 100);
 		SmallFontSize = Utility::Clamp(INI.GetLongValue("smallfont", "size", 40), 10, 100);
@@ -222,7 +222,7 @@ void					FontManager::InitFonts		()
 	{
 		if(0 != FT_Init_FreeType(&FreeType))
 		{
-			Abort("FontManager::Init: Failed to initialize freetype");
+			LibES::Abort("FontManager::Init: Failed to initialize freetype");
 		}
 
 		BigFont = new Font(ESVideo::GetScreenHeight() / BigFontSize);
@@ -240,6 +240,7 @@ void					FontManager::QuitFonts		()
 	if(FreeType)
 	{		
 		FT_Done_FreeType(FreeType);
+		FreeType = 0;
 	}
 }
 

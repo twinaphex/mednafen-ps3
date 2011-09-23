@@ -1,6 +1,6 @@
 #include <es_system.h>
 
-void							ESInput::Button::SetState		(bool aPressed)
+void							ESInput_Button::SetState		(bool aPressed)
 {
 	//Update jammed state
 	Jammed = (Jammed && aPressed);
@@ -14,7 +14,7 @@ void							ESInput::Button::SetState		(bool aPressed)
 	}
 }
 
-bool							ESInput::Button::GetStateRepeat	()
+bool							ESInput_Button::GetStateRepeat	()
 {
 	if(GetStateInspected())
 	{
@@ -55,13 +55,13 @@ uint32_t						ESInput::WaitForESKey			(bool aGuarantee)
 		//Look for a press
 		for(uint32_t i = 0; i != 14; i ++)
 		{
-			Button* button = GetButton(ES_BUTTON_UP + i);
+			ESInput_Button* button = GetButton(ES_BUTTON_UP + i);
 			if(button && button->GetStateRepeat())
 			{
 				return ES_BUTTON_UP + i;
 			}
 		}
-	}	while(!WantToDie() && !WantToSleep() && aGuarantee);
+	}	while(!LibES::WantToDie() && !LibES::WantToSleep() && aGuarantee);
 
 	//Give a default
 	return 0xFFFFFFFF;

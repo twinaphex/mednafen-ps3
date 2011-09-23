@@ -3,25 +3,31 @@
 
 						TextViewer::TextViewer					(const Area& aRegion, const char* aFileName, bool aFile) :
 	SummerfaceWindow(aRegion),
+	Top(0, ES_BUTTON_UP, ES_BUTTON_DOWN, ES_BUTTON_AUXLEFT1, ES_BUTTON_AUXRIGHT1, ES_BUTTON_AUXLEFT2, ES_BUTTON_AUXRIGHT2),
+	Left(0, ES_BUTTON_LEFT, ES_BUTTON_RIGHT),
+	LongestLine(0),
+	LinesDrawn(0),
 	TextColor("text", Colors::black)
 {
 	SetHeader("[Text Viewer]");
 	Reload(aFileName, aFile);
 }
 
-void					TextViewer::Reload						(const char* aFileName, bool aFile)
+void					TextViewer::Clear						()
 {
 	Lines.clear();
 
-	std::istream* stream;
-	if(aFile)
-	{
-		stream = new std::ifstream(aFileName);
-	}
-	else
-	{
-		stream = new std::stringstream(aFileName);
-	}
+	Top = 0;
+	Left = 0;
+	LongestLine = 0;
+	LinesDrawn = 0;
+}
+
+void					TextViewer::Reload						(const char* aFileName, bool aFile)
+{
+	assert(aFileName);
+
+	std::istream* stream = aFile ? (std::istream*) new std::ifstream(aFileName) : (std::istream*) new std::stringstream(aFileName);
 
 	if(!stream->fail())
 	{
@@ -29,9 +35,9 @@ void					TextViewer::Reload						(const char* aFileName, bool aFile)
 	}
 	else
 	{
+		Clear();
 		Lines.push_back("Couldn't open file");
 		LongestLine = Lines[0].length();
-		Top = Left = LinesDrawn = 0;
 		return;
 	}
 
@@ -69,33 +75,18 @@ bool					TextViewer::Draw						()
 
 bool					TextViewer::Input						(uint32_t aButton)
 {
-	Top += (aButton == ES_BUTTON_DOWN) ? 1 : 0;
-	Top -= (aButton == ES_BUTTON_UP) ? 1 : 0;
-	Top += (aButton == ES_BUTTON_AUXRIGHT1) ? LinesDrawn : 0;
-	Top -= (aButton == ES_BUTTON_AUXLEFT1) ? LinesDrawn : 0;
-	Top = Utility::Clamp(Top, 0, (int32_t)Lines.size() - 1);
-
-	Top = (aButton == ES_BUTTON_AUXRIGHT2) ? Lines.size() - 1 : Top;
-	Top = (aButton == ES_BUTTON_AUXLEFT2) ? 0 : Top;
-	
-	Left += (aButton == ES_BUTTON_RIGHT) ? 1 : 0;
-	Left -= (aButton == ES_BUTTON_LEFT) ? 1 : 0;	
-	Left = Utility::Clamp(Left, 0, (int32_t)LongestLine);
-
-	return aButton == ES_BUTTON_ACCEPT;
+	Top.Scroll(aButton, Lines.size() -1, LinesDrawn);
+	Left.Scroll(aButton, LongestLine);
+	return (aButton == ES_BUTTON_ACCEPT) || (aButton == ES_BUTTON_CANCEL);
 }
 		
 void					TextViewer::LoadStream					(std::istream* aStream)
 {
 	assert(aStream && !aStream->fail());
 
-	std::string line;
+	Clear();
 
-	Top = 0;
-	Left = 0;
-	LongestLine = 0;
-	LinesDrawn = 0;
-		
+	std::string line;
 	while(!aStream->eof())
 	{
 		std::getline(*aStream, line);

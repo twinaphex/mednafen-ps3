@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Scroller.h"
+
 class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 {
 	public:
@@ -15,8 +17,8 @@ class										Keyboard : public SummerfaceWindow, public SummerfaceCancelable
 	protected:
 		std::string							Text;
 		
-		int32_t								Column;
-		int32_t								Row;
+		Scroller							Column;
+		Scroller							Row;
 		uint32_t							Shift;
 
 		Color								TextColor;

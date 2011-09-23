@@ -10,12 +10,12 @@ namespace
 	ULONG_PTR		GdiPlusToken;
 };
 
-void				SetExit					()
+void				SetExit							()
 {
 	want_to_die = true;
 }
 
-void				ESSUB_Init				()
+void				LibESPlatform::Initialize		()
 {
 	timeBeginPeriod(1);
 
@@ -24,24 +24,24 @@ void				ESSUB_Init				()
 	GdiplusStartup(&GdiPlusToken, &gdipsi, NULL);
 }
 
-void				ESSUB_Quit				()
+void				LibESPlatform::Shutdown			()
 {
 	GdiplusShutdown(GdiPlusToken);
 
 	timeEndPeriod(1);
 }
 
-bool				ESSUB_WantToDie			()
+bool				LibESPlatform::WantToDie		()
 {
 	return want_to_die;
 }
 
-volatile bool		ESSUB_WantToSleep		()
+volatile bool		LibESPlatform::WantToSleep		()
 {
 	return false;
 }
 
-std::string			ESSUB_BuildPath			(const std::string& aPath)
+std::string			LibESPlatform::BuildPath		(const std::string& aPath)
 {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)

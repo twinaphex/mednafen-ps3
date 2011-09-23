@@ -3,11 +3,9 @@
 
 namespace SDLInputConfig
 {
-	bool					Running = false;
-
 	void					Load				(uint32_t* aData)
 	{
-		std::string output = ESSUB_BuildPath("inputconfig");
+		std::string output = LibES::BuildPath("inputconfig");
 		FILE* configFile = fopen(output.c_str(), "r");
 
 		if(!configFile)
@@ -27,7 +25,7 @@ namespace SDLInputConfig
 
 	void					Dump				(uint32_t* aData)
 	{
-		std::string output = ESSUB_BuildPath("inputconfig");
+		std::string output = LibES::BuildPath("inputconfig");
 		FILE* configFile = fopen(output.c_str(), "w");
 
 		for(int i = 0; i != 14; i ++)
@@ -38,52 +36,18 @@ namespace SDLInputConfig
 		fclose(configFile);
 	}
 
-	int						GetButton			(void* aUserData, Summerface* aInterface, const std::string& aWindow, uint32_t aButton)
-	{
-		static bool gotbutton = true;
-
-		if(gotbutton && ESInput::GetAnyButton() != 0xFFFFFFFF)
-		{
-			return 0;
-		}
-
-		gotbutton = false;
-
-		uint32_t* button = (uint32_t*)aUserData;
-		button[0] = ESInput::GetAnyButton();
-		gotbutton = (button[0] != 0xFFFFFFFF) ? true : false;
-		return gotbutton ? -1 : 0;
-	}
-
 	void					Get					(uint32_t* aData)
 	{
-		if(Running)
-		{
-			return;
-		}
-
-		Running = true;
-
 		const char* buttons[] = {"Up", "Down", "Left", "Right", "Accept", "Cancel", "Shift", "Tab", "AuxLeft1", "AuxRight1", "AuxLeft2", "AuxRight2", "AuxLeft3", "AuxRight3"};
-
-		uint32_t buttonID;
-		SummerfaceLabel button(Area(10, 30, 80, 10), "");
-
-		Summerface sface("InputWindow", &button, false);
-		sface.AttachConduit(new SummerfaceStaticConduit(GetButton, &buttonID));
-		sface.SetInputWait(false);
 
 		for(int j = 0; j != 14; j ++)
 		{
-			button.SetMessage("Press button for [%s]", buttons[j]);
-			sface.Do();
-
-			aData[j] = buttonID;
+			SummerfaceButton button(Area(10, 30, 80, 10), buttons[j]);
+			Summerface("InputWindow", &button, false).Do();
+			aData[j] = button.GetButton();
 		}
 
 		Dump(aData);
-
-		Running = false;
 	}
 };
 

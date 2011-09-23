@@ -12,86 +12,13 @@ namespace
 	void			(*ExitFunction)() = 0;
 };
 
-void				ESSUB_Init				();
-void				ESSUB_Quit				();
-bool				ESSUB_WantToDie			();
-bool				ESSUB_WantToSleep		();
-
-#ifndef	HAVE_ESSUB_ERROR
-void				ESSUB_Error				(const char* aMessage, const char* aHeader)
-{
-	SummerfaceLabel text(Area(20, 35, 60, 30), aMessage);
-	text.SetWordWrap(true);
-	text.SetHeader(aHeader ? aHeader : "Message");
-	Summerface("Error", &text, false).Do();
-}
-#endif
-
-#ifndef HAVE_ESSUB_GETSTRING
-std::string			ESSUB_GetString			(const std::string& aHeader, const std::string& aMessage)
-{
-	Keyboard kb(Area(10, 10, 80, 80), aHeader, aMessage);
-	Summerface("Keyboard", &kb, false).Do();
-	return kb.GetText();
-}
-#endif
-
-#ifndef HAVE_ESSUB_CONFIRM
-bool				ESSUB_Confirm			(const char* aMessage, bool* aCancel)
-{
-	//Create the list
-	AnchoredListView<SummerfaceItem> list(Area(10, 10, 80, 20));
-	list.SetHeader(aMessage);
-
-	//Add the items
-	list.AddItem(new SummerfaceItem("Yes", "CheckIMAGE"));
-	list.AddItem(new SummerfaceItem("No", "ErrorIMAGE"));
-
-	//Run the interface
-	Summerface("Confirm", &list, false).Do();
-
-	//Return the result
-	if(aCancel) *aCancel = list.WasCanceled();
-	return !list.WasCanceled() && list.GetSelected()->GetText() == "Yes";
-}
-#endif
-
-#ifndef HAVE_ESSUB_GETNUMBER
-bool				ESSUB_GetNumber			(int64_t& aValue, const char* aHeader, uint32_t aDigits, bool aHex)
-{
-	SummerfaceNumber number(Area(10, 45, 80, 10), aValue, aDigits, aHex);
-	number.SetHeader(aHeader);
-	Summerface("NUMB", &number, false).Do();
-
-	if(!number.WasCanceled())
-	{
-		aValue = number.GetValue();
-		return true;
-	}
-
-	return false;
-}
-#endif
-
-void				Abort					(const char* aMessage)
-{
-	printf("ABORT: %s\n", aMessage);
-	
-	if(ExitFunction)
-	{
-		ExitFunction();
-	}
-	
-	abort();
-}
-
-void				InitES					(void (*aExitFunction)(), int argc, char** argv)
+void				LibES::Initialize		(void (*aExitFunction)(), int argc, char** argv)
 {
 	ExitFunction = aExitFunction;
 	es_argc = argc;
 	es_argv = argv;
 
-	ESSUB_Init();
+	LibESPlatform::Initialize();
 
 	Colors::Initialize();
 
@@ -105,7 +32,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	assert(result);
 
 	FontManager::InitFonts();
-	ImageManager::SetDirectory(ESSUB_BuildPath("assets/png/"));
+	ImageManager::SetDirectory(LibES::BuildPath("assets/png/"));
 
 	ESInput::Initialize();
 
@@ -113,7 +40,7 @@ void				InitES					(void (*aExitFunction)(), int argc, char** argv)
 	es_log->SetHeader("[Global Log]");
 }
 
-void				QuitES					()
+void				LibES::Shutdown			()
 {
 	ESInput::Shutdown();
 
@@ -125,12 +52,13 @@ void				QuitES					()
 	ESNetwork::Shutdown();
 	ESThreads::Shutdown();
 
-	ESSUB_Quit();
+
+	LibESPlatform::Shutdown();
 
 	delete es_log;
 }
 
-bool				ESHasArgument			(const std::string& aName)
+bool				LibES::HasArgument		(const std::string& aName)
 {
 	if(es_argc && es_argv)
 	{
@@ -146,9 +74,9 @@ bool				ESHasArgument			(const std::string& aName)
 	return false;
 }
 
-volatile bool		WantToDie				()
+volatile bool		LibES::WantToDie		()
 {
-	want_to_die = ESSUB_WantToDie();
+	want_to_die = LibESPlatform::WantToDie();
 
 	if(want_to_die && ExitFunction)
 	{
@@ -159,8 +87,92 @@ volatile bool		WantToDie				()
 	return want_to_die;
 }
 
-volatile bool		WantToSleep				()
+volatile bool		LibES::WantToSleep		()
 {
-	return ESSUB_WantToSleep();
+	return LibESPlatform::WantToSleep();
+}
+
+void				LibES::Abort			(const std::string& aMessage)
+{
+	printf("ABORT: %s\n", aMessage.c_str());
+	
+	if(ExitFunction)
+	{
+		ExitFunction();
+	}
+	
+	abort();
+}
+
+void				LibES::Error			(const std::string& aMessage, const std::string& aHeader)
+{
+#ifndef	HAVE_ESSUB_ERROR
+	SummerfaceLabel text(Area(20, 35, 60, 30), aMessage);
+	text.SetWordWrap(true);
+	text.SetHeader(!aHeader.empty() ? aHeader : "Message");
+	Summerface("Error", &text, false).Do();
+#else
+	LibES::Error(aMessage, aHeader);
+#endif
+}
+
+
+std::string			LibES::GetString		(const std::string& aHeader, const std::string& aMessage)
+{
+#ifndef HAVE_ESSUB_GETSTRING
+	Keyboard kb(Area(10, 10, 80, 80), aHeader, aMessage);
+	Summerface("Keyboard", &kb, false).Do();
+	return kb.GetText();
+#else
+	return LibESPlatform::GetString(aHeader, aMessage);
+#endif
+}
+
+bool				LibES::Confirm			(const std::string& aMessage, bool* aCancel)
+{
+#ifndef HAVE_ESSUB_CONFIRM
+	//Create the list
+	AnchoredListView<SummerfaceItem> list(Area(10, 10, 80, 20));
+	list.SetHeader(aMessage);
+
+	//Add the items
+	list.AddItem(new SummerfaceItem("Yes", "CheckIMAGE"));
+	list.AddItem(new SummerfaceItem("No", "ErrorIMAGE"));
+
+	//Run the interface
+	Summerface("Confirm", &list, false).Do();
+
+	//Return the result
+	if(aCancel) *aCancel = list.WasCanceled();
+	return !list.WasCanceled() && list.GetSelected()->GetText() == "Yes";
+#else
+	return LibESPlatform::Confirm(aMessage, aCancel);
+#endif
+}
+
+bool				LibES::GetNumber		(int64_t* aValue, const std::string& aHeader, uint32_t aDigits, bool aHex)
+{
+	assert(aValue);
+
+#ifndef HAVE_ESSUB_GETNUMBER
+	SummerfaceNumber number(Area(10, 45, 80, 10), *aValue, aDigits, aHex);
+	number.SetHeader(aHeader);
+	Summerface("NUMB", &number, false).Do();
+
+	if(!number.WasCanceled())
+	{
+		*aValue = number.GetValue();
+		return true;
+	}
+
+	return false;
+#else
+	return LibESPlatform::GetNumber(aValue, aHeader, aDigits, aHex);
+#endif
+}
+
+std::string			LibES::BuildPath		(const std::string& aPath)
+{
+	return LibESPlatform::BuildPath(aPath);
 }
 

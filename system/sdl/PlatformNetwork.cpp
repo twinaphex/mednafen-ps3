@@ -1,4 +1,5 @@
 #include <es_system.h>
+#include "src/ESException.h"
 #include <SDL/SDL_net.h>
 
 struct						ESPlatformSocketPrivate
@@ -9,10 +10,10 @@ struct						ESPlatformSocketPrivate
 
 							ESSocket::ESSocket				(const char* aHost, uint32_t aPort) : Data(new ESPlatformSocketPrivate)
 {
-	ErrorCheck(-1 == SDLNet_ResolveHost(&Data->Connection, aHost, aPort), "SDL_net failed to resolve host: %s", SDLNet_GetError());
+	ESException::ErrorCheck(-1 == SDLNet_ResolveHost(&Data->Connection, aHost, aPort), "SDL_net failed to resolve host: %s", SDLNet_GetError());
 
 	Data->Socket = SDLNet_TCP_Open(&Data->Connection);
-	ErrorCheck(Data->Socket != 0, "SDL_net failed to open connection: %s", SDLNet_GetError());
+	ESException::ErrorCheck(Data->Socket != 0, "SDL_net failed to open connection: %s", SDLNet_GetError());
 }
 
 							ESSocket::~ESSocket				()
@@ -35,7 +36,7 @@ uint32_t					ESSocket::ReadString			(void* aBuffer, uint32_t aLength)
 			return i;
 		}
 
-		ErrorCheck(count >= 0, "SDL_net failed to read socket: %s", SDLNet_GetError());
+		ESException::ErrorCheck(count >= 0, "SDL_net failed to read socket: %s", SDLNet_GetError());
 	}
 
 	return aLength;
@@ -47,19 +48,19 @@ uint32_t					ESSocket::Read					(void* aBuffer, uint32_t aLength)
 
 	int count = SDLNet_TCP_Recv(Data->Socket, aBuffer, aLength);
 
-	ErrorCheck(count >= 0, "SDL_net failed to read socket: %s", SDLNet_GetError());
+	ESException::ErrorCheck(count >= 0, "SDL_net failed to read socket: %s", SDLNet_GetError());
 
 	return count;
 }
 
 void						ESSocket::Write					(const void* aBuffer, uint32_t aLength)
 {
-	ErrorCheck(aLength == SDLNet_TCP_Send(Data->Socket, aBuffer, aLength), "SDL_net failed to write socket: %s", SDLNet_GetError());
+	ESException::ErrorCheck(aLength == SDLNet_TCP_Send(Data->Socket, aBuffer, aLength), "SDL_net failed to write socket: %s", SDLNet_GetError());
 }
 
 void						ESNetwork::Initialize			()
 {
-	ErrorCheck(-1 != SDLNet_Init(), "SDL_net failed to initialize: %s", SDLNet_GetError());
+	ESException::ErrorCheck(-1 != SDLNet_Init(), "SDL_net failed to initialize: %s", SDLNet_GetError());
 }
 
 void						ESNetwork::Shutdown				()

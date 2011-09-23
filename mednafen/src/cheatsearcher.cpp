@@ -55,10 +55,10 @@ bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 		{
 			//Get a value for the cheat
 			int64_t value = 0;
-			while(ESSUB_GetNumber(value, _("Enter value to patch to (in decimal)"), 10, false))
+			while(LibES::GetNumber(&value, _("Enter value to patch to (in decimal)"), 10, false))
 			{
 				//Get a name for the cheat
-				std::string name = ESSUB_GetString(_("Enter name for the cheat"), "");
+				std::string name = LibES::GetString(_("Enter name for the cheat"), "");
 				if(!name.empty())
 				{
 					MDFNI_AddCheat(name.c_str(), ResultList->GetSelected()->UserData.Address, value, 0, 'R', aBytes, aBigEndian);
@@ -69,7 +69,7 @@ bool								CheatSearcher::DoResultList				(uint32_t aBytes, bool aBigEndian)
 	}
 	else
 	{
-		ESSUB_Error(_("Search produced no results."));
+		LibES::Error(_("Search produced no results."));
 		return false;
 	}
 
@@ -95,7 +95,7 @@ void								CheatSearcher::Do						()
 		if(Mode <= 1)
 		{
 			//Get the value, but leave if canceled
-			if(!ESSUB_GetNumber(Original, _("Next Step: Enter Original Value"), 10, false))
+			if(!LibES::GetNumber(&Original, _("Next Step: Enter Original Value"), 10, false))
 			{
 				Reset();
 				return;
@@ -108,7 +108,7 @@ void								CheatSearcher::Do						()
 
 		//Reset the cheat search and tell the user to come back later!
 		MDFNI_CheatSearchBegin();
-		ESSUB_Error(_("Next Step: Come back when the value has changed"));
+		LibES::Error(_("Next Step: Come back when the value has changed"));
 		State ++;
 		return;
 	}
@@ -118,7 +118,7 @@ void								CheatSearcher::Do						()
 		if(Mode <= 2)
 		{
 			//Get the value, but leave if canceled
-			if(!ESSUB_GetNumber(Changed, _("Next Step: Enter Changed Value"), 10, false))
+			if(!LibES::GetNumber(&Changed, _("Next Step: Enter Changed Value"), 10, false))
 			{
 				return;
 			}
@@ -130,17 +130,17 @@ void								CheatSearcher::Do						()
 
 		//Get the byte length
 		int64_t bytes = 0;
-		while(ESSUB_GetNumber(bytes, _("Enter number of bytes to patch"), 1, false))
+		while(LibES::GetNumber(&bytes, _("Enter number of bytes to patch"), 1, false))
 		{
 			//Handle case where bytes is invalid
 			if(bytes == 0 || bytes > 8)
 			{
-				ESSUB_Error(_("Bytes value must be between 1 and 8 inclusive."));
+				LibES::Error(_("Bytes value must be between 1 and 8 inclusive."));
 			}
 			else
 			{
 				//Get the endian state if needed
-				bool bigendian = (bytes == 1) ? false : ESSUB_Confirm(_("Is memory big-endian?"));
+				bool bigendian = (bytes == 1) ? false : LibES::Confirm(_("Is memory big-endian?"));
 
 				//End the search
 				MDFNI_CheatSearchEnd(State / 100, Original, Changed, bytes, bigendian);

@@ -7,7 +7,7 @@ class													SummerfaceCancelable
 {
 	public:
 		///Create a new cancelable object. By default the Canceled value is false.
-														SummerfaceCancelable			() {Canceled = false;}
+														SummerfaceCancelable			() : Canceled(false) {}
 
 		///Empty virtual destructor, just in case.
 		virtual											~SummerfaceCancelable			() {}
@@ -48,46 +48,17 @@ class													SummerfaceWindow
 		///Function for handling input for the widget.
 		///@param aButton System button that was pressed.
 		///@return True to stop processing the interface.
-		virtual bool									Input							(uint32_t aButton) {return aButton == ES_BUTTON_CANCEL;}; //External
-
-		///Function called to set the parent Summerface object. This is called by the Summerface object during
-		///Summerface::AddWindow.
-		///@param aInterface Pointer to the parent Summerface object. It is an error if this is null.
-		///@param aName Name of the window on the Summerface object. It is an error if this is empty.
-		void											SetInterface					(Summerface* aInterface, const std::string& aName)
-		{
-			assert(aInterface);
-			assert(aName.length() != 0);
-
-			Interface = aInterface;
-			Name = aName;
-		}
-
-		///Get a pointer to the parent Summerface object. It is an error to call this function when a valid
-		///parent is not present.
-		///@return A pointer to the parent Summerface object.
-		Summerface*										GetInterface					()
-		{
-			assert(Interface);
-			return Interface;
-		}
+		virtual bool									Input							(uint32_t aButton) {return (aButton == ES_BUTTON_CANCEL) || (aButton == ES_BUTTON_ACCEPT);}
 
 		///Set the header of the window. The header is drawn in a separate area at the top of the window.
 		///@param aHeader printf style format string for the header.
 		///@param ... printf style va_args for the header.
-		virtual void									SetHeader						(const std::string& aHeader, ...); //External
-
-		///Get a copy of the window's header.
-		///@return The window's header.
-		virtual std::string								GetHeader						() const {return Header;};
+		void											SetHeader						(const std::string& aHeader, ...); //External
 
 	private:
 		static const uint32_t							BorderWidth = 4;				///<Width of a window border.
 		static const uint32_t							MarginSize = 4;					///<Amount of blank space inside the window border.
 
-		Summerface*										Interface;						///<Parent interface.
-
-		std::string										Name;							///<Name of the window, according to the parent interface.
 		std::string										Header;							///<The window's header.
 		Area											Region;							///<The area the window occupies, in percent.
 

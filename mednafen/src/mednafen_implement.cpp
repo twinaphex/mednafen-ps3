@@ -1,7 +1,7 @@
 #include <mednafen_includes.h>
 #include "mednafen_help.h"
 #include "src/utility/TextViewer.h"
-
+#include "src/ESException.h"
 
 //How to implement these?
 void							MDFND_MidSync				(const EmulateSpecStruct *espec)
@@ -26,7 +26,7 @@ void							MDFND_NetStart				()
 	{
 		char buffer[2048];
 		snprintf(buffer, 2048, _("Failed to start netplay: %s"), except.what());
-		ESSUB_Error(buffer);
+		LibES::Error(buffer);
 		return;
 	}
 }
@@ -79,7 +79,7 @@ void							MDFND_Sleep					(uint32 ms)
 
 bool							MDFND_ExitBlockingLoop		()
 {
-	return WantToDie();
+	return LibES::WantToDie();
 }
 
 void							MDFND_PrintError			(const char *s)

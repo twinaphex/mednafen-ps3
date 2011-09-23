@@ -73,7 +73,7 @@ std::string								FileSelect::GetFile					()
 {
 	std::string result;
 
-	while(!WantToDie())
+	while(!LibES::WantToDie())
 	{
 		//Run the list
 		Interface.Do();

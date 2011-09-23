@@ -79,7 +79,7 @@ int								SettingGroupMenu::HandleInput					(Summerface* aInterface, const std:
 	if(aButton == ES_BUTTON_ACCEPT)
 	{
 		//TODO: Error Checking?
-		std::string result = ESSUB_GetString(Setting.name, MDFN_GetSettingS(Setting.name));
+		std::string result = LibES::GetString(Setting.name, MDFN_GetSettingS(Setting.name));
 		MDFNI_SetSetting(Setting.name, result.c_str());
 		MednafenEmu::ReadSettings();
 		return false;

@@ -71,7 +71,7 @@ namespace
 		if(results == 0)
 		{
 			std::list<std::string> shaders;
-			if(ESVideo::SupportsShaders() && Utility::ListDirectory(ESSUB_BuildPath("assets/presets"), shaders))
+			if(ESVideo::SupportsShaders() && Utility::ListDirectory(LibES::BuildPath("assets/presets"), shaders))
 			{
 				shaders.sort();
 
@@ -148,6 +148,7 @@ void						MednafenEmu::Init				()
 
 		//Get the external emulators
 		std::vector<MDFNGI*> externalSystems;
+
 		externalSystems.push_back(nestGetEmulator(0));
 		externalSystems.push_back(gmbtGetEmulator(0));
 		externalSystems.push_back(vbamGetEmulator(0));
@@ -155,7 +156,6 @@ void						MednafenEmu::Init				()
 		externalSystems.push_back(pcsxGetEmulator(0));
 		externalSystems.push_back(stellaGetEmulator(0));
 		externalSystems.push_back(yabauseGetEmulator(0));
-
 #ifdef TEST_MODULES
 		externalSystems.push_back(desmumeGetEmulator(0));
 		externalSystems.push_back(lsnesGetEmulator(0));
@@ -174,7 +174,7 @@ void						MednafenEmu::Init				()
 		InputHandler::GenerateSettings(Settings);
 
 		//Initialize mednafen and go
-		MDFNI_Initialize(ESSUB_BuildPath("mednafen").c_str(), Settings);
+		MDFNI_Initialize(LibES::BuildPath("mednafen").c_str(), Settings);
 		IsInitialized = true;
 	}
 }
@@ -645,7 +645,7 @@ void						MednafenEmu::ReadSettings		(bool aOnLoad)
 			if(aOnLoad || (ShaderSetting != MDFN_GetSettingS(SETTINGNAME("shader.preset"))))
 			{
 				ShaderSetting = MDFN_GetSettingS(SETTINGNAME("shader.preset"));
-				ESVideo::SetFilter(ESSUB_BuildPath(std::string("assets/presets/") + ShaderSetting), 1);
+				ESVideo::SetFilter(LibES::BuildPath(std::string("assets/presets/") + ShaderSetting), 1);
 			}
 		}
 

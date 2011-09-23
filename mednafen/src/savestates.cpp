@@ -21,8 +21,8 @@ void						StateLabel::SetSlot						(uint32_t aSlot)
 {
 	assert(aSlot >= 1 && aSlot <= 9);
 
-	MDFNI_SelectState(Slot);
-	SetMessage(_("Slot %d"), Slot);
+	MDFNI_SelectState(aSlot);
+	SetMessage(_("Slot %d"), aSlot);
 	FillScratch();
 }
 
