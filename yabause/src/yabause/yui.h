@@ -52,6 +52,12 @@ int YuiSetVideoMode(int width, int height, int bpp, int fullscreen);
    up being moved to the Video Core. */
 void YuiSwapBuffers(void);
 
+#ifdef MDFNPS3
+/* Called in place of YglChangeResolution, needed for state management between
+   the mednafen-ps3 core and yabause. */
+void YuiChangeResolution(int width, int height);
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions(you can use these in your own port)
 //////////////////////////////////////////////////////////////////////////////

@@ -47,6 +47,10 @@
 #define USE_OPENGL
 #endif
 
+#if defined(MDFNPS3) && defined(USE_OPENGL) //No opengl here
+# undef USE_OPENGL
+#endif
+
 #ifdef USE_OPENGL
 #include "ygl.h"
 #endif

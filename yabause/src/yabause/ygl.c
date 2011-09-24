@@ -97,6 +97,7 @@ void YglTMAllocate(YglTexture * output, unsigned int w, unsigned int h, unsigned
 //////////////////////////////////////////////////////////////////////////////
 
 int YglGLInit(int width, int height) {
+#ifndef MDFNPS3 //This is done in mednafen.cpp, every frame
    glClear(GL_COLOR_BUFFER_BIT);
 
    glMatrixMode(GL_PROJECTION);
@@ -111,6 +112,7 @@ int YglGLInit(int width, int height) {
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnableClientState(GL_VERTEX_ARRAY);
    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#endif
 
    glGenTextures(1, &_Ygl->texture);
    glBindTexture(GL_TEXTURE_2D, _Ygl->texture);
@@ -582,9 +584,13 @@ void YglShowTexture(void) {
 //////////////////////////////////////////////////////////////////////////////
 
 void YglChangeResolution(int w, int h) {
+#ifndef MDFNPS3 //OpenGL state management hack
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    glOrtho(0, w, h, 0, 1, 0);
+#else
+   YuiChangeResolution(w, h);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

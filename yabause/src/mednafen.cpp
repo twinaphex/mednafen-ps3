@@ -12,6 +12,8 @@ using namespace Yabause;
 
 #include <stdio.h>
 
+#include <GL/gl.h>
+
 //SYSTEM
 extern "C"
 {
@@ -37,6 +39,24 @@ extern "C"
 	{
 		MDFN_printf("yabause: %s\n", string);
 	}
+
+	void								YuiSetVideoAttribute		(int type, int val)
+	{
+	}
+
+	int									YuiSetVideoMode				(int width, int height, int bpp, int fullscreen)
+	{
+		return 0;
+	}
+
+	static int32_t						ResolutionWidth = 320;
+	static int32_t						ResolutionHeight = 244;
+	void								YuiChangeResolution			(int width, int height)
+	{
+		ResolutionWidth = width;
+		ResolutionHeight = height;
+	}
+
 
 	M68K_struct * M68KCoreList[] =
 	{
@@ -71,6 +91,7 @@ extern "C"
 	VideoInterface_struct *VIDCoreList[] =
 	{
 		&VIDSoft,
+		&VIDOGL,
 		NULL
 	};
 }
@@ -136,7 +157,7 @@ namespace MODULENAMESPACE
 		memset(&yinit, 0, sizeof(yabauseinit_struct));
 		yinit.percoretype = PERCORE_MDFNJOY;
 		yinit.sh2coretype = SH2CORE_DEFAULT;
-		yinit.vidcoretype = VIDCORE_SOFT;
+		yinit.vidcoretype = VIDCORE_OGL;
 		yinit.sndcoretype = SNDCORE_MDFN;
 		yinit.cdcoretype = CDCORE_ARCH;
 		yinit.m68kcoretype = M68KCORE_Q68;
@@ -189,15 +210,53 @@ namespace MODULENAMESPACE
 		//AUDIO PREP
 		Resampler::Init(espec, 44100.0);
 
+		//VIDEO PREP
+		if(ModuleInfo.OpenGL)
+		{
+			glViewport(0, 0, 704, 512);
+			glDisableClientState(GL_COLOR_ARRAY);
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glOrtho(0, ResolutionWidth, 0, ResolutionHeight, 1, 0);
+
+			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
+			glLoadIdentity();
+			glOrtho(-1024, 1024, -1024, 1024, 1, 0);
+
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
 		//EMULATE
 		PERCore->HandleEvents();
 
 		//VIDEO
-		int width, height;
-		VIDSoftGetScreenSize(&width, &height);
+		if(ModuleInfo.OpenGL)
+		{
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
 
-		Video::SetDisplayRect(espec, 0, 0, width, height);
-		Video::BlitRGB32<0, 1, 2, 2, 1, 0, -1>(espec, dispbuffer, width, height, width);
+			int width, height;
+			Video::SetDisplayRect(espec, 0, 0, ModuleInfo.fb_width, ModuleInfo.fb_height);
+		}
+		else
+		{
+			int width, height;
+			VIDSoftGetScreenSize(&width, &height);
+			Video::SetDisplayRect(espec, 0, 0, width, height);
+			Video::BlitRGB32<0, 1, 2, 2, 1, 0, -1>(espec, dispbuffer, width, height, width);
+		}
 
 		//AUDIO
 		Resampler::Fetch(espec);
@@ -254,7 +313,8 @@ namespace MODULENAMESPACE
 	/*	nominal_height:		*/	512,
 	/*	fb_width:			*/	704,
 	/*	fb_height:			*/	512,
-	/*	soundchan:			*/	2
+	/*	soundchan:			*/	2,
+	/*	OpenGL:				*/	true
 	};
 }
 
