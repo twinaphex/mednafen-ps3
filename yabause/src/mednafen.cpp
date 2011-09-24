@@ -12,7 +12,13 @@ using namespace Yabause;
 
 #include <stdio.h>
 
+#ifdef PSGL //PSGL.h cannot be included in an 'extern "C" block'
+#include <PSGL/psgl.h>
+#define glOrtho glOrthof
+#else
 #include <GL/gl.h>
+#endif
+
 
 //SYSTEM
 extern "C"
@@ -144,8 +150,8 @@ namespace MODULENAMESPACE
 
 	static MDFNSetting						ModuleSettings[] =
 	{
-		{"yabause.bios",		MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",	NULL,	MDFNST_STRING,	"satbios.bin"},
-		{"yabause.use_opengl",	MDFNSF_EMU_STATE,	"Use the OpenGL renderer.",			NULL,	MDFNST_BOOL,	"0"},
+		{"yabause.bios",		MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",							NULL,	MDFNST_STRING,	"satbios.bin"},
+		{"yabause.use_opengl",	MDFNSF_EMU_STATE,	"Use the OpenGL renderer.",									NULL,	MDFNST_BOOL,	"0"},
 		{NULL}
 	};
 
@@ -261,7 +267,7 @@ namespace MODULENAMESPACE
 			int width, height;
 			VIDSoftGetScreenSize(&width, &height);
 			Video::SetDisplayRect(espec, 0, 0, width, height);
-			Video::BlitRGB32<0, 1, 2, 2, 1, 0, -1>(espec, dispbuffer, width, height, width);
+			Video::BlitRGB32<0, 1, 2, 2, 1, 0, 0>(espec, dispbuffer, width, height, width);
 		}
 
 		//AUDIO

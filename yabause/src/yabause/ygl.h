@@ -40,6 +40,8 @@
 #else
     #ifdef __APPLE__
         #include <OpenGL/gl.h>
+	#elif defined(PSGL) //MDFNPS3: psgl headers
+		#include <PSGL/psgl.h>
     #else
         #include <GL/gl.h>
     #endif
