@@ -32,6 +32,10 @@ void FASTCALL Vdp2DrawScroll(vdp2draw_struct *info, u32 *textdata, int width, in
 #define USE_OPENGL
 #endif
 
+#if defined(MDFNPS3) && defined(USE_OPENGL) //No opengl for software renderer, that's the point
+# undef USE_OPENGL
+#endif
+
 #ifdef USE_OPENGL
 #include "ygl.h"
 #endif

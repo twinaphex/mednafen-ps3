@@ -9,7 +9,7 @@ TYPE		:=	lib
 INCLUDE		:=	.. ../mednafen/src src/yabause 
 
 #Note that I just made up the "10" for VERSION
-CPPFLAGS	+=	-DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H
+CPPFLAGS	+=	-DMDFNPS3 -DVERSION=\"10\" -DHAVE_STDINT_H -DHAVE_LIBGL
 
 CXXFILES	+=	src/mednafen.cpp										\
 				src/yabause/cd-mdfn.cpp									\
@@ -47,6 +47,8 @@ CFILES		+=	src/yabause/bios.c										\
 				src/yabause/vidshared.c									\
 				src/yabause/vidsoft.c									\
 				src/yabause/yabause.c									\
+				src/yabause/ygl.c										\
+				src/yabause/vidogl.c									\
 				src/yabause/permdfnjoy.c
 
 CFILES		+=	src/yabause/m68kq68.c									\
