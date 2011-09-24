@@ -2133,6 +2133,7 @@ static void Vdp2DrawBackScreen(void)
    else
       scrAddr = (((Vdp2Regs->BKTAU & 0x3) << 16) | Vdp2Regs->BKTAL) * 2;
 
+#ifndef MDFNPS3 //OpenGL ES
    if (Vdp2Regs->BKTAU & 0x8000)
    {
       glBegin(GL_LINES);
@@ -2164,6 +2165,51 @@ static void Vdp2DrawBackScreen(void)
       glEnd();
       glColor3ub(0xFF, 0xFF, 0xFF);
    }
+#else
+   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+   if (Vdp2Regs->BKTAU & 0x8000)
+   {
+      GLfloat* vbuffer = alloca(sizeof(GLfloat) * 4);
+      GLfloat vdp2widthf = (GLfloat)vdp2width;
+      GLfloat yf = 0;
+
+      glVertexPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), vbuffer);
+
+      for(y = 0; y < vdp2height; y++, yf += 1.0f)
+      {
+         dot = T1ReadWord(Vdp2Ram, scrAddr);
+         scrAddr += 2;
+         glColor4ub((dot & 0x1F) << 3, (dot & 0x3E0) >> 2, (dot & 0x7C00) >> 7, 0xFF);
+
+         vbuffer[0] = 0.0f;
+         vbuffer[1] = yf;
+         vbuffer[2] = vdp2widthf;
+         vbuffer[3] = yf;
+
+         glDrawArrays(GL_LINES, 0, 2);
+      }
+   }
+   else
+   {
+      GLfloat* vbuffer = alloca(sizeof(GLfloat) * 8);
+      GLfloat vdp2widthf = (GLfloat)vdp2width;
+      GLfloat vdp2heightf = (GLfloat)vdp2heightf;
+
+      glVertexPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), vbuffer);
+
+      dot = T1ReadWord(Vdp2Ram, scrAddr);
+      glColor4ub((dot & 0x1F) << 3, (dot & 0x3E0) >> 2, (dot & 0x7C00) >> 7, 0xFF);
+
+      vbuffer[0] = 0.0f;       vbuffer[1] = 0.0f;
+      vbuffer[2] = vdp2widthf; vbuffer[3] = 0.0f;
+      vbuffer[4] = vdp2widthf; vbuffer[5] = vdp2heightf;
+      vbuffer[6] = 0.0f;       vbuffer[7] = vdp2heightf;
+      glDrawArrays(GL_QUADS, 0, 4);
+   }
+
+   glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

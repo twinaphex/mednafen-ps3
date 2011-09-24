@@ -46,6 +46,10 @@ void FASTCALL Vdp2DrawScroll(vdp2draw_struct *info, u32 *textdata, int width, in
 #include <stdarg.h>
 #include <limits.h>
 
+#if defined(MDFNPS3) && defined(WORDS_BIGENDIAN) //Fix bad color blending
+#undef WORDS_BIGENDIAN
+#endif
+
 #if defined WORDS_BIGENDIAN
 static INLINE u32 COLSAT2YAB16(int priority,u32 temp)            { return (priority | (temp & 0x7C00) << 1 | (temp & 0x3E0) << 14 | (temp & 0x1F) << 27); }
 static INLINE u32 COLSAT2YAB32(int priority,u32 temp)            { return (((temp & 0xFF) << 24) | ((temp & 0xFF00) << 8) | ((temp & 0xFF0000) >> 8) | priority); }
@@ -2121,6 +2125,10 @@ static INLINE double interpolate(double start, double end, int numberofsteps) {
 
 	return stepvalue;
 }
+
+#if defined(MDFNPS3) && defined(__BIGENDIAN__) //The color bitfiled is the only differnce that's really needed for the PS3
+# define WORDS_BIGENDIAN
+#endif
 
 typedef union _COLOR { // xbgr x555
 	struct {
