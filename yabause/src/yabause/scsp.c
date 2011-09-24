@@ -2955,6 +2955,7 @@ int ScspChangeSoundCore(int coreid)
       }
    }
 
+#ifndef MDFNPS3 //Sound core always works, no dummy needed
    if (SNDCore == NULL)
    {
       SNDCore = &SNDDummy;
@@ -2971,6 +2972,17 @@ int ScspChangeSoundCore(int coreid)
 
       SNDCore = &SNDDummy;
    }
+#else
+   if (SNDCore->Init() == -1)
+   {
+      // Since it failed, instead of it being fatal, we'll just use the dummy
+      // core instead
+
+      // This might be helpful though.
+      YabSetError(YAB_ERR_CANNOTINIT, (void *)SNDCore->Name);
+      return -1;
+   }
+#endif
 
    return 0;
 }

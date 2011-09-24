@@ -616,6 +616,7 @@ int Cs2ChangeCDCore(int coreid, const char *cdpath)
       }
    }
 
+#ifndef MDFNPS3 //NEVER use the dummy core, if mdfncd isn't working we would never have gotten here
    if (Cs2Area->cdi == NULL)
    {
       Cs2Area->cdi = &DummyCD;
@@ -631,6 +632,15 @@ int Cs2ChangeCDCore(int coreid, const char *cdpath)
       // core instead
       Cs2Area->cdi = &DummyCD;
    }
+#else
+   if (Cs2Area->cdi->Init(cdpath) != 0)
+   {
+      // This might be helpful.
+      YabSetError(YAB_ERR_CANNOTINIT, (void *)Cs2Area->cdi->Name);
+
+      return -1;
+   }
+#endif
 
    Cs2Area->isdiskchanged = 1;
    Cs2Area->status = CDB_STAT_PAUSE;

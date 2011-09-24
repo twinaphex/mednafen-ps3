@@ -354,7 +354,7 @@ void YabauseResetButton(void) {
 //////////////////////////////////////////////////////////////////////////////
 
 int YabauseExec(void) {
-
+#ifndef MDFNPS3 //Just run normally
 	//automatically advance lag frames, this should be optional later
 	if (FrameAdvanceVariable > 0 && LagFrameFlag == 1){ 
 		FrameAdvanceVariable = NeedAdvance; //advance a frame
@@ -378,6 +378,10 @@ int YabauseExec(void) {
 		ScspUnMuteAudio();	
 		YabauseEmulate();
 	}
+#else
+	ScspUnMuteAudio();	
+	YabauseEmulate();
+#endif
 	return 0;
 }
 
