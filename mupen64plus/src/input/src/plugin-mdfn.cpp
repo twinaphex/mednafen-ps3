@@ -148,7 +148,12 @@ EXPORT void CALL inputControllerCommand(int Control, unsigned char *Command)
 *******************************************************************/
 EXPORT void CALL inputGetKeys( int Control, BUTTONS *Keys )
 {
+#ifndef WORDS_BIGENDIAN
 	Keys->Value = Input::GetPort<2>(Control);
+#else
+	uint32_t v = Input::GetPort<2>(Control);
+	Keys->Value = ((v & 0xFF) << 24) | ((v & 0xFF00) << 8) | ((v & 0xFF0000) >> 8) | ((v & 0xFF000000) >> 24);
+#endif
 }
 
 
