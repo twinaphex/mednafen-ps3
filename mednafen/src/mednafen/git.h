@@ -347,6 +347,10 @@ typedef struct
 
  int soundchan; 	// Number of output sound channels.
 
+#ifdef MDFNPS3		// Use OpenGL support
+ bool OpenGL;
+#endif
+
 
  int rotated;
 

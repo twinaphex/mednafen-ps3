@@ -19,6 +19,13 @@
 # define	GL_FRAMEBUFFER_ES			GL_FRAMEBUFFER_EXT
 #endif
 
+#if 0
+#define glSplat() {uint32_t i = glGetError(); if(i) {printf("%X\n", i); abort();}}
+#else
+#define glSplat()
+#endif
+
+
 									Texture::Texture				(uint32_t aWidth, uint32_t aHeight) :
 	BufferID(0),
 	ID(0),
@@ -32,11 +39,11 @@
 {
 	//TODO: Add a sanity check
 
-	glGenTextures(1, &ID);
-	glGenBuffers(1, &BufferID);
+	glGenTextures(1, &ID); glSplat();
+	glGenBuffers(1, &BufferID); glSplat();
 
-	glBindBuffer(BUFFER_TARGET_ES, BufferID);
-	glBufferData(BUFFER_TARGET_ES, aWidth * aHeight * 4, 0, GL_STATIC_DRAW);
+	glBindBuffer(BUFFER_TARGET_ES, BufferID); glSplat();
+	glBufferData(BUFFER_TARGET_ES, aWidth * aHeight * 4, 0, GL_STATIC_DRAW); glSplat();
 }
 						
 									Texture::~Texture				()
@@ -46,8 +53,8 @@
 		Unmap();
 	}
 
-	glDeleteTextures(1, &ID);
-	glDeleteBuffers(1, &BufferID);
+	glDeleteTextures(1, &ID); glSplat();
+	glDeleteBuffers(1, &BufferID); glSplat();
 }
 
 void								Texture::Clear					(uint32_t aColor)
@@ -68,9 +75,9 @@ uint32_t*							Texture::Map					()
 
 	if(MapCount == 0)
 	{
-		glBindBuffer(BUFFER_TARGET_ES, BufferID);
-		Pixels = (uint32_t*)glMapBuffer(BUFFER_TARGET_ES, GL_READ_WRITE);
-		glBindBuffer(BUFFER_TARGET_ES, 0);
+		glBindBuffer(BUFFER_TARGET_ES, BufferID); glSplat();
+		Pixels = (uint32_t*)glMapBuffer(BUFFER_TARGET_ES, GL_READ_WRITE); glSplat();
+		glBindBuffer(BUFFER_TARGET_ES, 0); glSplat();
 	}
 
 	MapCount ++;
@@ -85,9 +92,9 @@ void								Texture::Unmap					()
 
 		if(!MapCount)
 		{
-			glBindBuffer(BUFFER_TARGET_ES, BufferID);
-			glUnmapBuffer(BUFFER_TARGET_ES);
-			glBindBuffer(BUFFER_TARGET_ES, 0);
+			glBindBuffer(BUFFER_TARGET_ES, BufferID); glSplat();
+			glUnmapBuffer(BUFFER_TARGET_ES); glSplat();
+			glBindBuffer(BUFFER_TARGET_ES, 0); glSplat();
 			Pixels = 0;
 		}
 	}
@@ -95,23 +102,23 @@ void								Texture::Unmap					()
 
 void								Texture::Apply					()
 {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, ID);
+	glEnable(GL_TEXTURE_2D); glSplat();
+	glBindTexture(GL_TEXTURE_2D, ID); glSplat();
 
 	if(!Valid)
 	{
 		Valid = true;
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); glSplat();
 
-		glBindBuffer(BUFFER_TARGET_ES, BufferID);
-		glTexImageES(Width, Height);
-		glBindBuffer(BUFFER_TARGET_ES, 0);
+		glBindBuffer(BUFFER_TARGET_ES, BufferID); glSplat();
+		glTexImageES(Width, Height); glSplat();
+		glBindBuffer(BUFFER_TARGET_ES, 0); glSplat();
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Filter ? GL_LINEAR : GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Filter ? GL_LINEAR : GL_NEAREST);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Filter ? GL_LINEAR : GL_NEAREST); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Filter ? GL_LINEAR : GL_NEAREST);	glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); glSplat();
 }
 
 

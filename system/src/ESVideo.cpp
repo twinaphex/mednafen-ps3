@@ -12,28 +12,34 @@
 # define	glOrtho						glOrthof
 #endif
 
+#if 0
+#define glSplat() {uint32_t i = glGetError(); if(i) {printf("%X\n", i); abort();}}
+#else
+#define glSplat()
+#endif
+
 namespace
 {
 	//HACK:
 	inline void							ApplyVertexBuffer	(GLfloat* aBuffer, bool aColors)
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]);
-		glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]);
+		glEnableClientState(GL_VERTEX_ARRAY); glSplat();
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY); glSplat();
+		glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]); glSplat();
+		glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]); glSplat();
 
-		glClientActiveTexture(GL_TEXTURE1);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
+		glClientActiveTexture(GL_TEXTURE1); glSplat();
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY); glSplat();
+		glClientActiveTexture(GL_TEXTURE0); glSplat();
 
 		if(aColors)
 		{
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]);
+			glEnableClientState(GL_COLOR_ARRAY); glSplat();
+			glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]); glSplat();
 		}
 		else
 		{
-			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY); glSplat();
 		}
 	}
 }
@@ -55,13 +61,13 @@ void					ESVideo::Initialize				()
 	FillerTexture->Clear(0xFFFFFFFF);
 
 	//Init framebuffer
-	glGenFramebuffersEXT(1, &FrameBufferID);
+	glGenFramebuffersEXT(1, &FrameBufferID); glSplat();
 }
 
 void					ESVideo::Shutdown				()
 {
 	SetRenderTarget(0);
-	glDeleteFramebuffersEXT(1, &FrameBufferID);
+	glDeleteFramebuffersEXT(1, &FrameBufferID); glSplat();
 
 	delete FillerTexture;
 	free(VertexBuffer);
@@ -82,24 +88,27 @@ void					ESVideo::Flip					()
 {
 	ESVideoPlatform::Flip();
 	SetClip(Area(0, 0, GetScreenWidth(), GetScreenHeight()));
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT); glSplat();
 }
 
 void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 {
 	if(aBuffer)
 	{
-		glBindTexture(GL_TEXTURE_2D, aBuffer->GetID());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, aBuffer->GetID()); glSplat();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); glSplat();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); glSplat();
+		glBindTexture(GL_TEXTURE_2D, 0); glSplat();
 
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FrameBufferID);
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FrameBufferID); glSplat();
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0); glSplat();
 	}
 	else
 	{
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); glSplat();
+		glViewport(0, 0, GetScreenWidth(), GetScreenHeight()); glSplat();
+		ApplyVertexBuffer(VertexBuffer, true);
+		glColor4f(0, 0, 0, 0); glSplat();
 	}
 }
 
@@ -205,14 +214,14 @@ void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight,
 		float yl = (float)aViewPort.Y / (float)aHeight;
 		float yr = (float)aViewPort.Bottom() / (float)aHeight;
 
-		glBindTexture(GL_TEXTURE_2D, aID);
+		glBindTexture(GL_TEXTURE_2D, aID); glSplat();
 
 		SetVertex(&VertexBuffer[0 * VertexSize], presentArea.X, 		presentArea.Y, 			1.0f, 1.0f, 1.0f, 1.0f, xl, yl);
 		SetVertex(&VertexBuffer[1 * VertexSize], presentArea.Right(), 	presentArea.Y, 			1.0f, 1.0f, 1.0f, 1.0f, xr, yl);
 		SetVertex(&VertexBuffer[2 * VertexSize], presentArea.Right(),	presentArea.Bottom(),	1.0f, 1.0f, 1.0f, 1.0f, xr, yr);
 		SetVertex(&VertexBuffer[3 * VertexSize], presentArea.X,			presentArea.Bottom(),	1.0f, 1.0f, 1.0f, 1.0f, xl, yr);
 
-		glDrawArrays(GL_QUADS, 0, 4);
+		glDrawArrays(GL_QUADS, 0, 4); glSplat();
 	}
 
 	//Exit present state
@@ -230,30 +239,30 @@ void					ESVideo::SetVertex				(GLfloat* aBase, float aX, float aY, float aR, fl
 void					ESVideo::InitializeState		()
 {
 	//Some settings
-	glEnable(GL_SCISSOR_TEST);
-	glClearColor(0, 0, 0, 0);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glViewport(0, 0, GetScreenWidth(), GetScreenHeight());
+	glEnable(GL_SCISSOR_TEST); glSplat();
+	glClearColor(0, 0, 0, 0); glSplat();
+	glEnable(GL_BLEND); glSplat();
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); glSplat();
+	glViewport(0, 0, GetScreenWidth(), GetScreenHeight()); glSplat();
 
 	//Setup Projection
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1);
+	glMatrixMode(GL_PROJECTION); glSplat();
+	glLoadIdentity(); glSplat();
+	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1); glSplat();
 }
 
 void					ESVideo::EnterPresentState		()
 {
-	glColor4f(1, 1, 1, 1);
-	glDisable(GL_BLEND);
-	glDisable(GL_SCISSOR_TEST);
+	glColor4f(1, 1, 1, 1); glSplat();
+	glDisable(GL_BLEND); glSplat();
+	glDisable(GL_SCISSOR_TEST); glSplat();
 }
 
 void					ESVideo::ExitPresentState		()
 {
-	glEnable(GL_BLEND);
-	glEnable(GL_SCISSOR_TEST);
-	glColor4f(0, 0, 0, 0);
+	glEnable(GL_BLEND); glSplat();
+	glEnable(GL_SCISSOR_TEST); glSplat();
+	glColor4f(0, 0, 0, 0); glSplat();
 }
 
 
