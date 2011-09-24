@@ -21,6 +21,8 @@
 
 #include "core.h"
 
+#ifndef MDFNPS3 //No movie support
+
 #define Stopped	  1
 #define Recording 2
 #define Playback  3
@@ -83,4 +85,17 @@ extern int lagframecounter;
 extern char MovieStatus[40];
 extern char InputDisplayString[40];
 extern int FrameAdvanceVariable;
+
+#else
+
+extern int framecounter;
+
+#define DoMovie()
+#define MovieReadState(x, y)
+#define MakeMovieStateName(x) x
+#define SaveMovieInState(x, y)
+#define ReadMovieInState(x)
+
+#endif
+
 #endif

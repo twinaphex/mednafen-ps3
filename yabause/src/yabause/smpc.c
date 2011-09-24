@@ -193,6 +193,7 @@ void SmpcCKCHG320(void) {
    SH2NMI(MSH2);
 }
 
+#ifndef MDFNPS3 //No movie support
 struct movietime {
 
 	int tm_year;
@@ -207,6 +208,7 @@ struct movietime {
 static struct movietime movietime;
 int totalseconds;
 int noon= 43200;
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -247,6 +249,7 @@ static void SmpcINTBACKStatus(void) {
    SmpcRegs->OREG[6] = ((times.tm_min / 10) << 4) | (times.tm_min % 10);
    SmpcRegs->OREG[7] = ((times.tm_sec / 10) << 4) | (times.tm_sec % 10);
 
+#ifndef MDFNPS3 //No Movie support
    if(Movie.Status == Recording || Movie.Status == Playback) {
 	   movietime.tm_year=0x62;
 	   movietime.tm_wday=0x04;
@@ -274,6 +277,7 @@ static void SmpcINTBACKStatus(void) {
 	   SmpcRegs->OREG[6] = ((movietime.tm_min / 10) << 4) | (movietime.tm_min % 10);
 	   SmpcRegs->OREG[7] = ((movietime.tm_sec / 10) << 4) | (movietime.tm_sec % 10);
    }
+#endif
 
    // write cartidge data in OREG8
    SmpcRegs->OREG[8] = 0; // FIXME : random value
@@ -373,7 +377,9 @@ static void SmpcINTBACKPeripheral(void) {
      PerFlush(&PORTDATA2);
      SmpcInternalVars->port1.offset = 0;
      SmpcInternalVars->port2.offset = 0;
+#ifndef MDFNPS3 //No movie support
      LagFrameFlag=0;
+#endif
   }
 
   // Port 1

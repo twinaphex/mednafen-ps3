@@ -58,6 +58,10 @@
 #include "vidsoft.h"
 #include "vidogl.h"
 
+#ifdef MDFNPS3 //An orphan from movie.c
+int framecounter;
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 
 writebytefunc WriteByteList[0x1000];
@@ -837,6 +841,8 @@ void FASTCALL MappedMemoryWriteLong(u32 addr, u32 val)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifndef MDFNPS3 //Unused in mednafen, allows coffelf.c to not be compiled
+
 int MappedMemoryLoad(const char *filename, u32 addr)
 {
    FILE *fp;
@@ -940,6 +946,8 @@ void MappedMemoryLoadExec(const char *filename, u32 pc)
    MSH2->regs.PC = pc;
    SH2SetRegisters(MSH2, &MSH2->regs);
 }
+
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -1375,6 +1383,8 @@ int YabLoadStateSlot(const char *dirpath, u8 slot)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifndef MDFNPS3 //Functions unneeded by mednafen
+
 static int MappedMemoryAddMatch(u32 addr, u32 val, int searchtype, result_struct *result, u32 *numresults)
 {
    result[numresults[0]].addr = addr;
@@ -1673,3 +1683,5 @@ result_struct *MappedMemorySearch(u32 startaddr, u32 endaddr, int searchtype,
    maxresults[0] = numresults;
    return results;
 }
+
+#endif

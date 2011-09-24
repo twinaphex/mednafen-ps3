@@ -22,6 +22,7 @@
 
 #include "core.h"
 
+#ifndef MDFNPS3 //No cheats
 enum
 {
    CHEATTYPE_NONE=0,
@@ -56,5 +57,13 @@ void CheatDoPatches(void);
 cheatlist_struct *CheatGetList(int *cheatnum);
 int CheatSave(const char *filename);
 int CheatLoad(const char *filename);
+
+#else
+
+#define CheatInit() 0
+#define CheatDeInit()
+#define CheatDoPatches()
+
+#endif
 
 #endif
