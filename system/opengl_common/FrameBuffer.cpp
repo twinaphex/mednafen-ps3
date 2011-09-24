@@ -8,6 +8,12 @@
 # define	glTexImageBufferES(w,h)		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, (w), (h), 0, GL_RGB, GL_INT, 0);
 #endif
 
+#if 0
+#define glSplat() {uint32_t i = glGetError(); if(i) {printf("%X\n", i); abort();}}
+#else
+#define glSplat()
+#endif
+
 									FrameBuffer::FrameBuffer		(uint32_t aWidth, uint32_t aHeight) :
 	ID(0),
 	Width(aWidth),
@@ -16,26 +22,30 @@
 	Valid(false)
 {
 	//TODO: Add a sanity check
-	glGenTextures(1, &ID);
+	glGenTextures(1, &ID); glSplat();
 
-	glBindTexture(GL_TEXTURE_2D, ID);
-	glTexImageBufferES(aWidth, aHeight);
+	glBindTexture(GL_TEXTURE_2D, ID); glSplat();
+	glTexImageBufferES(aWidth, aHeight); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); glSplat();
 }
 						
 									FrameBuffer::~FrameBuffer		()
 {
-	glDeleteTextures(1, &ID);
+	glDeleteTextures(1, &ID); glSplat();
 }
 
 void								FrameBuffer::Apply				()
 {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, ID);
+	glEnable(GL_TEXTURE_2D); glSplat();
+	glBindTexture(GL_TEXTURE_2D, ID); glSplat();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Filter ? GL_LINEAR : GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Filter ? GL_LINEAR : GL_NEAREST);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Filter ? GL_LINEAR : GL_NEAREST); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Filter ? GL_LINEAR : GL_NEAREST); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); glSplat();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); glSplat();
 }
 
 

@@ -10,6 +10,7 @@
 #include "FastCounter.h"
 
 #include "src/utility/TextViewer.h"	//TODO: Cleaner path for es includes
+#include "opengl_common/FrameBuffer.h"
 
 namespace
 {
@@ -296,11 +297,10 @@ void						MednafenEmu::CloseGame			()
 		//Clean up
 		MDFND_Rumble(0, 0);
 	
-		delete Buffer; Buffer = 0;
-		delete Surface; Surface = 0;
-		delete TextFile; TextFile = 0;
-
-
+		Utility::Delete(Buffer);
+		Utility::Delete(RenderTarget);
+		Utility::Delete(Surface);
+		Utility::Delete(TextFile);
 
 		IsLoaded = false;
 	}
@@ -340,7 +340,22 @@ bool						MednafenEmu::Frame				()
 	EmulatorSpec.SoundVolume = 1;
 	EmulatorSpec.NeedRewind = !NetplayOn && ESInput::ButtonPressed(ES_BUTTON_AUXLEFT2);
 	EmulatorSpec.skip = NetplayOn ? Syncher.NeedFrameSkip() : (SkipNext && ((SkipCount ++) < (Counter.GetMaxSpeed() + 1)));
+
+	if(GameInfo->OpenGL && !RenderTarget)//HACK: If I put this in load game the frame buffer won't be created properly by OpenGL
+	{
+		RenderTarget = new FrameBuffer(GameInfo->fb_width, GameInfo->fb_height);
+	}
+	if(RenderTarget)
+	{
+		ESVideo::SetRenderTarget(RenderTarget);
+	}
+
 	MDFNI_Emulate(&EmulatorSpec);
+
+	if(RenderTarget)
+	{
+		ESVideo::SetRenderTarget(0);
+	}
 
 	Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
 	Counter.Tick(EmulatorSpec.skip);
@@ -439,15 +454,27 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 	else
 	{
 		output = Area(VideoWidths[0].w != ~0 ? VideoWidths[0].x : EmulatorSpec.DisplayRect.x, EmulatorSpec.DisplayRect.y, VideoWidths[0].w != ~0 ? VideoWidths[0].w : EmulatorSpec.DisplayRect.w, EmulatorSpec.DisplayRect.h);
-		for(int i = 0; i != output.Height; i ++)
+
+		if(!RenderTarget)
 		{
-			memcpy(&pixels[(output.Y + i) * pitch + output.X], &Surface->pixels[(output.Y + i) * Surface->pitchinpix + output.X], output.Width * 4);
+			for(int i = 0; i != output.Height; i ++)
+			{
+				memcpy(&pixels[(output.Y + i) * pitch + output.X], &Surface->pixels[(output.Y + i) * Surface->pitchinpix + output.X], output.Width * 4);
+			}
 		}
 	}
 
 	//Unmap and present the texture
 	Buffer->Unmap();
-	ESVideo::PresentFrame(Buffer, output);
+
+	if(RenderTarget)
+	{
+		ESVideo::PresentFrame(RenderTarget, output);
+	}
+	else
+	{
+		ESVideo::PresentFrame(Buffer, output);
+	}
 }
 
 void						MednafenEmu::DoCommands			()
@@ -716,7 +743,8 @@ bool						MednafenEmu::IsInitialized = false;
 bool						MednafenEmu::IsLoaded = false;
 	
 Texture*					MednafenEmu::Buffer;
-MDFN_Surface*				MednafenEmu::Surface ;
+FrameBuffer*				MednafenEmu::RenderTarget;
+MDFN_Surface*				MednafenEmu::Surface;
 bool						MednafenEmu::SuspendDraw = false;
 
 MDFNGI*						MednafenEmu::GameInfo = 0;

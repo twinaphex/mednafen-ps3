@@ -82,6 +82,7 @@ class	MednafenEmu
 		static bool						IsLoaded;			///<Set by LoadGame, cleared by CloseGame.
 
 		static Texture*					Buffer;				///<ESTexture used for presenting the frame.
+		static FrameBuffer*				RenderTarget;		///<Render target for OpenGL mode.
 		static MDFN_Surface*			Surface;			///<Mednafen Surface object used to receive video from the emulator.
 		static bool						SuspendDraw;		///<Used to disable the DummyFrame function during the save state menu.
 
