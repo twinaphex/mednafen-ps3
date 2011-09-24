@@ -42,8 +42,7 @@ CFILES		+=	src/yabause/bios.c										\
 				src/yabause/snddummy.c									\
 				src/yabause/thr-dummy.c									\
 				src/yabause/vdp1.c										\
-				src/yabause/vdp2.c										\
-				src/yabause/vdp2debug.c									\
+				src/yabause/vdp2-mdfn.c									\
 				src/yabause/vidshared.c									\
 				src/yabause/vidsoft.c									\
 				src/yabause/yabause.c									\

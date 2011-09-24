@@ -636,7 +636,9 @@ void YabauseSetVideoFormat(int type) {
    Vdp2Regs->TVSTAT = Vdp2Regs->TVSTAT | (type & 0x1);
    ScspChangeVideoFormat(type);
    YabauseChangeTiming(yabsys.CurSH2FreqType);
+#ifndef MDFNPS3 //Part of the frame skip hack in vdp2-mdfn.c
    lastticks = YabauseGetTicks();
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

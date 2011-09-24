@@ -31,6 +31,8 @@ extern "C"
 	#include "sndmdfn.h"
 	#include "permdfnjoy.h"
 
+	int									YabaSkipFrame;
+
 	void								YuiSwapBuffers				()
 	{
 	}
@@ -142,7 +144,8 @@ namespace MODULENAMESPACE
 
 	static MDFNSetting						ModuleSettings[] =
 	{
-		{"yabause.bios",	MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",	NULL,	MDFNST_STRING,	"satbios.bin"},
+		{"yabause.bios",		MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",	NULL,	MDFNST_STRING,	"satbios.bin"},
+		{"yabause.use_opengl",	MDFNSF_EMU_STATE,	"Use the OpenGL renderer.",			NULL,	MDFNST_BOOL,	"0"},
 		{NULL}
 	};
 
@@ -151,13 +154,14 @@ namespace MODULENAMESPACE
 		//Get Settings
 		static char biospath[1024];
 		strncpy(biospath, MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("yabause.bios").c_str()).c_str(), 1024);
+		ModuleInfo.OpenGL = MDFN_GetSettingB("yabause.use_opengl");
 
 		//Init yabause
 		yabauseinit_struct yinit;
 		memset(&yinit, 0, sizeof(yabauseinit_struct));
 		yinit.percoretype = PERCORE_MDFNJOY;
 		yinit.sh2coretype = SH2CORE_DEFAULT;
-		yinit.vidcoretype = VIDCORE_OGL;
+		yinit.vidcoretype = ModuleInfo.OpenGL ? VIDCORE_OGL : VIDCORE_SOFT;
 		yinit.sndcoretype = SNDCORE_MDFN;
 		yinit.cdcoretype = CDCORE_ARCH;
 		yinit.m68kcoretype = M68KCORE_Q68;
@@ -211,6 +215,8 @@ namespace MODULENAMESPACE
 		Resampler::Init(espec, 44100.0);
 
 		//VIDEO PREP
+		YabaSkipFrame = espec->skip ? 1 : 0;
+
 		if(ModuleInfo.OpenGL)
 		{
 			glViewport(0, 0, 704, 512);
