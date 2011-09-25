@@ -40,6 +40,7 @@ CFILES		+=	src/yabause/bios.c										\
 				src/yabause/vidogl.c									\
 				src/yabause/permdfnjoy.c
 
+#Q64 core
 CFILES		+=	src/yabause/m68kq68.c									\
 				src/yabause/q68/q68.c									\
 				src/yabause/q68/q68-core.c
@@ -51,6 +52,15 @@ CFILES		+=	src/yabause/m68kq68.c									\
 #CFILES		+=	src/yabause/m68kc68k.c									\
 #				src/yabause/c68k/c68k.c									\
 #				src/yabause/c68k/c68kexec.c
+
+
+#SH2 Dynarec
+#CPPFLAGS	+=	-DSH2_DYNAREC
+#CFILES		+=	src/yabause/sh2_dynarec/sh2_dynarec.c
+#SFILES		+=	src/yabause/sh2_dynarec/linkage_mdfn.S
+
+
+
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 
