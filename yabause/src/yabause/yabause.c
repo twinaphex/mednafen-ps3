@@ -241,6 +241,12 @@ int YabauseInit(yabauseinit_struct *init)
 
    yabsys.usequickload = 0;
 
+   #if defined(SH2_DYNAREC)
+   if(SH2Core->id==2) {
+     sh2_dynarec_init();
+   }
+   #endif
+
    YabauseResetNoLoad();
 
    if (yabsys.usequickload || yabsys.emulatebios)
@@ -386,6 +392,9 @@ int YabauseExec(void) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
+#ifndef USE_SCSP2
+int saved_centicycles;
+#endif
 
 int YabauseEmulate(void) {
    int oneframeexec = 0;
@@ -413,6 +422,16 @@ int YabauseEmulate(void) {
 #endif
 
    DoMovie();
+
+   #if defined(SH2_DYNAREC)
+   if(SH2Core->id==2) {
+     if (yabsys.IsPal)
+       YabauseDynarecOneFrameExec(722,0); // m68kcycles,m68kcenticycles
+     else
+       YabauseDynarecOneFrameExec(716,20);
+     return 0;
+   }
+   #endif
 
    while (!oneframeexec)
    {
@@ -856,6 +875,8 @@ int YabauseQuickLoadGame(void)
          lgpartition->numblocks = 0;
       }
 
+      SH2WriteNotify(0x6002000, blocks<<11);
+
       // Ok, now that we've loaded the ip, now it's time to load the
       // First Program
 
@@ -925,6 +946,8 @@ int YabauseQuickLoadGame(void)
          lgpartition->blocknum[lgpartition->numblocks - 1] = 0xFF;
          lgpartition->numblocks = 0;
       }
+
+      SH2WriteNotify(addr, blocks<<11);
 
       // Now setup SH2 registers to start executing at ip code
       SH2GetRegisters(MSH2, &MSH2->regs);

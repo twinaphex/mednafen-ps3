@@ -37,6 +37,12 @@ extern "C"
 	#include "sndmdfn.h"
 	#include "permdfnjoy.h"
 
+	//HACK: I really wanted to dummy this out, but a call is made from sh2_dynarac in an s file, so CPP can't do it
+	void								CheatDoPatches				()
+	{
+
+	}
+
 	int									YabaSkipFrame;
 
 	void								YuiSwapBuffers				()
@@ -75,6 +81,10 @@ extern "C"
 	SH2Interface_struct *SH2CoreList[] =
 	{
 		&SH2Interpreter,
+#ifdef SH2_DYNAREC
+#define SH2CORE_DYNAREC 2
+		&SH2Dynarec,
+#endif
 		0,
 	};
 
@@ -152,6 +162,9 @@ namespace MODULENAMESPACE
 	{
 		{"yabause.bios",		MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",							NULL,	MDFNST_STRING,	"satbios.bin"},
 		{"yabause.use_opengl",	MDFNSF_EMU_STATE,	"Use the OpenGL renderer.",									NULL,	MDFNST_BOOL,	"0"},
+#ifdef SH2_DYNAREC
+		{"yabause.sh2dynarec",	MDFNSF_EMU_STATE,	"Use the SH2 dynamic recompiler.",							NULL,	MDFNST_BOOL,	"0"},
+#endif
 		{NULL}
 	};
 
@@ -166,7 +179,11 @@ namespace MODULENAMESPACE
 		yabauseinit_struct yinit;
 		memset(&yinit, 0, sizeof(yabauseinit_struct));
 		yinit.percoretype = PERCORE_MDFNJOY;
-		yinit.sh2coretype = SH2CORE_DEFAULT;
+#ifdef SH2_DYNAREC
+		yinit.sh2coretype = MDFN_GetSettingB("yabause.sh2dynarec") ? SH2CORE_DYNAREC : SH2CORE_INTERPRETER;
+#else
+		yinit.sh2coretype = SH2CORE_INTERPRETER;
+#endif
 		yinit.vidcoretype = ModuleInfo.OpenGL ? VIDCORE_OGL : VIDCORE_SOFT;
 		yinit.sndcoretype = SNDCORE_MDFN;
 		yinit.cdcoretype = CDCORE_ARCH;
