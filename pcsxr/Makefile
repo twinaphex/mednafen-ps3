@@ -54,11 +54,11 @@ CFILES		+=	src/mednafen/input_plugin/analog.c						\
 
 CXXFILES	+=	src/mednafen/cdrplugin/cdr.cpp
 
-#ifeq ($(strip $(PLATFORM)),cell)
+ifeq ($(strip $(PLATFORM)),cell)
 	CPPFLAGS+=	-DNOPSXREC
-#else
+else
 	SOURCE	+= 	src/libpcsxcore/ix86_64 src/libpcsxcore/ix86
-#endif
+endif
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base
 

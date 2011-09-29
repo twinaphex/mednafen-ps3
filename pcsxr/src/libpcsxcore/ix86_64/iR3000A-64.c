@@ -425,7 +425,7 @@ static int recInit() {
 		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #else
 	recMem = MDFNDC_AllocateExec(RECMEM_SIZE + PTRMULT*0x1000);
-	recRAM = malloc(0x2x0000*PTRMULT);
+	recRAM = malloc(0x280000*PTRMULT);
 #endif
 
 	recROM = &recRAM[0x200000*PTRMULT];
@@ -463,11 +463,11 @@ static void recReset() {
 static void recShutdown() {
 	if (recMem == NULL) return;
 	free(psxRecLUT);
-#ifndef MDNFPS3 //Memory Allocation
+#ifndef MDFNPS3 //Memory Allocation
 	munmap(recMem, RECMEM_SIZE + PTRMULT*0x1000);
 	munmap(recRAM, 0x280000*PTRMULT);
 #else
-	MDFNDC_ExecFree(recMem, RECMEM_SIZE + PTRMULT*0x1000);
+	MDFNDC_FreeExec(recMem, RECMEM_SIZE + PTRMULT*0x1000);
 	free(recRAM);
 #endif
 	x86Shutdown();
