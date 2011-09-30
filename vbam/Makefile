@@ -10,7 +10,7 @@ INCLUDE			:=	.. ../mednafen/src src/src
 
 CPPFLAGS		+=	-DFINAL_VERSION -DSDL -DNO_PNG -DNO_DEBUGGER -DC_CORE -DMDFNPS3 -DNO_LINK
 CPPFLAGS		+=	-DsystemDebug=systemDebugVBAM -DStereo_Buffer=Stereo_BufferVBAM -DBlip_Buffer=Blip_BufferVBAM -DBlip_Synth_Fast_=Blip_Synth_Fast_VBAM
-CPPFLAGS		+=	-DBlip_Synth_=Blip_Synth_VBAM -DSilent_Blip_Buffer=Silent_Blip_BufferVBAM -Dblip_eq_t=blip_eq_tVBAM
+CPPFLAGS		+=	-DBlip_Synth_=Blip_Synth_VBAM -DSilent_Blip_Buffer=Silent_Blip_BufferVBAM -Dblip_eq_t=blip_eq_tVBAM -Dbreakpoint=breakpointVBAM
 
 CXXFILES		+=	src/mednafen.cpp									\
 					src/system.cpp
