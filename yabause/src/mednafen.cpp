@@ -37,31 +37,17 @@ extern "C"
 	#include "sndmdfn.h"
 	#include "permdfnjoy.h"
 
-	//HACK: I really wanted to dummy this out, but a call is made from sh2_dynarac in an s file, so CPP can't do it
-	void								CheatDoPatches				()
-	{
+	
+	int									YabaSkipFrame;				//Patched to core to skip frame is this is true
+	char								BatteryFile[1024];			//2K of BSS down the drain
+	char								CartFile[1024];
 
-	}
+	void								CheatDoPatches				() {}	//HACK: I really wanted to dummy this out, but a call is made from sh2_dynarac in an s file, so CPP can't do it
+	void								YuiSwapBuffers				() {}
+	void								YuiErrorMsg					(const char * string) {MDFN_printf("yabause: %s\n", string);}
 
-	int									YabaSkipFrame;
-
-	void								YuiSwapBuffers				()
-	{
-	}
-
-	void								YuiErrorMsg					(const char * string)
-	{
-		MDFN_printf("yabause: %s\n", string);
-	}
-
-	void								YuiSetVideoAttribute		(int type, int val)
-	{
-	}
-
-	int									YuiSetVideoMode				(int width, int height, int bpp, int fullscreen)
-	{
-		return 0;
-	}
+	void								YuiSetVideoAttribute		(int type, int val) {}
+	int									YuiSetVideoMode				(int width, int height, int bpp, int fullscreen) {return 0;}
 
 	static int32_t						ResolutionWidth = 320;
 	static int32_t						ResolutionHeight = 244;
@@ -158,15 +144,29 @@ namespace MODULENAMESPACE
 		{NULL, NULL}
 	};
 
+	const static MDFNSetting_EnumList		ModuleCartTypeList[] =
+	{
+		{"save4mbit",		CART_BACKUPRAM4MBIT,	"4 MBIT SAVE"		""},
+		{"save8mbit",		CART_BACKUPRAM8MBIT,	"8 MBIT SAVE"		""},
+		{"save16mbit",		CART_BACKUPRAM16MBIT,	"16 MBIT SAVE"		""},
+		{"save32mbit",		CART_BACKUPRAM32MBIT,	"32 MBIT SAVE"		""},
+		{"ram8mbit",		CART_DRAM8MBIT,			"8 MBIT RAM",		""},
+		{"ram32mbit",		CART_DRAM32MBIT,		"32 MBIT RAM",		""},
+		{"none",			CART_NONE,				"No Cart.",			""},
+		{0,					0,	0,										0}
+	};
+
 	static MDFNSetting						ModuleSettings[] =
 	{
 		{"yabause.bios",		MDFNSF_EMU_STATE,	"Path to Sega Satrun BIOS Image.",							NULL,	MDFNST_STRING,	"satbios.bin"},
 		{"yabause.use_opengl",	MDFNSF_EMU_STATE,	"Use the OpenGL renderer.",									NULL,	MDFNST_BOOL,	"0"},
+		{"yabause.cart_type",	MDFNSF_EMU_STATE,	"Type of addon cart to emulate.",							NULL,	MDFNST_ENUM,	"save4mbit", NULL, NULL, NULL, NULL, ModuleCartTypeList},
 #ifdef SH2_DYNAREC
 		{"yabause.sh2dynarec",	MDFNSF_EMU_STATE,	"Use the SH2 dynamic recompiler.",							NULL,	MDFNST_BOOL,	"0"},
 #endif
 		{NULL}
 	};
+
 
 	static int								ModuleLoad				()
 	{
@@ -174,6 +174,13 @@ namespace MODULENAMESPACE
 		static char biospath[1024];
 		strncpy(biospath, MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS("yabause.bios").c_str()).c_str(), 1024);
 		ModuleInfo.OpenGL = MDFN_GetSettingB("yabause.use_opengl");
+
+		//Get Save name
+		std::string filePath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, "saturn_system_save.bin");
+		strncpy(BatteryFile, filePath.c_str(), sizeof(BatteryFile));
+
+		filePath = MDFN_MakeFName(MDFNMKF_SAV, 0, "sav");
+		strncpy(CartFile, filePath.c_str(), sizeof(CartFile));
 
 		//Init yabause
 		yabauseinit_struct yinit;
@@ -188,13 +195,13 @@ namespace MODULENAMESPACE
 		yinit.sndcoretype = SNDCORE_MDFN;
 		yinit.cdcoretype = CDCORE_ARCH;
 		yinit.m68kcoretype = M68KCORE_Q68;
-		yinit.carttype = CART_NONE;
+		yinit.carttype = MDFN_GetSettingUI("yabause.cart_type");
 		yinit.regionid = REGION_AUTODETECT;
 		yinit.biospath = biospath;
 		yinit.cdpath = "";
-		yinit.buppath = "br.test";
+		yinit.buppath = BatteryFile;
 		yinit.mpegpath = 0;
-		yinit.cartpath = 0;
+		yinit.cartpath = CartFile;
 		yinit.netlinksetting = 0;
 	//	yinit.flags = VIDEOFORMATTYPE_NTSC;
 
