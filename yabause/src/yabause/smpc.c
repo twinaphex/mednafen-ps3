@@ -750,6 +750,11 @@ void FASTCALL SmpcWriteLong(USED_IF_SMPC_DEBUG u32 addr, UNUSED u32 val) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3
+# define FILE StateMemTag
+# define fseek(a, b, c) yseek(a, b, c)
+#endif
+
 int SmpcSaveState(FILE *fp)
 {
    int offset;

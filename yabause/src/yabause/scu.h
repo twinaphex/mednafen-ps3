@@ -306,7 +306,11 @@ int ScuDspAddCodeBreakpoint(u32 addr);
 int ScuDspDelCodeBreakpoint(u32 addr);
 scucodebreakpoint_struct *ScuDspGetBreakpointList(void);
 void ScuDspClearCodeBreakpoints(void);
-int ScuSaveState(FILE *fp);
-int ScuLoadState(FILE *fp, int version, int size);
-
+#ifndef MDFNPS3 //Save state hack
+int ScuSaveState(FILE *);
+int ScuLoadState(FILE *, int, int);
+#else
+int ScuSaveState(StateMemTag *);
+int ScuLoadState(StateMemTag *, int, int);
+#endif
 #endif

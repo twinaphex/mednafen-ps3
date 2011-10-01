@@ -72,7 +72,12 @@ extern cartridge_struct *CartridgeArea;
 int CartInit(const char *filename, int);
 void CartDeInit(void);
 
+#ifndef MDFNPS3 //Save state hack
 int CartSaveState(FILE *fp);
 int CartLoadState(FILE *fp, int version, int size);
+#else
+int CartSaveState(StateMemTag *fp);
+int CartLoadState(StateMemTag *fp, int version, int size);
+#endif
 
 #endif

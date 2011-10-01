@@ -3384,6 +3384,10 @@ void M68KClearCodeBreakpoints() {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+#endif
+
 int SoundSaveState(FILE *fp)
 {
    int i;
@@ -3619,6 +3623,11 @@ int SoundLoadState(FILE *fp, int version, int size)
 
    return size;
 }
+
+#ifdef MDFNPS3 //Save state hack
+# undef FILE
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////////
 

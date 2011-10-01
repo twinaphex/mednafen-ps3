@@ -2510,6 +2510,10 @@ void ScuSendExternalInterrupt15(void) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+#endif
+
 int ScuSaveState(FILE *fp)
 {
    int offset;

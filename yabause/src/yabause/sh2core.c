@@ -1830,6 +1830,10 @@ void SCITransmitByte(UNUSED u8 val) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3
+# define FILE StateMemTag
+#endif
+
 int SH2SaveState(SH2_struct *context, FILE *fp)
 {
    int offset;

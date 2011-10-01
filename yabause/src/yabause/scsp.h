@@ -96,8 +96,13 @@ void M68KExec(s32 cycles);
 void ScspExec(void);
 void ScspConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len);
 void ScspReceiveCDDA(const u8 *sector);
+#ifndef MDFNPS3 //Save state hack
 int SoundSaveState(FILE *fp);
 int SoundLoadState(FILE *fp, int version, int size);
+#else
+int SoundSaveState(StateMemTag *fp);
+int SoundLoadState(StateMemTag *fp, int version, int size);
+#endif
 void ScspSlotDebugStats(u8 slotnum, char *outstring);
 void ScspCommonControlRegisterDebugStats(char *outstring);
 int ScspSlotDebugSaveRegisters(u8 slotnum, const char *filename);

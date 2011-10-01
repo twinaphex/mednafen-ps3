@@ -385,8 +385,13 @@ void FASTCALL   Vdp2WriteByte(u32, u8);
 void FASTCALL   Vdp2WriteWord(u32, u16);
 void FASTCALL   Vdp2WriteLong(u32, u32);
 
-int Vdp2SaveState(FILE *fp);
-int Vdp2LoadState(FILE *fp, int version, int size);
+#ifndef MDFNPS3 //Save state hack
+int Vdp2SaveState(FILE *);
+int Vdp2LoadState(FILE *, int, int);
+#else
+int Vdp2SaveState(StateMemTag *);
+int Vdp2LoadState(StateMemTag *, int, int);
+#endif
 
 void ToggleNBG0(void);
 void ToggleNBG1(void);
