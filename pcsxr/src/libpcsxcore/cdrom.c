@@ -121,15 +121,22 @@ unsigned char Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
 // so (PSXCLK / 75) = cdr read time (linuzappz)
 #define cdReadTime (PSXCLK / 75)
 
-//ROBO: Rename to avoid conflict with libc's stat
-#define stat cdrstat
+#ifdef MDFNPS3 //Rename stat to avoid conflict with libc
+# define stat cdrstat
+#endif
+
 static struct CdrStat stat;
 static struct SubQ *subq;
 
 //ROBO: Copy from cdriso.c
-//extern unsigned int msf2sec(char *msf);
-//extern void sec2msf(unsigned int s, char *msf);
-// get a sector from a msf-array
+#ifndef MDFNPS3 //Include functions unavailable due to exclusion of cdriso.c
+extern unsigned int msf2sec(char *msf);
+extern void sec2msf(unsigned int s, char *msf);
+
+extern u16 *iso_play_cdbuf;
+extern u16 iso_play_bufptr;
+extern long CALLBACK ISOinit(void);
+#else
 unsigned int msf2sec(char *msf) {
 	return ((msf[0] * 60 + msf[1]) * 75) + msf[2];
 }
@@ -141,11 +148,8 @@ void sec2msf(unsigned int s, char *msf) {
 	s = s - msf[1] * 75;
 	msf[2] = s;
 }
+#endif
 
-//ROBO: Not using cdriso
-//extern u16 *iso_play_cdbuf;
-//extern u16 iso_play_bufptr;
-//extern long CALLBACK ISOinit(void);
 extern void CALLBACK SPUirq(void);
 extern SPUregisterCallback SPU_registerCallback;
 
@@ -234,8 +238,7 @@ void adjustTransferIndex()
 
 void cdrDecodedBufferInterrupt()
 {
-//ROBO: Not using cdriso
-#if 0
+#ifndef MDFNPS3 //Not using cdriso
 	u16 buf_ptr[0x400], lcv;
 
 #if 0
@@ -1360,6 +1363,7 @@ void cdrInterrupt() {
         	cdr.Result[0] = cdr.StatP;
 			cdr.StatP |= STATUS_SEEK;
         	cdr.Stat = Acknowledge;
+
 
 			/*
 			Crusaders of Might and Magic = 0.5x-4x

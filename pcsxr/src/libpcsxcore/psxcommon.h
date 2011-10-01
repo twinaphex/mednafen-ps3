@@ -43,7 +43,7 @@ extern "C" {
 #include <sys/types.h>
 #include <assert.h>
 #include <zlib.h>
-//ROBO: Use a fake gzfile implement for savestate support, these are implemented in src/mednafen.cpp
+#ifdef MDFNPS3 //Use a fake gzfile implement for savestate support, these are implemented in src/mednafen.cpp
 #define gzFile smFile
 #define gzopen smopen
 #define gzseek smseek
@@ -57,7 +57,7 @@ off_t smseek(smFile file, off_t offset, int whence);
 int smclose (smFile file );
 int smwrite (smFile file, const void* buf, unsigned int len);
 int smread (smFile file, void* buf, unsigned int len);
-
+#endif
 
 // Define types
 typedef int8_t s8;
@@ -106,8 +106,7 @@ typedef uint8_t boolean;
 
 #else
 
-//ROBO: Mednafen already defines this
-#ifndef _
+#ifndef _ //MDFNPS3: Mednafen already defines this
 #define _(msgid) msgid
 #define N_(msgid) msgid
 #endif

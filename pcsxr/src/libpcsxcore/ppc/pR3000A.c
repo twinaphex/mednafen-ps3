@@ -2278,7 +2278,6 @@ static void recLWBlock(int count) {
 	resp+= 4;
 
 	respsave = resp; resp = 0;
-
 	TEST32RtoR(EAX, EAX);
 	j32Ptr[4] = JZ32(0);
 	XOR32RtoR(ECX, ECX);

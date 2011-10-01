@@ -1070,14 +1070,18 @@ static void intReset() {
 	psxRegs.ICache_valid = FALSE;
 }
 
-//ROBO: Leave on command
+#ifndef MDFNPS3 //Leave on command
+static void intExecute() {
+	for (;;) 
+		execI();
+}
+#else
 int wanna_leave = 0;
 static void intExecute() {
 	wanna_leave = 0;
-	while(!wanna_leave)
-//	for(;;)
-		execI();
+	while(!wanna_leave) execI();
 }
+#endif
 
 static void intExecuteBlock() {
 	branch2 = 0;
@@ -1097,8 +1101,9 @@ inline void execI() {
 
 	debugI();
 
-//ROBO: No debug
-//	if (Config.Debug) ProcessDebug();
+#ifndef MDFNPS3 //No debug
+	if (Config.Debug) ProcessDebug();
+#endif
 
 	psxRegs.pc += 4;
 	psxRegs.cycle += BIAS;

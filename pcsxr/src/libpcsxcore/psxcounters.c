@@ -306,8 +306,9 @@ void psxRcntUpdate()
         }
     }
 
-//ROBO: No Debug
-//    DebugVSync();
+#ifndef MDFNPS3 //No debug
+    DebugVSync();
+#endif
 }
 
 /******************************************************************************/
