@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Sindre Aam�s                                    *
+ *   Copyright (C) 2007 by Sindre Aamås                                    *
  *   aamas@stud.ntnu.no                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,73 +19,129 @@
 #ifndef GAMBATTE_H
 #define GAMBATTE_H
 
-class CPU;
+#include "inputgetter.h"
+#include "gbint.h"
+#include <string>
 
-#include "videoblitter.h"
-#include "inputstate.h"
-#include "inputstategetter.h"
-//ROBO: No filters
-//#include "filterinfo.h"
-#include "int.h"
-#include <vector>
+namespace gambatte {
+enum { BG_PALETTE = 0, SP1_PALETTE = 1, SP2_PALETTE = 2 };
 
-//ROBO: Streams
-#include <iostream>
-
-namespace Gambatte {
 class GB {
-	CPU *const z80;
-	int stateNo;
-
-//ROBO: Take stream
-//	void loadState(const char *filepath, bool osdMessage);
-	void loadState(std::istream& filename, bool osdMessage);
-
 public:
 	GB();
 	~GB();
-
-//ROBO: Load from memory
-//	bool load(const char* romfile, bool forceDmg = false);	
-	bool load(std::istringstream& romfile, bool forceDmg = false);
 	
-	/** Emulates until at least 'samples' stereo sound samples are produced in the supplied buffer.
+	enum LoadFlag {
+		FORCE_DMG        = 1, /**< Treat the ROM as not having CGB support regardless of what its header advertises. */
+		GBA_CGB          = 2, /**< Use GBA intial CPU register values when in CGB mode. */
+		MULTICART_COMPAT = 4  /**< Use heuristics to detect and support some multicart MBCs disguised as MBC1. */
+	};
+	
+	/** Load ROM image.
+	  *
+	  * @param romfile  Path to rom image file. Typically a .gbc, .gb, or .zip-file (if zip-support is compiled in).
+	  * @param flags    ORed combination of LoadFlags.
+	  * @return true if failed to load ROM image.
+	  */
+#ifndef MDFNPS3 //Load ROM from memory
+	bool load(const std::string &romfile, unsigned flags = 0);
+#else
+	bool load(std::istringstream &romfile, unsigned flags = 0);
+#endif
+	
+	/** Emulates until at least 'samples' stereo sound samples are produced in the supplied buffer,
+	  * or until a video frame has been drawn.
+	  *
 	  * There are 35112 stereo sound samples in a video frame.
 	  * May run for uptil 2064 stereo samples too long.
 	  * A stereo sample consists of two native endian 2s complement 16-bit PCM samples,
 	  * with the left sample preceding the right one. Usually casting soundBuf to/from
 	  * short* is OK and recommended. The reason for not using a short* in the interface
-	  * is to avoid implementation defined behaviour without compromising performance.
+	  * is to avoid implementation-defined behaviour without compromising performance.
 	  *
+	  * Returns early when a new video frame has finished drawing in the video buffer,
+	  * such that the caller may update the video output before the frame is overwritten.
+	  * The return value indicates whether a new video frame has been drawn, and the
+	  * exact time (in number of samples) at which it was drawn.
+	  *
+	  * @param videoBuf 160x144 RGB32 (native endian) video frame buffer or 0
+	  * @param pitch distance in number of pixels (not bytes) from the start of one line to the next in videoBuf.
 	  * @param soundBuf buffer with space >= samples + 2064
-	  * @param samples number of stereo samples to produce
-	  * @return actual number of samples produced
+	  * @param samples in: number of stereo samples to produce, out: actual number of samples produced
+	  * @return sample number at which the video frame was produced. -1 means no frame was produced.
 	  */
-	unsigned runFor(Gambatte::uint_least32_t *soundBuf, unsigned samples);
+	long runFor(gambatte::uint_least32_t *videoBuf, int pitch,
+			gambatte::uint_least32_t *soundBuf, unsigned &samples);
 	
+	/** Reset to initial state.
+	  * Equivalent to reloading a ROM image, or turning a Game Boy Color off and on again.
+	  */
 	void reset();
-	void setVideoBlitter(VideoBlitter *vb);
-	void videoBufferChange();
-	unsigned videoWidth() const;
-	unsigned videoHeight() const;
-	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned rgb32);
-
-//ROBO: No filters	
-//	void setVideoFilter(unsigned n);
-//	std::vector<const FilterInfo*> filterInfo() const;
-	void setInputStateGetter(InputStateGetter *getInput);
 	
-	void set_savedir(const char *sdir);
+	/** @param palNum 0 <= palNum < 3. One of BG_PALETTE, SP1_PALETTE and SP2_PALETTE.
+	  * @param colorNum 0 <= colorNum < 4
+	  */
+	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned rgb32);
+	
+	/** Sets the callback used for getting input state. */
+	void setInputGetter(InputGetter *getInput);
+	
+	/** Sets the directory used for storing save data. The default is the same directory as the ROM Image file. */
+	void setSaveDir(const std::string &sdir);
+	
+	/** Returns true if the currently loaded ROM image is treated as having CGB support. */
 	bool isCgb() const;
-	void saveState();
+	
+	/** Returns true if a ROM image is loaded. */
+	bool isLoaded() const;
+
+#ifndef MDFNPS3 //Save state patches	
+	/** Saves emulator state to the state slot selected with selectState().
+	  * The data will be stored in the directory given by setSaveDir().
+	  *
+	  * @param videoBuf 160x144 RGB32 (native endian) video frame buffer or 0. Used for storing a thumbnail.
+	  * @param pitch distance in number of pixels (not bytes) from the start of one line to the next in videoBuf.
+	  */
+	void saveState(const gambatte::uint_least32_t *videoBuf, int pitch);
+	
+	/** Loads emulator state from the state slot selected with selectState().
+	  */
 	void loadState();
-//ROBO: Take a stream
-//	void saveState(const char *filepath);
-//	void loadState(const char *filepath);
-	void saveState(std::ostream& filepath);
-	void loadState(std::istream& filepath);
+	
+	/** Saves emulator state to the file given by 'filepath'.
+	  *
+	  * @param videoBuf 160x144 RGB32 (native endian) video frame buffer or 0. Used for storing a thumbnail.
+	  * @param pitch distance in number of pixels (not bytes) from the start of one line to the next in videoBuf.
+	  */
+	void saveState(const gambatte::uint_least32_t *videoBuf, int pitch, const std::string &filepath);
+	
+	/** Loads emulator state from the file given by 'filepath'.
+	  */
+	void loadState(const std::string &filepath);
+	
+	/** Selects which state slot to save state to or load state from.
+	  * There are 10 such slots, numbered from 0 to 9 (periodically extended for all n).
+	  */
 	void selectState(int n);
-	int currentState() const { return stateNo; }
+	
+	/** Current state slot selected with selectState(). Returns a value between 0 and 9 inclusive. */
+	int currentState() const;
+#else
+	void saveState(const gambatte::uint_least32_t *videoBuf, int pitch, std::ostream &file);
+	void loadState(std::istream &file);
+#endif
+
+private:
+	struct Priv;
+	Priv *const p_;
+
+#ifndef MDFNPS3 //Save state patches
+	void loadState(const std::string &filepath, bool osdMessage);
+#else
+	void loadState(std::istream &file, bool osdMessage);
+#endif
+	GB(const GB &);
+	GB & operator=(const GB &);
 };
 }
 

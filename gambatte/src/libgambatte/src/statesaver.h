@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Sindre Aamås                                    *
+ *   Copyright (C) 2008 by Sindre AamÃ¥s                                    *
  *   aamas@stud.ntnu.no                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,11 +19,12 @@
 #ifndef STATESAVER_H
 #define STATESAVER_H
 
-class SaveState;
+#include "gbint.h"
+#include <string>
 
-//ROBO: Streams
-#include <iostream>
+namespace gambatte {
 
+struct SaveState;
 
 class StateSaver {
 	StateSaver();
@@ -34,12 +35,17 @@ public:
 	enum { SS_WIDTH = 160 >> SS_SHIFT };
 	enum { SS_HEIGHT = 144 >> SS_SHIFT };
 
-//ROBO: Take a stream	
-//	static void saveState(const SaveState &state, const char *filename);
-//	static bool loadState(SaveState &state, const char *filename);
-	static void saveState(const SaveState &state, std::ostream& file);
-	static bool loadState(SaveState &state, std::istream& file);
-
+#ifndef MDFNPS3 //Save state patches	
+	static void saveState(const SaveState &state,
+			const uint_least32_t *videoBuf, int pitch, const std::string &filename);
+	static bool loadState(SaveState &state, const std::string &filename);
+#else
+	static void saveState(const SaveState &state,
+			const uint_least32_t *videoBuf, int pitch, std::ostream &file);
+	static bool loadState(SaveState &state, std::istream &file);
+#endif
 };
+
+}
 
 #endif
