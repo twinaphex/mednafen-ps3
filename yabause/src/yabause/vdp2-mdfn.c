@@ -1156,6 +1156,10 @@ void FASTCALL Vdp2WriteLong(u32 addr, u32 val) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+#endif
+
 int Vdp2SaveState(FILE *fp)
 {
    int offset;

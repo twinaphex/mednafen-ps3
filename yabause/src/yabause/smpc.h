@@ -98,6 +98,11 @@ void FASTCALL	SmpcWriteByte(u32, u8);
 void FASTCALL	SmpcWriteWord(u32, u16);
 void FASTCALL	SmpcWriteLong(u32, u32);
 
-int SmpcSaveState(FILE *fp);
-int SmpcLoadState(FILE *fp, int version, int size);
+#ifndef MDFNPS3 //Save state hack
+int SmpcSaveState(FILE *);
+int SmpcLoadState(FILE *, int, int);
+#else
+int SmpcSaveState(StateMemTag *);
+int SmpcLoadState(StateMemTag *, int, int);
+#endif
 #endif

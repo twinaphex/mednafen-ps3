@@ -37,6 +37,74 @@ extern "C"
 	#include "sndmdfn.h"
 	#include "permdfnjoy.h"
 
+	#define StateMemTag void
+
+	void ywrite(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, StateMemTag* stream) {
+	   IOCheck_struct checker;
+       IOCheck_struct* checkP = check ? check : &checker;
+
+	   (unsigned int)smem_write((StateMem*)stream, ptr, size * nmemb);
+	   checkP->done += (unsigned int)nmemb;
+	   checkP->size += (unsigned int)nmemb;
+	}
+
+	void yread(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, StateMemTag* stream) {
+	   IOCheck_struct checker;
+       IOCheck_struct* checkP = check ? check : &checker;
+
+	   (unsigned int)smem_read((StateMem*)stream, ptr, size * nmemb);
+	   checkP->done += (unsigned int)nmemb;
+	   checkP->size += (unsigned int)nmemb;
+	}
+
+	size_t yseek(StateMemTag* fp, size_t offset, int whence) {
+		return smem_seek((StateMem*)fp, offset, whence);
+	}
+
+	size_t ytell(StateMemTag* fp) {
+		return smem_tell((StateMem*)fp);
+	}
+
+	int StateWriteHeader(StateMemTag* fp, const char *name, int version) {
+	   IOCheck_struct check;
+       smem_write((StateMem*)fp, (void*)name, strlen(name));
+	   check.done = 0;
+	   check.size = 0;
+	   ywrite(&check, (void *)&version, sizeof(version), 1, fp);
+	   ywrite(&check, (void *)&version, sizeof(version), 1, fp); // place holder for size
+	   return (check.done == check.size) ? smem_tell((StateMem*)fp) : -1;
+	}
+
+	int StateFinishHeader(StateMemTag* fp, int offset) {
+	   IOCheck_struct check;
+	   int size = 0;
+	   size = smem_tell((StateMem*)fp) - offset;
+	   smem_seek((StateMem*)fp, offset - 4, SEEK_SET);
+	   check.done = 0;
+	   check.size = 0;
+	   ywrite(&check, (void *)&size, sizeof(size), 1, fp); // write true size
+	   smem_seek((StateMem*)fp, 0, SEEK_END);
+	   return (check.done == check.size) ? (size + 12) : -1;
+	}
+
+	int StateCheckRetrieveHeader(StateMemTag* fp, const char *name, int *version, int *size) {
+	   char id[4];
+	   size_t ret;
+
+	   if ((ret = smem_read((StateMem*)fp, (void *)id, 4)) != 4)
+		  return -1;
+
+	   if (strncmp(name, id, 4) != 0)
+		  return -2;
+
+	   if ((ret = smem_read((StateMem*)fp, (void *)version, 4)) != 4)
+		  return -1;
+
+	   if (smem_read((StateMem*)fp, (void *)size, 4) != 4)
+		  return -1;
+
+	   return 0;
+	}
 	
 	int									YabaSkipFrame;				//Patched to core to skip frame is this is true
 	char								BatteryFile[1024];			//2K of BSS down the drain
@@ -236,6 +304,15 @@ namespace MODULENAMESPACE
 
 	static int								ModuleStateAction		(StateMem *sm, int load, int data_only)
 	{
+		if(load)
+		{
+			return !YabLoadState(sm);
+		}
+		else
+		{
+			return !YabSaveState(sm);
+		}
+
 		return 0;
 	}
 

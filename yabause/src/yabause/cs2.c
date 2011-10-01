@@ -3498,6 +3498,10 @@ u8 Cs2GetRegionID(void)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+#endif
+
 int Cs2SaveState(FILE * fp) {
    int offset, i;
    IOCheck_struct check;

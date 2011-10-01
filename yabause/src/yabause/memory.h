@@ -395,9 +395,14 @@ int LoadBios(const char *filename);
 int LoadBackupRam(const char *filename);
 void FormatBackupRam(void *mem, u32 size);
 
+#ifndef MDFNPS3 //save state hack
 int YabSaveState(const char *filename);
 int YabLoadState(const char *filename);
 int YabSaveStateSlot(const char *dirpath, u8 slot);
 int YabLoadStateSlot(const char *dirpath, u8 slot);
+#else
+int YabSaveState(StateMemTag* fp);
+int YabLoadState(StateMemTag* fp);
+#endif
 
 #endif

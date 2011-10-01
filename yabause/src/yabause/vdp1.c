@@ -511,6 +511,10 @@ void FASTCALL Vdp1ReadCommand(vdp1cmd_struct *cmd, u32 addr) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+#endif
+
 int Vdp1SaveState(FILE *fp)
 {
    int offset;

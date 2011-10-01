@@ -991,6 +991,8 @@ void FormatBackupRam(void *mem, u32 size)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifndef MDFNPS3 //Functions unneeded by mednafen
+
 // FIXME: Here's a (possibly incomplete) list of data that should be added
 // to the next version of the save state file:
 //    yabsys.DecilineStop (new format)
@@ -1383,8 +1385,6 @@ int YabLoadStateSlot(const char *dirpath, u8 slot)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef MDFNPS3 //Functions unneeded by mednafen
-
 static int MappedMemoryAddMatch(u32 addr, u32 val, int searchtype, result_struct *result, u32 *numresults)
 {
    result[numresults[0]].addr = addr;
@@ -1684,4 +1684,326 @@ result_struct *MappedMemorySearch(u32 startaddr, u32 endaddr, int searchtype,
    return results;
 }
 
+#else
+int YabSaveState(StateMemTag* fp)
+{
+   u32 streamBase = ytell(fp);
+   u32 i;
+   int offset;
+   IOCheck_struct check;
+   u8 *buf;
+   int totalsize;
+   int outputwidth;
+   int outputheight;
+   int movieposition;
+   int temp;
+   u32 temp32;
+
+   check.done = 0;
+   check.size = 0;
+
+   // Write signature
+   ywrite(0, "YSS", 3, 1, fp);
+
+   // Write endianness byte
+#ifdef WORDS_BIGENDIAN
+   u8 p = 0;
+   ywrite(0, &p, 1, 1, fp);
+#else
+   u8 p = 1;
+   ywrite(0, &p, 1, 1, fp);
+#endif
+
+   // Write version(fix me)
+   i = 2;
+   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
+
+   // Skip the next 4 bytes for now
+   i = 0;
+   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
+
+   //write frame number
+   ywrite(&check, (void *)&framecounter, 4, 1, fp);
+
+   //this will be updated with the movie position later
+   ywrite(&check, (void *)&framecounter, 4, 1, fp);
+
+   // Go through each area and write each state
+   i += CartSaveState(fp);
+   i += Cs2SaveState(fp);
+   i += SH2SaveState(MSH2, fp);
+   i += SH2SaveState(SSH2, fp);
+   i += SoundSaveState(fp);
+   i += ScuSaveState(fp);
+   i += SmpcSaveState(fp);
+   i += Vdp1SaveState(fp);
+   i += Vdp2SaveState(fp);
+
+   offset = StateWriteHeader(fp, "OTHR", 1);
+
+   // Other data
+   ywrite(&check, (void *)BupRam, 0x10000, 1, fp); // do we really want to save this?
+   ywrite(&check, (void *)HighWram, 0x100000, 1, fp);
+   ywrite(&check, (void *)LowWram, 0x100000, 1, fp);
+
+   ywrite(&check, (void *)&yabsys.DecilineCount, sizeof(int), 1, fp);
+   ywrite(&check, (void *)&yabsys.LineCount, sizeof(int), 1, fp);
+   ywrite(&check, (void *)&yabsys.VBlankLineCount, sizeof(int), 1, fp);
+   ywrite(&check, (void *)&yabsys.MaxLineCount, sizeof(int), 1, fp);
+   temp = yabsys.DecilineStop >> YABSYS_TIMING_BITS;
+   ywrite(&check, (void *)&temp, sizeof(int), 1, fp);
+   temp = (yabsys.CurSH2FreqType == CLKTYPE_26MHZ) ? 268 : 286;
+   ywrite(&check, (void *)&temp, sizeof(int), 1, fp);
+   temp32 = (yabsys.UsecFrac * temp / 10) >> YABSYS_TIMING_BITS;
+   ywrite(&check, (void *)&temp32, sizeof(u32), 1, fp);
+   ywrite(&check, (void *)&yabsys.CurSH2FreqType, sizeof(int), 1, fp);
+   ywrite(&check, (void *)&yabsys.IsPal, sizeof(int), 1, fp);
+
+   VIDCore->GetGlSize(&outputwidth, &outputheight);
+
+   totalsize=outputwidth * outputheight * sizeof(u32);
+
+   if ((buf = (u8 *)malloc(totalsize)) == NULL)
+   {
+      return -2;
+   }
+
+   YuiSwapBuffers();
+   #ifdef USE_OPENGL
+   glPixelZoom(1,1);
+   glReadBuffer(GL_BACK);
+   glReadPixels(0, 0, outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+   #endif
+   YuiSwapBuffers();
+
+   ywrite(&check, (void *)&outputwidth, sizeof(outputwidth), 1, fp);
+   ywrite(&check, (void *)&outputheight, sizeof(outputheight), 1, fp);
+
+   ywrite(&check, (void *)buf, totalsize, 1, fp);
+
+   movieposition=ytell(fp);
+   //write the movie to the end of the savestate
+   SaveMovieInState(fp, check);
+
+   i += StateFinishHeader(fp, offset);
+
+   // Go back and update size
+   yseek(fp, streamBase + 8, SEEK_SET);
+   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
+   yseek(fp, streamBase + 16, SEEK_SET);
+   ywrite(&check, (void *)&movieposition, sizeof(movieposition), 1, fp);
+
+   yseek(fp, 0, SEEK_END);
+
+   return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+int YabLoadState(StateMemTag *fp)
+{
+   u32 streamBase = ytell(fp);
+   char id[3];
+   u8 endian;
+   int headerversion, version, size, chunksize, headersize;
+   IOCheck_struct check;
+   u8* buf;
+   int totalsize;
+   int outputwidth;
+   int outputheight;
+   int curroutputwidth;
+   int curroutputheight;
+   int movieposition;
+   int temp;
+   u32 temp32;
+
+   headersize = 0xC;
+
+   // Read signature
+   yread(&check, (void *)id, 1, 3, fp);
+
+   if (strncmp(id, "YSS", 3) != 0)
+   {
+      return -2;
+   }
+
+   // Read header
+   yread(&check, (void *)&endian, 1, 1, fp);
+   yread(&check, (void *)&headerversion, 4, 1, fp);
+   yread(&check, (void *)&size, 4, 1, fp);
+   switch(headerversion)
+   {
+      case 1:
+         /* This is the "original" version of the format */
+         break;
+      case 2:
+         /* version 2 adds video recording */
+         yread(&check, (void *)&framecounter, 4, 1, fp);
+		 movieposition=ytell(fp);
+		 yread(&check, (void *)&movieposition, 4, 1, fp);
+         headersize = 0x14;
+         break;
+      default:
+         /* we're trying to open a save state using a future version
+          * of the YSS format, that won't work, sorry :) */
+         return -3;
+         break;
+   }
+
+#ifdef WORDS_BIGENDIAN
+   if (endian == 1)
+#else
+   if (endian == 0)
+#endif
+   {
+      // should setup reading so it's byte-swapped
+      YabSetError(YAB_ERR_OTHER, (void *)"Load State byteswapping not supported");
+      return -3;
+   }
+
+   // Make sure size variable matches actual size minus header
+   yseek(fp, 0, SEEK_END);
+
+   if (size != ((ytell(fp) - streamBase) - headersize))
+   {
+      return -2;
+   }
+   yseek(fp, streamBase + headersize, SEEK_SET);
+
+   // Verify version here
+
+   ScspMuteAudio();
+   
+   if (StateCheckRetrieveHeader(fp, "CART", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   CartLoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "CS2 ", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   Cs2LoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "MSH2", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   SH2LoadState(MSH2, fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "SSH2", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   SH2LoadState(SSH2, fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "SCSP", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   SoundLoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "SCU ", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   ScuLoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "SMPC", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   SmpcLoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "VDP1", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   Vdp1LoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "VDP2", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   Vdp2LoadState(fp, version, chunksize);
+
+   if (StateCheckRetrieveHeader(fp, "OTHR", &version, &chunksize) != 0)
+   {
+      // Revert back to old state here
+      ScspUnMuteAudio();
+      return -3;
+   }
+   // Other data
+   yread(&check, (void *)BupRam, 0x10000, 1, fp);
+   yread(&check, (void *)HighWram, 0x100000, 1, fp);
+   yread(&check, (void *)LowWram, 0x100000, 1, fp);
+
+   yread(&check, (void *)&yabsys.DecilineCount, sizeof(int), 1, fp);
+   yread(&check, (void *)&yabsys.LineCount, sizeof(int), 1, fp);
+   yread(&check, (void *)&yabsys.VBlankLineCount, sizeof(int), 1, fp);
+   yread(&check, (void *)&yabsys.MaxLineCount, sizeof(int), 1, fp);
+   yread(&check, (void *)&temp, sizeof(int), 1, fp);
+   yread(&check, (void *)&temp, sizeof(int), 1, fp);
+   yread(&check, (void *)&temp32, sizeof(u32), 1, fp);
+   yread(&check, (void *)&yabsys.CurSH2FreqType, sizeof(int), 1, fp);
+   yread(&check, (void *)&yabsys.IsPal, sizeof(int), 1, fp);
+   YabauseChangeTiming(yabsys.CurSH2FreqType);
+   yabsys.UsecFrac = (temp32 << YABSYS_TIMING_BITS) * temp / 10;
+
+   if (headerversion > 1) {
+
+   yread(&check, (void *)&outputwidth, sizeof(outputwidth), 1, fp);
+   yread(&check, (void *)&outputheight, sizeof(outputheight), 1, fp);
+
+   totalsize=outputwidth * outputheight * sizeof(u32);
+
+   if ((buf = (u8 *)malloc(totalsize)) == NULL)
+   {
+      return -2;
+   }
+
+   yread(&check, (void *)buf, totalsize, 1, fp);
+
+   YuiSwapBuffers();
+
+   #ifdef USE_OPENGL
+   if(VIDCore->id == VIDCORE_SOFT)
+     glRasterPos2i(0, outputheight);
+   if(VIDCore->id == VIDCORE_OGL)
+	 glRasterPos2i(0, outputheight/2);
+   #endif
+
+   VIDCore->GetGlSize(&curroutputwidth, &curroutputheight);
+   #ifdef USE_OPENGL
+   glPixelZoom((float)curroutputwidth / (float)outputwidth, ((float)curroutputheight / (float)outputheight));
+   glDrawPixels(outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+   #endif
+   YuiSwapBuffers();
+
+   yseek(fp, movieposition, SEEK_SET);
+   MovieReadState(fp, filename);
+   }
+   
+   ScspUnMuteAudio();
+   return 0;
+}
 #endif

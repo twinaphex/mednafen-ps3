@@ -156,8 +156,13 @@ void Vdp1Draw(void);
 void Vdp1NoDraw(void);
 void FASTCALL Vdp1ReadCommand(vdp1cmd_struct *cmd, u32 addr);
 
-int Vdp1SaveState(FILE *fp);
-int Vdp1LoadState(FILE *fp, int version, int size);
+#ifndef MDFNPS3 //Save state hack
+int Vdp1SaveState(FILE *);
+int Vdp1LoadState(FILE *, int, int);
+#else
+int Vdp1SaveState(StateMemTag *);
+int Vdp1LoadState(StateMemTag *, int, int);
+#endif
 
 char *Vdp1DebugGetCommandNumberName(u32 number);
 void Vdp1DebugCommand(u32 number, char *outstring);

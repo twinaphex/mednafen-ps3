@@ -459,8 +459,13 @@ void FASTCALL DataArrayWriteLong(u32 addr, u32 val);
 void FASTCALL MSH2InputCaptureWriteWord(u32 addr, u16 data);
 void FASTCALL SSH2InputCaptureWriteWord(u32 addr, u16 data);
 
+#ifndef MDFNPS3 //Save state hack
 int SH2SaveState(SH2_struct *context, FILE *fp);
 int SH2LoadState(SH2_struct *context, FILE *fp, int version, int size);
+#else
+int SH2SaveState(SH2_struct *context, StateMemTag *fp);
+int SH2LoadState(SH2_struct *context, StateMemTag *fp, int version, int size);
+#endif
 
 #if defined(SH2_DYNAREC)
 extern SH2Interface_struct SH2Dynarec;

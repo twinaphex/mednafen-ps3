@@ -127,6 +127,7 @@ typedef struct {
 	unsigned int done;
 } IOCheck_struct;
 
+#ifndef MDFNPS3 //Save state hack
 static INLINE void ywrite(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, FILE * stream) {
    check->done += (unsigned int)fwrite(ptr, size, nmemb, stream);
    check->size += (unsigned int)nmemb;
@@ -177,6 +178,17 @@ static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *vers
 
    return 0;
 }
+#else
+#define StateMemTag void
+void ywrite(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, StateMemTag* stream);
+void yread(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, StateMemTag* stream);
+size_t yseek(StateMemTag* fp, size_t offset, int whence);
+size_t ytell(StateMemTag* fp);
+int StateWriteHeader(StateMemTag* fp, const char *name, int version);
+int StateFinishHeader(StateMemTag* fp, int offset);
+int StateCheckRetrieveHeader(StateMemTag* fp, const char *name, int *version, int *size);
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////////
 

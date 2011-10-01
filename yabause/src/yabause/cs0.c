@@ -1469,6 +1469,12 @@ void CartDeInit(void)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef MDFNPS3 //Save state hack
+# define FILE StateMemTag
+# define fwrite(a, b, c, d) ywrite(0, a, b, c, d)
+# define fread(a, b, c, d) yread(0, a, b, c, d)
+#endif
+
 int CartSaveState(FILE * fp)
 {
    int offset;
@@ -1501,4 +1507,5 @@ int CartLoadState(FILE * fp, UNUSED int version, int size)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+
 
