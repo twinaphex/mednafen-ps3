@@ -19,8 +19,7 @@ Free Software Foundation, Inc.,
 
 #include <fstream>
 
-//ROBO: Load from memory
-#include <sstream>
+namespace gambatte {
 
 class File {
   private:
@@ -43,8 +42,12 @@ class File {
   std::size_t gcount() const { return count; }
   bool fail() const { return stream.fail(); }
 };
+}
+#ifdef MDFNPS3 //Load ROM from memory
 
-//ROBO: Add a MemoryFile class
+#include <sstream>
+
+namespace gambatte {
 class MemoryFile {
   private:
   //ROBO: Are there any side effects of storing a reference here?
@@ -62,3 +65,6 @@ class MemoryFile {
   std::size_t gcount() const { return count; }
   bool fail() const { return stream.fail(); }
 };
+}
+#endif
+

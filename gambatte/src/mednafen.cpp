@@ -1,65 +1,37 @@
 #include <mednafen/mednafen.h>
 #include <mednafen/git.h>
+#include <mednafen/md5.h>
 
 #include <sstream>
+
+#include "resample/resamplerinfo.h"
+#include "resample/resampler.h"
 
 #define MODULENAMESPACE gmbt
 #include <module_helper.h>
 
 #include "gambatte.h"
-#include "resample/resamplerinfo.h"
 
-using namespace Gambatte;
+using namespace gambatte;
 
 namespace gmbt
 {
 	GB*						GambatteEmu;
-	::Resampler*			Resample;
-	
+
+	::Resampler*			resampler;	
+
 	uint32_t				Samples[48000];
 	uint32_t				Resamples[48000];
 	int32_t					SampleOverflow;
 
-	EmulateSpecStruct*		ESpec;
-
-	//Class for processing video data
-	class gbblitter : public VideoBlitter
+	class gbinput : public InputGetter
 	{
-		public:
-								gbblitter				()			{buffer.pixels = 0;}
-								~gbblitter				()			{delete[] (uint32_t*)buffer.pixels;}
-			const PixelBuffer	inBuffer				()			{return buffer;}
-
-			void				setBufferDimensions		(unsigned aWidth, unsigned aHeight)
-			{
-				delete[] (uint32_t*)buffer.pixels;
-				buffer.pixels = new uint32_t[aWidth * aHeight];
-
-				width = aWidth;
-				height = aHeight;
-				buffer.pitch = aWidth;
-			}
-
-			void				blit					()
-			{
-				gmbt::Video::BlitRGB(ESpec, (uint32_t*)buffer.pixels, width, height, width);
-			}
-
-		protected:
-			uint32_t			width, height;
-			PixelBuffer			buffer;
+		unsigned operator()()
+		{
+			return Input::GetPort<0, 1>();
+		}
 	};
-	gbblitter					Blitter;
-
-
-	//Class for feeded gambatte input data
-	class gbinput : public InputStateGetter
-	{
-		public:
-			const InputState& 	operator()			()	{return inputs;};
-			InputState			inputs;
-	};
-	gbinput						ButtonState;
+	gbinput InputState;
 }
 using namespace	gmbt;
 
@@ -111,9 +83,14 @@ namespace MODULENAMESPACE
 
 	static int								ModuleLoad				(const char *name, MDFNFILE *fp)
 	{
+		//Get Game MD5
+		md5_context md5;
+		md5.starts();
+		md5.update(fp->data, fp->size);
+		md5.finish(MDFNGameInfo->MD5);
+
 		//Create gambatte objects
 		GambatteEmu = new GB();
-		Resample = ResamplerInfo::get(0).create(2097152, 48000, 35112);
 
 		//Init sound values
 		SampleOverflow = 0;
@@ -124,7 +101,6 @@ namespace MODULENAMESPACE
 		std::istringstream file(std::string((const char*)fp->data, (size_t)fp->size), std::ios_base::in | std::ios_base::binary);	
 		if(GambatteEmu->load(file, MDFN_GetSettingB("gmbt.forcedmg")))
 		{
-			delete Resample;
 			delete GambatteEmu;
 
 			MDFND_PrintError("gambatte: Failed to load ROM");
@@ -132,8 +108,7 @@ namespace MODULENAMESPACE
 		}
 
 		//Give gambatte it's objects
-		GambatteEmu->setVideoBlitter(&Blitter);
-		GambatteEmu->setInputStateGetter(&ButtonState);
+		GambatteEmu->setInputGetter(&InputState);
 
 		//Done
 		return 1;
@@ -147,7 +122,7 @@ namespace MODULENAMESPACE
 
 	static void								ModuleCloseGame			()
 	{
-		delete Resample;
+//		delete Resample;
 		delete GambatteEmu;
 		GambatteEmu = 0;
 	}
@@ -158,7 +133,7 @@ namespace MODULENAMESPACE
 		{
 			//Get the state data from gambatte
 			std::ostringstream os(std::ios_base::out | std::ios_base::binary);
-			GambatteEmu->saveState(os);
+			GambatteEmu->saveState(0, 0, os);
 
 			//Feed it to medanfen and leave
 			smem_write32le(sm, os.str().size());
@@ -189,43 +164,25 @@ namespace MODULENAMESPACE
 
 	static void								ModuleEmulate		(EmulateSpecStruct *espec)
 	{
-		ESpec = espec;
-
-		//TODO: VIDEO PREP (Color Type, shifts)
-
-		//SOUND PREP
+		//AUDIO PREP
 		if(espec->SoundFormatChanged)
 		{
-			Resample->adjustRate(2097152, (espec->SoundRate > 1.0) ? espec->SoundRate : 22050);
+			//Fir_Resampler can't handle the rate I guess
+			resampler = ResamplerInfo::get(0).create(2097152, espec->SoundRate, 48000);
 		}
 
-		//INPUT
-		uint32_t portdata = gmbt::Input::GetPort<0, 2>();
-		ButtonState.inputs.startButton	= (portdata & 8) ? 1 : 0;
-		ButtonState.inputs.selectButton	= (portdata & 4) ? 1 : 0;
-		ButtonState.inputs.bButton		= (portdata & 2) ? 1 : 0;
-		ButtonState.inputs.aButton		= (portdata & 1) ? 1 : 0;
-		ButtonState.inputs.dpadUp		= (portdata & 0x40) ? 1 : 0;
-		ButtonState.inputs.dpadDown		= (portdata & 0x80) ? 1 : 0;
-		ButtonState.inputs.dpadLeft		= (portdata & 0x20) ? 1 : 0;
-		ButtonState.inputs.dpadRight	= (portdata & 0x10) ? 1 : 0;
+		//EMULATE
+		uint32_t samps = 35112 + SampleOverflow;
+		GambatteEmu->runFor((gambatte::uint_least32_t*)espec->surface->pixels, espec->surface->pitchinpix, (gambatte::uint_least32_t*)Samples, samps);
+		SampleOverflow += 35112 - samps;
 
-		//EXECUTE
-		uint32_t samps = GambatteEmu->runFor((Gambatte::uint_least32_t*)Samples, 35112 - SampleOverflow);
-		SampleOverflow += samps;
-		SampleOverflow -= 35112;
-
-		//SOUND COPY
-		uint32_t count = Resample->resample((short*)Resamples, (short*)Samples, samps);
-
-		if(espec->SoundBuf && (espec->SoundBufMaxSize >= count))
-		{
-			espec->SoundBufSize = count;
-			memcpy(espec->SoundBuf, Resamples, espec->SoundBufSize * 4);
-		}
-
-		//VIDEO SIZE
+		//VIDEO
 		gmbt::Video::SetDisplayRect(espec, 0, 0, 160, 144);
+
+		//AUDIO
+		int32_t count = resampler->resample((short*)Resamples, (short*)Samples, samps);
+		espec->SoundBufSize = std::min(espec->SoundBufMaxSize, count);
+		memcpy(espec->SoundBuf, Resamples, espec->SoundBufSize * 4);
 
 		//TODO: Real timing
 		espec->MasterCycles = 1LL * 100;

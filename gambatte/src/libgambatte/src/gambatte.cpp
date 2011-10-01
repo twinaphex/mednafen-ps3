@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Sindre Aam�s                                    *
+ *   Copyright (C) 2007 by Sindre Aamås                                    *
  *   aamas@stud.ntnu.no                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,162 +21,186 @@
 #include "savestate.h"
 #include "statesaver.h"
 #include "initstate.h"
-//ROBO: No OSD
-//#include "state_osd_elements.h"
-#include <string>
+#include "state_osd_elements.h"
 #include <sstream>
 
-static const std::string itos(int i) {
+static const std::string itos(const int i) {
 	std::stringstream ss;
-	
 	ss << i;
-	
-	std::string out;
-	
-	ss >> out;
-	
-	return out;
+	return ss.str();
 }
 
-static const std::string statePath(const std::string &basePath, int stateNo) {
+static const std::string statePath(const std::string &basePath, const int stateNo) {
 	return basePath + "_" + itos(stateNo) + ".gqs";
 }
 
-namespace Gambatte {
-GB::GB() : z80(new CPU), stateNo(1) {}
+namespace gambatte {
+struct GB::Priv {
+	CPU cpu;
+	int stateNo;
+	bool gbaCgbMode;
+	
+	Priv() : stateNo(1), gbaCgbMode(false) {}
+};
+	
+GB::GB() : p_(new Priv) {}
 
 GB::~GB() {
-	delete z80;
+	if (p_->cpu.loaded())
+		p_->cpu.saveSavedata();
+	
+	delete p_;
 }
 
-unsigned GB::runFor(Gambatte::uint_least32_t *const soundBuf, const unsigned samples) {
-	z80->setSoundBuffer(soundBuf);
-	z80->runFor(samples * 2);
+long GB::runFor(gambatte::uint_least32_t *const videoBuf, const int pitch,
+			gambatte::uint_least32_t *const soundBuf, unsigned &samples) {
+	if (!p_->cpu.loaded()) {
+		samples = 0;
+		return -1;
+	}
 	
-	return z80->fillSoundBuffer();
+	p_->cpu.setVideoBuffer(videoBuf, pitch);
+	p_->cpu.setSoundBuffer(soundBuf);
+	const long cyclesSinceBlit = p_->cpu.runFor(samples * 2);
+	samples = p_->cpu.fillSoundBuffer();
+	
+	return cyclesSinceBlit < 0 ? cyclesSinceBlit : static_cast<long>(samples) - (cyclesSinceBlit >> 1);
 }
 
 void GB::reset() {
-	z80->saveSavedata();
+	if (p_->cpu.loaded()) {
+		p_->cpu.saveSavedata();
+		
+		SaveState state;
+		p_->cpu.setStatePtrs(state);
+		setInitState(state, p_->cpu.isCgb(), p_->gbaCgbMode);
+		p_->cpu.loadState(state);
+		p_->cpu.loadSavedata();
+	}
+}
+
+void GB::setInputGetter(InputGetter *getInput) {
+	p_->cpu.setInputGetter(getInput);
+}
+
+void GB::setSaveDir(const std::string &sdir) {
+	p_->cpu.setSaveDir(sdir);
+}
+
+#ifndef MDFNPS3 //Load ROM from memory
+bool GB::load(const std::string &romfile, const unsigned flags) {
+#else
+bool GB::load(std::istringstream &romfile, const unsigned flags) {
+#endif
+	if (p_->cpu.loaded())
+		p_->cpu.saveSavedata();
 	
-	SaveState state;
-	z80->setStatePtrs(state);
-	setInitState(state, z80->isCgb());
-	z80->loadState(state);
-	z80->loadSavedata();
-	
-// 	z80->reset();
-}
-
-void GB::setVideoBlitter(VideoBlitter *vb) {
-	z80->setVideoBlitter(vb);
-}
-
-void GB::videoBufferChange() {
-	z80->videoBufferChange();
-}
-
-unsigned GB::videoWidth() const {
-	return z80->videoWidth();
-}
-
-unsigned GB::videoHeight() const {
-	return z80->videoHeight();
-}
-
-//ROBO: No filters
-/*void GB::setVideoFilter(const unsigned n) {
-	z80->setVideoFilter(n);
-}
-
-std::vector<const FilterInfo*> GB::filterInfo() const {
-	return z80->filterInfo();
-}*/
-
-void GB::setInputStateGetter(InputStateGetter *getInput) {
-	z80->setInputStateGetter(getInput);
-}
-
-void GB::set_savedir(const char *sdir) {
-	z80->set_savedir(sdir);
-}
-
-//ROBO: Load from memory
-//bool GB::load(const char* romfile, const bool forceDmg) {
-bool GB::load(std::istringstream& romfile, const bool forceDmg) {
-	z80->saveSavedata();
-	
-	const bool failed = z80->load(romfile, forceDmg);
+	const bool failed = p_->cpu.load(romfile, flags & FORCE_DMG, flags & MULTICART_COMPAT);
 	
 	if (!failed) {
 		SaveState state;
-		z80->setStatePtrs(state);
-		setInitState(state, z80->isCgb());
-		z80->loadState(state);
-		z80->loadSavedata();
+		p_->cpu.setStatePtrs(state);
+		setInitState(state, p_->cpu.isCgb(), p_->gbaCgbMode = flags & GBA_CGB);
+		p_->cpu.loadState(state);
+		p_->cpu.loadSavedata();
 		
-		stateNo = 1;
-//ROBO: No OSD
-//		z80->setOsdElement(std::auto_ptr<OsdElement>());
+		p_->stateNo = 1;
+		p_->cpu.setOsdElement(std::auto_ptr<OsdElement>());
 	}
 	
 	return failed;
 }
 
 bool GB::isCgb() const {
-	return z80->isCgb();
+	return p_->cpu.isCgb();
+}
+
+bool GB::isLoaded() const {
+	return p_->cpu.loaded();
 }
 
 void GB::setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned rgb32) {
-	z80->setDmgPaletteColor(palNum, colorNum, rgb32);
+	p_->cpu.setDmgPaletteColor(palNum, colorNum, rgb32);
 }
 
-//ROBO: Take a stream
-//void GB::loadState(const char *const filepath, const bool osdMessage) {
-void GB::loadState(std::istream& filepath, const bool osdMessage) {
-	z80->saveSavedata();
-	
-	SaveState state;
-	z80->setStatePtrs(state);
-	
-	if (StateSaver::loadState(state, filepath)) {
-		z80->loadState(state);
-	
-//ROBO: No OSD	
-//		if (osdMessage)
-//			z80->setOsdElement(newStateLoadedOsdElement(stateNo));
+#ifndef MDFNPS3 //Save state patches
+void GB::loadState(const std::string &filepath, const bool osdMessage) {
+	if (p_->cpu.loaded()) {
+		p_->cpu.saveSavedata();
+		
+		SaveState state;
+		p_->cpu.setStatePtrs(state);
+		
+		if (StateSaver::loadState(state, filepath)) {
+			p_->cpu.loadState(state);
+			
+			if (osdMessage)
+				p_->cpu.setOsdElement(newStateLoadedOsdElement(p_->stateNo));
+		}
 	}
 }
 
-//ROBO: Don't need
-void GB::saveState() {
-//	saveState(statePath(z80->saveBasePath(), stateNo).c_str());
-//	z80->setOsdElement(newStateSavedOsdElement(stateNo));
+void GB::saveState(const gambatte::uint_least32_t *const videoBuf, const int pitch) {
+	if (p_->cpu.loaded()) {
+		saveState(videoBuf, pitch, statePath(p_->cpu.saveBasePath(), p_->stateNo));
+		p_->cpu.setOsdElement(newStateSavedOsdElement(p_->stateNo));
+	}
 }
 
 void GB::loadState() {
-//	loadState(statePath(z80->saveBasePath(), stateNo).c_str(), true);
+	loadState(statePath(p_->cpu.saveBasePath(), p_->stateNo), true);
 }
 
-//ROBO: Take a stream
-//void GB::saveState(const char *filepath) {
-void GB::saveState(std::ostream& filepath) {
-	SaveState state;
-	z80->setStatePtrs(state);
-	z80->saveState(state);
-	StateSaver::saveState(state, filepath);
+void GB::saveState(const gambatte::uint_least32_t *const videoBuf, const int pitch, const std::string &filepath) {
+	if (p_->cpu.loaded()) {
+		SaveState state;
+		p_->cpu.setStatePtrs(state);
+		p_->cpu.saveState(state);
+		StateSaver::saveState(state, videoBuf, pitch, filepath);
+	}
 }
 
-//ROBO: Take a stream
-//void GB::loadState(const char *const filepath) {
-void GB::loadState(std::istream& filepath) {
+void GB::loadState(const std::string &filepath) {
 	loadState(filepath, false);
 }
 
 void GB::selectState(int n) {
 	n -= (n / 10) * 10;
-	stateNo = n < 0 ? n + 10 : n;
-//ROBO: No OSD
-//	z80->setOsdElement(newSaveStateOsdElement(statePath(z80->saveBasePath(), stateNo).c_str(), stateNo));
+	p_->stateNo = n < 0 ? n + 10 : n;
+	
+	if (p_->cpu.loaded())
+		p_->cpu.setOsdElement(newSaveStateOsdElement(statePath(p_->cpu.saveBasePath(), p_->stateNo), p_->stateNo));
 }
+
+int GB::currentState() const { return p_->stateNo; }
+#else
+void GB::loadState(std::istream &filepath, const bool osdMessage) {
+	if (p_->cpu.loaded()) {
+		p_->cpu.saveSavedata();
+		
+		SaveState state;
+		p_->cpu.setStatePtrs(state);
+		
+		if (StateSaver::loadState(state, filepath)) {
+			p_->cpu.loadState(state);
+			
+			if (osdMessage)
+				p_->cpu.setOsdElement(newStateLoadedOsdElement(p_->stateNo));
+		}
+	}
+}
+
+void GB::saveState(const gambatte::uint_least32_t *const videoBuf, const int pitch, std::ostream &filepath) {
+	if (p_->cpu.loaded()) {
+		SaveState state;
+		p_->cpu.setStatePtrs(state);
+		p_->cpu.saveState(state);
+		StateSaver::saveState(state, videoBuf, pitch, filepath);
+	}
+}
+
+void GB::loadState(std::istream &filepath) {
+	loadState(filepath, false);
+}
+#endif
 }
