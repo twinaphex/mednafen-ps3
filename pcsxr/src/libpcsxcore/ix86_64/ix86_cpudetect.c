@@ -145,8 +145,8 @@ u64 GetCPUTick( void )
 #endif
 }
 
-//ROBO: Use mednafen timing
-/*#if defined(__LINUX__) || defined(__APPLE__)
+#ifndef MDFNPS3 //Don't bother with CPU Speed
+#if defined(__LINUX__) || defined(__APPLE__)
 
 #include <sys/time.h>
 #include <errno.h>
@@ -157,10 +157,8 @@ unsigned long timeGetTime2()
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return (unsigned long)tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
 }
-//
-#endif*/
-
-#define timeGetTime2 MDFNDC_GetTime
+//*/
+#endif
 
 s64 CPUSpeedHz( unsigned int time )
 {
@@ -205,6 +203,9 @@ s64 CPUSpeedHz( unsigned int time )
 
 	return (s64)( ( endTick - startTick ) + ( overhead ) );
 }
+#else
+# define CPUSpeedHz(t) (1 * 1000 * 1000)
+#endif
 
 ////////////////////////////////////////////////////
 void cpudetectInit( void ) 

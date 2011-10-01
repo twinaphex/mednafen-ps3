@@ -26,6 +26,7 @@
 #include "ix86.h"
 #ifndef MDFNPS3 //Memory allocation
 #include <sys/mman.h>
+
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
 #endif
@@ -361,8 +362,6 @@ void iDumpBlock(char *ptr) {
 	system("ndisasmw -u dump1");
 	fflush(stdout);
 }
-
-
 
 #define REC_FUNC(f) \
 void psx##f(); \
@@ -1731,7 +1730,6 @@ extern u32 LWR_SHIFT[4];
 void iLWRk(u32 shift) {
 	if (IsConst(_Rt_)) {
 		MOV32ItoR(ECX, iRegs[_Rt_].k);
-
 	} else {
 		MOV32MtoR(ECX, (u32)&psxRegs.GPR.r[_Rt_]);
 	}
@@ -1770,7 +1768,6 @@ void recLWR() {
 	else {
 		MOV32MtoR(EAX, (u32)&psxRegs.GPR.r[_Rs_]);
 		if (_Imm_) ADD32ItoR(EAX, _Imm_);
-
 	}
 	PUSH32R  (EAX);
 	AND32ItoR(EAX, ~3);
@@ -2098,7 +2095,6 @@ void recSWL() {
 
 #if 0
 		if ((t & 0x1fe0) == 0 && (t & 0x1fff) != 0) {
-
 			MOV32MtoR(EAX, (u32)&psxM[addr & 0x1ffffc]);
 			iSWLk(addr & 3);
 			MOV32RtoM((u32)&psxM[addr & 0x1ffffc], EAX);

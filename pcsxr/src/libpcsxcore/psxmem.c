@@ -25,11 +25,13 @@
 #include "r3000a.h"
 #include "psxhw.h"
 
-//ROBO: No special method for allocating memory
-//#include <sys/mman.h>
-//#ifndef MAP_ANONYMOUS
-//#define MAP_ANONYMOUS MAP_ANON
-//#endif
+#ifndef MDFNPS3 //No special method for allocating memory
+#include <sys/mman.h>
+
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+#endif
 
 s8 *psxM = NULL; // Kernel & User Memory (2 Meg)
 s8 *psxP = NULL; // Parallel Port (64K)
@@ -66,10 +68,12 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-//ROBO: No special method for allocating memory
-//	psxM = mmap(0, 0x00220000,
-//		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#ifndef MDFNPS3 //No special method for allocating memory
+	psxM = mmap(0, 0x00220000,
+		PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#else
 	psxM = malloc(0x00220000);
+#endif
 
 	psxP = &psxM[0x200000];
 	psxH = &psxM[0x210000];
@@ -108,7 +112,7 @@ int psxMemInit() {
 	return 0;
 }
 
-#ifdef MDFNPS3 //ROBO: Change bios loader
+#ifdef MDFNPS3 //Change bios loader
 extern void MDFNPCSXGetBios(uint8_t* aBuffer);
 #endif
 
@@ -119,7 +123,7 @@ void psxMemReset() {
 	memset(psxM, 0, 0x00200000);
 	memset(psxP, 0, 0x00010000);
 
-#ifndef MDFNPS3 //ROBO: Change bios loader
+#ifndef MDFNPS3 //Change bios loader
 	// Load BIOS
 	if (strcmp(Config.Bios, "HLE") != 0) {
 		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
@@ -142,9 +146,11 @@ void psxMemReset() {
 }
 
 void psxMemShutdown() {
-//ROBO: No special method for allocating memory
-//	munmap(psxM, 0x00220000);
+#ifndef MDFNPS3 //No special method for allocating memory
+	munmap(psxM, 0x00220000);
+#else
 	free(psxM);
+#endif
 
 	free(psxR);
 	free(psxMemRLUT);
@@ -170,9 +176,10 @@ u8 psxMemRead8(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR1);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR1);
+#endif
 			return *(u8 *)(p + (mem & 0xffff));
 		} else {
 #ifdef PSXMEM_LOG
@@ -200,9 +207,10 @@ u16 psxMemRead16(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR2);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR2);
+#endif
 			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
@@ -230,9 +238,10 @@ u32 psxMemRead32(u32 mem) {
 	} else {
 		p = (char *)(psxMemRLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR4);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BR4);
+#endif
 			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
 		} else {
 #ifdef PSXMEM_LOG
@@ -260,9 +269,10 @@ void psxMemWrite8(u32 mem, u8 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW1);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW1);
+#endif
 			*(u8 *)(p + (mem & 0xffff)) = value;
 #ifdef PSXREC
 			psxCpu->Clear((mem & (~3)), 1);
@@ -292,9 +302,10 @@ void psxMemWrite16(u32 mem, u16 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW2);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW2);
+#endif
 			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
 #ifdef PSXREC
 			psxCpu->Clear((mem & (~3)), 1);
@@ -325,9 +336,10 @@ void psxMemWrite32(u32 mem, u32 value) {
 	} else {
 		p = (char *)(psxMemWLUT[t]);
 		if (p != NULL) {
-//ROBO: No Debug
-//			if (Config.Debug)
-//				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW4);
+#ifndef MDFNPS3 //No Debug
+			if (Config.Debug)
+				DebugCheckBP((mem & 0xffffff) | 0x80000000, BW4);
+#endif
 			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
 #ifdef PSXREC
 			psxCpu->Clear(mem, 1);

@@ -101,8 +101,9 @@ void mmssdd( char *b, char *p )
 	READTRACK(); \
 	memcpy(_dir + 2048, buf + 12, 2048);
 
-//ROBO: Use strncasecmp instead of strnicmp (gnu vs windows!)
-#define strnicmp strncasecmp
+#ifdef MDFNPS3 //Use strncasecmp instead of strnicmp (gnu vs windows!)
+# define strnicmp strncasecmp
+#endif
 
 int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
 	struct iso_directory_record *dir;

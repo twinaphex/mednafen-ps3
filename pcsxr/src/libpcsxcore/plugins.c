@@ -22,8 +22,9 @@
 */
 
 #include "plugins.h"
-//ROBO: Not using cdriso
-//#include "cdriso.h"
+#ifndef MDFNPS3 // Not using cdriso
+#include "cdriso.h"
+#endif
 
 static char IsoFile[MAXPATHLEN] = "";
 static s64 cdOpenCaseTime = 0;
@@ -55,6 +56,7 @@ GPUregisterCallback   GPU_registerCallback;
 GPUidle               GPU_idle;
 GPUvisualVibration    GPU_visualVibration;
 GPUcursor             GPU_cursor;
+GPUaddVertex          GPU_addVertex;
 
 CDRinit               CDR_init;
 CDRshutdown           CDR_shutdown;
@@ -224,6 +226,7 @@ void CALLBACK GPU__registerCallback(void (CALLBACK *callback)(int)) {}
 void CALLBACK GPU__idle(void) {}
 void CALLBACK GPU__visualVibration(unsigned long iSmall, unsigned long iBig) {}
 void CALLBACK GPU__cursor(int player, int x, int y) {}
+void CALLBACK GPU__addVertex(short sx,short sy,s64 fx,s64 fy,s64 fz) {}
 
 #define LoadGpuSym1(dest, name) \
 	LoadSym(GPU_##dest, GPU##dest, name, TRUE);
@@ -268,6 +271,7 @@ static int LoadGPUplugin(const char *GPUdll) {
     LoadGpuSym0(idle, "GPUidle");
     LoadGpuSym0(visualVibration, "GPUvisualVibration");
     LoadGpuSym0(cursor, "GPUcursor");
+	LoadGpuSym0(addVertex, "GPUaddVertex");
 	LoadGpuSym0(configure, "GPUconfigure");
 	LoadGpuSym0(test, "GPUtest");
 	LoadGpuSym0(about, "GPUabout");
@@ -308,11 +312,12 @@ long CALLBACK CDR__setfilename(char*filename) { return 0; }
 static int LoadCDRplugin(const char *CDRdll) {
 	void *drv;
 
-//ROBO: Not using cdriso
-/*	if (CDRdll == NULL) {
+#ifndef MDFNPS3 //No cdriso
+	if (CDRdll == NULL) {
 		cdrIsoInit();
 		return 0;
-	}*/
+	}
+#endif
 
 	hCDRDriver = SysLoadLibrary(CDRdll);
 	if (hCDRDriver == NULL) {
@@ -803,8 +808,11 @@ void ReleasePlugins() {
 	}
 	NetOpened = FALSE;
 
-//ROBO: Not using cdriso
-	if (hCDRDriver != NULL /*|| cdrIsoActive()*/) CDR_shutdown();
+#ifndef MDFNPS3 //Not using cdriso
+	if (hCDRDriver != NULL || cdrIsoActive()) CDR_shutdown();
+#else
+	if (hCDRDriver != NULL) CDR_shutdown();
+#endif
 	if (hGPUDriver != NULL) GPU_shutdown();
 	if (hSPUDriver != NULL) SPU_shutdown();
 	if (hPAD1Driver != NULL) PAD1_shutdown();
