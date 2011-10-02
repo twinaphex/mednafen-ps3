@@ -45,7 +45,7 @@ class										ESVideoPlatform
 		///@param aPrescale Unused, set to 1.
 		static void							SetFilter				(const std::string& aName, uint32_t aPrescale);
 
-		static void							Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput);
+		static void							Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip);
 
 		///Determine if the platform supports specifing the vertical sync setting. If this returns false, it is an error to call
 		///the SetVSync function.
@@ -128,7 +128,7 @@ class								ESVideo : public ESVideoPlatform
 		///Present a FrameBuffer to the screen. The FrameBuffer will fill the entire screen and may be passed through a Cg fragment shader.
 		///@param aFrameBuffer Pointer to the FrameBuffer to draw.
 		///@param aViewPort Portion, in pixels, of the FrameBuffer that should be drawn.
-		static void					PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort); //External
+		static void					PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort, bool aFlip = false); //External
 
 		///Update the output Area that will be used by PresentFrame.
 		///@param aAspectOverride Override aspect ratio correction. If -1 the image will be drawn to cover the entire screen, if 1 the image will have bars along the
@@ -139,7 +139,7 @@ class								ESVideo : public ESVideoPlatform
 
 		
 	private:
-		static void					PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort);
+		static void					PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, bool aFlip = false);
 
 		static void					SetVertex				(GLfloat* aBase, float aX, float aY, float aR, float aG, float aB, float aA, float aU, float aV);
 		static void					InitializeState			();

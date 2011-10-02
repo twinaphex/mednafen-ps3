@@ -88,9 +88,9 @@ void											ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t
 	CgPresenter::SetFilter(aName, aPrescale);
 }
 
-void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
+void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip)
 {
-	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput);
+	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput, aFlip);
 }
 
 
