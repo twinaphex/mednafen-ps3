@@ -30,6 +30,8 @@
 #include <cmath> //sqrt
 #include "Logger.h"
 
+#include "../../opengl_state_machine.h"
+
 //Vertex
 struct Vertex
 {

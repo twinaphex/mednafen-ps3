@@ -52,7 +52,7 @@ void sglDepthFunc(GLenum func);
 void sglDepthMask(GLboolean flag);
 void sglDepthRange(GLclampd nearVal, GLclampd farVal);
 void sglScissor(GLint x, GLint y, GLsizei width, GLsizei height);
-
+void sglPolygonOffset(GLfloat factor, GLfloat units);
 
 void sglActiveTextureARBs(GLenum texture);
 void sglClientActiveTextureARBs(GLenum texture);
@@ -82,6 +82,7 @@ void sglMatrixMode(GLenum mode);
 #define glDepthMask sglDepthMask
 #define glDepthRange sglDepthRange
 #define glScissor sglScissor
+#define glPolygonOffset sglPolygonOffset
 
 #define glActiveTextureARB sglActiveTextureARBs
 #define glClientActiveTextureARB sglClientActiveTextureARBs
