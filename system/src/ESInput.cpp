@@ -1,25 +1,26 @@
 #include <es_system.h>
 
-void							ESInput_Button::SetState		(bool aPressed)
+void							ESInput_Button::SetState		(uint16_t aPressed)
 {
 	//Update jammed state
-	Jammed = (Jammed && aPressed);
+	Jammed = (Jammed && (aPressed > 0x2000));
 
 	//Only if the state is changed
-	if(Pressed != aPressed)
+	if(((Pressed < 0x2000) && (aPressed > 0x2000)) || ((Pressed > 0x2000) && (aPressed < 0x2000)))
 	{
-		Pressed = aPressed;
 		Inspected = false;
 		PressedTime = Utility::GetTicks();
 	}
+
+	Pressed = aPressed;
 }
 
-bool							ESInput_Button::GetStateRepeat	()
+uint16_t						ESInput_Button::GetStateRepeat	()
 {
 	if(GetStateInspected())
 	{
 		PressedTime = Utility::GetTicks();
-		return true;
+		return Pressed;
 	}
 	else if(GetState())
 	{
@@ -27,11 +28,11 @@ bool							ESInput_Button::GetStateRepeat	()
 		if((time - PressedTime) > 250)
 		{
 			PressedTime += 250;
-			return true;
+			return Pressed;
 		}
 	}
 
-	return false;
+	return 0;
 }
 
 void							ESInput::Initialize				()
@@ -56,7 +57,7 @@ uint32_t						ESInput::WaitForESKey			(bool aGuarantee)
 		for(uint32_t i = 0; i != 14; i ++)
 		{
 			ESInput_Button* button = GetButton(ES_BUTTON_UP + i);
-			if(button && button->GetStateRepeat())
+			if(button && (button->GetStateRepeat() > 0x8000))
 			{
 				return ES_BUTTON_UP + i;
 			}
@@ -98,7 +99,7 @@ void							ESInput::Refresh				()
 	{
 		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
 		{
-			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : false);
+			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : 0);
 		}
 	}
 
@@ -107,7 +108,7 @@ void							ESInput::Refresh				()
 	{
 		for(InputDevice::iterator j = i->begin(); j != i->end(); j ++)
 		{
-			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : false);
+			j->SetState(j->Refresh ? j->Refresh(j->User1, j->User2, j->User3) : 0);
 		}
 	}
 }
@@ -121,7 +122,7 @@ uint32_t						ESInput::GetAnyButton			()
 	{
 		for(int j = 0; j != Inputs[i].size(); j ++)
 		{
-			if(Inputs[i][j].GetState())
+			if(Inputs[i][j].GetState() > 0x8000)
 			{
 				return (i * 1024) + j;
 			}
@@ -133,7 +134,7 @@ uint32_t						ESInput::GetAnyButton			()
 	{
 		for(int j = 0; j != SubInputs[i].size(); j ++)
 		{
-			if(SubInputs[i][j].GetState())
+			if(SubInputs[i][j].GetState() > 0x8000)
 			{
 				return 0x10000 + (0x10000 * i) + j;
 			}

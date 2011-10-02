@@ -61,19 +61,21 @@ namespace
 
 	static PadState				Pads[4];
 
-	bool						FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t					FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
-		return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] < -8192) ? true : false) : false;
+		int16_t value = Pads[aPad].Valid ? Pads[aPad].Axis[aAxis] : 0;
+		return (value < -0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool						FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t					FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
-		return Pads[aPad].Valid ? ((Pads[aPad].Axis[aAxis] > 8192) ? true : false) : false;
+		int16_t value = Pads[aPad].Valid ? Pads[aPad].Axis[aAxis] : 0;
+		return (value > 0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool						FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	uint16_t					FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
 	{
-		return Pads[aPad].Valid ? ((Pads[aPad].State.Gamepad.wButtons & aButton) ? true : false) : false;
+		return Pads[aPad].Valid ? ((Pads[aPad].State.Gamepad.wButtons & aButton) ? 65535 : 0) : 0;
 	}
 }
 

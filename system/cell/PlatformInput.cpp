@@ -24,22 +24,24 @@ namespace
 	CellPadData					CurrentState[4];
 
 	//Callbacks to obtain button state.
-	bool						FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t					FetchAxisLow							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
 		int realaxis = 4 + (4 - 1 - aAxis);
-		return CurrentState[aPad].button[realaxis] < 0x40;
+		int16_t value = ((CurrentState[aPad].button[realaxis] << 8) - 0x8000);
+		return (value < -0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool						FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t					FetchAxisHigh							(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
 		int realaxis = 4 + (4 - 1 - aAxis);
-		return CurrentState[aPad].button[realaxis] > 0xC0;
+		int16_t value = ((CurrentState[aPad].button[realaxis] << 8) - 0x8000);
+		return (value > 0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool						FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	uint16_t					FetchButton								(uint32_t aPad, uint32_t aButton, uint32_t aA)
 	{
 		uint32_t totalButtons = CurrentState[aPad].button[2] | (CurrentState[aPad].button[3] << 8);
-		return (totalButtons & (1 << aButton)) ? true : false;
+		return (totalButtons & (1 << aButton)) ? 65535 : 0;
 	}
 }
 

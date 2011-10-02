@@ -12,6 +12,8 @@ namespace
 		const InputDeviceInputInfoStruct*		Data;
 	};
 
+	const uint16_t								DeadZone = 0x8000;
+
 	const MDFNGI*								GameInfo;
 	uint32_t									RapidCount;
 	std::vector<InputInfo>						Inputs[16];
@@ -79,7 +81,7 @@ class									SettingGenerator : public InputEnumeratorBase
 			{
 				MDFNSetting	thisInput = {0, MDFNSF_CAT_INPUT, aDescription->Name, DeviceInfo->FullName, MDFNST_UINT, "4294967294"};
 
-				if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID || aDescription->Type == IDIT_BUTTON_BYTE)
+				if(aDescription->Type == IDIT_BUTTON || aDescription->Type == IDIT_BUTTON_CAN_RAPID || aDescription->Type == IDIT_BUTTON_BYTE || aDescription->Type == IDIT_ANALOG)
 				{
 					thisInput.name = Utility::VAPrintD("%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName);
 					Settings.push_back(thisInput);
@@ -159,7 +161,7 @@ class									ConfigurePrepper : public InputEnumeratorBase
 
 			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
 			{	
-				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE))
+				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE || i->Data->Type == IDIT_ANALOG))
 				{
 					AddSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
 				}
@@ -254,7 +256,7 @@ class									ConfigureImmediate : public InputEnumeratorBase
 
 			for(std::list<ButtonInfo>::iterator i = ButtonList.begin(); i != ButtonList.end(); i ++)
 			{	
-				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE))
+				if(i->Data->SettingName && (i->Data->Type == IDIT_BUTTON || i->Data->Type == IDIT_BUTTON_CAN_RAPID || i->Data->Type == IDIT_BUTTON_BYTE ||i->Data->Type == IDIT_ANALOG))
 				{
 					DoSetting(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, i->Data->SettingName));
 				}
@@ -346,6 +348,15 @@ class									SettingReader : public InputEnumeratorBase
 					ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
 				}
 				BitIndex = ii.BitOffset + 8;
+			}
+			else if(aDescription->Type == IDIT_ANALOG) //Analog = 16 bits aligned to 16 bit boundary (mednafen-ps3 patch)
+			{
+				ii.BitOffset = ((BitIndex + 15) & ~15);
+				if(aDescription->SettingName)
+				{
+					ii.Button = MDFN_GetSettingUI(Utility::VAPrint(StringBuffer, sizeof(StringBuffer), "%s.esinput.port%d.%s.%s", GameInfo->shortname, PortIndex, DeviceInfo->ShortName, aDescription->SettingName));
+				}
+				BitIndex = ii.BitOffset + 16;
 			}
 			else if(aDescription->Type == IDIT_BYTE_SPECIAL) //Byte Special = 8 packed bits? (Famicom barcode reader type device?)
 			{
@@ -444,16 +455,23 @@ void							InputHandler::Process							()
 			int bit = Inputs[p][i].BitOffset & 7;
 
 			//Get any non rapid press
-			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID || Inputs[p][i].Data->Type == IDIT_BUTTON_BYTE) && (ESInput::ButtonPressed(Inputs[p][i].Button)))
+			if((Inputs[p][i].Data->Type == IDIT_BUTTON || Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID || Inputs[p][i].Data->Type == IDIT_BUTTON_BYTE) && (ESInput::ButtonPressed(Inputs[p][i].Button) > DeadZone))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
 
 			//Get any rapid press
-			if((Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && (ESInput::ButtonPressed(Inputs[p][i].RapidButton) && (RapidCount == 0)))
+			if((Inputs[p][i].Data->Type == IDIT_BUTTON_CAN_RAPID) && ((ESInput::ButtonPressed(Inputs[p][i].RapidButton) > DeadZone) && (RapidCount == 0)))
 			{
 				ControllerBits[p][byte] |= 1 << bit;
 			}
+
+			//Get analog
+			if((Inputs[p][i].Data->Type == IDIT_ANALOG))
+			{
+				*(uint16_t*)&ControllerBits[p][byte] = ESInput::ButtonPressed(Inputs[p][i].Button);
+			}
+
 
 #if 0 //Something like this for mouse support
 			static int32_t x = 0;

@@ -19,30 +19,32 @@ namespace
 	std::vector<SDL_Joystick*>		Joysticks;
 
 	//State callbacks
-	bool							FetchKey							(uint32_t aKey, uint32_t aA, uint32_t aB)
+	uint16_t						FetchKey							(uint32_t aKey, uint32_t aA, uint32_t aB)
 	{
 		int numkeys;
-		return SDL_GetKeyState(&numkeys)[aKey];
+		return SDL_GetKeyState(&numkeys)[aKey] ? 65535 : 0;
 	}
 
-	bool							FetchAxisLow						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t						FetchAxisLow						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
-		return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) < -0x4000;
+		int16_t value = SDL_JoystickGetAxis(Joysticks[aPad], aAxis);
+		return (value < -0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool							FetchAxisHigh						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
+	uint16_t						FetchAxisHigh						(uint32_t aPad, uint32_t aAxis, uint32_t aA)
 	{
-		return SDL_JoystickGetAxis(Joysticks[aPad], aAxis) > 0x4000;
+		int16_t value = SDL_JoystickGetAxis(Joysticks[aPad], aAxis);
+		return (value > 0x1000) ? abs(value) << 1 : 0;
 	}
 
-	bool							FetchHat							(uint32_t aPad, uint32_t aHat, uint32_t aDirection)
+	uint16_t						FetchHat							(uint32_t aPad, uint32_t aHat, uint32_t aDirection)
 	{
-		return SDL_JoystickGetHat(Joysticks[aPad], aHat) & aDirection;
+		return (SDL_JoystickGetHat(Joysticks[aPad], aHat) & aDirection) ? 65535 : 0;
 	}
 
-	bool							FetchButton							(uint32_t aPad, uint32_t aButton, uint32_t aA)
+	uint16_t						FetchButton							(uint32_t aPad, uint32_t aButton, uint32_t aA)
 	{
-		return SDL_JoystickGetButton(Joysticks[aPad], aButton);
+		return SDL_JoystickGetButton(Joysticks[aPad], aButton) ? 65535 : 0;
 	}
 }
 
