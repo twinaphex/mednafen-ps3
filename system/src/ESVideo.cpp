@@ -102,6 +102,7 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FrameBufferID); glSplat();
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0); glSplat();
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, aBuffer->GetDepthID());
 	}
 	else
 	{
@@ -143,10 +144,10 @@ void					ESVideo::PresentFrame			(Texture* aTexture, const Area& aViewPort)
 	PresentFrame(aTexture->GetID(), aTexture->GetWidth(), aTexture->GetHeight(), aViewPort);
 }
 
-void					ESVideo::PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort)
+void					ESVideo::PresentFrame			(FrameBuffer* aFrameBuffer, const Area& aViewPort, bool aFlip)
 {
 	assert(aFrameBuffer);
-	PresentFrame(aFrameBuffer->GetID(), aFrameBuffer->GetWidth(), aFrameBuffer->GetHeight(), aViewPort);
+	PresentFrame(aFrameBuffer->GetID(), aFrameBuffer->GetWidth(), aFrameBuffer->GetHeight(), aViewPort, aFlip);
 }
 
 
@@ -179,7 +180,7 @@ void					ESVideo::UpdatePresentArea		(int32_t aAspectOverride, int32_t aUndersca
 	PresentArea = Area(usLeft, usTop, usRight - usLeft, usBottom - usTop);
 }
 
-void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort)
+void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, bool aFlip)
 {
 	//Enter present state
 	EnterPresentState();
@@ -202,7 +203,7 @@ void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight,
 	//Call kiddie present if possible
 	if(SupportsShaders())
 	{
-		Present(aID, aWidth, aHeight, aViewPort, presentArea);
+		Present(aID, aWidth, aHeight, aViewPort, presentArea, aFlip);
 
 		/* Reset vertex buffer */
 		ApplyVertexBuffer(VertexBuffer, true);
@@ -213,6 +214,11 @@ void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight,
 		float xr = (float)aViewPort.Right() / (float)aWidth;
 		float yl = (float)aViewPort.Y / (float)aHeight;
 		float yr = (float)aViewPort.Bottom() / (float)aHeight;
+
+		if(aFlip)
+		{
+			std::swap(yl, yr);
+		}
 
 		glBindTexture(GL_TEXTURE_2D, aID); glSplat();
 

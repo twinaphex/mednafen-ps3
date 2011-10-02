@@ -14,8 +14,9 @@
 #define glSplat()
 #endif
 
-									FrameBuffer::FrameBuffer		(uint32_t aWidth, uint32_t aHeight) :
+									FrameBuffer::FrameBuffer		(uint32_t aWidth, uint32_t aHeight, bool aDepthBuffer) :
 	ID(0),
+	DepthID(0),
 	Width(aWidth),
 	Height(aHeight),
 	Filter(false),
@@ -30,6 +31,14 @@
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); glSplat();
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); glSplat();
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); glSplat();
+
+	if(aDepthBuffer)
+	{
+		glGenRenderbuffersEXT(1, &DepthID); glSplat();
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, DepthID); glSplat();
+		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, aWidth, aHeight); glSplat();
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0); glSplat();
+	}
 }
 						
 									FrameBuffer::~FrameBuffer		()

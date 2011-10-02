@@ -36,12 +36,17 @@ void							CgPresenter::AttachBorder			(Texture* aTexture)
 	Border = aTexture;
 }
 
-void							CgPresenter::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput)
+void							CgPresenter::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip)
 {
 	float xl = (float)aViewPort.X / (float)aWidth;
 	float xr = (float)aViewPort.Right() / (float)aWidth;
 	float yl = (float)aViewPort.Y / (float)aHeight;
 	float yr = (float)aViewPort.Bottom() / (float)aHeight;
+
+	if(aFlip)
+	{
+		std::swap(yl, yr);
+	}
 
 	Presenter->SetViewport(xl, xr, yl, yr);
 	Presenter->Set(aOutput, aViewPort.Width, aViewPort.Height, aWidth, aHeight);

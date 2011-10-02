@@ -16,6 +16,6 @@ class										CgPresenter
 		///@param aPrescale Unused, set to 1.
 		static void							SetFilter				(const std::string& aName, uint32_t aPrescale);
 
-		static void							Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput);
+		static void							Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip);
 };
 
