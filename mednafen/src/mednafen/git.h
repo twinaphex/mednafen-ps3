@@ -62,6 +62,9 @@ typedef enum
  IDIT_X_AXIS_REL,  // 32-bits, signed
  IDIT_Y_AXIS_REL,  // 32-bits, signed
  IDIT_BYTE_SPECIAL,
+#ifdef MDFNPS3 //Analog controls
+ IDIT_ANALOG,      // 16-bits, unsigned
+#endif
 } InputDeviceInputType;
 
 #include "git-virtb.h"

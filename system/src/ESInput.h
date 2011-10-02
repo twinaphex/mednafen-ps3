@@ -24,7 +24,7 @@ class								ESInput_Button
 
 	public:
 		///Callback type for refreshing the Button's pressed state.
-		typedef	bool				(*RefreshFunction)		(uint32_t, uint32_t, uint32_t);
+		typedef	uint16_t			(*RefreshFunction)		(uint32_t, uint32_t, uint32_t);
 	
 		///Create a new Button object.
 		///@param aCallback Function that will be called to determine the Button's state.
@@ -33,13 +33,13 @@ class								ESInput_Button
 		///@param aUser3 User data that will be passed to the callback.
 		///@param aName Friendly name of the Button.
 									ESInput_Button			(RefreshFunction aCallback, uint32_t aUser1, uint32_t aUser2, uint32_t aUser3, const std::string& aName) :
-			Name(aName), Pressed(false), Inspected(true), Jammed(true), PressedTime(0), User1(aUser1), User2(aUser2), User3(aUser3), Refresh(aCallback)
+			Name(aName), Pressed(0), Inspected(true), Jammed(true), PressedTime(0), User1(aUser1), User2(aUser2), User3(aUser3), Refresh(aCallback)
 		{
 		}
 
 		///Set the pressed state of the button.
 		///@param aPressed True if the Button is pressed.
-		void						SetState				(bool aPressed); //External
+		void						SetState				(uint16_t aPressed); //External
 
 		///Get the name of the button.
 		///@return The friendly name of the button.
@@ -51,25 +51,25 @@ class								ESInput_Button
 
 		///Get the pressed state of the button.
 		///@return True if the Button is pressed.
-		bool						GetState				() {return Jammed ? false : Pressed;}
+		uint16_t					GetState				() {return Jammed ? 0 : Pressed;}
 
 		///Get the pressed state of the button.
 		///@return True if the Button is pressed.
-		bool						GetStateInspected		()
+		uint16_t					GetStateInspected		()
 		{
-			bool result = Inspected ? false : Pressed;
+			uint16_t result = Inspected ? 0 : Pressed;
 			Inspected = true;
-			return Jammed ? false : result;
+			return Jammed ? 0 : result;
 		}
 
 		///Get the state of the button with a repeating pulse.
 		///@return True if the Button is pressed.
-		bool						GetStateRepeat			();
+		uint16_t					GetStateRepeat			();
 
 	private:
 		std::string					Name;					///<Friendly name of the Button.
 
-		bool						Pressed;				///<Set to true when the Button is pressed, false when the button is released.
+		uint16_t					Pressed;				///<Set to a range of 0-65535 indicating the presed state of the button.
 		bool						Inspected;				///<Set to true after a call to GetStateInspected, false when the button is released.
 		bool						Jammed;					///<Set to true after a call to Reset, false when the button is released.
 		uint32_t					PressedTime;			///<Internal timer used for GetStateRepeat.
@@ -81,8 +81,8 @@ class								ESInput_Button
 		///@param aUser1 A 32-bit user data.
 		///@param aUser2 A 32-bit user data.
 		///@param aUser3 A 32-bit user data.
-		///@return True if the Button is pressed, false if it is released.
-		bool						(*Refresh)				(uint32_t aUser1, uint32_t aUser2, uint32_t aUser3);
+		///@return The button's state.
+		uint16_t					(*Refresh)				(uint32_t aUser1, uint32_t aUser2, uint32_t aUser3);
 };
 
 ///Static, platform independent, class used to manage inputs.
@@ -117,20 +117,20 @@ class				ESInput
 
 		///Determine if a button is being held down.
 		///@param aButton Button to check on device.
-		///@return True if the button is held down.
-		static inline bool					ButtonPressed			(uint32_t aButton)
+		///@return 0-65535
+		static inline uint16_t				ButtonPressed			(uint32_t aButton)
 		{
 			ESInput_Button* button = GetButton(aButton);
-			return button && button->GetState();
+			return button ? button->GetState() : 0;
 		}
 
 		///Determine if a button was pressed. This function returns true only once for every time the button is pressed.
 		///@param aButton Button ID to check.
-		///@return True if the button was pressed.
-		static inline bool					ButtonDown				(uint32_t aButton)
+		///@return 0-65535
+		static inline uint16_t				ButtonDown				(uint32_t aButton)
 		{
 			ESInput_Button* button = GetButton(aButton);
-			return button && button->GetStateInspected();
+			return button ? button->GetStateInspected() : 0;
 		}
 
 		///Get the friendly name of a button.
