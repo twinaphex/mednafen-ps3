@@ -214,6 +214,11 @@ namespace	MODULENAMESPACE
 			Ports[aPort] = aData;
 		}
 
+		inline uint8_t* __attribute((always_inline))	GetPortData					(uint32_t aPort)
+		{
+			return Ports[aPort];
+		}
+
 		template <int tBytes>
 		inline uint32_t __attribute((always_inline))	GetPort						(uint32_t aPort)
 		{
