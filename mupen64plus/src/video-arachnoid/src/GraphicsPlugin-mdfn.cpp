@@ -35,6 +35,8 @@
 #include "RomDetector.h"
 #include <ctime>
 
+#include "../opengl_state_machine.h"
+
 //FrameBuffer framebuffer01;
 //FrameBuffer framebuffer02;
 

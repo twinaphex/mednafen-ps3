@@ -26,6 +26,8 @@ using std::max;
 #include "MultiTexturingExt.h"    //glActiveTextureARB
 #include "ExtensionChecker.h"
 
+#include "../../opengl_state_machine.h"
+
 #ifndef GL_ATI_texture_env_combine3
 #define GL_ATI_texture_env_combine3
     #define GL_ATI_texture_env_combine3

@@ -24,6 +24,8 @@
 #include "m64p.h"
 #include "OpenGL.h"
 
+#include "../../opengl_state_machine.h"
+
 //-----------------------------------------------------------------------------
 //* Initialize
 //! Saves pointer to video interface
