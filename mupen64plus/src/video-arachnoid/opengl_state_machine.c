@@ -77,8 +77,19 @@ GLboolean					sglIsEnabled			(GLenum cap)
 	return CapState[cap] ? GL_TRUE : GL_FALSE;
 }
 
+//CLIENT ACTIVE TEXTURE
+static GLenum ClientActiveTexture_texture;
+void sglClientActiveTextureARBs(GLenum texture)
+{
+	LOG(__func__);
+
+	ClientActiveTexture_texture = texture;
+	glClientActiveTextureARB(texture);
+}
+
 //CLIENT STATE
 static int 					ClientCapState[SGL_CLIENT_CAP_MAX];
+static int					ClientTextureCoordArrayState[8];
 static const int			ClientCapTranslate[SGL_CLIENT_CAP_MAX] = 
 {
 	GL_COLOR_ARRAY, GL_EDGE_FLAG_ARRAY, GL_FOG_COORD_ARRAY, GL_INDEX_ARRAY, GL_NORMAL_ARRAY, GL_SECONDARY_COLOR_ARRAY,
@@ -96,7 +107,14 @@ void sglEnableClientState(GLenum cap)
 
 	assert(cap < SGL_CLIENT_CAP_MAX);
 
-	if(!ClientCapState[cap])
+	if(cap == SGL_TEXTURE_COORD_ARRAY)
+	{
+		GLuint activeTexture = ClientActiveTexture_texture - GL_TEXTURE0;
+		assert(activeTexture < 8);
+		glEnableClientState(ClientCapTranslate[cap]);
+		ClientTextureCoordArrayState[activeTexture] = 1;
+	}
+	else if(!ClientCapState[cap])
 	{
 		glEnableClientState(ClientCapTranslate[cap]);
 		ClientCapState[cap] = 1;
@@ -113,6 +131,20 @@ void sglDisableClientState(GLenum cap)
 	}
 
 	assert(cap < SGL_CLIENT_CAP_MAX);
+
+	if(cap == SGL_TEXTURE_COORD_ARRAY)
+	{
+		GLuint activeTexture = ClientActiveTexture_texture - GL_TEXTURE0;
+		assert(activeTexture < 8);
+		glDisableClientState(ClientCapTranslate[cap]);
+		ClientTextureCoordArrayState[activeTexture] = 0;
+	}
+	else if(ClientCapState[cap])
+	{
+		glDisableClientState(ClientCapTranslate[cap]);
+		ClientCapState[cap] = 0;
+	}
+
 
 	if(ClientCapState[cap])
 	{
@@ -170,18 +202,21 @@ void sglSecondaryColorPointerEXTs(GLint size, GLenum type, GLsizei stride, const
 }
 
 //TEXCOORD POINTER
-static GLint TexCoordPointer_size;
-static GLenum TexCoordPointer_type;
-static GLsizei TexCoordPointer_stride;
-static const GLvoid* TexCoordPointer_pointer;
+static GLint TexCoordPointer_size[8];
+static GLenum TexCoordPointer_type[8];
+static GLsizei TexCoordPointer_stride[8];
+static const GLvoid* TexCoordPointer_pointer[8];
 void sglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid* pointer)
 {
 	LOG(__func__);
 
-	TexCoordPointer_size = size;
-	TexCoordPointer_type = type;
-	TexCoordPointer_stride = stride;
-	TexCoordPointer_pointer = pointer;
+	GLuint activeTexture = ClientActiveTexture_texture - GL_TEXTURE0;
+	assert(activeTexture < 8);
+
+	TexCoordPointer_size[activeTexture] = size;
+	TexCoordPointer_type[activeTexture] = type;
+	TexCoordPointer_stride[activeTexture] = stride;
+	TexCoordPointer_pointer[activeTexture] = pointer;
 	glTexCoordPointer(size, type, stride, pointer);
 }
 
@@ -320,16 +355,6 @@ void sglActiveTextureARBs(GLenum texture)
 	glActiveTextureARB(texture);
 }
 
-//CLIENT ACTIVE TEXTURE
-static GLenum ClientActiveTexture_texture;
-void sglClientActiveTextureARBs(GLenum texture)
-{
-	LOG(__func__);
-
-	ClientActiveTexture_texture = texture;
-	glClientActiveTextureARB(texture);
-}
-
 //BIND TEXTURE
 static GLuint BindTexture_ids[8];
 void sglBindTexture(GLenum target, GLuint texture)
@@ -352,6 +377,18 @@ void sglMatrixMode(GLenum mode)
 	glMatrixMode(mode);
 }
 
+//POLYGON OFFSET
+static GLfloat PolygonOffset_factor, PolygonOffset_units;
+
+void sglPolygonOffset(GLfloat factor, GLfloat units)
+{
+	LOG(__func__);
+
+	PolygonOffset_factor = factor;
+	PolygonOffset_units = units;
+	glPolygonOffset(factor, units);
+}
+
 //ENTER/EXIT
 float ModelViewMatrix[16];
 float ProjectionMatrix[16];
@@ -366,7 +403,20 @@ void sglEnter()
 	glVertexPointer(VertexPointer_size, VertexPointer_type, VertexPointer_stride, VertexPointer_pointer);
 	glColorPointer(ColorPointer_size, ColorPointer_type, ColorPointer_stride, ColorPointer_pointer);
 	glSecondaryColorPointerEXT(SecondaryColorPointer_size, SecondaryColorPointer_type, SecondaryColorPointer_stride, SecondaryColorPointer_pointer);
-	glTexCoordPointer(TexCoordPointer_size, TexCoordPointer_type, TexCoordPointer_stride, TexCoordPointer_pointer);
+
+	for(int i = 0; i != 2; i ++)
+	{
+		glClientActiveTexture(GL_TEXTURE0 + i);
+		glTexCoordPointer(TexCoordPointer_size[i], TexCoordPointer_type[i], TexCoordPointer_stride[i], TexCoordPointer_pointer[i]);
+		if(ClientTextureCoordArrayState[i])
+		{
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+		else
+		{
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+	}
 
 	glAlphaFunc(AlphaFunc_func, AlphaFunc_ref);
 	glBlendFunc(BlendFunc_sfactor, BlendFunc_dfactor);
@@ -379,6 +429,7 @@ void sglEnter()
 	glDepthMask(DepthMask_flag);
 	glDepthRange(DepthRange_nearVal, DepthRange_farVal);
 	glScissor(Scissor_x, Scissor_y, Scissor_width, Scissor_height);
+	glPolygonOffset(PolygonOffset_factor, PolygonOffset_units);
 	glMatrixMode(MatrixMode_mode);
 
 	for(int i = 0; i != SGL_CAP_MAX; i ++)
