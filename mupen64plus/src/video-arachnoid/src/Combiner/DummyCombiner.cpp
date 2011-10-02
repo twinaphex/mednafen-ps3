@@ -24,6 +24,8 @@
 #include "ExtensionChecker.h"
 #include "MultiTexturingExt.h"
 
+#include "../../opengl_state_machine.h"
+
 //-----------------------------------------------------------------------------
 //* Initialize
 //! Checks if multitexturing is supported

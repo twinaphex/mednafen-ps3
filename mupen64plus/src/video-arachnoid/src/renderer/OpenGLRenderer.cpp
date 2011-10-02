@@ -45,6 +45,8 @@ using std::max;
     #define GL_CLAMP_TO_EDGE  0x812F
 #endif
 
+#include "../../opengl_state_machine.h"
+
 bool ARB_multitexture = false;
 bool EXT_secondary_color = false;
 
