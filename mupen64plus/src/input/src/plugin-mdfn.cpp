@@ -154,6 +154,15 @@ EXPORT void CALL inputGetKeys( int Control, BUTTONS *Keys )
 	uint32_t v = Input::GetPort<2>(Control);
 	Keys->Value = ((v & 0xFF) << 24) | ((v & 0xFF00) << 8) | ((v & 0xFF0000) >> 8) | ((v & 0xFF000000) >> 24);
 #endif
+
+	uint8_t* data = Input::GetPortData(Control) + 2;
+	uint16_t right = *(uint16_t*)&data[0];
+	uint16_t left = *(uint16_t*)&data[2];
+	uint16_t down = *(uint16_t*)&data[4];
+	uint16_t up = *(uint16_t*)&data[6];
+
+	Keys->X_AXIS = (left > 0x2000) ? (0 - (left >> 9)) : (right >> 9);
+	Keys->Y_AXIS = (down > 0x2000) ? (0 - (down >> 9)) : (up >> 9);
 }
 
 
