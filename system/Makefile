@@ -61,7 +61,7 @@ SIMPLEINIFILES	:=	src/thirdparty/simpleini/ConvertUTF.c
 UTF8DECODEFILES	:=	src/thirdparty/utf8_decode/utf8_decode.c
 
 CFILES			+=	$(SIMPLEINIFILES) $(UTF8DECODEFILES)
-SOURCE			:=	src src/GUI opengl_common src/utility src/utility/Files 
+SOURCE			:=	src src/GUI opengl_common opengl_cg src/utility src/utility/Files 
 INCLUDE			+=	. src $(PLATFORM)  
 
 include $(CURDIR)/../Makefile-$(PLATFORM).base

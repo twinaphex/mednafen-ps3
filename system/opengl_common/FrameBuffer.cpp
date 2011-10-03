@@ -4,6 +4,10 @@
 //Use special naming for PS3 to support managing the texture entirely in video memory.
 #ifdef __CELLOS_LV2__
 # define	glTexImageBufferES(w,h)		glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, (w), (h), 0, GL_ARGB_SCE, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+# define	glGenRenderbuffersEXT		glGenRenderbuffersOES
+# define	glBindRenderbufferEXT		glBindRenderbufferOES
+# define	glRenderbufferStorageEXT	glRenderbufferStorageOES
+# define	GL_RENDERBUFFER_EXT			GL_RENDERBUFFER_OES
 #else
 # define	glTexImageBufferES(w,h)		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, (w), (h), 0, GL_RGB, GL_INT, 0);
 #endif

@@ -1,42 +1,36 @@
 #include <es_system.h>
 #include "Presenter.h"
-#include "Shaders.h"
-
-#ifndef __CELLOS_LV2__ //Don't need these files on PS3
-# include <Cg/cg.h>
-# include <Cg/cgGL.h>
-#endif
+#include "ShaderChain.h"
 
 namespace
 {
-	CGcontext					Context;
 	Texture*					Border;
-	GLShader*					Presenter;
+	GLShader*					PresenterO;
 }
 
-void							CgPresenter::Initialize				()
+void							LibESGL::Presenter::Initialize				()
 {
-	Context = cgCreateContext();
-	Presenter = new GLShader(Context, "", false, 1);
+	std::string path = LibES::BuildPath("assets/presets/stock.conf");	
+	PresenterO = GLShader::MakeChainFromPreset(path.c_str(), 1);
 }
 
-void							CgPresenter::Shutdown				()
+void							LibESGL::Presenter::Shutdown				()
 {
-	//TODO
+	Utility::Delete(PresenterO);
 }
 
-void							CgPresenter::SetFilter				(const std::string& aName, uint32_t aPrescale)
+void							LibESGL::Presenter::SetFilter				(const std::string& aName, uint32_t aPrescale)
 {
-	delete Presenter;
-	Presenter = GLShader::MakeChainFromPreset(Context, aName, aPrescale);
+	delete PresenterO;
+	PresenterO = GLShader::MakeChainFromPreset(aName, aPrescale);
 }
 
-void							CgPresenter::AttachBorder			(Texture* aTexture)
+void							LibESGL::Presenter::AttachBorder			(Texture* aTexture)
 {
 	Border = aTexture;
 }
 
-void							CgPresenter::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip)
+void							LibESGL::Presenter::Present					(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip)
 {
 	float xl = (float)aViewPort.X / (float)aWidth;
 	float xr = (float)aViewPort.Right() / (float)aWidth;
@@ -48,8 +42,8 @@ void							CgPresenter::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeigh
 		std::swap(yl, yr);
 	}
 
-	Presenter->SetViewport(xl, xr, yl, yr);
-	Presenter->Set(aOutput, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+	PresenterO->SetViewport(xl, xr, yl, yr);
+	PresenterO->Set(aOutput, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
 
 	GLuint borderTexture = 0;
 	if(Border)
@@ -58,6 +52,6 @@ void							CgPresenter::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeigh
 		borderTexture = Border ? Border->GetID() : 0;
 	}
 
-	Presenter->Present(aID, borderTexture);
+	PresenterO->Present(aID, borderTexture);
 }
 

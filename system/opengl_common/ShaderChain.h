@@ -4,12 +4,15 @@
 #define CG_TYPE(x)					struct _##x; typedef struct _##x* x;
 CG_TYPE(CGcontext)
 
-class								CgProgram;
+namespace LibESGL
+{
+	class							Program;
+};
 
 class								GLShader
 {
 	public:
-									GLShader				(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor);
+									GLShader				(const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor);
 									~GLShader				();
 
 		void						Apply					();
@@ -23,11 +26,11 @@ class								GLShader
 
 	public:
 		static inline void			ApplyVertexBuffer		(GLfloat* aBuffer, bool aColors, bool aBorder = false);
-		static GLShader*			MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale);
+		static GLShader*			MakeChainFromPreset		(const std::string& aFile, uint32_t aPrescale);
 
 	private:
 		GLShader*					Next;
-		CgProgram*					Program;
+		LibESGL::Program*			Program;
 
 		Area						Output;
 

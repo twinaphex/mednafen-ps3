@@ -1,6 +1,6 @@
 #include <es_system.h>
 #include <SDL.h>
-#include <opengl_common/Presenter.h>
+#include "opengl_common/Presenter.h"
 
 namespace
 {
@@ -45,12 +45,12 @@ void											ESVideoPlatform::Initialize				(uint32_t& aWidth, uint32_t& aHeig
 	glewInit();
 #endif
 
-	CgPresenter::Initialize();
+	LibESGL::Presenter::Initialize();
 }
 
 void											ESVideoPlatform::Shutdown				()
 {
-	CgPresenter::Shutdown();
+	LibESGL::Presenter::Shutdown();
 
 	//TODO
 }
@@ -68,17 +68,17 @@ bool											ESVideoPlatform::SupportsShaders		()
 
 void											ESVideoPlatform::AttachBorder			(Texture* aTexture)
 {
-	CgPresenter::AttachBorder(aTexture);
+	LibESGL::Presenter::AttachBorder(aTexture);
 }
 
 void											ESVideoPlatform::SetFilter				(const std::string& aName, uint32_t aPrescale)
 {
-	CgPresenter::SetFilter(aName, aPrescale);
+	LibESGL::Presenter::SetFilter(aName, aPrescale);
 }
 
 void											ESVideoPlatform::Present				(GLuint aID, uint32_t aWidth, uint32_t aHeight, const Area& aViewPort, const Area& aOutput, bool aFlip)
 {
-	CgPresenter::Present(aID, aWidth, aHeight, aViewPort, aOutput, aFlip);
+	LibESGL::Presenter::Present(aID, aWidth, aHeight, aViewPort, aOutput, aFlip);
 }
 
 
