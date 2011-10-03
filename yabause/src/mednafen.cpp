@@ -331,7 +331,7 @@ namespace MODULENAMESPACE
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 			glLoadIdentity();
-			glOrtho(0, ResolutionWidth, 0, ResolutionHeight, 1, 0);
+			glOrtho(0, ResolutionWidth, ResolutionHeight, 0, 1, 0);
 
 			glMatrixMode(GL_TEXTURE);
 			glPushMatrix();
