@@ -5,10 +5,6 @@
 #include "../opengl_cg/cgProgram.h"
 #include <Cg/cgGL.h>
 
-#ifdef ES_OPENGLES
-# define glOrtho					glOrthof
-#endif
-
 #if 0
 #define glSplat() {uint32_t i = glGetError(); if(i) {printf("%X\n", i); abort();}}
 #else
@@ -17,24 +13,46 @@
 
 namespace
 {
-	inline void						SetVertex							(GLfloat* aBase, float aX, float aY, float aU, float aV)
+	void							MakeVertexRectangle					(LibESGL::Vertex* aBuffer, uint32_t aVerticalFlip, float aLeft, float aRight, float aTop, float aBottom)
 	{
-		*aBase++ = aX; *aBase++ = aY; *aBase++ = 0.0f; *aBase++ = aU; *aBase++ = aV;
+		aBuffer[0].Set(-1.0f,	-1.0f,	aLeft, aVerticalFlip ? aBottom : aTop, 0xFFFFFFFF);
+		aBuffer[1].Set(1.0f,	-1.0f,	aRight, aVerticalFlip ? aBottom : aTop, 0xFFFFFFFF);
+		aBuffer[2].Set(1.0f,	1.0f,	aRight, aVerticalFlip ? aTop : aBottom, 0xFFFFFFFF);
+		aBuffer[3].Set(-1.0f,	1.0f,	aLeft, aVerticalFlip ? aTop : aBottom, 0xFFFFFFFF);
 	}
 
-	void							MakeVertexRectangle					(GLfloat* aBuffer, uint32_t aVerticalFlip, float aLeft, float aRight, float aTop, float aBottom)
+	void							ApplyVertexBuffer					(LibESGL::Vertex* aBuffer, bool aBorder)
 	{
-		SetVertex(aBuffer + 0,  0.0f,	0.0f,	aLeft, aVerticalFlip ? aBottom : aTop);
-		SetVertex(aBuffer + 5,  1.0f,	0.0f,	aRight, aVerticalFlip ? aBottom : aTop);
-		SetVertex(aBuffer + 10, 1.0f,	1.0f,	aRight, aVerticalFlip ? aTop : aBottom);
-		SetVertex(aBuffer + 15, 0.0f,	1.0f,	aLeft, aVerticalFlip ? aTop : aBottom);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, LibESGL::Vertex::Size(), &aBuffer[0].X);
+
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, LibESGL::Vertex::Size(), &aBuffer[0].U);
+
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_FLOAT, LibESGL::Vertex::Size(), &aBuffer[0].R);
+
+		if(aBorder)
+		{
+			glClientActiveTexture(GL_TEXTURE1);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			static const float texCoordS[] = {0, 0, 1, 0, 1, 1, 0, 1};
+			glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(float), texCoordS);
+			glClientActiveTexture(GL_TEXTURE0);
+		}
+		else
+		{
+			glClientActiveTexture(GL_TEXTURE1);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glClientActiveTexture(GL_TEXTURE0);
+		}
 	}
 }
 
 
-									GLShader::GLShader					(const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
+									LibESGL::ShaderChain::ShaderChain			(const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
 	Next(0),
-	Program(new LibESGL::Program(aFileName.c_str(), aFileName.c_str(), true, true)),
+	ShaderProgram(new Program(aFileName.c_str(), aFileName.c_str(), true, true)),
 	Output(0, 0, 0, 0),
 	InWidth(0),
 	InHeight(0),
@@ -51,7 +69,7 @@ namespace
 	Viewport[3] = 1.0f;
 }
 
-									GLShader::~GLShader					()
+									LibESGL::ShaderChain::~ShaderChain			()
 {
 	//Eat children (ungrateful bastards)
 	if(Next)
@@ -63,7 +81,7 @@ namespace
 	delete RenderTarget;
 }
 
-void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
+void								LibESGL::ShaderChain::Present				(GLuint aSourceTexture, GLuint aBorderTexture)
 {
 	if(Next)
 	{
@@ -80,13 +98,9 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 
 	//Update projection
 	glViewport(Output.X, Output.Y, Output.Width, Output.Height); glSplat();
-	glMatrixMode(GL_PROJECTION); glSplat();
-	glPushMatrix(); glSplat();
-	glLoadIdentity(); glSplat();
-	glOrtho(0, 1, 1, 0, -1, 1); glSplat();
 
 	//Apply state buffer
-	GLShader::ApplyVertexBuffer(VertexBuffer, false, ((Next == 0) && aBorderTexture) ? 1 : 0);
+	ApplyVertexBuffer(VertexBuffer, ((Next == 0) && aBorderTexture) ? 1 : 0);
 	Apply();
 
 	//Prep texture
@@ -101,10 +115,6 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 
 	//Update count
 	FrameCount ++;
-
-	//Clean up projection
-	glMatrixMode(GL_PROJECTION); glSplat();
-	glPopMatrix(); glSplat();
 
 	if(Next)
 	{
@@ -128,29 +138,29 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 	}
 }
 
-void								GLShader::Apply						()
+void								LibESGL::ShaderChain::Apply					()
 {
-	Program->Use();
+	ShaderProgram->Use();
 	
-	cgGLSetStateMatrixParameter((CGparameter)Program->ObtainToken("modelViewProj"), CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.video_size", true), InWidth, InHeight);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.texture_size", true), TextureWidth, TextureHeight);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.output_size", true), Output.Width, Output.Height);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.video_size", false), InWidth, InHeight);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.texture_size", false), TextureWidth, TextureHeight);
-	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.output_size", false), Output.Width, Output.Height);
+	cgGLSetStateMatrixParameter((CGparameter)ShaderProgram->ObtainToken("modelViewProj"), CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.video_size", true), InWidth, InHeight);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.texture_size", true), TextureWidth, TextureHeight);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.output_size", true), Output.Width, Output.Height);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.video_size", false), InWidth, InHeight);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.texture_size", false), TextureWidth, TextureHeight);
+	cgGLSetParameter2f((CGparameter)ShaderProgram->ObtainToken("IN.output_size", false), Output.Width, Output.Height);
 }
 
-void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
+void								LibESGL::ShaderChain::SetViewport			(float aLeft, float aRight, float aTop, float aBottom)
 {
 	Viewport[0] = aLeft;
 	Viewport[1] = aRight;
 	Viewport[2] = aTop;
 	Viewport[3] = aBottom;
-	MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+	MakeVertexRectangle(VertexBuffer, Next ? 0 : 1, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 }
 
-void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight)
+void								LibESGL::ShaderChain::Set					(const Area& aOutput, uint32_t aInWidth, uint32_t aInHeight, uint32_t aTextureWidth, uint32_t aTextureHeight)
 {
 	/* Copy settings */
 	if(Output != aOutput || InWidth != aInWidth || InHeight != aInHeight || TextureWidth != aTextureWidth || TextureHeight != aTextureHeight)
@@ -172,7 +182,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 		}
 
 		/* Update vertex buffer */
-		MakeVertexRectangle(VertexBuffer, Next ? 1 : 0, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
+		MakeVertexRectangle(VertexBuffer, Next ? 0 : 1, Viewport[0], Viewport[1], Viewport[2], Viewport[3]);
 	}
 
 	if(Next)
@@ -184,7 +194,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 //
 #include "src/thirdparty/simpleini/SimpleIni.h"
 
-GLShader*							GLShader::MakeChainFromPreset		(const std::string& aFile, uint32_t aPrescale)
+LibESGL::ShaderChain*				LibESGL::ShaderChain::MakeChainFromPreset	(const std::string& aFile, uint32_t aPrescale)
 {
 	if(!aFile.empty() && Utility::FileExists(aFile))
 	{
@@ -194,13 +204,13 @@ GLShader*							GLShader::MakeChainFromPreset		(const std::string& aFile, uint32
 		std::string shader1 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader", ""));
 		std::string shader2 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader2", ""));
 
-		GLShader* output = new GLShader(shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-		output->AttachNext(new GLShader(shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+		ShaderChain* output = new ShaderChain(shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+		output->AttachNext(new ShaderChain(shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
 		return output;
 	}
 	else
 	{
-		return new GLShader("", 0, 1);
+		return new ShaderChain(LibES::BuildPath("assets/shaders/stock.cg").c_str(), 0, 1);
 	}
 }
 

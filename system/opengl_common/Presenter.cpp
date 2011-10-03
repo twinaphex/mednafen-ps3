@@ -5,24 +5,24 @@
 namespace
 {
 	Texture*					Border;
-	GLShader*					PresenterO;
+	LibESGL::ShaderChain*		Chain;
 }
 
 void							LibESGL::Presenter::Initialize				()
 {
 	std::string path = LibES::BuildPath("assets/presets/stock.conf");	
-	PresenterO = GLShader::MakeChainFromPreset(path.c_str(), 1);
+	Chain = ShaderChain::MakeChainFromPreset(path.c_str(), 1);
 }
 
 void							LibESGL::Presenter::Shutdown				()
 {
-	Utility::Delete(PresenterO);
+	Utility::Delete(Chain);
 }
 
 void							LibESGL::Presenter::SetFilter				(const std::string& aName, uint32_t aPrescale)
 {
-	delete PresenterO;
-	PresenterO = GLShader::MakeChainFromPreset(aName, aPrescale);
+	delete Chain;
+	Chain = ShaderChain::MakeChainFromPreset(aName, aPrescale);
 }
 
 void							LibESGL::Presenter::AttachBorder			(Texture* aTexture)
@@ -42,8 +42,8 @@ void							LibESGL::Presenter::Present					(GLuint aID, uint32_t aWidth, uint32_
 		std::swap(yl, yr);
 	}
 
-	PresenterO->SetViewport(xl, xr, yl, yr);
-	PresenterO->Set(aOutput, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
+	Chain->SetViewport(xl, xr, yl, yr);
+	Chain->Set(aOutput, aViewPort.Width, aViewPort.Height, aWidth, aHeight);
 
 	GLuint borderTexture = 0;
 	if(Border)
@@ -52,6 +52,6 @@ void							LibESGL::Presenter::Present					(GLuint aID, uint32_t aWidth, uint32_
 		borderTexture = Border ? Border->GetID() : 0;
 	}
 
-	PresenterO->Present(aID, borderTexture);
+	Chain->Present(aID, borderTexture);
 }
 

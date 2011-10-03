@@ -343,10 +343,14 @@ bool						MednafenEmu::Frame				()
 
 	if(GameInfo->OpenGL && !RenderTarget)//HACK: If I put this in load game the frame buffer won't be created properly by OpenGL
 	{
-		RenderTarget = new FrameBuffer(GameInfo->fb_width, GameInfo->fb_height);
+		RenderTarget = new FrameBuffer(GameInfo->fb_width, GameInfo->fb_height, true);
 	}
 	if(RenderTarget)
 	{
+#ifndef __CELLOS_LV2__
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
+#endif
 		ESVideo::SetRenderTarget(RenderTarget);
 	}
 
@@ -355,6 +359,11 @@ bool						MednafenEmu::Frame				()
 	if(RenderTarget)
 	{
 		ESVideo::SetRenderTarget(0);
+
+#ifndef __CELLOS_LV2__
+		glPopAttrib();
+		glPopClientAttrib();
+#endif
 	}
 
 	Syncher.AddEmuTime(EmulatorSpec.MasterCycles / (NetplayOn ? 1 : Counter.GetSpeed()));
@@ -469,7 +478,7 @@ void						MednafenEmu::Blit				(uint32_t* aPixels, uint32_t aWidth, uint32_t aHe
 
 	if(RenderTarget)
 	{
-		ESVideo::PresentFrame(RenderTarget, output);
+		ESVideo::PresentFrame(RenderTarget, output, true);
 	}
 	else
 	{

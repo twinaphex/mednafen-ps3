@@ -75,26 +75,20 @@ const char* frag = "struct output {float4 color : COLOR;}; output main_fragment(
 namespace
 {
 	//HACK:
-	inline void							ApplyVertexBuffer	(GLfloat* aBuffer, bool aColors)
+	inline void							ApplyVertexBuffer	(GLfloat* aBuffer)
 	{
 		glEnableClientState(GL_VERTEX_ARRAY); glSplat();
+		glVertexPointer(3, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[0]); glSplat();
+
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY); glSplat();
-		glVertexPointer(3, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[0]); glSplat();
-		glTexCoordPointer(2, GL_FLOAT, (aColors ? 9 : 5) * sizeof(GLfloat), &aBuffer[3]); glSplat();
+		glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[3]); glSplat();
+
+		glEnableClientState(GL_COLOR_ARRAY); glSplat();
+		glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]); glSplat();
 
 		glClientActiveTexture(GL_TEXTURE1); glSplat();
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY); glSplat();
 		glClientActiveTexture(GL_TEXTURE0); glSplat();
-
-		if(aColors)
-		{
-			glEnableClientState(GL_COLOR_ARRAY); glSplat();
-			glColorPointer(4, GL_FLOAT, 9 * sizeof(GLfloat), &aBuffer[5]); glSplat();
-		}
-		else
-		{
-			glDisableClientState(GL_COLOR_ARRAY); glSplat();
-		}
 	}
 
 	LibESGL::Program*	UIShader;
@@ -121,7 +115,7 @@ void					ESVideo::Initialize				()
 
 	// Setup vertex buffer
 	VertexBuffer = (GLfloat*)malloc(VertexBufferCount * VertexSize * sizeof(GLfloat));
-	ApplyVertexBuffer(VertexBuffer, true);
+	ApplyVertexBuffer(VertexBuffer);
 
 	//Texture for FillRectangle
 	FillerTexture = new Texture(2, 2);
@@ -177,8 +171,7 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 	{
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); glSplat();
 		glViewport(0, 0, GetScreenWidth(), GetScreenHeight()); glSplat();
-		ApplyVertexBuffer(VertexBuffer, true);
-		glColor4f(0, 0, 0, 0); glSplat();
+		ApplyVertexBuffer(VertexBuffer);
 
 		UIShader->Use();
 	}
@@ -277,7 +270,7 @@ void					ESVideo::PresentFrame			(GLuint aID, uint32_t aWidth, uint32_t aHeight,
 		Present(aID, aWidth, aHeight, aViewPort, presentArea, aFlip);
 
 		/* Reset vertex buffer */
-		ApplyVertexBuffer(VertexBuffer, true);
+		ApplyVertexBuffer(VertexBuffer);
 	}
 	else
 	{
@@ -325,7 +318,6 @@ void					ESVideo::InitializeState		()
 
 void					ESVideo::EnterPresentState		()
 {
-	glColor4f(1, 1, 1, 1); glSplat();
 	glDisable(GL_BLEND); glSplat();
 	glDisable(GL_SCISSOR_TEST); glSplat();
 }
@@ -334,7 +326,6 @@ void					ESVideo::ExitPresentState		()
 {
 	glEnable(GL_BLEND); glSplat();
 	glEnable(GL_SCISSOR_TEST); glSplat();
-	glColor4f(0, 0, 0, 0); glSplat();
 
 	UIShader->Use();
 }
