@@ -1,7 +1,9 @@
 #include <es_system.h>
 #include "FrameBuffer.h"
-#include "Shaders.h"
-#include "CgProgram.h"
+#include "ShaderChain.h"
+
+#include "../opengl_cg/cgProgram.h"
+#include <Cg/cgGL.h>
 
 #ifdef ES_OPENGLES
 # define glOrtho					glOrthof
@@ -30,9 +32,9 @@ namespace
 }
 
 
-									GLShader::GLShader					(CGcontext& aContext, const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
+									GLShader::GLShader					(const std::string& aFileName, bool aSmooth, uint32_t aScaleFactor) :
 	Next(0),
-	Program(CgProgram::Get(aContext, aFileName)),
+	Program(new LibESGL::Program(aFileName.c_str(), aFileName.c_str(), true, true)),
 	Output(0, 0, 0, 0),
 	InWidth(0),
 	InHeight(0),
@@ -67,7 +69,7 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 	{
 		ESVideo::SetRenderTarget(RenderTarget);
 	}
-	else if(Program->Valid() && aBorderTexture)
+	else if(aBorderTexture)
 	{
 		glActiveTexture(GL_TEXTURE1); glSplat();
 		glEnable(GL_TEXTURE_2D); glSplat();
@@ -113,9 +115,7 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 	}
 	else
 	{
-		Program->Unapply();
-
-		if(Program->Valid() && aBorderTexture)
+		if(aBorderTexture)
 		{
 			glActiveTexture(GL_TEXTURE1); glSplat();
 			glBindTexture(GL_TEXTURE_2D, 0); glSplat();
@@ -130,7 +130,15 @@ void								GLShader::Present					(GLuint aSourceTexture, GLuint aBorderTexture)
 
 void								GLShader::Apply						()
 {
-	Program->Apply(InWidth, InHeight, TextureWidth, TextureHeight, Output.Width, Output.Height, FrameCount);
+	Program->Use();
+	
+	cgGLSetStateMatrixParameter((CGparameter)Program->ObtainToken("modelViewProj"), CG_GL_MODELVIEW_PROJECTION_MATRIX, CG_GL_MATRIX_IDENTITY);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.video_size", true), InWidth, InHeight);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.texture_size", true), TextureWidth, TextureHeight);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.output_size", true), Output.Width, Output.Height);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.video_size", false), InWidth, InHeight);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.texture_size", false), TextureWidth, TextureHeight);
+	cgGLSetParameter2f((CGparameter)Program->ObtainToken("IN.output_size", false), Output.Width, Output.Height);
 }
 
 void								GLShader::SetViewport				(float aLeft, float aRight, float aTop, float aBottom)
@@ -176,7 +184,7 @@ void								GLShader::Set						(const Area& aOutput, uint32_t aInWidth, uint32_t
 //
 #include "src/thirdparty/simpleini/SimpleIni.h"
 
-GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::string& aFile, uint32_t aPrescale)
+GLShader*							GLShader::MakeChainFromPreset		(const std::string& aFile, uint32_t aPrescale)
 {
 	if(!aFile.empty() && Utility::FileExists(aFile))
 	{
@@ -186,13 +194,13 @@ GLShader*							GLShader::MakeChainFromPreset		(CGcontext& aContext, const std::
 		std::string shader1 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader", ""));
 		std::string shader2 = LibES::BuildPath(std::string("assets/shaders/") + ini.GetValue("PS3General", "PS3CurrentShader2", ""));
 
-		GLShader* output = new GLShader(aContext, shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
-		output->AttachNext(new GLShader(aContext, shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
+		GLShader* output = new GLShader(shader1, ini.GetLongValue("PS3General", "Smooth", 0), ini.GetLongValue("PS3General", "ScaleFactor", 1));
+		output->AttachNext(new GLShader(shader2, ini.GetLongValue("PS3General", "Smooth2", 0), 1));
 		return output;
 	}
 	else
 	{
-		return new GLShader(aContext, "", 0, 1);
+		return new GLShader("", 0, 1);
 	}
 }
 

@@ -1,15 +1,69 @@
 #include <es_system.h>
-
 #include "opengl_common/FrameBuffer.h"
+
+#ifdef GLSL_IS_MY_FRIEND
+#include "opengl_glsl/glslProgram.h"
+
+const char* vert = "														\n\
+	uniform float screenWidth;												\n\
+	uniform float screenHeight;												\n\
+	void main()																\n\
+	{																		\n\
+		gl_Position.x = (gl_Vertex.x / screenWidth) * 2.0 - 1.0;			\n\
+		gl_Position.y = 0.0 - ((gl_Vertex.y / screenHeight) * 2.0 - 1.0);	\n\
+		gl_FrontColor = gl_Color;											\n\
+		gl_TexCoord[0] = gl_MultiTexCoord0;									\n\
+	}																		\n\
+";
+
+const char* frag = "														\n\
+	uniform sampler2D tex;													\n\
+	void main()																\n\
+	{																		\n\
+		vec4 texel = texture2D(tex, gl_TexCoord[0].st);						\n\
+		gl_FragColor = texel * gl_Color;									\n\
+	}																		\n\
+";
+#else
+#include "opengl_cg/cgProgram.h"
+
+const char* vert = "														\n\
+	void main_vertex														\n\
+	(																		\n\
+		float4 position	: POSITION,											\n\
+		float4 color	: COLOR,											\n\
+		float2 texCoord : TEXCOORD0,										\n\
+																			\n\
+		uniform float screenWidth,											\n\
+		uniform float screenHeight,											\n\
+																			\n\
+		out float4 oPosition : POSITION,									\n\
+		out float4 oColor    : COLOR,										\n\
+		out float2 otexCoord : TEXCOORD										\n\
+	)																		\n\
+	{																		\n\
+		oPosition.x = (position.x / screenWidth) * 2.0 - 1.0;				\n\
+		oPosition.y = 0.0 - ((position.y / screenHeight) * 2.0 - 1.0);		\n\
+		oColor = color;														\n\
+		otexCoord = texCoord;												\n\
+	}																		\n\
+";
+
+const char* frag = "struct output {float4 color : COLOR;}; output main_fragment(float4 color : COLOR, uniform sampler2D tex : TEXUNIT0, float2 texcoord : TEXCOORD0){output OUT; OUT.color = color * tex2D(tex, texcoord); return OUT;}";
+
+#endif
+
 
 //Rename tokens for OpenGL ES Support
 #ifdef ES_OPENGLES
-# define	glGenFramebuffersEXT		glGenFramebuffersOES
-# define	glDeleteFramebuffersEXT		glDeleteFramebuffersOES
-# define	glBindFramebufferEXT		glBindFramebufferOES
-# define	glFramebufferTexture2DEXT	glFramebufferTexture2DOES
-# define	GL_FRAMEBUFFER_EXT			GL_FRAMEBUFFER_OES
-# define	glOrtho						glOrthof
+# define	glGenFramebuffersEXT			glGenFramebuffersOES
+# define	glDeleteFramebuffersEXT			glDeleteFramebuffersOES
+# define	glBindFramebufferEXT			glBindFramebufferOES
+# define	glFramebufferTexture2DEXT		glFramebufferTexture2DOES
+# define	GL_FRAMEBUFFER_EXT				GL_FRAMEBUFFER_OES
+# define	glFramebufferRenderbufferEXT	glFramebufferRenderbufferOES
+# define	GL_DEPTH_ATTACHMENT_EXT			GL_DEPTH_ATTACHMENT_OES
+# define	GL_RENDERBUFFER_EXT				GL_RENDERBUFFER_OES
 #endif
 
 #if 0
@@ -42,12 +96,25 @@ namespace
 			glDisableClientState(GL_COLOR_ARRAY); glSplat();
 		}
 	}
-}
 
+	LibESGL::Program*	UIShader;
+}
 
 void					ESVideo::Initialize				()
 {
 	ESVideoPlatform::Initialize(ScreenWidth, ScreenHeight);
+
+	UIShader = new LibESGL::Program(vert, frag, false, false);
+	UIShader->Use();
+
+#ifdef GLSL_IS_MY_FRIEND
+	glUniform1f(UIShader->ObtainToken("screenWidth"), ScreenWidth);
+	glUniform1f(UIShader->ObtainToken("screenHeight"), ScreenHeight);
+	glUniform1i(UIShader->ObtainToken("tex"), 0);
+#else
+	cgGLSetParameter1f((CGparameter)UIShader->ObtainToken("screenWidth"), ScreenWidth);
+	cgGLSetParameter1f((CGparameter)UIShader->ObtainToken("screenHeight"), ScreenHeight);
+#endif
 
 	//Some settings
 	InitializeState();
@@ -103,6 +170,8 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FrameBufferID); glSplat();
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, aBuffer->GetID(), 0); glSplat();
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, aBuffer->GetDepthID());
+
+		LibESGL::Program::Revert();
 	}
 	else
 	{
@@ -110,6 +179,8 @@ void					ESVideo::SetRenderTarget		(FrameBuffer* aBuffer)
 		glViewport(0, 0, GetScreenWidth(), GetScreenHeight()); glSplat();
 		ApplyVertexBuffer(VertexBuffer, true);
 		glColor4f(0, 0, 0, 0); glSplat();
+
+		UIShader->Use();
 	}
 }
 
@@ -250,11 +321,6 @@ void					ESVideo::InitializeState		()
 	glEnable(GL_BLEND); glSplat();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); glSplat();
 	glViewport(0, 0, GetScreenWidth(), GetScreenHeight()); glSplat();
-
-	//Setup Projection
-	glMatrixMode(GL_PROJECTION); glSplat();
-	glLoadIdentity(); glSplat();
-	glOrtho(0, GetScreenWidth(), GetScreenHeight(), 0, -1, 1); glSplat();
 }
 
 void					ESVideo::EnterPresentState		()
@@ -269,6 +335,8 @@ void					ESVideo::ExitPresentState		()
 	glEnable(GL_BLEND); glSplat();
 	glEnable(GL_SCISSOR_TEST); glSplat();
 	glColor4f(0, 0, 0, 0); glSplat();
+
+	UIShader->Use();
 }
 
 
